@@ -93,6 +93,9 @@ define UBOOT_BUILD_CMDS
 	$(TARGET_CONFIGURE_OPTS) $(UBOOT_CONFIGURE_OPTS) 	\
 		$(MAKE) -C $(@D) $(UBOOT_MAKE_OPTS) 		\
 		$(UBOOT_MAKE_TARGET)
+	# build env tool from same source
+	$(MAKE) -C $(@D) $(UBOOT_MAKE_OPTS) \
+		HOSTCC=$(TARGET_CROSS)gcc HOSTSTRIP=$(TARGET_CROSS)strip env
 endef
 
 define UBOOT_BUILD_OMAP_IFT
@@ -102,6 +105,10 @@ endef
 
 define UBOOT_INSTALL_IMAGES_CMDS
 	cp -dpf $(@D)/$(UBOOT_BIN) $(BINARIES_DIR)/
+	# install env tool
+	install -m 0644 -D $(@D)/tools/env/fw_env.config $(TARGET_DIR)/etc
+	install -m 0755 -D $(@D)/tools/env/fw_printenv $(TARGET_DIR)/usr/sbin
+	ln -sf fw_printenv $(TARGET_DIR)/usr/sbin/fw_setenv
 	$(if $(BR2_TARGET_UBOOT_SPL),
 		cp -dpf $(@D)/$(BR2_TARGET_UBOOT_SPL_NAME) $(BINARIES_DIR)/)
 endef
