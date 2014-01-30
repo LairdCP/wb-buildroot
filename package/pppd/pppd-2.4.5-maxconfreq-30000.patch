@@ -1,0 +1,12 @@
+diff -urN ppp-2.4.5/pppd/fsm.h ppp-2.4.5-lt1/pppd/fsm.h
+--- ppp-2.4.5/pppd/fsm.h	2009-11-16 17:26:07.000000000 -0500
++++ ppp-2.4.5-lt1/pppd/fsm.h	2012-09-04 22:39:37.405603914 -0400
+@@ -145,7 +145,7 @@
+  */
+ #define DEFTIMEOUT	3	/* Timeout time in seconds */
+ #define DEFMAXTERMREQS	2	/* Maximum Terminate-Request transmissions */
+-#define DEFMAXCONFREQS	10	/* Maximum Configure-Request transmissions */
++#define DEFMAXCONFREQS	30000	/* Maximum Configure-Request transmissions */
+ #define DEFMAXNAKLOOPS	5	/* Maximum number of nak loops */
+ 
+ 
