@@ -12,3 +12,14 @@
 *.orig
 *.rej
 *~
+
+# ignore our git clones brought in via Repo
+/package/lrd-closed-source/externals/ath6kl_devkit
+/package/lrd-closed-source/externals/dhd
+/package/lrd-closed-source/externals/kernel
+/package/lrd-closed-source/externals/sdc2u_fips
+/package/lrd-closed-source/externals/sdc_cli
+/package/lrd-closed-source/externals/sdk
+/package/lrd-closed-source/externals/wpa_supplicant
+/package/lrd-devel/at91bootstrap3
+/package/lrd-devel/u-boot
