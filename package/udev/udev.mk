@@ -43,6 +43,18 @@ define UDEV_INSTALL_INITSCRIPT
 	$(INSTALL) -m 0755 package/udev/S10udev $(TARGET_DIR)/etc/init.d/S10udev
 endef
 
+define UDEV_NO_AUTO_LOAD_HANDLING
+	@echo UDEV_NO_AUTO_LOAD_HANDLING
+	# Avoid auto-loading all device drivers, with udev_182. (HACK)
+	# Some devices require firmware and are highly dependent on various conditions
+	# and thus handled by specific scripts.
+	( cd $(TARGET_DIR)/lib/udev; \
+	  [ -f rules.d/??-drivers.rules ] \
+	  && { mkdir -p rules.disabled; mv rules.d/??-drivers.rules rules.disabled; } || : \
+	)
+endef
+
 UDEV_POST_INSTALL_TARGET_HOOKS += UDEV_INSTALL_INITSCRIPT
+UDEV_POST_INSTALL_TARGET_HOOKS += UDEV_NO_AUTO_LOAD_HANDLING
 
 $(eval $(autotools-package))
