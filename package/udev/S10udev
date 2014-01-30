@@ -25,18 +25,19 @@ UDEV_CONFIG=/etc/udev/udev.conf
 test -r $UDEV_CONFIG || exit 6
 . $UDEV_CONFIG
 
-case "$1" in
+case $1 in
     start)
-        echo -n "Populating ${udev_root:-/dev} using udev: "
+        echo -n "Starting udev daemon, populating ${udev_root:-/dev} "
         echo -e '\000\000\000\000' > /proc/sys/kernel/hotplug
-        $UDEV_BIN -d || (echo "FAIL" && exit 1)
+        $UDEV_BIN -d || { echo "ERROR"; exit 1; }
         udevadm trigger
-        echo "done"
+        echo
         ;;
     stop)
-        # Stop execution of events
+        echo -n "Stopping execution of events, via udev... "
         udevadm control --stop-exec-queue
-        killall udevd
+        killall udevd 2>/dev/null
+        echo
         ;;
     *)
         echo "Usage: $0 {start|stop}"
@@ -46,3 +47,7 @@ esac
 
 
 exit 0
+##
+## report stuff relative to a device node
+##  udevadm info -a -n </dev/device>
+##
