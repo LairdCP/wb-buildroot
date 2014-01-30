@@ -1,0 +1,186 @@
+#!/bin/ash
+# network - init script for controlling all interfaces
+# jon.hefling@lairdtech.com 20120522
+#
+# This init-script serves to stop/start/restart all "auto" enabled interfaces
+# by checking the '/etc/network/interfaces' (/e/n/i) file.
+#
+# The /e/n/i file is parsed for '^auto <iface>' at each interface stanza. 
+# Alternately, this script can be invoked with a specific interface to act on. 
+#
+# Other setup-scripts in '/etc/network' and in '/etc/init.d/opt' may be called,
+# as necessary to create/remove an interface.  Most operations backgrounded.
+#
+# Some additional checks are made to determine whether a wired interface-phy
+# is really available to work with. This can be an issue with some hw setups.
+#
+# If available, ifrc.sh (interface-run-config) handles the configuration work.
+#
+# A testmode is invoked by appending ' -x' in the 1st line of the /e/n/i file.
+#
+eni=/etc/network/interfaces
+log=${rcS_log:-/var/log/nis}
+
+ifconfig=/sbin/ifconfig
+ifrc=/etc/network/ifrc.sh
+wifi=/etc/network/wireless.sh
+bridge=/etc/network/bridge.sh
+
+pppd=/etc/init.d/opt/S??pppd
+g_ether=/etc/init.d/opt/S??g_ether
+
+# Check /e/n/i
+test -s $eni \
+|| { test -s $eni~ && mv -f $eni~ $eni; } \
+|| { rm -f $eni~ && gzip -fdc $eni~.gz >$eni; } \
+|| { printf "# $eni - nis\n\nauto lo\niface lo inet loopback\n\n\n" >$eni; }
+
+# Check /e/n/i option for testmode.
+{ read -r nopt < $eni; } 2>/dev/null
+if [ ${nopt##*${eni}}"" == -x ]
+then
+  # the 1st line contained the testmode flag
+  tm=echo && echo \ \ $0 $@ [TESTMODE ACTIVE]
+fi
+
+# An optionally specified iface is shifted into the device-list to act on. 
+# Parse the /e/n/i for '^auto <iface>' enabled stanzas, in lieu of given iface.
+case $1 in
+  restart) ## ignored, bypass this step
+    ;;
+  stop|start) ## check /e/n/i 
+    ls=; devls=$( sed -n 's/^auto \([a-z][a-z0-9]*\).*$/\1/p' $eni )
+    test $1 != start && for dev in $devls; do ls=$dev\ $ls; done && devls=$ls
+    ;;
+  *) ## <iface> assumed
+    [ -n "$1" ] && devls=$1 && shift
+    ;;
+esac
+
+
+bring() {
+  # args: <dev> <up/down> <start/stop>
+
+  [ "${2:0:1}" == "u" ] && up=true && dn=false
+  [ "${2:0:1}" == "d" ] && up=false && dn=true
+  
+  echo \ \ bring: $@
+  case "$1" in
+  
+    lo) ## loopback support
+      $tm $ifrc $1 $2 &
+      $dn && wait && $tm $ifconfig $1 $2
+      ;;
+    
+    eth*) ## ethernet device support
+      # must re-exec using alias for non-wired-ethernet devices; exit if tm
+      [ -d /sys/class/net/$1/wireless ] \
+      && { $tm exec $0 wl $3; exit 0; }
+
+      # check if wired-interface-phy is really there, when doing 'up'
+      if [ ! -f /sys/class/net/$1/uevent ] \
+      || grep -q Generic /sys/class/net/$1/*/uevent 2>/dev/null
+      then
+        # the phy should be identified... (or probably floating hw)
+        echo \ \ interface-phy $1 is not available
+      else
+        # ifrc script handles eth* up, config, or deconfig
+        $tm $ifrc $1 $2 $method &
+      fi
+      $dn && wait && $tm $ifconfig $1 $2
+      ;;
+
+    ppp*) ## point-to-point protocol support 
+      $dn && $tm $ifrc $1 $2
+      $tm $pppd $3
+      $up && $tm $ifrc $1 $2 &
+      ;;
+
+    usb*) ## usb-g_ether support
+      $dn && $tm $ifrc $1 $2
+      $tm $g_ether $3
+      $up && $tm $ifrc $1 $2 $method &
+      ;;
+
+    wl*) ## wireless device support
+      # maybe using 'wl' as alias for wireless
+      # the wireless script handles device up/down
+      # and the ifrc script will handle configuration
+      $tm $wifi $3
+      $up && $tm $ifrc $1 $2 $method &
+      $dn && wait
+      ;;
+
+    br*) ## bridge-mode support
+      $dn && $tm $ifrc $1 $2
+    # $dn && wait && $tm $ifconfig $1 $2
+      $tm $bridge $3 $1
+      $up && $tm $ifrc $1 $2 $method & 
+      ;;
+
+    *) ## unhandled interface name
+      echo \ \ ...unhandled interface name
+      ;;
+  esac
+}
+
+check_ifrc() {
+  # warn if the ifrc utility is missing/disabled, fallback to ifconfig
+  if [ -x $ifrc ]
+  then
+    if [ -f /etc/default/ifrc.disable ]
+    then
+      echo \ \ /etc/default/ifrc.disable exists ...not using ifrc to configure
+      return 1
+    fi
+  else
+    echo \ \ $ifrc missing ...not using ifrc to configure
+    return 1
+  fi
+  return 0
+}
+
+
+# Set wait or no-wait.
+wnw=wait
+
+# Act on interfaces in device-list.
+case $1 in
+    
+  stop)
+    echo -n Stopping network interfaces... #$devls
+    #
+    check_ifrc || ifrc=$ifconfig
+    for dev in $devls; do echo -n \ $dev; bring $dev down $1 >>$log; $wnw; done
+    echo
+    ;;
+  
+  start)
+    echo Starting network interfaces... $devls
+    #
+    # prevent general configurations when also doing bridge_mode
+    #echo \ $devls |grep -q " br[i0-9]" && method=manual
+    [ "$2" == "manual" ] && method=manual
+    #
+    check_ifrc || ifrc=$ifconfig
+    for dev in $devls; do ( bring $dev up $1 $method >>$log )& : $wnw; done
+    ;;
+    
+  restart)
+    echo Restarting network...
+    $0 $devls stop
+    $0 $devls start
+    ;;
+  
+  *)
+    echo "This script handles all interface-phy-hw init."
+    echo "Calls on other network init-scripts as necessary."
+    echo "The /e/n/i file is checked for \"auto <iface>\" stanzas."
+    echo "Or, you may specify an <iface> to act on, and <args...>."
+    echo "Usage:"
+    echo "  ${0##*/} [<iface>] {stop|start|restart} [<args...>]"
+    exit 1
+esac
+
+exit 0
+

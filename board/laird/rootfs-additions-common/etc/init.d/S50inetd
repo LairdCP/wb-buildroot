@@ -1,0 +1,74 @@
+#!/bin/sh
+# inetd - super server initialization (nonblocking)
+# This allows using TCPwrappers to respond to a requested protocol. 
+#
+# Configure services that are enabled in /etc/inetd.conf, and then start inetd.
+# Each service daemon's init-script to be used, must reside in /etc/init.d/opt.
+# jon.hefling@lairdtech.com
+
+rcS_log=${rcS_log:-/dev/null}
+
+inetd_daemon_check()
+{
+  for srv in `sed -n 's/^[#]*\([a-z]\+\).*/\1/p' /etc/inetd.conf 2>/dev/null`
+  do
+    # parse daemon-executable, daemon-name, daemon-init-script
+    daemon_exec=$( awk /^$srv/'{ print $6 }' /etc/inetd.conf )
+    daemon_name=${daemon_exec##*/}
+    daemon_init=/etc/init.d/opt/S??${daemon_name}
+    #
+    # check if this service daemon can be enabled
+    [ -n $daemon_name"" ] || { echo "  $srv is disabled"; continue; }
+    [ -x $daemon_exec"" ] || { echo "  $srv is n/a, missing"; continue; }
+    [ -x $daemon_init"" ] || { echo "  $srv init is n/a, disabled"; continue; }
+    #
+    echo "  $srv is setting up..."
+    # wait on any net-init firstly, to avoid conflicts due to excessive load
+    # run an enabled daemon-init-script to perform a pre-check in background
+    # ( this allows the service to be started quickly when actually needed )
+    # and add each daemon-init pid to list, to wait on before starting inetd
+    #
+    ( wait $net_init_pids; $daemon_init check >>$rcS_log; )&
+    srv_init_pids=$srv_init_pids\ $!
+  done
+}
+
+# find any network and bridge init-script pids
+let net_init_pids=$( ps |sed -n '/[S]..[nb][er][ti][wd][og][re]/s/^\ *\([0-9]\+\).*/\1/p' )+0
+
+export inetd_=^
+case $1 in
+
+  reload)
+    echo "Reloading inetd configuration."
+    killall -s HUP inetd
+    ;;
+    
+  restart)
+    $0 stop
+    $0 start
+    ;;
+    
+  start)
+    echo "Starting inetd services..."
+    # the config file is required
+    if [ ! -f /etc/inetd.conf ]
+    then
+      echo /etc/inetd.conf file missing, aborted
+      exit 1
+    fi
+    inetd_daemon_check
+    # wait in background to run super server 
+    ( wait $srv_init_pids; /usr/sbin/inetd && echo "  inetd running" >>$rcS_log )&
+    ;;
+    
+  stop)
+    echo "Stopping inetd services."
+    killall inetd 2>/dev/null
+    ;;
+
+  *)
+    echo "Usage: $0 {stop|start|restart|reload}"
+    ;;
+esac
+exit 0

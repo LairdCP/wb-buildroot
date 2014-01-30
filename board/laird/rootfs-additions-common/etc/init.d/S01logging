@@ -1,0 +1,41 @@
+#!/bin/sh
+# logging services
+#
+
+case $1 in
+
+  stop)
+    echo -n "Stopping logging services:"
+    
+    killall syslogd \
+    && echo -n " syslogd"
+    
+    killall klogd \
+    && echo -n " klogd"
+    
+    echo
+    ;;
+	
+  start)
+    echo -n "Starting logging services:"
+    
+    /sbin/syslogd -D -C32 -m0 \
+    && echo -n " syslogd"
+    
+    /sbin/klogd \
+    && echo -n " klogd"
+    
+    echo
+    ;;
+	
+  restart)
+    $0 stop
+    $0 start
+    ;;
+
+  *)
+    echo "Usage: $0 {stop|start|restart}"
+    exit 1
+esac
+
+exit 0

@@ -1,0 +1,34 @@
+#!/bin/sh
+# hwclock
+
+
+case $1 in
+  
+  stop)
+    ;;
+  
+  start)
+    if [ -d /sys/devices/platform/at91_rtt.0 ]
+    then
+    ## fix invalid rtc settings upon boot
+    ## rtc-at91sam9 at91_rtt.0: hctosys: unable to read the hardware clock
+    ##                                                                    
+    ## Without battery backup, the rtc has uninitialized registers;
+    ## hwclock reports:                                            
+    ##   ioctl() to /dev/rtc0 to turn on update interrupts failed unexpectedly:
+    ##   Invalid or incomplete multibyte or wide character                     
+    ##                                                    
+    if ! read -r se < /sys/devices/platform/at91_rtt.0/rtc/rtc0/since_epoch
+    then
+      echo "  ...initializing the rtc in lieu of battery"                     
+      /sbin/hwclock -w 2>/dev/null &
+    fi
+    fi
+    ;;
+
+
+
+esac
+exit 0
+
+

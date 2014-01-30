@@ -1,0 +1,5 @@
+# fe - find executables by searching env path
+# tiny replacement for 'which -a'
+# jon.hefling@lairdtech.com
+#
+{ [ -n "$1" ] && for p in ${PATH//:/ }; do [ -x "$p/$1" ] && echo $p/$1; done; }

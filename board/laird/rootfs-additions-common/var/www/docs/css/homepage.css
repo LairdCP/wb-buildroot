@@ -1,0 +1,149 @@
+/*  Slide Show  */
+	#gallery, .ie #gallery, .ie #gallery {
+		z-index:0;
+		position:relative;
+		left:0px;
+		height:210px;
+		padding:0;
+		}
+	.win.gecko #gallery li {
+		width:450px;
+		}
+	#gallery li {
+		position:relative;
+		float:left;
+		display: block;
+		width:900px;
+		height:210px;
+		margin-left:0px;
+		list-style:none;
+		border:none;
+		}
+	#gallery li img {
+		border:none;
+		}
+	#gallery a {
+		text-decoration:none;
+		color:#e6e6e6;
+		padding:0;
+		margin:0;
+		height:0px;
+		}
+	#gallery h1, p {
+		font-family: Calibri, Georgia, Verdana;
+		position:relative;
+		float:left;
+		padding:0 0 0 10px;
+		}
+	#gallery h1{
+		top:40px;
+		font-size:32px;
+		}	
+	#gallery p{
+		top:50px;
+		font-size:24px;
+		width:420px;
+		}
+	.slideshowTitle1, .slideshowTitle2, .slideshowTitle3 {
+		position:relative;
+		float:left;
+		left:450px;
+		top: -0px;
+		width:450px;
+		height:210px;
+		}
+	.ssPic {
+		position:relative;
+		float:left;
+		left:0px;
+		top:0px;
+		}
+	.slideshowTitle2 {background:#666666;	}
+	.slideshowTitle1 {background:#25597e;}
+	.slideshowButtons {
+		position:relative;
+		left:462px;
+		top:-40px;
+		width:100px;
+		}
+	.slideshowButtons a {
+		padding:0 5px 0 0;
+		}
+/* End Slide Show */
+
+/* Side Menu Options */
+	#sideColumn {
+		float:left;
+		position:relative;
+		top:0px;
+		left:0px;
+		width:200px;
+		margin:15px 0px 10px 10px;
+		padding:15px 15px 0 15px;
+		display:inline;
+		}
+	#sideColumn p.date {
+		letter-spacing:1.75px;
+		color:#a0a0a0;
+		font-size:14px;
+		margin: 0px;
+		padding:0 0 17px 0;
+		}
+	#sideColumn p.title {
+		letter-spacing:.5px;
+		padding:0 0 18px 0;
+		font-size:14px;
+		color:#000000;
+		margin : 0px;
+		line-height:18px;
+		}
+	#sideColumn p.link {
+		letter-spacing:1.75px;
+		font-size:14px;
+		text-decoration:none;
+		margin: 0 10px 10px 0;
+		padding:0 0 8px 0;
+		display:block;
+		}	
+	#sideColumn a {color: #ee0000;}
+/* Side Menu Options End*/
+
+/* Main Column */
+	#mainColumn {
+		left:-5px;
+		top: 17px;
+		width:610px;
+		position:relative;
+		float:left;
+		color:#000000;
+		padding:10px 0 0 10px;
+		border-left:2px solid #e6e6e6;
+		}
+	#mainColumn h2{
+		font-family:arial; 
+		font-weight:600;
+		padding:0 0 25px 0;
+		font-size:22px;
+		color:#000000;
+		letter-spacing:.75px;
+		}
+	#mainColumn p{
+		font-size:18px;
+		margin:0;
+		padding:0;
+		letter-spacing:.75px;
+		font:calibri;
+		line-height:22px;
+		}
+	#footer {
+		font-size:9px;
+		position:relative;
+		float:left;
+		top:30px;
+		left:-12px;
+		width:500px;
+		color:#a0a0a0;
+		padding:10px 0 0 10px;
+		border-left:2px solid #e6e6e6;
+		}
+/* End Main Column */

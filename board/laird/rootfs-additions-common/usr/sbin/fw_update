@@ -1,0 +1,630 @@
+#!/usr/bin/env ash
+# FirmWare Update Utility for WB40NBT/WB45NBT Linux
+# Jon Hefling, jon.hefling@lairdtech.com, 29-Jun'12
+#
+VERSION=20130313
+SELF=${0##*/}
+NS_PORT=2012
+TM_FILE=/etc/default/$SELF.test
+
+# firmware-update-list file containing md5sums
+FWUL=/tmp/fw.txt
+FIFO=/tmp/fw.fifo
+
+# binary image files
+AT91BS_IMG=bootstrap.bin
+U_BOOT_IMG=u-boot.bin
+KERNEL_IMG=kernel.bin
+ROOTFS_IMG=rootfs.bin
+
+
+show_usage_info() {
+  cat <<__End_Of_Usage_Block
+This utility is used to update WB firmware in Flash:
+  a) via a remote HTTP/FTP server
+  b) with locally attached USB media
+  This process must not be interrupted!
+
+Optionally, the 'fw_select' utility can be used to:
+  a) manually set the kernel-a/b and rootfs-a/b ...to use upon reboot
+  b) transfer select files from the previously used rootfs
+  c) restore/recover u-boot_env defaults
+  d) show current settings
+
+Using 'fw_update':
+  A firmware-update-list file [${FWUL##*/}] is required for accessing binary
+  images on a remote server.  It may be downloaded using the '--url' option.
+  This file contains a URL for each binary image file and its MD5sum.  Any
+  lines beginning with a '#' will be ignored.  If this file exists, then the
+  remote method (wget) will be attempted.
+
+  The local media method is assummed, in lieu of a firmware-update-list, and
+  the current directory (or specified path) is searched for any binary images.
+
+  The kernel and rootfs images are each stored as -a/-b versions in Flash,
+  and are alternately targetted, when updating.  
+ 
+  If the kernel/rootfs update does not successfully complete, then you should
+  be able to re-attempt the update again.  Note, that the bootstrap and u-boot
+  images should only be updated if very neccessary.
+
+  If '/tmp/alt_rootfs.transfer-list' exists, then 'fw_select --transfer push'
+  is also run.  (see fw_select for details)
+
+  To avoid extended operations at end of the update procedure, use '-x' flag.
+    ...this disables automatic: notify, transfer, reboot
+
+  Examples of usage:
+  remote method... 
+  # $SELF [-x] [--url http://<server/path/to/images>/${FWUL##*/}]
+  # $SELF [-x] [--url ftp://<server/path/to/images>/${FWUL##*/}]
+
+  locally attached media... (USB Flash Drive)
+  # $SELF [-x] [<path/to/images/directory>]
+
+__End_Of_Usage_Block
+}
+
+json_notification() {
+  name=${wb:-wb}
+  [ -n "$1" ] && status="\"status\": \"$1\","
+  [ -n "$2" ] && message="\"message\": \"$2\""
+  cat <<__END-OF-JSON-NOTIFICATION-BLOCK
+  {\"$name\": {
+    \"mac\": \"`grep -so ..:. /sys/class/net/eth0/address 2>/dev/null`\",
+    \"version\": \"`grep -m1 -so '[^ ]*$' /etc/\*-release 2>/dev/null`\",
+    $status
+    $message
+  }
+__END-OF-JSON-NOTIFICATION-BLOCK
+}
+
+xml_notification() {
+  name=${wb:-wb}
+  [ -n "$1" ] && status="<status>$1</status>"
+  [ -n "$2" ] && message="<message>$2</message>"
+  cat <<__END-OF-XML-NOTIFICATION-BLOCK
+  <$name id=`grep -so ..:. /sys/class/net/eth0/address 2>/dev/null`>
+  <version>`grep -m1 -so '[^ ]*$' /etc/\*-release 2>/dev/null`</version>
+    $status
+    $message
+  </$name>
+__END-OF-XML-NOTIFICATION-BLOCK
+}
+
+led0() {
+  # args: <mS_off> [<mS_on>]
+  led=led0
+  if [ -d "/sys/class/leds/$led" ]
+  then
+    read -r max </sys/class/leds/$led/max_brightness
+    let max=$max+0
+    let min=0
+    if let ms=$1+0
+    then
+      echo $max >/sys/class/leds/$led/brightness
+      echo timer >/sys/class/leds/$led/trigger
+      echo $ms >/sys/class/leds/$led/delay_off
+      echo ${2:-$ms} >/sys/class/leds/$led/delay_on
+    else
+      echo $min >/sys/class/leds/$led/brightness
+    fi
+  fi
+}
+
+exit_error() {
+  # arg1 is optional exit-context-message
+  [ -n "$1" ] && echo -e \ \ ..."$@" >&2
+  if $extend_op
+  then
+    if [ -n "$nsap" ]
+    then
+      $0 --n $nsap update_error
+    fi
+  fi
+  led0 0
+  exit 1
+}
+
+n_sync_updated() {
+  led0 500 500
+  echo
+  if ! $extend_op
+  then
+    nsap=
+  else
+    if [ -n "$nsap" ] \
+    && $0 --n $nsap update_pending
+    then
+      echo -en Awaiting remote update message.
+      { let ds=9; while let ds-=1; do sleep 1; echo -en .; done; }&
+      rum=$( $nc -l -w9 -p${nsap##*:} 2>/dev/null \
+           |sed -n "/->|<-\ */s/^.....\ *//p" )
+      echo ${rum:+OK}
+    fi
+    [ -n "$nsap" ] && nsap=nsap=$nsap
+  fi
+  [ -n "$at91bs" ] && at91bs=at91bs=$at91bs
+  [ -n "$u_boot" ] && u_boot=u_boot=$u_boot
+  [ -n "$kernel" ] && kernel=kernel=$kernel
+  [ -n "$rootfs" ] && rootfs=rootfs=$rootfs
+  echo -en Sync\'ing updated_% $nsap $at91bs $u_boot $kernel $rootfs ' ' #'
+  $tm
+  [ -n "$kernel" -a -n "$bootcmd" ] && $fw_setenv bootcmd $bootcmd
+  [ -n "$rootfs" -a -n "$bootargs" ] && $fw_setenv bootargs $bootargs
+  $fw_setenv updated_% $at91bs $u_boot $kernel $rootfs "$rum" $nsap
+  sync
+  echo -e "\nDone."
+  led0 200 800
+}
+
+# set testmode if TM_FILE exists
+test -f "$TM_FILE" && tm=echo\ -e || tm=
+
+# set command utilities - no writes in testmode
+flash_erase=$tm\ flash_erase
+nandwrite=$tm\ nandwrite
+copy=cat
+nc=$tm\ nc
+wget=wget
+
+# check for exit-flag, disable extended operations after update
+[ "$1" == "-x" ] && { shift; extend_op=false; } || extend_op=true
+
+clx='printf `usleep 333333` \\033[1K\\r'
+ask() { read -rst1 -n999 a; eval ${@##* }=; read -r "$@"; eval $clx; }
+
+# check fw_printenv
+fw_printenv=fw_printenv
+fw_setenv=$tm\ fw_setenv
+if ! fw_printenv >/dev/null
+then
+  test -f /etc/fw_env.config || echo "  ...missing: /etc/fw_env.config"
+  ${tm:-exit 1}
+fi
+
+# check description of machine: <string> and determine settings
+md=$( sed -n 's/Hardware.*: \(.*\)/\1/p' /proc/cpuinfo )
+case $md in
+  'Workgroup Bridge 40N'*) ### arch/arm/mach-at91/board-wb40n.c
+    wb=wb40nbt                                                
+    ;;
+  'Workgroup Bridge 45N'*) ### arch/arm/mach-at91/board-dt.c
+    wb=wb45nbt
+    ;;                                                                       
+  *) ### unknown architecture...
+    grep -e ^Processor -e ^Hardware /proc/cpuinfo
+    echo "  ...unsupported"
+    ${tm:-exit 1}
+    fw_printenv=$tm\ $fw_printenv
+    ;;
+esac
+case $wb in
+  wb40n*) ### settings for imageset a/a, add to get b/b
+    NWBPS=1000000
+    UBM=0x21000000
+    KIS=0x00200000
+    KIA=0x000a0000
+    KIP=3
+    RIP=5
+    RIP_opt=
+    ;;
+  wb45n*) ### settings for imageset a/a, add to get b/b
+    NWBPS=2000000
+    UBM=0x22000000
+    KIS=0x00280000
+    KIA=0x000e0000
+    KIP=4
+    RIP=6
+    RIP_opt=-n
+    ;;
+esac
+
+
+# options, only use one
+case $1 in
+  --usage) ## detailed usage info and some examples
+    $0 -h
+    show_usage_info
+    exit 0
+    ;;
+
+  --show) ## show the MD5sum's in Flash and in the FWUL (if available)
+    echo -e \# $wb ${tm:++tm} md5sums
+    echo -e "\nu-boot:"
+    fw_printenv |sed -n '/md5_/s/\(.*\)=\(.*\)/\t\t\2\r\1/p'
+    echo -e "\n$FWUL:"
+    sed '/^[hf][t]\+p:\/\//s/ /\n\t\t/g' $FWUL 2>/dev/null \
+    || echo "  ...not found"
+    echo
+    exit 0
+    ;;
+
+  --url) ## remote upgrade via http:// or ftp://<server/path/to/images>/fw.txt
+    [ -n "$2" ] \
+    || exit_error "specify URL to retrieve the firmware-update-list from"
+    # expected format:
+    # <wget-address/path/to/version/firmware-update-list> [<address:port>]
+    # try to get optionally given nsap or rely on the implied nsap as backup
+    # parse specified nsap or parse url server address w/default port for nsap
+    nsap="${2##*${FWUL##*/}} $( echo ~nsap=${2##*//} |cut -d/ -f1 ):$NS_PORT "
+    nsap=$( echo "$nsap" |sed -n "s/.*nsap=\(.*:[0-9]*\) .*/\1/p" )
+    [ -n "$tm" ] && echo "  --url_nsap=$nsap"
+    remote_version=$( echo $2 |sed -n "s/.*\/\(.*\)\/${FWUL##*/}.*/\1/p" )
+    fwul_url=$2
+    shift 2
+    ;;
+    
+  --tm) ## set testmode [{verbose|off}]
+    [ "$2" == "off" ] && rm -fv $TM_FILE || echo $2 >$TM_FILE; exec $0 --
+    ;;
+    
+  --n*) ## notify remote via udp <addr:port> <status> [<message>]
+    echo -e "Notifying update configuration server: $3"
+    nc --version 2>&1 |grep -q BusyBox \
+    || { echo "  ...error: must have busybox netcat"; exit 1; }
+    [ $# -ge 3 ] \
+    || { echo "  ...error: invalid parameters"; exit 1; }
+    sync
+    $nc -u $2 -e echo $( xml_notification $3 "$4" ) \
+    || { echo "  ...failed tx: $1:$2"; exit 1; }
+    exit 0
+    ;;
+    
+  --) ## affirm executable, version and mode
+    echo $SELF v$VERSION ${tm:+testmode_active}
+    exit 0
+    ;;
+
+  -h|--help) # quick help
+    echo "Options:   (exclusive)"
+    sed -n 's/\(^  --[a-z]*\)[\*]*) ## \(.*\)/\1    \2/p' $0
+    echo "Flags:"
+    echo "  -x   exit after update (no automatic: notify, transfer, reboot)"
+    echo -e "Usage:\n  $SELF [flag] [option]\n"
+    exit 0
+    ;;
+    
+  -*)
+    exit_error "unknown option specified"
+esac
+
+# process a firmware update list URL, if we have one
+if [ -n "$fwul_url" ]
+then
+  # firstly, prepare for remote updating
+  # wget:
+  #  option --spider is supported by both, but busybox version is crippled
+  #  option -t <retries> is not documented for busybox version
+  #  connect-timeout appears to be unsupported/broken
+  #  error messages are generally different
+  #
+  # determine wget version and set appropriate options
+  case $( $wget --version 2>&1 |sed -n '/^BusyBox\|^GNU/s/\ .*//p' ) in
+    BusyBox)
+      WGET_OPT=
+      WGET_RETRY='-t 1'  #?#
+      WGET_VERSION=busybox
+      ;;
+    GNU)
+      WGET_OPT='-nv'
+      WGET_RETRY='-t 1'
+      WGET_VERSION=gnu
+      ;;
+    *)
+      exit_error "wget utility not found, aborted"
+      ;;
+  esac
+  
+  # check if server is responsive
+  serv=`echo ${fwul_url##*//} |cut -d/ -f1`
+  ping -W 1 -c 1 $serv >/dev/null \
+  && echo "Requesting $fwul_url" \
+  || exit_error "no response from server: $serv"
+
+  # download firmware-update-list file
+  $wget $WGET_OPT $WGET_RETRY $fwul_url -O $FWUL 2>/dev/null \
+  && echo "Downloaded firmware-update-list for $remote_version => $FWUL" \
+  || exit_error "could not retrieve \"${FWUL##*/}\""
+fi
+
+# parse the firmware-update-list FILE of md5sums, if we have one
+# otherwise, we search local media, using optionally specified path
+if [ -f $FWUL ]
+then
+  [ -s $FWUL ] || exit_error "$FWUL is zero-length file, aborted"
+
+  echo "Accessing images via remote server."
+  ${tm:-:} "${FWUL}:\n`cat ${FWUL} |sed -n 's/\(^[^#].*bin\).*/  \1/p'`"
+  eval AT91BS_IMG=`sed -n "/^[^#].*\/$AT91BS_IMG/\
+                       s/^\(.*\)[, ]\([0-9a-f]\+\)/'\1' AT91BS_MD5=\2/p" $FWUL`
+  eval U_BOOT_IMG=`sed -n "/^[^#].*\/$U_BOOT_IMG/\
+                       s/^\(.*\)[, ]\([0-9a-f]\+\)/'\1' U_BOOT_MD5=\2/p" $FWUL`
+  eval KERNEL_IMG=`sed -n "/^[^#].*\/$KERNEL_IMG/\
+                       s/^\(.*\)[, ]\([0-9a-f]\+\)/'\1' KERNEL_MD5=\2/p" $FWUL`
+  eval ROOTFS_IMG=`sed -n "/^[^#].*\/$ROOTFS_IMG/\
+                       s/^\(.*\)[, ]\([0-9a-f]\+\)/'\1' ROOTFS_MD5=\2/p" $FWUL`
+else
+  echo "Accessing images via locally attached media."
+  [ -n "$1" ] && path=${1%/} || path=`pwd`
+  [ -d "$path" ] || exit_error "can't access directory: $path"
+  AT91BS_IMG=$path/$AT91BS_IMG
+  U_BOOT_IMG=$path/$U_BOOT_IMG
+  KERNEL_IMG=$path/$KERNEL_IMG
+  ROOTFS_IMG=$path/$ROOTFS_IMG
+fi
+
+# check for previous update 
+eval $( $fw_printenv -n updated_% 2>/dev/null \
+      |grep -oE "at91bs=.|u_boot=.|kernel=.|rootfs=." )
+if [ -n "$at91bs$u_boot$kernel$rootfs" ]
+then
+  echo -e "Previous update detected: (pending)" \
+          ${at91bs:+\\\n\\\tbootstrap} \
+          ${u_boot:+\\\n\\\tbootloader} \
+          ${kernel:+\\\n\\\tkernel-${kernel}} \
+          ${rootfs:+\\\n\\\trootfs-${rootfs}}
+  #
+  ask -p"Proceed? [y/N]" -t4 -n1 -s a
+  [ "$a" == "y" ] || exit_error "aborted"
+  echo "  ...proceeding"
+fi
+
+
+# special functions can process arithimetic expressions
+iszero() { ! let ${1:-0} && return 0 || return 1; }
+hexify() { let x=${1:-0}; printf "0x%08x" $x; }
+
+
+bootcmd_x() {
+  # parse formatted kernel-image-address and also copy any boot commands
+  eval $( BC_kia=; BC_boot=; F='0x[0-9A-Fa-f]*'; fw_printenv -n bootcmd \
+        |sed -n "s/nand read $F \($F\) $F[; ]*\(.*\)/BC_kia=\1 BC_boot='\2'/p" )
+  
+  if [ -z "$BC_kia" ]
+  then
+    exit_error "incompatible bootcmd set in u-boot_env, use fw_select"
+  fi
+  
+  BC_kia=$( hexify $BC_kia )
+
+#  if iszero $BC_kia \
+#  || [ $BC_kia != $KIA -a $BC_kia != $( hexify  $KIA+$KIS ) ]
+#  then
+#    #[ "auto" == "$1" ] && return 0
+#    echo "  ...incompatible bootcmd set in u-boot_env" >&2
+#    #touch /tmp/incompatible_u-boot_env
+#    BC_kia=$( hexify )
+#    return 1
+#  fi
+  return 0
+}
+
+kernel_x() {
+  # report the kernel partition booted from... (pseudo-static)
+  if bootcmd_x
+  then
+    iszero $BC_kia-$KIA && echo $KIP || echo `expr $KIP + 1`
+  else
+    echo 0
+  fi
+}
+
+rootfs_x() {
+  # report the rootfs partition being used... (actual)
+  sed -n 's/.*ubi.mtd=\(.\).*/\1/p' /proc/cmdline
+}
+
+check_image() {
+  # args: <url/path/file> <the_md5sum>
+  # report the size, md5sum, local/remote, url/path/file
+  led0 300
+  [ -n "$1" ] || { echo update; return 1; }
+
+  if echo $1 |grep -q tp://
+  then
+    # check server is responsive
+    ping -W 1 -c 1 "`echo ${1##*//} |cut -d/ -f1`" >/dev/null 2>&1 \
+    || { echo server; return 1; }
+    # get file info
+    lr=remote
+    md5=$2
+    if [ "$WGET_VERSION" == "gnu" ]
+    then
+      sz=$( $wget --spider $1 2>&1 \
+          |sed -n 's/.*SIZE.* \([0-9]*\)/\1/p;s/Length: \([0-9]*\)\ .*/\1/p' )
+    else
+      ## determine file size by reading it (length not provided via spider)
+      sz=$( $wget -q -O - $1 |wc -c )
+    fi
+  else
+    lr=local
+    md5=`[ -f $1 ] && md5sum $1 |cut -d' ' -f1`
+    sz=$( F='\([^ ][^ ]*\)\ *'; ls -l $1 2>/dev/null \
+        |sed -n "s/^$F$F$F$F$F.*/\5/p" )
+  fi
+  let sz+=0 \
+  && { echo $sz $md5 $lr $1; return 0; } \
+  || { echo file; return 1; }
+}
+
+compare_image_md5() {
+  # args: <md5_from_image> <md5_from_flash>
+  ${tm:-:} \ \ \?: $1 :: ${2:-md5-not-in-flash}
+  # compare the two md5sums and prompt if same
+  if [ "$2" != "$1" ]
+  then
+    echo
+    return 0
+  else
+    echo -e "OK"
+    ask -p"  ...new image matches, update flash anyway? [y/N ..9s]" -t10 -n1 a
+  fi
+  [ -n "$2" -a "$a" != "y" ] && return 1 || return 0
+}
+
+flash_image_procedure() {
+  # args: <mtd> <label> <size> <loc|rem> <image-src> [<nw_opt>]
+  #
+  let $3 || { echo "  ...file is zero-length, aborted"; return 1; }
+  let et=${3:-0}/$NWBPS 
+  echo -e "Updating $2 from $4...\n  $5"
+  mkfifo $FIFO 2>/dev/null
+  led0 100
+  echo -en "  erasing, "
+  $flash_erase -q /dev/$1 0 0 \
+  || { echo "  ...skipping"; return 1; }
+  led0 50 100
+  echo -en "${tm:+  }writing...(${et}s) " #"`[ -n "$tm" ] && sleep ${et}`"
+  $nandwrite -mpq $6 /dev/$1 < $FIFO &
+  if [ "$4" != "local" ]
+  then
+    $wget $WGET_OPT $WGET_RETRY -O $FIFO $5 2>/dev/null \
+    || msg="image retrieval interrupted"
+  else
+    $copy $5 >$FIFO 2>/dev/null \
+    || msg="image read failed"
+  fi
+  wait
+  error=$?
+  rm -f $FIFO
+  let $error && exit_error "error\n - $msg"
+  return 0
+}
+
+update_bootstrap_mtd() {
+  # args: <mtd> <size> <md5sum> <loc|rem> <url/path/-name>
+  ${tm:-:} \\\n\ \ @: $1 $2 $3 $4\\\n\ \ @: $5
+  # if updating via local media, then prompt user for confirmation
+  if [ -z "$fwul_url" ]
+  then
+    [ -z "$tm" ] && echo
+    ask -p"  ...update the bootstrap image? [y/N ..9s]" -t10 -n1 a
+    [ "$a" != "y" ] && { echo "  ...skipping bootstrap"; return; }
+  fi
+  # set target partition
+  mtd=mtd$1
+  compare_image_md5 $3 $( $fw_printenv -n md5_at91bs-x 2>/dev/null ) || return
+  if flash_image_procedure $mtd bootstrap $2 $4 $5
+  then
+    $fw_setenv md5_bootstrap
+    $fw_setenv md5_at91bs-x $3 && at91bs=x && echo OK
+  fi
+}
+
+update_bootloader_mtd() {
+  # args: <mtd> <size> <md5sum> <loc|rem> <url/path/-name>
+  ${tm:-:} \\\n\ \ @: $1 $2 $3 $4\\\n\ \ @: $5
+  # set target partition
+  mtd=mtd$1
+  compare_image_md5 $3 $( $fw_printenv -n md5_u-boot-x 2>/dev/null ) || return
+  if flash_image_procedure $mtd bootloader $2 $4 $5
+  then
+    $fw_setenv md5_u-boot
+    $fw_setenv md5_u-boot-x $3 && u_boot=x && echo OK
+  fi
+}
+
+update_kernel_mtd() {
+  # args: <mtd> <size> <md5sum> <loc|rem> <url/path/-name>
+  ${tm:-:} \\\n\ \ @: $1 $2 $3 $4\\\n\ \ @: $5
+  # swap current partition to target alternate for update
+  let kip_a=$KIP
+  let kip_b=$KIP+1
+  case $1 in
+    $kip_a) mtd=mtd${kip_b}; ab=b; kia=$( hexify $KIA+$KIS );;
+    $kip_b) mtd=mtd${kip_a}; ab=a; kia=$( hexify $KIA );;
+  esac
+  bootcmd="nand read $UBM $kia $KIS; $BC_boot"
+  compare_image_md5 $3 $( $fw_printenv -n md5_kernel-$ab 2>/dev/null ) || return
+  if flash_image_procedure $mtd kernel-$ab $2 $4 $5
+  then
+    $fw_setenv md5_kernel-$ab $3 && kernel=$ab && echo OK
+  fi
+}
+
+update_rootfs_mtd() {
+  # args: <mtd> <size> <md5sum> <loc|rem> <url/path/-name>
+  ${tm:-:} \\\n\ \ @: $1 $2 $3 $4\\\n\ \ @: $5
+  # swap current partition to target alternate for update
+  let rip_a=$RIP
+  let rip_b=$RIP+1
+  case $1 in
+    $rip_a) mtd=mtd${rip_b}; ab=b;;
+    $rip_b) mtd=mtd${rip_a}; ab=a;;
+  esac
+  bootargs=$( $fw_printenv -n bootargs |sed "s/ubi.mtd=./ubi.mtd=${mtd##*mtd}/" )
+  compare_image_md5 $3 $( $fw_printenv -n md5_rootfs-$ab 2>/dev/null ) || return
+  if flash_image_procedure $mtd rootfs-$ab $2 $4 $5 $RIP_opt
+  then
+    $fw_setenv md5_rootfs-$ab $3 && rootfs=$ab && echo OK
+  fi
+}
+
+
+echo -e \# $wb ${tm:++tm} update && bootcmd_x
+#
+# Check and update each of the platform partitions in order:
+# at91bs-bootstrap, uboot-bootloader, linux-kernel-a/b, linux-rootfs-a/b
+# 
+# Each image source is evaluated to ensure it's really there. (non-zero length)
+# And the image's md5sum is compared to the stored value in Flash to avoid
+# redundant updates (will be prompted to override).
+# 
+# The kernel-a/b and rootfs-a/b partitions, each, are alternately targetted.
+# 
+# In testmode, no writes to flash or the network, are made.
+${tm:-:} "  ...remove '$TM_FILE' to disable testmode, try: '--tm off'" >&2
+
+echo -en "${tm:+\n}Checking Bootstrap Loader... "
+if params=$( check_image $AT91BS_IMG $AT91BS_MD5 )
+then
+  update_bootstrap_mtd 0 $params
+else
+  echo -e $params "n/a"
+fi
+
+echo -en "${tm:+\n}Checking U-Boot Loader... "
+if params=$( check_image $U_BOOT_IMG $U_BOOT_MD5 )
+then
+  update_bootloader_mtd 1 $params
+else
+  echo -e $params "n/a"
+fi
+
+echo -en "${tm:+\n}Checking Linux Kernel... "
+if params=$( check_image $KERNEL_IMG $KERNEL_MD5 )
+then
+  update_kernel_mtd `kernel_x` $params
+else
+  echo -e $params "n/a"
+fi
+
+echo -en "${tm:+\n}Checking Root Filesystem... "
+if params=$( check_image $ROOTFS_IMG $ROOTFS_MD5 )
+then
+  update_rootfs_mtd `rootfs_x` $params
+else
+  echo -e $params "n/a"
+fi
+
+n_sync_updated
+
+if $extend_op
+then
+  if [ -n "$rootfs" ] \
+  && fw_select -- 2>/dev/null
+  then
+    # assume go-ahead if transfer-list was placed
+    [ -r /tmp/alt_rootfs.transfer-list ] \
+    && { echo -e "system transfer-list available.."; a=y; } \
+    || ask -p"Transfer system settings? [y/N ..3s] " -t3 -n1 a
+
+    [ "$a" == "y" ] && $tm fw_select --transfer push
+  fi
+
+  ask -p"Rebooting in 3s ...[Y/n]? " -t3 -n1 -s a
+  [ "$a" != "n" ] && $tm reboot
+fi
+exit 0
+

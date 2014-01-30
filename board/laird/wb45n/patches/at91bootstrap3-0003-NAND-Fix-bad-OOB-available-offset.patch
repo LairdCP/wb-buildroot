@@ -1,0 +1,25 @@
+From ebafa89d82c1bba4f7b07a309cd9ca344e4b7d79 Mon Sep 17 00:00:00 2001
+From: Steve deRosier <Steve.Derosier@lairdtech.com>
+Date: Fri, 12 Jul 2013 17:16:19 -0700
+Subject: [PATCH 3/5] NAND: Fix bad OOB available offset
+
+---
+ driver/nandflash.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/driver/nandflash.c b/driver/nandflash.c
+index d50b4a3..9c2d076 100644
+--- a/driver/nandflash.c
++++ b/driver/nandflash.c
+@@ -204,7 +204,7 @@ static void config_nand_ooblayout(struct nand_ooblayout *layout, struct nand_chi
+ #else
+ 		layout->eccbytes = 24;
+ #endif
+-		layout->oobavail_offset = 30;
++		layout->oobavail_offset = 1;
+ 		break;
+ 
+ 	case 4096:
+-- 
+1.7.9.5
+

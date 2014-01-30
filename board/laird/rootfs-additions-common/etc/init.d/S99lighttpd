@@ -1,0 +1,38 @@
+#!/bin/sh 
+#
+trap "" 1
+trap "" 15
+test -f /usr/sbin/lighttpd || exit 0
+
+start() {
+  echo "Starting LigHTTPd"
+  /usr/sbin/lighttpd -f /etc/lighttpd/lighttpd.conf >/var/log/lighttpd 2>&1
+}
+
+stop() {
+  echo "Stopping LigHTTPd"
+  killall lighttpd
+}
+
+case "$1" in
+
+  start)
+    start
+    ;;
+
+  stop)
+    stop
+    ;;
+
+  restart)
+    stop
+    start
+    ;;
+
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    exit 1
+    ;;
+esac
+
+exit 0

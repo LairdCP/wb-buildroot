@@ -1,0 +1,51 @@
+#! /bin/sh
+# urandom - saves the random seed between reboots.
+#
+
+[ -c /dev/urandom ] || exit 0
+
+case $1 in
+
+  stop)
+    echo -n "Saving random seed... "
+    #
+    # Carry a random seed from shut-down to start-up;
+    # for more info, see documentation in linux/drivers/char/random.c
+    if ! touch /etc/random-seed 2>/dev/null
+    then
+      echo "read-only file system, aborted"
+    else
+      umask 077
+      dd if=/dev/urandom of=/etc/random-seed count=1 >/dev/null 2>&1 \
+      && echo "done" || echo "failed"
+      umask 022
+    fi
+    ;;
+    
+  start)
+    echo -n "Initializing random number generator... "
+    #
+    # Load and then save 512 bytes, which is the size of the entropy pool.
+    if [ -f /etc/random-seed ]
+    then
+      cat /etc/random-seed >/dev/urandom
+    fi
+    if ! touch /etc/random-seed 2>/dev/null
+    then
+      echo "read-only file system, aborted"
+    else
+      rm -f /etc/random-seed
+      umask 077
+      dd if=/dev/urandom of=/etc/random-seed count=1 >/dev/null 2>&1 \
+      && echo "done" || echo "failed"
+      umask 022
+    fi
+    ;;
+    
+  *)
+    echo "Usage: $0 {stop|start}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

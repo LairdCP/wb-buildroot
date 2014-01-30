@@ -1,0 +1,247 @@
+	WB40N Networking Guide
+                                                      (draft:  mono-spaced font)
+<Sections:>
+	a. S??network - init script
+	b. wireless.sh - driver_config script
+	c. ifrc.sh - interface_run_config script
+	d. etc_network_interfaces file
+	e. ifrc details and examples of usage
+	f. the dhcp client
+	g. overview of networking at bootup
+
+
+
+<a.> __/etc/init.d/S??network - init script
+The networking setup utilizes a script run at init time:  S40network, along with
+several optional utilities.  And if available, settings from the /e/n/i file.
+( a.k.a. /etc/network/interfaces file is usually part of the ifupdown package,
+  however, only the settings file is used.)
+This init script will run ifrc and driver scripts in the background.  Messages
+will appear to stdout if being run manually.
+
+
+
+<b.> __/etc/network/wireless.sh - wifi driver and supplicant configuration
+This is used to start or stop the driver.  It is run in the background via the
+S??network script.  Messages will appear to stdout if run manually.
+  /sbin/wireless
+  Usage:
+  # wireless [<-tdd...>] {start|stop|restart|status|conf|log}
+
+
+
+<c.> __/etc/network/ifrc.sh - network interface configuration utility
+This is a run-config wrapper script for managing specific network interfaces.
+A system command is provided:
+  /sbin/ifrc
+  Shows network interface configurations.
+  Configures an interface to use netlink and dhcp/static methods.
+  Can work with settings from /etc/network/interfaces or the commandline.
+  You can "re" up an interface to change/update the method/ip-address.
+  
+    ( Note: ifrc may be disabled with:  /etc/default/ifrc.disable )
+  
+  Flags:
+    -h   this helpful summary
+    -t   test only, no action
+    -q   be quiet, no stdout
+    -v   be more verbose ...
+    -n   no logging to files
+    -r   remove the log files
+    -x   run w/o netlink daemon
+    -m   monitor nl/ifrc events
+
+  Interface:
+    must be kernel-resident of course
+    can be an alias (such as 'wl' for wireless)
+  
+  Action:
+    stop|start|restart   - act on phy-init/driver (up/down the hw-phy)
+    auto|noauto   - set or unset auto-starting interface at bootup (via init)
+    status   - check a configured interface and report its ip-address
+    up|dn   - up or down the interface configuration (up/down the iface)
+    show   - specific interface info, or general info (default action)
+    eni   - edit file: /etc/network/interfaces
+    help   - view file: /etc/network/networking.README (you're reading it)
+  
+  Method:
+    dhcp [<param=value> ...]
+       - employ client to new get lease, info stored in leases file
+         address=x.x.x.x   - request an ip address from dhcp server
+         timeout=nn   - seconds to allow client to try/await response
+         portspeed=10baseT...   - use fixed port speed during dhcp trial
+  
+    static [<param=x.x.x.x[\nn]> ...]
+       - use settings from /e/n/i file or those given on commandline
+         params:  address, netmask, broadcast, gateway  (ip,nm,bc,gw)
+
+    loopback [param=value>]
+       - use to set a specific localhost address
+
+    manual
+       - the interface will not be configured
+
+  
+  Usage:
+  # ifrc [flags...] [<interface>] [<action>] [<method> [<param=value> ...]]
+
+
+
+<d.> etc_network_interfaces file
+The /e/n/i file is intended to remain compatible with the ifupdown package, and
+can otherwise be created without having ifupdown installed (the-basic-build).
+External documentation and examples of this file can be found.  Briefly... each
+line starting in the first column is a stanza.  Indented lines are settings or
+options for the preceeding stanza.  
+
+Because of some uncertainty, as to exactly what the wireless iface name will
+end up being, control can be managed by using option 'alias <name> <iface>'.
+This allows the system scripts to automatically configure wireless via alias.
+Example section of the /e/n/i file, using a wireless alias:
+	# Wireless
+	auto wl
+	iface wl inet dhcp
+	 alias wl eth1
+
+Example section of the /e/n/i file, using fixed port speed+duplex for slower
+networks during dhcp. (this may help with intermittent lease request issues)
+Otherwise, the static configuration is shown as enabled here.
+	# Wired
+	auto eth0
+	#iface eth0 inet dhcp
+	iface eth0 inet static
+	  address 192.168.3.10
+	  netmask 255.255.255.0
+	  gateway 192.168.3.187
+	  broadcast 192.168.3.255
+	  nameserver 8.8.8.8
+	  nameserver 4.4.4.4
+	  portspeed 10baseT
+
+
+
+<e.>  details and examples of ifrc usage
+With no options given, ifrc attempts to show all interfaces, associations, and
+routing ...providing an overview of the total system network.  Otherwise, with
+additional flags, interface, action, method parameters optionally given...
+Then ifrc will show or configure a specific (kernel-resident) interface.
+Examples of usage:
+
+	# ifrc eth0
+Shows only settings relative to eth0.
+
+	# ifrc eth1 up
+This will (re)configure the eth1 interface with settings from /e/n/i.
+In this case, the e/n/i file should contain appropriate stanzas for either
+dhcp or static methods.
+
+	# ifrc eth1 up dhcp
+This will use dhcp method.
+
+	# ifrc wl up dhcp
+This acts on the wireless interface, even if you don't know the real name.
+
+	# ifrc eth0 up dhcp timeout=300
+This will make the dhcp request process timeout in 5m.
+
+	# ifrc eth1 up static
+This will prepare the interface for static ip, you will then need to do the
+settings manually with ifconfig or ip, if not available via /e/n/i.
+ 
+	# ifrc eth1 up static address=1.2.3.4 netmask=255.255.255.0 gateway=1.2.3.4
+	# ifrc eth1 up static address=5.6.7.8 netmask=255.255.255.0 gateway=1.2.3.4
+Configure eth1 using static method and settings.
+(these are similar to parameters as found in /e/n/i ...in this case, the ip was
+initially set to 1.2.3.4, then was changed to 5.6.7.8)
+
+	# ifrc eth1 down
+Deconfigure the eth1 interface, setting it to 0.0.0.0.
+(the wireless driver and supplicant are still active)
+
+	# ifrc wl down
+Same as above, but using the alias 'wl', which is default for wireless.
+
+	# ifrc eth1 restart
+A {stop|start|restart} command will be passed onto the init script.  In this
+case the wireless driver will restarted, and then ifrc will re-configure.
+
+Notes:
+ 1. For wired ethernet on the wb40n, with no attached breakout board, the "carrier"
+state for the port is always "1".  Heuristic code is applied to determine if
+the interface-phy hw is really all there.
+
+ 2. You can use ifrc to manage the driver stop/start/restart for an interface.
+Or can use the init script directly too:
+	# /etc/init.d/S??network [<iface_name_or_alias>] <stop|start|restart>
+
+ 3. When ifrc "downs" an interface, it really just de-configures it.  If an
+'ifconfig <iface> down' is performed, then any driver/supplicant will have to
+be re-started.  If you intend for the interface to be totally disabled, then
+you can do: 'ifrc <iface> stop'.
+
+ 4. The routing table doesn't get cleared when I issue 'ifconfig eth0 down'. The
+ifconfig utility doesn't know about the routing table, use 'ifrc' instead.
+
+Other system tools used by ifrc:
+  (bb) ash - compatible bash shell
+  (bb) ifplugd - provides netlink management.
+  (bb) udhcpc - default dhcp client.
+  (bb) ifconfig - low-level interface configration.
+  (bb) route - show/manage the IP routing table.
+  dhclient - alternative client (not-used).
+  mii-diag - port config tool (optional).
+  wl - wireless configuration tool (optional).
+
+External calls:
+A compiled application can make system calls or execvp calls to run ifrc as may
+be required.  When ifrc is invoked, any previous action/parameters for the same
+interface are replaced by new ones if specified.  In effect changes can be made
+to an interface on-the-fly.  If the interface is not-yet-ready, then action and
+parameters are deferred, via netlink.
+
+
+
+<f.> the dhcp client
+As managed by ifrc, the DHCP client is started and runs in the background.  In
+the cases of intermittant connectivity, such as wireless... the client may be
+restarted as required.  Unless a timeout is specified, the client will always
+keep re-trying.
+
+The default DHCP client is udhcpc.  This simple DHCP client is configured to
+send lease requests in sets of 4 at repeated intervals, until responded to.
+It relies on a configuration script in /etc/dhcp and upon success will write to
+a leases file in /var/lib/dhcp.
+
+An alternative client is dhclient. (there are some issues with using dhclient)
+
+
+
+<g.> overview of the networking at bootup
+S??network starts any necessary drivers and ifrc, for auto-enabled interfaces.
+If an interface is waiting on a driver and not kernel-resident, ifrc defers
+until it is ready.  
+
+init:
+    rcS
+    :
+    `-- S40network  ...check for any interfaces to start in /e/n/i.
+        |-- ifrc  ...configure wired interface if enabled.
+        |-- wireless.sh  ...load dhd driver, setup wifi, waits for association.
+        `-- ifrc  ...configure wifi interface (when ready), and supervises it.
+        :
+        `-- pppd
+            `-- ifrc  ...configure ppp interface.
+
+    :
+    |-- S50inetd...
+    |   |-- opt/S??sshd
+    |   `-- opt/S??ftpd
+    |
+    |-- opt/S??lighttpd...
+    :
+
+
+The init.d/rcS script will background, called scripts that have '.bg' extension.
+The S??network script can be backgrounded during init too.
+
+-eof-

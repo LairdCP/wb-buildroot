@@ -1,0 +1,164 @@
+/* Page Structure */
+	html, body {
+		height:100%; /* gives layout 100% height */
+		margin:0px; 
+		padding:0px;
+		text-align:center;
+		background: url(../img/920.jpg) repeat-y center top #e6e6e6;
+		overflow:inherit; /* triggers 100% height in Opera 9.5 */
+		}
+	#body {
+		font-family: Calibri, Georgia, Verdana;
+		width:900px;	
+		margin:0px auto;
+		padding:0 12px 0 0px;
+		text-align:left;
+		padding:0px 0 0px 0;
+		background-color:#FFFFFF;
+		height:100%;
+		min-height:100%;
+		}
+	* {margin:0; padding:0;}
+/* Page Structure End*/	
+
+/* Header */
+	/* Logos */
+		#header {
+			padding: 3px 30px 9px 30px;
+			height:155px;
+			}
+		#SummitLogo{
+			float:left;
+			position:relative;
+			top:42px;
+			left:0px;
+			width:326px; /* 367px */
+			height:40px /* 45px */
+			}
+		#ConnectedLogo {
+			float:left;
+			position:relative;
+			top:65px;
+			left:50px;
+			width:375px;
+			height:19px;
+			}
+	/* End of Logos */
+	
+	/* Top Links */
+		#topMenuLinks {
+			float:left;
+			position:relative;
+			top:-13px;
+			left:0px;
+			padding:3px 10px 0 0;
+			}
+		#topMenuLinks, .m0l0iout, .m0l0	iover {
+			letter-spacing:2px;
+			}
+		#topMenuLinks a {
+			font-size:14px;
+			text-decoration:none;
+			letter-spacing:1.75px;
+			margin: 0px 19px 0 19px;
+			}
+		#topMenuLinks a:link, #topMenuLinks a:visited {color: #a0a0a0;}
+		#topMenuLinks a:hover, #topMenuLinks a:active {color: #ee0000;}
+	/* End of Top Links */
+		
+	/* Search Box */
+		#submitButton {
+			float:left;
+			position:relative;
+			top:15px;
+			left:75px;
+			}	
+		#searchBox {
+			float:left;
+			position:relative;
+			top:-6px;
+			left:340px;
+			padding:0px 0 6px 0;
+			width:120px;
+			hight:25px;
+			background: transparent url("../img/SearchA.jpg") no-repeat;
+			}
+		#submitI {
+		float:left;
+		position:relative;
+			font-size:12px;
+			border:none;
+			padding:0px 2px 3px 2px;
+			margin:0;
+			color:#a0a0a0;
+			background: transparent url("../img/SearchB.jpg") no-repeat;
+			width:30px;
+			}
+		#searchI {
+			float:left;
+			position:relative;
+			font-family: Calibri, Georgia, Verdana;
+			font-size:12px;
+			border:none;
+			padding:2px 2px 3px 17px;
+			color:#a0a0a0;
+			margin:0px;
+			width:80px;
+			background: transparent;
+			}
+		*:focus {outline: none;} /* for google chrome */
+	/* End of Search Box */	
+	
+	/* Menu Options */
+		#mainMenu {
+			padding:0;
+			position:relative;
+			top:50px;
+			left:0;
+			height:0px;
+			margin:80px 0 0 10px;
+			width:830px;
+			}
+		
+		.m0l0iout, .m0l0iover /* level 0 inner */{
+			font-size: 14px;
+			letter-spacing:1.75px;
+			text-decoration: none;
+			margin: 2px 0 0 15px;
+			text-align:center;
+			}
+		/* other levels */
+		.m0l0oout, .m0l0oover, .m0l2oover , .m0l1oout, .m0l1oover   /* outer */ {
+			text-decoration : none;
+			border: 0px solid #000000;
+			
+			}
+		.m0l2oover , .m0l1oout, .m0l1oover   /* outer */ {background-color: #ffffff;}
+		.m0l1iout, .m0l1iover, .m0l2iout, .m0l2iover /* inner */ {
+			font-size: 12px;
+			margin: 5px 0 0 17px;
+			}
+			/* borders */
+		.menuBorder {
+			color:#a0a0a0; 
+			font-size:11px;
+			font:"Courier New", Courier, monospace;
+			font-weight:lighter;
+			padding:0 0 0 1px;
+			}
+		.m0l2oout , .m0l2oover , .m0l1oout, .m0l1oover{
+			border-left:thin #a0a0a0 solid;
+			border-right:thin #a0a0a0 solid;
+			border-bottom:thin #a0a0a0 solid;
+			}
+		/* color change */
+		.m0l1iout, .m0l2iout, .m0l0iout {color: #a0a0a0;}
+		.m0l1iover, .m0l2iover, .m0l0iover {color: #ee0000;}
+		.m0l1oover, .m0l2oover, .m0l2oout {
+			background-color:#e6e6e6;
+			text-decoration : none;
+			border-left:thin #a0a0a0 solid;
+			border-right:thin #a0a0a0 solid;
+			}
+	/* Menu Options End*/
+/* Header End */

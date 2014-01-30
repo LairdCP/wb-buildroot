@@ -1,0 +1,40 @@
+#!/bin/sh 
+# tftpd init-script
+# supports inetd
+
+pre_check() {
+  test -x $tftpd || { echo "$tftpd missing"; exit 1; }
+  
+  [ ! -d /var/run/tftpd ] && mkdir -p /var/run/tftpd
+  [ ! -f /var/log/wtmp ] && touch /var/log/wtmp
+}
+
+tftpd=/usr/bin/tftpd
+
+case "$1" in
+  stop)
+    echo "Stopping tftp daemon"
+    killall tftpd 2>/dev/null
+    ;;
+
+  start)
+    echo "Starting tftp daemon"
+    [ -z "$rcS_" ] && pre_check
+    $tftpd
+    ;;
+
+  restart)
+    $0 stop
+    $0 start
+    ;;
+
+  check)
+    pre_check
+    ;;
+    
+  *)
+    echo "Usage: $0 {stop|start|restart}"
+    false
+    ;;
+esac
+exit $?
