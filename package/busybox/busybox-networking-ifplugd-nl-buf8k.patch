@@ -1,0 +1,40 @@
+--- busybox-1.21.1/networking/ifplugd.c	2013-06-29 09:58:06.000000000 -0500
++++ busybox-1.21.1/networking/ifplugd.c	2013-09-27 12:37:11.000000000 -0500
+@@ -451,17 +451,25 @@
+ static NOINLINE int check_existence_through_netlink(void)
+ {
+ 	int iface_len;
+-	char replybuf[1024];
++	/*
++	 * Messages in/aft linux-3.8 can exceed 1K buffer size, so increased to 8K.
++	 * netlink.h: "limit to 8K to avoid MSG_TRUNC when PAGE_SIZE is very large".
++	 *            int BUF_SIZE = MIN(sysconf(_SC_PAGESIZE), 8192);
++	 * Note:
++	 * No need to free replybuf on recv error.
++	 */
++	enum { BUF_SIZE = 8 * 1024 };
++	char *replybuf = xmalloc(BUF_SIZE);
+ 
+ 	iface_len = strlen(G.iface);
+ 	while (1) {
+ 		struct nlmsghdr *mhdr;
+ 		ssize_t bytes;
+ 
+-		bytes = recv(netlink_fd, &replybuf, sizeof(replybuf), MSG_DONTWAIT);
++		bytes = recv(netlink_fd, replybuf, BUF_SIZE, MSG_DONTWAIT);
+ 		if (bytes < 0) {
+ 			if (errno == EAGAIN)
+-				return G.iface_exists;
++				goto ret;
+ 			if (errno == EINTR)
+ 				continue;
+ 
+@@ -507,6 +515,8 @@
+ 		}
+ 	}
+ 
++ ret:
++	free(replybuf);
+ 	return G.iface_exists;
+ }
+
