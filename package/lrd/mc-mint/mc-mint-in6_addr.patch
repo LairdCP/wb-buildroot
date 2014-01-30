@@ -1,0 +1,15 @@
+diff -aur orig/src/ipv6_net.c new/src/ipv6_net.c
+--- orig/src/ipv6_net.c	2002-11-06 19:19:42.000000000 +0000
++++ new/src/ipv6_net.c	2013-09-07 12:22:02.678881481 +0100
+@@ -37,11 +37,7 @@
+ 		memcpy(group6_addr, hp->h_addr_list[0], 16);
+ 		}
+ 	
+-#if !defined(linux)
+ 	if (!IN6_IS_ADDR_MULTICAST(group6_addr))
+-#else	
+-	if (!IN6_IS_ADDR_MULTICAST(group6_addr->in6_u.u6_addr8))
+-#endif
+ 		{
+ 		log( "IPv6: %s address is not a multicast IPv6 address.\n", ip6_host);
+ 		return -ENOMULTI;
