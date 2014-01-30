@@ -27,7 +27,7 @@ define DHCP_INSTALL_SERVER
 	(cd $(TARGET_DIR)/var/lib; ln -snf /tmp dhcp)
 	$(INSTALL) -m 0755 -D $(@D)/server/dhcpd $(TARGET_DIR)/usr/sbin/dhcpd
 	$(INSTALL) -m 0755 -D package/dhcp/S80dhcp-server \
-		$(TARGET_DIR)/etc/init.d/S80dhcp-server
+		$(TARGET_DIR)/etc/init.d/opt/S80dhcp-server
 	$(INSTALL) -m 0644 -D package/dhcp/dhcpd.conf \
 		$(TARGET_DIR)/etc/dhcp/dhcpd.conf
 endef
@@ -40,7 +40,7 @@ define DHCP_INSTALL_RELAY
 	$(INSTALL) -m 0755 -D $(DHCP_DIR)/relay/dhcrelay \
 		$(TARGET_DIR)/usr/sbin/dhcrelay
 	$(INSTALL) -m 0755 -D package/dhcp/S80dhcp-relay \
-		$(TARGET_DIR)/etc/init.d/S80dhcp-relay
+		$(TARGET_DIR)/etc/init.d/opt/S80dhcp-relay
 endef
 endif
 
