@@ -139,7 +139,7 @@ define LINUX_APPLY_PATCHES
 		if echo $$p | grep -q -E "^ftp://|^http://" ; then \
 			support/scripts/apply-patches.sh $(@D) $(DL_DIR) `basename $$p` ; \
 		elif test -d $$p ; then \
-			support/scripts/apply-patches.sh $(@D) $$p linux-\*.patch ; \
+			support/scripts/apply-patches.sh $(@D) $$p linux-$(LINUX_VERSION)\*.patch ; \
 		else \
 			support/scripts/apply-patches.sh $(@D) `dirname $$p` `basename $$p` ; \
 		fi \
