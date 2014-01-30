@@ -1,46 +1,58 @@
 #!/bin/sh 
+# proftpd - ftp daemon init-script
+# supports inetd and pre-checking configuration
 
-DAEMON=/usr/sbin/proftpd
 trap "" 1
 trap "" 15
-test -f $DAEMON || exit 0
 [ ! -d /var/run/proftpd ] && mkdir /var/run/proftpd
 [ ! -f /var/log/wtmp ] && touch /var/log/wtmp
 
-start() {
-	echo -n "Starting ProFTPD: "
-	$DAEMON
-	if [ $? != 0 ]; then
-		echo "FAILED"
-		exit 1
-	else
-		echo "done"
-	fi
-}
-
-stop() {
-	echo -n "Stopping ProFTPD: "
-	killall proftpd
-        echo "done"
+pre_check() {
+  [ -s /etc/proftpd.conf ] \
+  || { on_error="config missing"; return 1; }
+  
+  if [ -z "$inetd_" ]
+  then
+    # set ServerType to "standalone" if necessary
+    sed '/^ServerType[\t ]*inetd/s/inetd/standalone/' -i /etc/proftpd.conf
+  else
+    # set ServerType to "inetd" if necessary
+    sed '/^ServerType[\t ]*standalone/s/standalone/inetd/' -i /etc/proftpd.conf
+  fi
 }
 
 case "$1" in
-    start)
-	start
-	;;
+  stop)
+    echo -n "Stopping ProFTPD: "
+    killall proftpd 2>/dev/null
+    echo "OK"
+    ;;
 
-    stop)
-	stop
-	;;
+  start)
+    echo -n "Starting ProFTPD: "
+    [ -z "$rcS_" ] && pre_check
+    /usr/sbin/proftpd
+    if [ $? != 0 ]
+    then
+      echo "FAILED ${on_error:+- $on_error}"
+      false
+    else
+      echo "OK"
+    fi
+    ;;
 
-    restart)
-    	stop
-    	start
-	;;
+  restart)
+    $0 stop
+    $0 start
+    ;;
 
-    *)
-	echo "Usage: /etc/init.d/S50proftpd {start|stop|restart}"
-	exit 1
+  check)
+    pre_check
+    ;;
+  
+  *)
+    echo "Usage: $0 {stop|start|restart}"
+    false
 	;;
 esac
 
