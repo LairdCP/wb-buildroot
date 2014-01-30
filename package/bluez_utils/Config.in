@@ -6,6 +6,9 @@ config BR2_PACKAGE_BLUEZ_UTILS
 	depends on BR2_USE_MMU # dbus
 	select BR2_PACKAGE_DBUS
 	select BR2_PACKAGE_LIBGLIB2
+	select BR2_PACKAGE_READLINE
+	select BR2_PACKAGE_LIBICAL
+	select BR2_PACKAGE_UDEV
 	help
 	  bluez utils
 

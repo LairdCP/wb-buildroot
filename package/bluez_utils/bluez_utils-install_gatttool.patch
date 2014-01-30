@@ -1,0 +1,15 @@
+diff -Naur a/Makefile.tools b/Makefile.tools
+--- a/Makefile.tools	2013-10-15 14:41:07.000000000 +0100
++++ b/Makefile.tools	2013-11-13 02:19:52.334984046 +0000
+@@ -216,8 +216,9 @@
+ endif
+ 
+ if READLINE
+-noinst_PROGRAMS += attrib/gatttool \
+-			tools/obex-client-tool tools/obex-server-tool \
++bin_PROGRAMS    += attrib/gatttool
++
++noinst_PROGRAMS += tools/obex-client-tool tools/obex-server-tool \
+ 			tools/bluetooth-player tools/obexctl
+ 
+ attrib_gatttool_SOURCES = attrib/gatttool.c attrib/att.c attrib/gatt.c \
