@@ -83,7 +83,7 @@ msg() {
 }
 
 # internals
-ifrc_Version=20131020
+ifrc_Version=20140107
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -166,6 +166,9 @@ export ifrc_Settings=fls=\"$fls\"\ mm=$mm\ vm=$vm\ qm=$qm
 # don't run ifrc if the 'disable' flag-file exists
 [ -f "$ifrc_Disable" ] && { msg1 "  $ifrc_Disable exists..."; exit 0; }
 
+# netlink support
+ifnl=ifplugd
+
 # set ifnl_s when called via netlink daemon
 ifnl_s=${IFPLUGD_PREVIOUS}-\>${IFPLUGD_CURRENT}
 ifnl_s=${ifnl_s//error/ee}
@@ -173,7 +176,7 @@ ifnl_s=${ifnl_s//down/dn}
 [ "$ifnl_s" == "->" ] && ifnl_s=
 
 [ -n "$rcS_" ] && ifrc_Via=" (...via rcS)"
-[ -n "$ifnl_s" ] && ifrc_Via=" (...via ifplugd)"
+[ -n "$ifnl_s" ] && ifrc_Via=" (...via $ifnl)"
 [ -n "$ifrc_Via" ] && qm='>/dev/null'
 
 [ "$vm" == "....." ] && set -x
@@ -773,19 +776,23 @@ then
 else
   if ! { ps ax |grep -q "ifplug[d].*${dev}" && msg "  ...nl-daemon is running"; }
   then
-    [ -n "${vm:0:1}" ] && nsl= || nsl=-s
+    # when not verbose, don't log to syslog
+    [ -z "${vm:0:1}" ] && nsl=-s || nsl=   
     #
-    # dameon will terminate on error, or if run-script exits w/non-zero status
-    ifplugd -i$dev -M $nsl -q -p -a -f -u1 -d0 -I -r$0
-    #pause 0.333
+    # use auto API mode for all interfaces except wireless
+    #[ "${dev:0:2}" == wl ] && api=-mwlan || api=-mauto
+    #
+    # the ifnl daemon will terminate if internal-error
+    $ifnl -i$dev $api $nsl -fa -qMp -u0 -d0 -Ir$0
+    pause 0.333
   fi
 fi
 
 #
 # NOTE:
-# The script will exit with a zero value even if configuration is deferred.
-# This is considered a valid state, and upon a netlink event, configuration
-# is automatically re-attempted via the netlink daemon, such as:
+# This script will exit with a zero value, even if configuration is deferred,
+# which is considered a valid state.  A link UP event captured by the netlink
+# daemon, will cause configuration to be re-attempted for:
 # 1. wifi is not associated yet (handled by supplicant)
 # 2. cable/link not present yet
 #
