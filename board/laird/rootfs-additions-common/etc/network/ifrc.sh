@@ -18,7 +18,6 @@ usage() {
 	Works with a netlink daemon to maintain dhcp/static methods on-the-fly.
 	
 	Flags:
-	  -h   this helpful summary
 	  -q   be quiet, no stdout
 	  -v   be more verbose...
 	  -n   no logging to files
@@ -84,7 +83,7 @@ msg() {
 }
 
 # internals
-ifrc_Version=20131019
+ifrc_Version=20131020
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -341,7 +340,7 @@ case $1 in
     then
       echo
       /etc/network/bridge.sh 2>/dev/null && echo
-      route -ne
+      route -n
       echo -e "\nDNS:\r\t/etc/resolv.conf"
       sed '$G' /etc/resolv.conf 2>/dev/null
     fi
@@ -583,7 +582,7 @@ case $IFRC_ACTION in
       [ -n "$mii" ] && $mii $dev |sed -n '/Yo/,$d;/media type/,$p'
     fi
     show_interface_config_and_status
-    if gipa $dev >/dev/null
+    if [ -n "${vm:0}" ] && gipa $dev >/dev/null
     then
       echo -e "\nConnections:"
       netstat -ntuw 2>/dev/null \
@@ -818,8 +817,10 @@ show_filtered_method_params() {
       echo \ \ bc: $bc
       echo \ \ ns: $ns
     fi
+    [ -n "$rip" ] && msg request-ip-address: $rip
+    [ -n "$client" ] && msg dhcp client: $client
+    [ -n "$metric" ] && msg metric is: $metric
   fi
-  [ -n "$rip" ] && msg request-ip-address: $rip
 }
 
 cidr_to_ip_nm() {
@@ -830,6 +831,7 @@ cidr_to_ip_nm() {
     let px=${1#*/}/8 px*=4 mx=7-${1#*/}%8 mx*=4
     set -- ${maskpat:0:$px}${maskdgt:$mx:3}
     nm=${1:-0}.${2:-0}.${3:-0}.${4:-0}
+    unset px mx
   fi
 }
 
@@ -928,6 +930,7 @@ check_link() {
   while [ $n -lt $lbto -a -f ${ifrc_Lfp}/$dev.lbto ]
   do
     grep -q 1 /sys/class/net/${dev}/carrier && break
+    let n || msg1 "  waiting for ${dev} link beat"
     let n+=200 && pause 0.2
   done
   rm -f ${ifrc_Lfp}/$dev.lbto
@@ -935,7 +938,7 @@ check_link() {
   grep -q 1 /sys/class/net/${dev}/carrier \
   || { msg "  ...no carrier/cable/link, deferring"; exit 0; }
 
-  [ $n -gt 0 ] && msg "  waited ${n}ms on ${dev}/carrier"
+  [ $n -gt 0 ] && msg1 "  waited ${n}ms on ${dev}/carrier"
 }
 
 run_udhcpc() {
