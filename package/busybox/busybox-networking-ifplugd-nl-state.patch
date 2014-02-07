@@ -1,0 +1,233 @@
+--- busybox-1.21.x/networking/ifplugd.c   2014-01-28 14:15:09.000000000 -0600
++++ busybox-1.21.x/networking/ifplugd.c   2014-01-28 14:15:09.000000000 -0600
+@@ -100,8 +100,10 @@
+ 
+ enum { // interface status
+ 	IFSTATUS_ERR = -1,
+-	IFSTATUS_DOWN = 0,
+-	IFSTATUS_UP = 1,
++	IFSTATUS_DOWN,
++	IFSTATUS_DORMANT,
++	IFSTATUS_UP,
++	IFSTATUS_UPAGAIN,
+ };
+ 
+ enum { // constant fds
+@@ -291,11 +293,33 @@
+ 
+ 
+ 
++static int operstate(int state)
++{
++	static int state_x = IFSTATUS_DORMANT;
++
++	/* Translate RFC2863 ifla_operstate to ifstatus value. */
++
++	if (state == IF_OPER_UP)
++		state = ( state_x == IFSTATUS_UP ? IFSTATUS_UPAGAIN : IFSTATUS_UP );
++	else
++	if (state == IF_OPER_DORMANT)
++		state = IFSTATUS_DORMANT;
++	else
++	if (state == IF_OPER_LOWERLAYERDOWN
++	||  state == IF_OPER_DOWN)
++		state = IFSTATUS_DOWN;
++	else
++		state = IFSTATUS_ERR;
++
++	state_x = state;
++
++   return state;
++}
++
+ static const char *strstatus(int status)
+ {
+-	if (status == IFSTATUS_ERR)
+-		return "error";
+-	return "down\0up" + (status * 5);
++	return "error\0\0\0down\0\0\0\0dormant\0up\0\0\0\0\0\0up again"
++	       + (status*8) +8;
+ }
+ 
+ static int run_script(const char *action)
+@@ -329,13 +353,19 @@
+ 	return (option_mask32 & FLAG_IGNORE_RETVAL) ? 0 : r;
+ }
+ 
+-static void up_iface(void)
++static void maybe_up_iface(void)
+ {
+ 	struct ifreq ifrequest;
+ 
+ 	if (!G.iface_exists)
+ 		return;
+ 
++	if (option_mask32 & FLAG_NO_AUTO)
++		return;
++
++	if (G.api_mode[0] == 'a')
++		G.api_method_num = API_AUTO;
++
+ 	set_ifreq_to_ifname(&ifrequest);
+ 	if (network_ioctl(SIOCGIFFLAGS, &ifrequest, "getting interface flags") < 0) {
+ 		G.iface_exists = 0;
+@@ -362,12 +392,12 @@
+ #endif
+ }
+ 
++#if 0 /* bloat */
+ static void maybe_up_new_iface(void)
+ {
+ 	if (!(option_mask32 & FLAG_NO_AUTO))
+ 		up_iface();
+ 
+-#if 0 /* bloat */
+ 	struct ifreq ifrequest;
+ 	struct ethtool_drvinfo driver_info;
+ 
+@@ -393,24 +423,23 @@
+ 		bb_error_msg("using interface %s%s with driver<%s> (version: %s)",
+ 			G.iface, buf, driver_info.driver, driver_info.version);
+ 	}
+-#endif
+ 	if (G.api_mode[0] == 'a')
+ 		G.api_method_num = API_AUTO;
+ }
++#endif
+ 
+ static smallint detect_link(void)
+ {
+ 	smallint status;
+ 
+ 	if (!G.iface_exists)
+-		return (option_mask32 & FLAG_MONITOR) ? IFSTATUS_DOWN : IFSTATUS_ERR;
++		return IFSTATUS_ERR;
+ 
+ 	/* Some drivers can't detect link status when the interface is down.
+ 	 * I imagine detect_link_iff() is the most vulnerable.
+ 	 * That's why -a "noauto" in an option, not a hardwired behavior.
+ 	 */
+-	if (!(option_mask32 & FLAG_NO_AUTO))
+-		up_iface();
++	maybe_up_iface();
+ 
+ 	if (G.api_method_num == API_AUTO) {
+ 		int i;
+@@ -440,15 +469,10 @@
+ 			bb_error_msg("can't detect link status");
+ 	}
+ 
+-	if (status != G.iface_last_status) {
+-		G.iface_prev_status = G.iface_last_status;
+-		G.iface_last_status = status;
+-	}
+-
+ 	return status;
+ }
+ 
+-static NOINLINE int check_existence_through_netlink(void)
++static NOINLINE int check_existence_through_netlink(int *status)
+ {
+ 	int iface_len;
+ 	/*
+@@ -506,6 +530,11 @@
+ 						) {
+ 							G.iface_exists = (mhdr->nlmsg_type == RTM_NEWLINK);
+ 						}
++						else
++							break;
++					}
++					if (attr->rta_type == IFLA_OPERSTATE) {
++						*status = operstate(*((unsigned char *)RTA_DATA(attr)));
+ 					}
+ 					attr = RTA_NEXT(attr, attr_len);
+ 				}
+@@ -620,12 +649,13 @@
+ 		G.iface_exists = (network_ioctl(SIOCGIFINDEX, &ifrequest, NULL) == 0);
+ 	}
+ 
+-	if (G.iface_exists)
+-		maybe_up_new_iface();
+-
+ 	iface_status = detect_link();
+-	if (iface_status == IFSTATUS_ERR)
+-		goto exiting;
++	if (iface_status == IFSTATUS_ERR) {
++		if (opts & FLAG_MONITOR)
++			iface_status = IFSTATUS_DOWN;
++		else
++			goto exiting;
++	}
+ 	iface_status_str = strstatus(iface_status);
+ 
+ 	if (opts & FLAG_MONITOR) {
+@@ -687,14 +717,14 @@
+ 		if ((opts & FLAG_MONITOR)
+ 		 && (netlink_pollfd[0].revents & POLLIN)
+ 		) {
+-			G.iface_exists = check_existence_through_netlink();
++			G.iface_exists = check_existence_through_netlink(&iface_status);
+ 			if (G.iface_exists < 0) /* error */
+ 				goto exiting;
+ 			if (iface_exists_old != G.iface_exists) {
+ 				bb_error_msg("interface %sappeared",
+ 						G.iface_exists ? "" : "dis");
+ 				if (G.iface_exists)
+-					maybe_up_new_iface();
++					maybe_up_iface();
+ 				else {
+ 					/* notify upon status:  error -> down */
+ 					iface_status_old = IFSTATUS_ERR;
+@@ -702,34 +732,46 @@
+ 				}
+ 			}
+ 		}
++		else {
++			iface_status = detect_link();
++		}
+ 
+-		/* note: if !G.iface_exists, returns DOWN */
+-		iface_status = detect_link();
+ 		if (iface_status == IFSTATUS_ERR) {
+-			if (!(opts & FLAG_MONITOR))
++			if (opts & FLAG_MONITOR)
++				iface_status = IFSTATUS_DOWN;
++			else
+ 				goto exiting;
+-
+-			iface_status = IFSTATUS_DOWN;
++		}
++		if (iface_status != G.iface_last_status) {
++			G.iface_prev_status = G.iface_last_status;
++			G.iface_last_status = iface_status;
+ 		}
+ 		iface_status_str = strstatus(iface_status);
+ 
+ 		if (iface_status_old != iface_status) {
+ 			bb_error_msg("link is %s", iface_status_str);
+ 
++			if (iface_status == IFSTATUS_DORMANT) {
++				continue; /* ignore for now */
++			}
+ 			if (delay_time) {
+ 				/* link restored its old status before
+ 				 * we run script. don't run the script: */
+ 				delay_time = 0;
+ 			} else {
+ 				delay_time = monotonic_sec();
+-				if (iface_status == IFSTATUS_UP)
++				if (iface_status >= IFSTATUS_UP) {
++					iface_status = IFSTATUS_UP;
+ 					delay_time += G.delay_up;
++				}
+ 				if (iface_status == IFSTATUS_DOWN)
+ 					delay_time += G.delay_down;
++
+ 				if (delay_time == 0)
+ 					delay_time++;
+ 			}
+ 		}
++		iface_status_str = strstatus(iface_status);
+ 
+ 		if (delay_time && (int)(monotonic_sec() - delay_time) >= 0) {
+ 			delay_time = 0;
