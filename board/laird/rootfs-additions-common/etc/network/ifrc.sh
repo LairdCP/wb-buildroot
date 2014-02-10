@@ -69,8 +69,9 @@ msg() {
     # to controlling tty w/'@.' prefix in monitor-mode
     if [ -n "$mm" ]
     then
-      tty >/dev/null 2>&1 && tty >$ifrc_Lfp/tty
-      echo -e "$@" >`cat $ifrc_Lfp/tty || echo -n "/dev/console"`
+      tty >/dev/null 2>&1 && tty >$ifrc_Lfp/$dev.tty
+      echo -e "$@" >`cat $ifrc_Lfp/$dev.tty 2>/dev/null || echo -n /dev/console`
+
       logger -tifrc \
         "$IFRC_STATUS $IFRC_DEVICE ${IFRC_ACTION:-??} m:${IFRC_METHOD%% *}"
     fi
@@ -83,7 +84,7 @@ msg() {
 }
 
 # internals
-ifrc_Version=20140107
+ifrc_Version=20140207
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -171,8 +172,9 @@ ifnl=ifplugd
 
 # set ifnl_s when called via netlink daemon
 ifnl_s=${IFPLUGD_PREVIOUS}-\>${IFPLUGD_CURRENT}
-ifnl_s=${ifnl_s//error/ee}
+ifnl_s=${ifnl_s//error/er}
 ifnl_s=${ifnl_s//down/dn}
+ifnl_s=${ifnl_s//dormant/dt}
 [ "$ifnl_s" == "->" ] && ifnl_s=
 
 [ -n "$rcS_" ] && ifrc_Via=" (...via rcS)"
@@ -290,7 +292,7 @@ signal_dhcp_client() {
   done
 
   # interrupt link-beat check, while in-progress
-  rm ${ifrc_Lfp}/$dev.lbto 2>/dev/null && pause 0.2
+  rmdir ${ifrc_Lfp}/$dev.lbto 2>/dev/null && pause 0.2
   return $rv
 }
 
@@ -315,6 +317,7 @@ make_dhcp_renew_request() {
 case $1 in
 
   stop|start|restart) ## call network-init-script w/action-&-args, no return
+    ifrc_stop_netlink_daemon
     [ -n "${vm:0:1}" ] && set -x
     exec $nis "" $1 $2
     ;;
@@ -459,12 +462,16 @@ fi
 msg3 "  deviface: ${dev:-?}"
 test -n "$dev" || exit 1
 
-# set logfile name and limit the file size to just 100-blocks
+test -d /sys/class/net/$dev/phy80211 && phy80211=true || phy80211=false
+
+# set logfile name
+# limit the file size to about 100-blocks, by snip'ing twenty lines
+# of content within the log, and while retaining a twenty line header
 if [ "$ifrc_Log" != "/dev/null" ]
 then
   ifrc_Log=${dev:+${ifrc_Lfp}/$dev}
-  let sz=$( { wc -c < $ifrc_Log""; } 2>/dev/null )+0
-  test $sz -le 102400 || ifrc_Log=/dev/null
+  { test 0`wc -c < $ifrc_Log` -le 102400 \
+    || sed '21,41d;42i<snip>' -i $ifrc_Log; } 2>/dev/null
 fi
 
 # begin a new timestamp log entry for the dev operations that follow 
@@ -647,8 +654,9 @@ case $IFRC_ACTION in
     ;;
 
   stop|start|restart) ## act on init/driver, does not return
+    ifrc_stop_netlink_daemon
     [ -n "${vm:0:1}" ] && set -x
-    exec $nis $devalias $IFRC_ACTION
+    exec $nis $devalias $IFRC_ACTION ${IFRC_METHOD%% *}
     ;;
 
   dn|down) ## assume down action ->deconfigure
@@ -658,7 +666,7 @@ case $IFRC_ACTION in
       msg1 "  pre-dcfg-do( $pre_dcfg_do )"
       make_ "$pre_dcfg_do" |tee -a $ifrc_Log & pre_dcfg_do=
     fi
-    rm -fv ${ifrc_Lfp}/$dev.lock
+    rmdir ${ifrc_Lfp}/$dev.lock 2>/dev/null
     msg1 "deconfiguring $dev"
     #
     # terminate any other netlink/dhcp_client daemons and de-configure
@@ -681,24 +689,22 @@ case $IFRC_ACTION in
   up) ## assume up action ->reconfigure . . .
     if [ ! -f /sys/class/net/$dev/uevent ]
     then
-      if [ ! -f ${ifrc_Lfp}/$dev.lock ]
+      if [ ! -d ${ifrc_Lfp}/$dev.lock ]
       then
-        touch ${ifrc_Lfp}/$dev.lock
+        mkdir ${ifrc_Lfp}/$dev.lock
         IFRC_METHOD=
         IFRC_SCRIPT=
         msg "interface is not kernel-resident, trying to start ..."
-        msg1 "$nis $devalias start $IFRC_METHOD"
-        exec $nis $devalias start $IFRC_METHOD
+        msg1 "$nis $devalias start"
+        exec $nis $devalias start
       else
         msg "interface is not kernel-resident, try:  ifrc $dev start"
         exit 1
       fi
     fi
-    rm -fv ${ifrc_Lfp}/$dev.lock
+    rmdir ${ifrc_Lfp}/$dev.lock 2>/dev/null
 
-    if [ "$dev" != "lo" ] \
-    && [ "$devalias" != "wl" ] \
-    && [ ! -d /sys/class/net/$dev/phy80211 ]
+    if [ "$dev" != "lo" ] && [ "$devalias" != "wl" ] && ! $phy80211
     then
       # ethernet wired phy-hw is external; so try to determine if really there
       # the generic phy driver is present when phy-hw is otherwise unsupported
@@ -725,9 +731,9 @@ case $IFRC_ACTION in
     ;;
 
   \.\.|\.\.\.) ## refresh/renew - try signaling the dhcp client
-    if [ ! -f ${ifrc_Lfp}/$dev.lock ]
+    if [ ! -d ${ifrc_Lfp}/$dev.lock ]
     then
-      touch ${ifrc_Lfp}/$dev.lock
+      mkdir ${ifrc_Lfp}/$dev.lock
       ## request dhcp renewal, and check if was really carried out
       ## under some tested conditions, the signal may be ignored
       ## if client stalls/dies, then re-exec using 'up' action
@@ -735,14 +741,14 @@ case $IFRC_ACTION in
       && [ "${IFRC_STATUS##*->}" == "up" ]
       then
         msg @. \ \ ...exec ifrc $fls $dev up $IFRC_METHOD
-        rm -f ${ifrc_Lfp}/$dev.lock
+        rmdir ${ifrc_Lfp}/$dev.lock 2>/dev/null
         eval exec ifrc $fls $dev up $IFRC_METHOD
       fi
     else
-      msg1 \ \ ...lock file exists, aborted
+      msg1 \ \ ...$dev.lock exists, aborted
       exit 0
     fi
-    rm -f ${ifrc_Lfp}/$dev.lock
+    rmdir ${ifrc_Lfp}/$dev.lock 2>/dev/null
     exit 0
     ;;
 
@@ -751,7 +757,7 @@ case $IFRC_ACTION in
     exit 0
     ;;
 
-  ee|xx|\.*) ## no action
+  er|dt|xx|\.*) ## no action
     msg2 \ \ ...no action on $dev
     exit 0
     ;;
@@ -921,31 +927,34 @@ ifrc_validate_dhcp_method_params() {
 }
 
 check_link() {
-  # check if associated when using wireless
-  if [ -d /sys/class/net/$dev/phy80211 ]
-  then
-    grep -q 1 /sys/class/net/${dev}/carrier \
-    && grep -qs up /sys/class/net/${dev}/operstate \
-    || { msg "  ...not associated, deferring"; exit 0; }
-  fi
+  test -n "$ifnl_s" && return
+  mkdir ${ifrc_Lfp}/$dev.lbto
 
-  # need a link beat in order for dhcp to work
-  # so try waiting up to 30s, and then double check
-  touch ${ifrc_Lfp}/$dev.lbto
-  let lbto=30000
+  # await link-beat-time-out of 4s or 20s
+  $phy80211 && lbto=4000 || lbto=20000
   let n=0
-  while [ $n -lt $lbto -a -f ${ifrc_Lfp}/$dev.lbto ]
+  while [ $n -lt $lbto -a -d ${ifrc_Lfp}/$dev.lbto ]
   do
-    grep -q 1 /sys/class/net/${dev}/carrier && break
-    let n || msg1 "  waiting for ${dev} link beat"
+    if $phy80211
+    then
+      grep -qs up /sys/class/net/${dev}/operstate && break
+    else
+      grep -q 1 /sys/class/net/${dev}/carrier && break
+    fi
     let n+=200 && pause 0.2
   done
-  rm -f ${ifrc_Lfp}/$dev.lbto
+  [ $n -gt 0 ] && msg @. "  waited ${n}ms for ${dev} link"
 
-  grep -q 1 /sys/class/net/${dev}/carrier \
-  || { msg "  ...no carrier/cable/link, deferring"; exit 0; }
+  rmdir ${ifrc_Lfp}/$dev.lbto 2>/dev/null
 
-  [ $n -gt 0 ] && msg1 "  waited ${n}ms on ${dev}/carrier"
+  if $phy80211
+  then
+    grep -qs up /sys/class/net/${dev}/operstate \
+    || { msg @. "  ...not associated, deferring"; exit 0; }
+  else
+    grep -q 1 /sys/class/net/${dev}/carrier \
+    || { msg @. "  ...no cable/link, deferring"; exit 0; }
+  fi
 }
 
 run_udhcpc() {
