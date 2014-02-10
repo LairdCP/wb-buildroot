@@ -118,6 +118,7 @@ bring() {
       # maybe using 'wl' as alias for wireless
       # the wireless script handles device up/down
       # and the ifrc script will handle configuration
+      $dn && $tm $ifrc -x $1 $2
       $tm $wifi $3
       $up && $tm $ifrc $1 $2 $method &
       $dn && wait
