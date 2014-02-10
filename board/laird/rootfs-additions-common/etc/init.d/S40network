@@ -1,5 +1,5 @@
 #!/bin/ash
-# network - init script for controlling all interfaces
+# network - init script for all network interface devices
 # jon.hefling@lairdtech.com 20120522
 #
 # This init-script serves to stop/start/restart all "auto" enabled interfaces
@@ -17,19 +17,29 @@
 # If available, ifrc.sh (interface-run-config) handles the configuration work.
 #
 # A testmode is invoked by appending ' -x' in the 1st line of the /e/n/i file.
-#
-eni=/etc/network/interfaces
-log=${rcS_log:-/var/log/nis}
 
-ifconfig=/sbin/ifconfig
-ifrc=/etc/network/ifrc.sh
+eni=/etc/network/interfaces
+
+# Interface phy init-scripts.
 wifi=/etc/network/wireless.sh
 bridge=/etc/network/bridge.sh
-
 pppd=/etc/init.d/opt/S??pppd
 g_ether=/etc/init.d/opt/S??g_ether
 
-# Check /e/n/i
+# Interface up/down via ifconfig.
+ifconfig=ifconfig
+
+# Interface configuration.
+ifrc=/etc/network/ifrc.sh
+
+# Logfile rotation.
+log=/var/log/nis.log
+test -z $rcS_ \
+&& { test 0`wc -c < $log` -le 2048 || mv -f $log $log.0; } 2>/dev/null
+
+# Ensure /e/n/i exists and is not empty.
+# Fallback to a backup edit, or default copy.
+# If all else fails, just create a loopback entry.
 test -s $eni \
 || { test -s $eni~ && mv -f $eni~ $eni; } \
 || { rm -f $eni~ && gzip -fdc $eni~.gz >$eni; } \
@@ -43,8 +53,9 @@ then
   tm=echo && echo \ \ $0 $@ [TESTMODE ACTIVE]
 fi
 
-# An optionally specified iface is shifted into the device-list to act on. 
+# An optionally specified iface is shifted into the device-list to act on, or..
 # Parse the /e/n/i for '^auto <iface>' enabled stanzas, in lieu of given iface.
+# The device-list order is as in /e/n/i for 'start', and reversed for 'stop'.
 case $1 in
   restart) ## ignored, bypass this step
     ;;
@@ -64,7 +75,8 @@ bring() {
   [ "${2:0:1}" == "u" ] && up=true && dn=false
   [ "${2:0:1}" == "d" ] && up=false && dn=true
   
-  echo \ \ bring: $@
+  # now bring 'up' -or- 'down' an interface phy
+  echo \ \ nis: bring $@ ${rcS_:+(via rcS)}
   case "$1" in
   
     lo) ## loopback support
@@ -113,7 +125,6 @@ bring() {
 
     br*) ## bridge-mode support
       $dn && $tm $ifrc $1 $2
-    # $dn && wait && $tm $ifconfig $1 $2
       $tm $bridge $3 $1
       $up && $tm $ifrc $1 $2 $method & 
       ;;
@@ -122,10 +133,10 @@ bring() {
       echo \ \ ...unhandled interface name
       ;;
   esac
-}
+} >>$log
 
 check_ifrc() {
-  # warn if the ifrc utility is missing/disabled, fallback to ifconfig
+  # warn if the ifrc utility is disabled/missing
   if [ -x $ifrc ]
   then
     if [ -f /etc/default/ifrc.disable ]
@@ -141,37 +152,41 @@ check_ifrc() {
 }
 
 
-# Set wait or no-wait.
+# Set wait or no-wait behavior.
+# (may only be required for stops)
 wnw=wait
 
 # Act on interfaces in device-list.
-case $1 in
-    
+act=$1 && shift
+case $act in
   stop)
     echo -n Stopping network interfaces... #$devls
     #
+    # fallback to ifconfig
     check_ifrc || ifrc=$ifconfig
-    for dev in $devls; do echo -n \ $dev; bring $dev down $1 >>$log; $wnw; done
+    #
+    for dev in $devls; do echo -n \ $dev; bring $dev down $act; $wnw; done
     echo
     ;;
-  
+
   start)
     echo Starting network interfaces... $devls
     #
-    # prevent general configurations when also doing bridge_mode
-    #echo \ $devls |grep -q " br[i0-9]" && method=manual
-    [ "$2" == "manual" ] && method=manual
+    # option for skipping configuration
+    [ "$1" == "manual" ] && { method=manual; shift; }
     #
+    # fallback to ifconfig
     check_ifrc || ifrc=$ifconfig
-    for dev in $devls; do ( bring $dev up $1 $method >>$log )& : $wnw; done
+    #
+    for dev in $devls; do ( bring $dev up $act )& : $wnw; done
     ;;
-    
+
   restart)
     echo Restarting network...
-    $0 $devls stop
-    $0 $devls start
+    $0 $devls stop $@
+    $0 $devls start $@
     ;;
-  
+
   *)
     echo "This script handles all interface-phy-hw init."
     echo "Calls on other network init-scripts as necessary."
