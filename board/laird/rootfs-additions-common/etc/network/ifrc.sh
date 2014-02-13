@@ -71,9 +71,11 @@ msg() {
     then
       tty >/dev/null 2>&1 && tty >$ifrc_Lfp/$dev.tty
       echo -e "$@" >`cat $ifrc_Lfp/$dev.tty 2>/dev/null || echo -n /dev/console`
-
-      logger -tifrc \
-        "$IFRC_STATUS $IFRC_DEVICE ${IFRC_ACTION:-??} m:${IFRC_METHOD%% *}"
+      # and to syslog if verbose too
+      test -n "$vm" \
+        && logger -tifrc \
+            "$IFRC_STATUS $IFRC_DEVICE ${IFRC_ACTION:-??} m:${IFRC_METHOD%% *}"
+      return
     fi
   else
     # to stdout while not quiet-mode
@@ -84,7 +86,7 @@ msg() {
 }
 
 # internals
-ifrc_Version=20140207
+ifrc_Version=20140210
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -177,8 +179,8 @@ ifnl_s=${ifnl_s//down/dn}
 ifnl_s=${ifnl_s//dormant/dt}
 [ "$ifnl_s" == "->" ] && ifnl_s=
 
-[ -n "$rcS_" ] && ifrc_Via=" (...via rcS)"
-[ -n "$ifnl_s" ] && ifrc_Via=" (...via $ifnl)"
+[ -n "$rcS_" ] && ifrc_Via="-- ${PPID}_rcS"
+[ -n "$ifnl_s" ] && ifrc_Via="-- ${PPID}_$ifnl"
 [ -n "$ifrc_Via" ] && qm='>/dev/null'
 
 [ "$vm" == "....." ] && set -x
