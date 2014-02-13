@@ -1,0 +1,10 @@
+--- libnl-3.2.21/lib/genl/ctrl.c
++++ libnl-3.2.21/lib/genl/ctrl.c
+@@ -432,6 +432,7 @@ int genl_ctrl_resolve(struct nl_sock *sk, const char *name)
+ 		goto errout;
+ 	}
+ 
++	nl_cb_put(sk->s_cb);
+ 	err = genl_family_get_id(family);
+ 	genl_family_put(family);
+ errout:
