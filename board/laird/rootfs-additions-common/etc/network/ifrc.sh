@@ -86,7 +86,7 @@ msg() {
 }
 
 # internals
-ifrc_Version=20140210
+ifrc_Version=20140211
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -259,13 +259,12 @@ show_interface_config_and_status() {
 }
 
 ifrc_stop_netlink_daemon() {
-  prg="ifplug[d]"
-  # find all ifplug* instances for this interface  
+  prg="${ifnl##*/}"
+  # find daemon instances for this interface
   for pid in \
   $( ps ax |sed -n "/${dev}/s/^[ ]*\([0-9]*\).*[\/ ]\(${prg}\) -.*/\1_\2 /p" )
   do
-    kill ${pid%%_*} \
-    && msg1 @. "`printf \"% 7d %s <-sigterm\" ${pid%%_*} ${pid##*_}`"
+    kill ${pid%%_*} && msg1 "  $pid <- sigterm:0"
   done
 }
 
@@ -782,17 +781,16 @@ if [ -n "$ifnl_disable" ]
 then
   ifrc_stop_netlink_daemon
 else
-  if ! { ps ax |grep -q "ifplug[d].*${dev}" && msg "  ...nl-daemon is running"; }
+  if ! { ps ax |grep -q "$ifnl[ ].*${dev}" && msg2 "  $ifnl is running"; }
   then
     # when not verbose, don't log to syslog
     [ -z "${vm:0:1}" ] && nsl=-s || nsl=   
     #
-    # use auto API mode for all interfaces except wireless
-    #[ "${dev:0:2}" == wl ] && api=-mwlan || api=-mauto
+    # allow auto API mode for all interfaces except wireless
+    $phy80211 && api=-miff
     #
-    # the ifnl daemon will terminate if internal-error
+    # start the netlink daemon
     $ifnl -i$dev $api $nsl -fa -qMp -u0 -d0 -Ir$0
-    pause 0.333
   fi
 fi
 
