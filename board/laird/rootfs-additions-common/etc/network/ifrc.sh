@@ -86,7 +86,7 @@ msg() {
 }
 
 # internals
-ifrc_Version=20140212
+ifrc_Version=20140213
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -295,15 +295,20 @@ signal_dhcp_client() {
 make_dhcp_renew_request() {
   for x in 1 2 3 4 5
   do
-    msg1 \\\trenew_req: $x
+    msg1 "    renew_req: $x"
+
+    { read -r txp_b </sys/class/net/$dev/statistics/tx_packets; } 2>/dev/null
+    signal_dhcp_client USR1 || break
+    pause 1
     { read -r txp_a </sys/class/net/$dev/statistics/tx_packets; } 2>/dev/null
-    signal_dhcp_client USR1 && pause 1 || break
-    let txp_b=$txp_a
-    { read -r txp_a </sys/class/net/$dev/statistics/tx_packets; } 2>/dev/null
-    msg2 \\\ttx_packets: $txp_a-$txp_b
-    let $txp_a-$txp_b && return 0
+
+    msg2 "    tx_packets: $txp_b -> $txp_a"
+    let txp_b=$txp_a-$txp_b || break
+    pause 2
+    signal_dhcp_client ZERO && return 0
+    pause 1
   done
-  msg1 \\\tfailed...
+  msg1 "    failed..."
   return 1
 }
 
