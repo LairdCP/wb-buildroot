@@ -86,7 +86,7 @@ msg() {
 }
 
 # internals
-ifrc_Version=20140211
+ifrc_Version=20140212
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -283,17 +283,12 @@ signal_dhcp_client() {
   for pid in \
   $( ps ax |sed -n "/${dev}/s/^[ ]*\([0-9]*\).*[\/ ]\(${prg}\)[ -].*/\1_\2 /p" )
   do
-    if kill $signal ${pid%%_*}
-    then
-      msg1 @. "`printf \"% 7d %s <-${action}\" ${pid%%_*} ${pid##*_}`"
-      let rv=0
-    else
-      let rv=1
-    fi
+    kill $signal ${pid%%_*}; rv=$?
+    msg1 "  $pid <- $action:$rv"
   done
 
   # interrupt link-beat check, while in-progress
-  rmdir ${ifrc_Lfp}/$dev.lbto 2>/dev/null && pause 0.2
+  rmdir ${ifrc_Lfp}/$dev.lbto 2>/dev/null
   return $rv
 }
 
@@ -556,8 +551,14 @@ then
   then
     if [ "${IFRC_METHOD%% *}" == "dhcp" ]
     then
-      # check if dhcp client is running
-      signal_dhcp_client ZERO && IFRC_ACTION=..
+      if [ -d ${ifrc_Lfp}/$dev.dhcp ]
+      then
+        msg1 "dhcp client lock exists, no act..."
+        IFRC_ACTION=xx
+      else
+        # check if dhcp client is running
+        signal_dhcp_client ZERO && IFRC_ACTION=..
+      fi
     fi
   fi
 
@@ -959,6 +960,7 @@ check_link() {
 
 run_udhcpc() {
   # BusyBox v1.19.3 multi-call binary.
+  mkdir ${ifrc_Lfp}/$dev.dhcp 2>/dev/null
   source /etc/dhcp/udhcpc.conf 2>/dev/null
 
   # set no-verbose or verbose mode level
@@ -1001,6 +1003,7 @@ run_udhcpc() {
   # For retry, send 4-discovers, paused at 2sec, and repeat after 5sec.
   eval udhcpc -i$dev $vb $rip $nq -R -t4 -T2 -A5 -b $ropt $vci $xopt $rbf $rs $nv
   #
+  rmdir ${ifrc_Lfp}/$dev.dhcp 2>/dev/null || :
   #return $?
 }
 
@@ -1071,6 +1074,9 @@ fi
 case ${IFRC_METHOD%% *} in
 
   dhcp) ## method + optional params
+    test -d ${ifrc_Lfp}/$dev.dhcp \
+      && { msg1 "client startup already in progress"; exit 0; }
+
     [ -n "$rcS_" -a -f /tmp/bootfile_ ] && rbf=bootfile
     ifrc_validate_dhcp_method_params
     check_link
