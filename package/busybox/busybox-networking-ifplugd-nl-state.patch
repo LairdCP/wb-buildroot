@@ -142,7 +142,7 @@
  					}
  					attr = RTA_NEXT(attr, attr_len);
  				}
-@@ -620,12 +649,13 @@
+@@ -620,12 +649,17 @@
  		G.iface_exists = (network_ioctl(SIOCGIFINDEX, &ifrequest, NULL) == 0);
  	}
  
@@ -158,10 +158,14 @@
 +		else
 +			goto exiting;
 +	}
++	if (iface_status != G.iface_last_status) {
++		G.iface_prev_status = G.iface_last_status;
++		G.iface_last_status = iface_status;
++	}
  	iface_status_str = strstatus(iface_status);
  
  	if (opts & FLAG_MONITOR) {
-@@ -687,14 +717,14 @@
+@@ -687,14 +721,14 @@
  		if ((opts & FLAG_MONITOR)
  		 && (netlink_pollfd[0].revents & POLLIN)
  		) {
@@ -178,7 +182,7 @@
  				else {
  					/* notify upon status:  error -> down */
  					iface_status_old = IFSTATUS_ERR;
-@@ -702,34 +732,46 @@
+@@ -702,34 +736,46 @@
  				}
  			}
  		}
