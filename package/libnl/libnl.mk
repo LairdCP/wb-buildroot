@@ -4,8 +4,8 @@
 #
 #############################################################
 
-LIBNL_VERSION = 3.2.21
-LIBNL_SITE = http://www.infradead.org/~tgr/libnl/files
+LIBNL_VERSION = 3.2.24
+LIBNL_SITE = http://www.linux-mtd.infradead.org/~tgr/libnl/files
 LIBNL_LICENSE = LGPLv2.1+
 LIBNL_LICENSE_FILES = COPYING
 LIBNL_INSTALL_STAGING = YES
