@@ -33,8 +33,8 @@ usage() {
 	  stop|start|restart   - act on phy-init/driver (up or down the hw-phy)
 	  noauto|auto   - unset or set auto-starting an interface (for init/rcS)
 	  status   - check an interface and report its ip-address, w/ exit code
-	  up|dn   - up or down the interface configuration (use '...' to renew)
-	  logs   - manage related files: (clean|show [<iface>])
+	  up|dn   - up or down the interface configuration (re-'up' to renew)
+	  logs   - list or manage related files: {clean|show [<iface>]}
 	  eni   - edit file: /etc/network/interfaces
 	  usage   - view file: /etc/network/networking.README
 	
@@ -86,7 +86,7 @@ msg() {
 }
 
 # internals
-ifrc_Version=20140224
+ifrc_Version=20140225
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -132,20 +132,20 @@ parse_flag() {
            - md5:`md5sum < $0` len:`wc -c < $0`
       exit 0
       ;;
-    -n) ## do not use a log file
-      ifrc_Log=/dev/null
-      ;;
     -q) ## quiet, no stdout
       qm='>/dev/null'
       ;;
     -v) ## add verbosity, multi-level
       vm=$vm.
       ;;
+    -n) ## do not use a log file
+      ifrc_Log=/dev/null
+      ;;
+    -m) ## monitor nl/ifrc events for iface
+      mm=@
+      ;;
     -x) ## do not run netlink daemon
       ifnl_disable=.
-      ;;
-    -m) ## monitor nl/ifrc events for a specific iface
-      mm=@
       ;;
     -*) ## ignore
       msg \ \ ...ignoring: $1
@@ -270,11 +270,10 @@ ifrc_stop_netlink_daemon() {
 
 signal_dhcp_client() {
   case $1 in
-    USR2) action=sigusr2; signal=-12;;
-    USR1) action=sigusr1; signal=-10;;
+    RELEASE) action=sigusr2; signal=-12;;
+    RENEW) action=sigusr1; signal=-10;;
     TERM) action=sigterm; signal=-15;;
-    CONT) action=sigcont; signal=-18;;
-    ZERO) action=sigzero; signal=-00;;
+    CHECK) action=sigzero; signal=-00;;
   esac
 
   let rv=1
@@ -299,14 +298,14 @@ make_dhcp_renew_request() {
     msg1 "    renew_req: $x"
 
     { read -r txp_b </sys/class/net/$dev/statistics/tx_packets; } 2>/dev/null
-    signal_dhcp_client USR1 || break
+    signal_dhcp_client RENEW || break
     pause 1
     { read -r txp_a </sys/class/net/$dev/statistics/tx_packets; } 2>/dev/null
 
     msg2 "    tx_packets: $txp_b -> $txp_a"
     let txp_b=$txp_a-$txp_b || break
     pause 2
-    signal_dhcp_client ZERO && return 0
+    signal_dhcp_client CHECK && return 0
     pause 1
   done
   msg1 "    failed..."
@@ -318,8 +317,9 @@ make_dhcp_renew_request() {
 # however, some actionable exceptions can be handled before qualifing iface dev
 case $1 in
 
-  stop|start|restart) ## call network-init-script w/action-&-args, no return
+  stop|start|restart) ## call network-init-script w/action-&-method, no return
     ifrc_stop_netlink_daemon
+    rm -f ${ifrc_Lfp}/*.cfg
     [ -n "${vm:0:1}" ] && set -x
     exec $nis "" $1 $2
     ;;
@@ -464,6 +464,7 @@ fi
 msg3 "  deviface: ${dev:-?}"
 test -n "$dev" || exit 1
 
+# check if this is a wireless interface
 test -d /sys/class/net/$dev/phy80211 && phy80211=true || phy80211=false
 
 # set logfile name
@@ -489,11 +490,11 @@ export IFRC_METHOD
 export IFRC_SCRIPT
 
 # determine action to apply - assume 'show'
-[ -n "$1" ] \
+test -n "$1" \
 && { IFRC_ACTION=$1; shift; } \
 || { [ -z $ifnl_disable ] && IFRC_ACTION=show; }
 
-# determine method to apply
+# determine method to apply, also handle a re-'up'
 if [ "$IFRC_ACTION" == "up" ]
 then
   ## assume method [and params] if not specified via cli or eni
@@ -503,7 +504,12 @@ then
     then
       methvia="(set via cli)"
       IFRC_METHOD="$@"
-    elif [ -f $eni ]
+    elif [ ${ifrc_Lfp}/$dev.cfg -nt $eni ]
+    then
+      msg3 "using current cfg for a re-'up'"
+      methvia="(via $dev.cfg)"
+      . ${ifrc_Lfp}/$dev.cfg
+    elif [ -s $eni ]
     then
       msg3 "parsing /e/n/i for iface $devalias inet method and params..."
       IFRC_METHOD=$( sed -n "/^iface $devalias inet /\
@@ -513,22 +519,22 @@ then
       #
       methvia="(via /e/n/i)"
       IFRC_METHOD=${IFRC_METHOD:+$IFRC_METHOD }${mp//$'\n'/ }
+      break
     fi
     if [ -z "$IFRC_METHOD" ]
     then
       methvia="(assumed)"
       IFRC_METHOD="dhcp"
     fi
-  fi  
+  fi
 fi  
 
 # Determine netlink event rule to apply via the reported iface status.
 # The action may be overriden, depending on the following event rules.
 if [ -n "$ifnl_s" ]
 then
-  ## run via nl daemon, so consume remaining args
-  # Currently no defined need for (optional) extra args...
-  while [ -n "$ifnl_s" -a -n "$1" ]; do shift; done
+  ## run via nl daemon, consume extra args
+  shift $#
 
   ## nl event rules for status '  ->dn'
   while [ "${IFRC_STATUS##*->}" == "dn" ]
@@ -540,21 +546,20 @@ then
       pause 2
       if [ ! -f /sys/class/net/$dev/carrier ]
       then
-        msg1 $dev is gone, so allowing deconfiguration
-        IFRC_ACTION=dn
+        msg1 $dev is gone, allowing deconfigure
       else
-        msg1 ignoring dn event for dhcp method - iface is back
+        msg1 ignoring dn event - iface is back
         IFRC_ACTION=xx
       fi
       break
     fi
 
-    ## maybe signal client to release - 1x
+    ## maybe signal client to release
     if [ "${IFRC_METHOD%% *}" == "dhcp" ]
     then
       if [ ! -d ${ifrc_Lfp}/$dev.dhcp ]
       then
-        signal_dhcp_client USR2
+        signal_dhcp_client RELEASE
         IFRC_ACTION=xx
       else
         msg1 "dhcp client lock exists, no act"
@@ -574,23 +579,22 @@ then
   ## nl event rules for status '  ->up'
   while [ "${IFRC_STATUS##*->}" == "up" ]
   do
-    ## maybe signal client to renew - 5x
+    ## maybe signal client to renew
     if [ "${IFRC_METHOD%% *}" == "dhcp" ]
     then
       if [ ! -d ${ifrc_Lfp}/$dev.dhcp ]
       then
-        signal_dhcp_client ZERO && IFRC_ACTION=..
+        : signal_dhcp_client RENEW
       else
-        msg1 "dhcp client lock exists, no act"
-        IFRC_ACTION=xx
+        : msg1 "dhcp client lock exists, no act"
+        : IFRC_ACTION=xx
       fi
       break
     fi
-
     break
   done
 
-  msg @. ifrc_s/d/a/m: "$IFRC_STATUS" $IFRC_DEVICE ${IFRC_ACTION:---} \
+  msg @. ifnl_s/d/a/m: "$IFRC_STATUS" $IFRC_DEVICE ${IFRC_ACTION:---} \
                        ${IFRC_METHOD%% *} s\{$IFRC_SCRIPT\}
 fi
 
@@ -683,6 +687,7 @@ case $IFRC_ACTION in
 
   stop|start|restart) ## act on init/driver, does not return
     ifrc_stop_netlink_daemon
+    rm -f ${ifrc_Lfp}/$dev.cfg
     [ -n "${vm:0:1}" ] && set -x
     exec $nis $devalias $IFRC_ACTION ${IFRC_METHOD%% *}
     ;;
@@ -695,6 +700,7 @@ case $IFRC_ACTION in
       make_ "$pre_dcfg_do" |tee -a $ifrc_Log & pre_dcfg_do=
     fi
     rmdir ${ifrc_Lfp}/$dev.lock 2>/dev/null
+    rm -f ${ifrc_Lfp}/$dev.cfg
     msg1 "deconfiguring $dev"
     #
     # terminate any other netlink/dhcp_client daemons and de-configure
@@ -714,12 +720,13 @@ case $IFRC_ACTION in
     exit 0
     ;;
 
-  up) ## assume up action ->reconfigure . . .
+  up) ## assume up action ->reconfigure
     if [ ! -f /sys/class/net/$dev/uevent ]
     then
-      if [ ! -d ${ifrc_Lfp}/$dev.lock ]
+      # interface does not exist yet, must start
+      if mkdir ${ifrc_Lfp}/$dev.lock 2>/dev/null
       then
-        mkdir ${ifrc_Lfp}/$dev.lock
+        rm -f ${ifrc_Lfp}/$dev.cfg
         IFRC_METHOD=
         IFRC_SCRIPT=
         msg "interface is not kernel-resident, trying to start ..."
@@ -732,48 +739,46 @@ case $IFRC_ACTION in
     fi
     rmdir ${ifrc_Lfp}/$dev.lock 2>/dev/null
 
-    if [ "$dev" != "lo" ] && [ "$devalias" != "wl" ] && ! $phy80211
+    if [ "${IFRC_STATUS%%->*}" != "up" ]
     then
-      # ethernet wired phy-hw is external; so try to determine if really there
-      # the generic phy driver is present when phy-hw is otherwise unsupported
-      if grep -s Generic /sys/class/net/$dev/*/uevent >/dev/stderr
+      if [ "$dev" != "lo" ] && [ "$devalias" != "wl" ] && ! $phy80211
       then
-        msg "Warning: unknown '$dev' iface-phy-hw ...using generic phy driver"
-        [ -z "$mii" ] && exit 1 || $mii $dev |grep -B12 fault && exit 2
+        # ethernet wired phy-hw is external; so try to determine if really there
+        # the generic phy driver is present when phy-hw is otherwise unsupported
+        if grep -s Generic /sys/class/net/$dev/*/uevent >/dev/stderr
+        then
+          msg "Warning: unknown '$dev' iface-phy-hw ...using generic phy driver"
+          [ -z "$mii" ] && exit 1 || $mii $dev |grep -B12 fault && exit 2
+        fi
       fi
     fi
+
     [ "${IFRC_STATUS%%->*}" == "up" ] && re=re- || re=
     msg1 "${re}configuring $dev using ${IFRC_METHOD%% *} method $methvia"
-    #
-    # terminate any other netlink/dhcp_client daemons and de-configure
-    [ -z "$ifnl_s" ] && ifrc_stop_netlink_daemon 
 
-    # this is a new method/request
-    signal_dhcp_client TERM
+    if [ "${methvia/*cfg*/cfg}" != "cfg" ]
+    then
+      ## this is a new conf up method
+      echo "IFRC_METHOD=\"$IFRC_METHOD\"" >${ifrc_Lfp}/$dev.cfg
 
-    ifconfig $dev 0.0.0.0 2>/dev/null \
-    || msg "  ...deconfig for up_action resulting in error, ignored"
-    ## this de-configure (flush) will also re-'up' the interface...
-    ## additional wait time may be required to be ready again
-    ## operations continue below...
+      [ -z "$ifnl_s" ] && ifrc_stop_netlink_daemon
+
+      signal_dhcp_client TERM
+
+      ifconfig $dev 0.0.0.0 2>/dev/null \
+      || msg "  ...deconfig for up_action resulting in error, ignored"
+      ## this de-configure (flush) will also re-'up' the interface...
+      ## additional wait time may be required to be ready again
+      ## operations continue below...
+    fi
     ;;
 
-  \.\.|\.\.\.) ## refresh/renew - try signaling the dhcp client
-    if [ ! -d ${ifrc_Lfp}/$dev.lock ]
+  \.\.) ## refresh configuration
+    if mkdir ${ifrc_Lfp}/$dev.lock 2>/dev/null
     then
-      mkdir ${ifrc_Lfp}/$dev.lock
-      ## request dhcp renewal, and check if was really carried out
-      ## under some tested conditions, the signal may be ignored
-      ## if client stalls/dies, then re-exec using 'up' action
-      if ! make_dhcp_renew_request \
-      && [ "${IFRC_STATUS##*->}" == "up" ]
-      then
-        msg @. \ \ ...exec ifrc $fls $dev up $IFRC_METHOD
-        rmdir ${ifrc_Lfp}/$dev.lock 2>/dev/null
-        eval exec ifrc $fls $dev up $IFRC_METHOD
-      fi
+      [ -s ${ifrc_Lfp}/$dev.cfg ] && touch ${ifrc_Lfp}/$dev.cfg
     else
-      msg1 \ \ ...$dev.lock exists, aborted
+      msg1 \ \ ...$dev.lock exists, no refresh
       exit 0
     fi
     rmdir ${ifrc_Lfp}/$dev.lock 2>/dev/null
@@ -808,6 +813,9 @@ if [ -n "$ifnl_disable" ]
 then
   ifrc_stop_netlink_daemon
 else
+  mkdir ${ifrc_Lfp}/$dev.lock 2>/dev/null \
+    || { msg1 "$ifnl start, ...already in progress"; exit 0; }
+
   if ! { ps ax |grep -q "$ifnl[ ].*${dev}" && msg2 "  $ifnl is running"; }
   then
     # when not verbose, don't log to syslog
@@ -818,8 +826,11 @@ else
     #
     # start the netlink daemon
     $ifnl -i$dev $api $nsl -fa -qMp -u0 -d0 -Ir$0
+
+    msg2 "  $ifnl started"
   fi
 fi
+rmdir ${ifrc_Lfp}/$dev.lock 2>/dev/null
 
 #
 # NOTE:
@@ -885,7 +896,7 @@ ifrc_validate_loopback_method_params() {
         ip=${x##*=}
         ;;
       *)
-        msg2 "ignoring extra parameter: [$x]"
+        msg3 "ignoring extra parameter: [$x]"
     esac
   done
   show_filtered_method_params
@@ -919,7 +930,7 @@ ifrc_validate_static_method_params() {
         fpsd=${x##*=}
         ;;
       *)
-        msg2 "ignoring extra parameter: [$x]"
+        msg3 "ignoring extra parameter: [$x]"
     esac
   done
   show_filtered_method_params
@@ -947,7 +958,7 @@ ifrc_validate_dhcp_method_params() {
         client=${x##*=}
         ;;
       *)
-        msg2 "ignoring extra parameter: [$x]"
+        msg3 "ignoring extra parameter: [$x]"
     esac
   done
   show_filtered_method_params
@@ -986,7 +997,6 @@ check_link() {
 
 run_udhcpc() {
   # BusyBox v1.19.3 multi-call binary.
-  mkdir ${ifrc_Lfp}/$dev.dhcp 2>/dev/null
   source /etc/dhcp/udhcpc.conf 2>/dev/null
 
   # set no-verbose or verbose mode level
@@ -1029,7 +1039,6 @@ run_udhcpc() {
   # For retry, send 4-discovers, paused at 2sec, and repeat after 5sec.
   eval udhcpc -i$dev $vb $rip $nq -R -t4 -T2 -A5 -b $ropt $vci $xopt $rbf $rs $nv
   #
-  rmdir ${ifrc_Lfp}/$dev.dhcp 2>/dev/null || :
   #return $?
 }
 
@@ -1087,8 +1096,8 @@ await_timeout_for_dhcp() {
   fi
 }
 
-
-if [ -n "$pre_cfg_do" ]
+if [ "${methvia/*cfg*/cfg}" != "cfg" ] \
+&& [ -n "$pre_cfg_do" ]
 then
   msg1 "  pre-cfg-do( $pre_cfg_do )"
   make_ "$pre_cfg_do" |tee -a $ifrc_Log & pre_cfg_do=
@@ -1101,11 +1110,16 @@ case ${IFRC_METHOD%% *} in
 
   dhcp) ## method + optional params
     test -d ${ifrc_Lfp}/$dev.dhcp \
-      && { msg1 "client startup already in progress"; exit 0; }
+      && { msg1 "  client start ...already in progress"; exit 0; }
 
-    [ -n "$rcS_" -a -f /tmp/bootfile_ ] && rbf=bootfile
+    ## try dhcp renewal first, (re)start client if necessary
+    signal_dhcp_client CHECK \
+      && make_dhcp_renew_request \
+      && exit 0
+
     ifrc_validate_dhcp_method_params
     check_link
+
     ## allow using a fixed-port-speed-duplex, intended only for wired ports
     if [ ! -d /sys/class/net/$dev/phy80211 ] && [ -n "$mii" ]
     then
@@ -1113,6 +1127,12 @@ case ${IFRC_METHOD%% *} in
       && $mii -F $fpsd $dev 2>&1 |grep "[vb]a[ls][ue]" 
     fi
 
+    ## maybe add bootfile request option
+    [ -n "$rcS_" -a -f /tmp/bootfile_ ] && rbf=bootfile
+
+    mkdir ${ifrc_Lfp}/$dev.dhcp 2>/dev/null \
+    && { msg1 "  client start"; } \
+    || { msg1 "  client start ...already in progress"; exit 0; }
     ## spawn a dhcp client in the background
     # may want to implement a governor to limit futile requests
     # busybox-udhcpc is the most efficient and well maintained
@@ -1134,6 +1154,8 @@ case ${IFRC_METHOD%% *} in
     esac
     pause 1
     echo -en \\\r 
+
+    rmdir ${ifrc_Lfp}/$dev.dhcp 2>/dev/null
 
     test -n "$to" && await_timeout_for_dhcp 
 
@@ -1202,7 +1224,8 @@ esac
 # Only can get to this point if we successfully (re-)configured the interface.
 # If using dhcp, then must employ a timeout, to be certain.
 #
-if [ -n "$post_cfg_do" ]
+if [ "${methvia/*cfg*/cfg}" != "cfg" ] \
+&& [ -n "$post_cfg_do" ]
 then
   msg1 "  post-cfg-do( $post_cfg_do )"
   make_ "$post_cfg_do" |tee -a $ifrc_Log & post_cfg_do=
