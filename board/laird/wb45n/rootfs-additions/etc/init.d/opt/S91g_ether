@@ -48,7 +48,7 @@ stop() {
 
   await_interface net/$iface 600 down
  
-  modprobe -r g_ether
+  modprobe -r g_ether libcomposite atmel_usba_udc udc_core
   rv=$?
 }
 
