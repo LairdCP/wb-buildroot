@@ -86,7 +86,7 @@ msg() {
 }
 
 # internals
-ifrc_Version=20140213
+ifrc_Version=20140224
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -270,6 +270,7 @@ ifrc_stop_netlink_daemon() {
 
 signal_dhcp_client() {
   case $1 in
+    USR2) action=sigusr2; signal=-12;;
     USR1) action=sigusr1; signal=-10;;
     TERM) action=sigterm; signal=-15;;
     CONT) action=sigcont; signal=-18;;
@@ -521,16 +522,18 @@ then
   fi  
 fi  
 
-# determine netlink event rule to apply
+# Determine netlink event rule to apply via the reported iface status.
+# The action may be overriden, depending on the following event rules.
 if [ -n "$ifnl_s" ]
 then
   ## run via nl daemon, so consume remaining args
   # Currently no defined need for (optional) extra args...
   while [ -n "$ifnl_s" -a -n "$1" ]; do shift; done
 
-  ## event rules for '->dn'
-  if [ "${IFRC_STATUS##*->}" == "dn" ]
-  then
+  ## nl event rules for status '  ->dn'
+  while [ "${IFRC_STATUS##*->}" == "dn" ]
+  do
+    ## handle a temporarily lost interface
     if [ ! -f /sys/class/net/$dev/carrier ]
     then
       msg1 $dev is gone, waiting 2s
@@ -543,32 +546,50 @@ then
         msg1 ignoring dn event for dhcp method - iface is back
         IFRC_ACTION=xx
       fi
-    else
-      # by default the ip-cfg is not retained on a down event
-      [ -n "$rc" ] || ifconfig $dev 0.0.0.0 2>/dev/null
-      # ignore the down event via ifnl - so as not to fully deconfigure
-      IFRC_ACTION=xx
+      break
     fi
-  fi
 
-  ## event rules for '->up'
-  if [ "${IFRC_STATUS##*->}" == "up" ]
-  then
+    ## maybe signal client to release - 1x
     if [ "${IFRC_METHOD%% *}" == "dhcp" ]
     then
-      if [ -d ${ifrc_Lfp}/$dev.dhcp ]
+      if [ ! -d ${ifrc_Lfp}/$dev.dhcp ]
       then
-        msg1 "dhcp client lock exists, no act..."
+        signal_dhcp_client USR2
         IFRC_ACTION=xx
       else
-        # check if dhcp client is running
-        signal_dhcp_client ZERO && IFRC_ACTION=..
+        msg1 "dhcp client lock exists, no act"
+        IFRC_ACTION=xx
       fi
+      break
     fi
-  fi
 
-  ## event rules for additional condition/states...
-  #
+    ## by default the ip-cfg is not retained on a down event
+    ifconfig $dev 0.0.0.0 2>/dev/null
+
+    ## otherwise ignore down event via ifnl - no deconfigure
+    IFRC_ACTION=xx
+    break
+  done
+
+  ## nl event rules for status '  ->up'
+  while [ "${IFRC_STATUS##*->}" == "up" ]
+  do
+    ## maybe signal client to renew - 5x
+    if [ "${IFRC_METHOD%% *}" == "dhcp" ]
+    then
+      if [ ! -d ${ifrc_Lfp}/$dev.dhcp ]
+      then
+        signal_dhcp_client ZERO && IFRC_ACTION=..
+      else
+        msg1 "dhcp client lock exists, no act"
+        IFRC_ACTION=xx
+      fi
+      break
+    fi
+
+    break
+  done
+
   msg @. ifrc_s/d/a/m: "$IFRC_STATUS" $IFRC_DEVICE ${IFRC_ACTION:---} \
                        ${IFRC_METHOD%% *} s\{$IFRC_SCRIPT\}
 fi
