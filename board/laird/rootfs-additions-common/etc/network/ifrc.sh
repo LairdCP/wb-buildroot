@@ -86,7 +86,7 @@ msg() {
 }
 
 # internals
-ifrc_Version=20140225
+ifrc_Version=20140226
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -504,9 +504,9 @@ then
     then
       methvia="(set via cli)"
       IFRC_METHOD="$@"
-    elif [ ${ifrc_Lfp}/$dev.cfg -nt $eni ]
+    elif [ -f ${ifrc_Lfp}/$dev.cfg -a ! ${ifrc_Lfp}/its -nt $eni ]
     then
-      msg3 "using current cfg for a re-'up'"
+      msg2 "using current cfg for a re-'up'"
       methvia="(via $dev.cfg)"
       . ${ifrc_Lfp}/$dev.cfg
     elif [ -s $eni ]
@@ -527,7 +527,7 @@ then
       IFRC_METHOD="dhcp"
     fi
   fi
-fi  
+fi
 
 # Determine netlink event rule to apply via the reported iface status.
 # The action may be overriden, depending on the following event rules.
@@ -760,6 +760,7 @@ case $IFRC_ACTION in
     then
       ## this is a new conf up method
       echo "IFRC_METHOD=\"$IFRC_METHOD\"" >${ifrc_Lfp}/$dev.cfg
+      cp -p $eni ${ifrc_Lfp}/its
 
       [ -z "$ifnl_s" ] && ifrc_stop_netlink_daemon
 
