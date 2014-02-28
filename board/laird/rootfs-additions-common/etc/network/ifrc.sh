@@ -86,7 +86,7 @@ msg() {
 }
 
 # internals
-ifrc_Version=20140226
+ifrc_Version=20140228
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -1039,7 +1039,11 @@ run_udhcpc() {
   # iface, verbose, request-ip, exit-no-lease/quit-option, exit-release, retry..
   # For retry, send 4-discovers, paused at 2sec, and repeat after 5sec.
   eval udhcpc -i$dev $vb $rip $nq -R -t4 -T2 -A5 -b $ropt $vci $xopt $rbf $rs $nv
-  #
+
+  # spawn a client_wd
+  test -x "$CLIENT_WD" \
+    && client=udhcpc $CLIENT_WD ${mm:+-v} -i$dev
+
   #return $?
 }
 
