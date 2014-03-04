@@ -23,9 +23,5 @@ menu "Laird"
         source "package/lrd-closed-source/Config.in"
     endmenu
 
-    menu "Customers"
-        source "board/laird/customers/Config.in"
-    endmenu
-
 endmenu
 
