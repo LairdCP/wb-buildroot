@@ -63,6 +63,44 @@ usage() {
   exit $rv
 }
 
+# internals
+ifrc_Version=20140301
+ifrc_Disable=/etc/default/ifrc.disable
+ifrc_Script=/etc/network/ifrc.sh
+ifrc_Lfp=/var/log/ifrc
+ifrc_Cmd=$0\ $@
+ifrc_Pid=$$
+ifrc_Via=''
+ifrc_Log=${ifrc_Lfp}/msg
+
+# ensure ifrc exists and is supported as a system executable
+ifrc=/sbin/ifrc
+[ -x "$ifrc" ] || ln -sf $ifrc_Script $ifrc
+[ ${#ifrc_Lfp} -gt 5 ] || ifrc_Lfp=/tmp/ifrc
+[ -d "$ifrc_Lfp" ] || mkdir -p ${ifrc_Lfp}
+
+# check network-init-script
+nis=/etc/init.d/S??network
+test -x $nis \
+|| nis="echo Cant exec: ${nis:-network-init-script}"
+
+# ensure /e/n/i exists...
+eni=/etc/network/interfaces
+test -s $eni \
+|| { test -s $eni~ && mv -f $eni~ $eni; } \
+|| { rm -f $eni~ && gzip -fdc $eni~.gz >$eni; } \
+|| { printf "# $eni - ifrc\n\nauto lo\niface lo inet loopback\n\n\n" >$eni; }
+
+# check mii (optional)
+mii=/usr/sbin/mii-diag
+if [ ! -x "$mii" ]
+then
+  mii=
+else
+  # this package is used to optionally set a fixed port speed during dhcp
+  mii_usage="portspeed=10baseT...   - use a fixed speed during dhcp trial"$'\n'
+fi
+
 msg() {
   if [ "$1" == "@." ] && shift
   then
@@ -85,51 +123,13 @@ msg() {
   echo -e "$@" >>${ifrc_Log:-/dev/null} || :
 }
 
-# internals
-ifrc_Version=20140228
-ifrc_Disable=/etc/default/ifrc.disable
-ifrc_Script=/etc/network/ifrc.sh
-ifrc_Lfp=/var/log/ifrc
-ifrc_Cmd="$0 $@"
-ifrc_Pid=$$
-ifrc_Via=''
-ifrc_Log=${ifrc_Lfp}/msg
-
-# ensure ifrc exists and is supported as a system executable
-ifrc=/sbin/ifrc
-[ -x "$ifrc" ] || ln -sf $ifrc_Script $ifrc
-[ ${#ifrc_Lfp} -gt 5 ] || ifrc_Lfp=/tmp/ifrc
-[ -d "$ifrc_Lfp" ] || mkdir -p ${ifrc_Lfp}
-
-# check network-init-script
-nis=/etc/init.d/S??network
-[ -x $nis ] || nis="echo Cant exec: ${nis:-network-init-script}"
-
-# check /e/n/i exists...
-eni=/etc/network/interfaces
-test -s $eni \
-|| { test -s $eni~ && mv -f $eni~ $eni; } \
-|| { rm -f $eni~ && gzip -fdc $eni~.gz >$eni; } \
-|| { printf "# $eni - ifrc\n\nauto lo\niface lo inet loopback\n\n\n" >$eni; }
-
-# check mii (optional)
-mii=/usr/sbin/mii-diag
-if [ ! -x "$mii" ]
-then
-  mii=
-else
-  # this package is used to optionally set a fixed port speed during dhcp
-  mii_usage="portspeed=10baseT...   - use a fixed speed during dhcp trial"$'\n'
-fi
-
 parse_flag() {
   case $1 in
     -h|--help|--usage) ## show usage
       usage
       ;;
     --|--version) ## just report version
-      echo ${ifrc_Script##*/} v$ifrc_Version \
-           - md5:`md5sum < $0` len:`wc -c < $0`
+      echo ifrc -- v$ifrc_Version - md5:`md5sum < $0` len:`wc -c < $0`
       exit 0
       ;;
     -q) ## quiet, no stdout
