@@ -70,15 +70,21 @@ do
     fi
   done
 
-  # appears not active...
-  # check if administratively disabled
-  if ! grep -qs dhcp /var/log/ifrc/$dev.cfg
+  # client appears not active...
+  # check if method perhaps administratively disabled
+  { mp=x; read -rs mp < /var/log/ifrc/$dev; } 2>/dev/null
+  if [ "${mp/*:dhcp*/dhcp}" != "dhcp" ]
   then
-    # affirm whether client was terminated by leases file check
+    logger $vl -t$wd "dhcp method n/a via admin?"
+    # affirm whether client is terminated via leases file
     if [ -s ${lf:=/var/lib/dhcp/dhclient.$dev.leases} ]
     then
+      # leases file exists, so maybe want to re-'up'?
       # detect if last event-state-action was: released
       sed '/^# esa:/h;$!b;x;p' -n $lf |grep -q released && break
+    else
+      # no leases file, assume no
+      break
     fi
   fi
 
