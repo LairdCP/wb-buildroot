@@ -16,9 +16,10 @@ define WEB_LCM_INSTALL_TARGET_CMDS
 		 $(TARGET_DIR)/var/www/docs
 	$(INSTALL) -D -m 0775 $(@D)/assets/css/bootstrap-responsive.min.css $(TARGET_DIR)/var/www/docs/assets/css
 	$(INSTALL) -D -m 0755 $(@D)/assets/css/bootstrap.min.css $(TARGET_DIR)/var/www/docs/assets/css
-	$(INSTALL) -D -m 0755 $(@D)/assets/img/laird_logo.png $(TARGET_DIR)/var/www/docs/assets/img
-	$(INSTALL) -D -m 0755 $(@D)/assets/js/bootstrap.min.js
-							$(TARGET_DIR)/var/www/docs/assets/js
+	$(INSTALL) -D -m 0755 $(@D)/assets/img/logo.png $(TARGET_DIR)/var/www/docs/assets/img
+	$(INSTALL) -D -m 0755 $(@D)/assets/js/bootstrap.min.js \
+							$(@D)/assets/js/jquery.min.js \
+			$(TARGET_DIR)/var/www/docs/assets/js
 	$(INSTALL) -D -m 0755 $(@D)/lighttpd.conf \
 				$(@D)/lighttpd.password \
 		$(TARGET_DIR)/etc/lighttpd
