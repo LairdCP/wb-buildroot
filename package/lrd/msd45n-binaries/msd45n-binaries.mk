@@ -22,6 +22,14 @@ define MSD45N_BINARIES_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/usr/bin/event_injector $(TARGET_DIR)/usr/bin/event_injector
     mkdir -p $(TARGET_DIR)/usr/lib
     $(INSTALL) -m 755 $(@D)/usr/lib/libsdc_sdk.so* $(TARGET_DIR)/usr/lib/
+    mkdir -p $(TARGET_DIR)/var/www/docs
+    mkdir -p $(TARGET_DIR)/var/www/docs/assets/css
+    mkdir -p $(TARGET_DIR)/var/www/docs/assets/img
+    mkdir -p $(TARGET_DIR)/var/www/docs/assets/js
+    $(INSTALL) -D -m 644  $(@D)/var/www/docs/*.html   $(TARGET_DIR)/var/www/docs/
+    $(INSTALL) -D -m 644  $(@D)/var/www/docs/assets/css/*.css   $(TARGET_DIR)/var/www/docs/assets/css/
+    $(INSTALL) -D -m 644  $(@D)/var/www/docs/assets/img/*.png   $(TARGET_DIR)/var/www/docs/assets/img/
+    $(INSTALL) -D -m 644  $(@D)/var/www/docs/assets/js/*.js   $(TARGET_DIR)/var/www/docs/assets/js/
 endef
 
 define MSD45N_BINARIES_INSTALL_STAGING_CMDS

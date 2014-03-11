@@ -9,7 +9,8 @@ set -x -e
 
 # cleanup
 rm -f  -- $TARGETDIR/lib64 $TARGETDIR/usr/lib64
-rm -rf -- $TARGETDIR/var $TARGETDIR/etc
+rm -rf -- $TARGETDIR/var/cache
+rm -rf -- $TARGETDIR/etc
 rm -rf -- $TARGETDIR/usr/share
 rm -rf -- $TARGETDIR/usr/sbin/nl* $TARGETDIR/usr/sbin/genl*
 rm -f  -- $TARGETDIR/sbin/regdbdump
