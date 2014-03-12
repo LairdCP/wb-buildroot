@@ -6,3 +6,10 @@ source "package/lrd-closed-source/sdc2u/Config.in"
 source "package/lrd-closed-source/ar6kl-tools-v311/Config.in"
 source "package/lrd-closed-source/ar6kl-tools/Config.in"
 source "package/lrd-closed-source/web_lcm/Config.in"
+
+menu "Bluetopia"
+	source "package/lrd-closed-source/libbluetopia/Config.in"
+	if BR2_PACKAGE_LIBBLUETOPIA
+		source "package/lrd-closed-source/bluetopia_samples/Config.in"
+	endif
+endmenu
