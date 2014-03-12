@@ -64,7 +64,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140307
+ifrc_Version=20140310
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -399,18 +399,35 @@ read_ifrc_info() {
   if [ -f $ifrc_Lfp/$1 ] \
   && exec 3< $ifrc_Lfp/$1
   then
-    read mp_cdt <&3 ### method-&-params plus cdt{ *cfg-do tasks ;}
-    mp_cdt=${mp_cdt#*:}
-    read eni_sk <&3 ### crc32 of the /e/n/i file
-    eni_sk=${eni_sk#*:}
-    read ifrc_i <&3 ### iface rc info
-    ifrc_i=${ifrc_i#*:}
-    flags=${ifrc_i#* }
-    ifrc_i=${ifrc_i/ $flags}
-    devalias=${ifrc_i%=*}
-    dev=${ifrc_i#*=}
+    x= # method-&-params, and cdt{ *cfg-do tasks ;}
+    read -rs x <&3 \
+      && [ "${x/mp_cdt:*/mp_cdt}" == mp_cdt ] \
+      && mp_cdt=${x#*:}
+
+    x= # crc32 of the iface stanza from /e/n/i file
+    read -rs x <&3 \
+      && [ "${x/eni_sk:*/eni_sk}" == eni_sk ] \
+      && eni_sk=${x#*:}
+
+    x= # iface rc info as alias=iface and any flags
+    read -rs x <&3 \
+      && [ "${x/ifrc_i:*/ifrc_i}" == ifrc_i ] \
+      && ifrc_i=${x#*:}
+
+    if [ -n "$ifrc_i" ]
+    then
+      #:alias=iface -v
+      flags=${ifrc_i#* }
+      ifrc_i=${ifrc_i/ $flags}
+      devalias=${ifrc_i%=*}
+      dev=${ifrc_i#*=}
+    fi
     exec 3<&-
-    return 0
+    if [ -n "$devalias" ]\
+    && [ -n "$dev" ]
+    then
+      return 0
+    fi
   fi
   return 1
 }
@@ -452,15 +469,15 @@ then
   test -z "${fls//-v/}" \
     && flags_eni=$( sed -n "/^iface $devalias/,/^$/\
                       s/^[ \t]\+[^#]ifrc-flags \(.*\)/\1/p" $eni )
+  # re-attempt lookup
+  read_ifrc_info $dev
 fi
 msg3 "  deviface: ${dev:-?}"
-test -n "$dev" || exit 1
+test -n "$dev" \
+  || { msg "iface?"; exit 1; }
 
 # check if this is a wireless interface
 test -d /sys/class/net/$dev/phy80211 && phy80211=true || phy80211=false
-
-# re-attempt lookup
-read_ifrc_info $dev
 
 for af in $flags_eni; do parse_flag $af && fls=$af\ $fls; done
 
@@ -1014,6 +1031,21 @@ ifrc_validate_dhcp_method_params() {
   show_filtered_method_params
 }
 
+ifrc_validate_manual_method_params() {
+  for x in $IFRC_METHOD
+  do
+    case ${x%%=*} in
+      manual) ## method
+        ;;
+      *)
+        msg3 "ignoring extra parameter: [$x]"
+        continue
+    esac
+    mp_cdt=${mp_cdt:+$mp_cdt }$x
+  done
+  show_filtered_method_params
+}
+
 check_link() {
   test -n "$ifnl_s" && return
   mkdir ${ifrc_Lfp}/$dev.lbto
@@ -1265,6 +1297,7 @@ case ${IFRC_METHOD%% *} in
     ;;
 
   manual) ## method ...no params
+    ifrc_validate_manual_method_params
     # do nothing, configuration is to be handled manually
     ;;
 
