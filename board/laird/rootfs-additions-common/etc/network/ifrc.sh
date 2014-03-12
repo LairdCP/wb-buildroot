@@ -64,7 +64,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140303
+ifrc_Version=20140307
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -448,9 +448,9 @@ then
   msg3 "  iface stanza: ${ifacemsg:-?}"
   test -n "$devalias" || exit 1
 
-  # read any ifrc-flags if not more than '-v' specified on cli - cummulative
-  test -z "${fls//-v /}" \
-    && flags=$( sed -n "/^iface $devalias/,/^$/\
+  # read ifrc-flags if not more than '-v' specified on cli - cummulative
+  test -z "${fls//-v/}" \
+    && flags_eni=$( sed -n "/^iface $devalias/,/^$/\
                       s/^[ \t]\+[^#]ifrc-flags \(.*\)/\1/p" $eni )
 fi
 msg3 "  deviface: ${dev:-?}"
@@ -462,7 +462,7 @@ test -d /sys/class/net/$dev/phy80211 && phy80211=true || phy80211=false
 # re-attempt lookup
 read_ifrc_info $dev
 
-for af in $flags; do parse_flag $af; done
+for af in $flags_eni; do parse_flag $af && fls=$af\ $fls; done
 
 # Set logfile name for this iface.
 ifrc_Log=${dev:+${ifrc_Lfp}/$dev}
