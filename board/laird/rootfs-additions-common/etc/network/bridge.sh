@@ -16,7 +16,7 @@ bridge_stp="off"
 show_bridge_mode() {
   bridge_info() {
     [ 3 -eq $# ] \
-    && echo -e "Bridge mode interface '$1' active using '$2' and '$3'."
+    && echo -e "Bridge mode interface '$1' active using: ${2:--?-} ${3:--?-}"
   }
   if ps ax |grep -q 'S[0-9][0-9]bridge.*start'
   then
@@ -30,48 +30,64 @@ show_bridge_mode() {
   fi
 }
 
+status_of_bridge() {
+  echo "brctl showstp $bridge_device"
+  brctl showstp $bridge_device
+  echo "brctl showmacs $bridge_device"
+  brctl showmacs $bridge_device
+  echo
+}
+
 waitfor_interface() {
-  # timeout is 3s
-  let n=30
-  addr=/sys/class/net/$1/address
-  until ! let n-- || mac=$( grep -so ..:.. $addr ); do usleep 100000; done
-  [ -n "$mac" ] && return 0 || return 1
+  # args: <class/iface> [<milliseconds> [{up|down}]]
+  let n=0 w=${2:-0}
+  while : wait increments of 10ms for address
+  do
+    { mac=; read -rs mac </sys/class/${1}/address; } 2>/dev/null
+    test "${mac/??:??:??:??:??:??/up}" == "up" && break
+    test "$3" == "down" && break
+    test $n -lt $w && let n+=10 && usleep 9999 || break
+  done
+  usleep 99999
+  test $n -ge 10 && echo -en "  ...waited ${n}ms${mac:+\n}${3:+\n}"
+  test -n "$mac" && rv=0 || rv=1
+  return $rv
 }
 
 start() {
   echo Starting bridged network support: $bridge_ports
-
-  for dev in $bridge_ports
-  do
-    if ! waitfor_interface $dev
-    then
-      #echo \ \ ifrc $dev up
-      #
-      ifrc $dev up \
-      && waitfor_interface $dev \
-      || { echo \ \ ...port n/a: $dev; exit 1; }
-    fi
-  done
-
   brctl addbr $bridge_device
   brctl stp $bridge_device $bridge_stp
   brctl setfd $bridge_device $bridge_setfd
-  brctl addif $bridge_device $bridge_ports
+
+  for dev in $bridge_ports
+  do
+    echo \ \ br: ifrc $fls $dev up manual
+    ifrc $fls $dev up manual &
+
+    # allow 8s for interface to start
+    waitfor_interface net/$dev 8000 up \
+    && brctl addif $bridge_device $dev \
+    || { echo \ \ ...port n/a: $dev; exit 1; }
+  done
 
   echo \ \ enablng $bridge_device
   ifconfig $bridge_device up || { echo \ \ ...failed; exit 1; }
   usleep 500000
-  
+
   modprobe nf_conntrack_ipv4
   echo 1 > /proc/sys/net/ipv4/conf/all/proxy_arp
   echo 1 > /proc/sys/net/ipv4/ip_forward
-    
+
   # disable ARP packets from interfering w/DHCP by dropping dev's mac address 
   : ebtables -A FORWARD --in-interface $dev --protocol ARP --arp-mac-src $mac -j DROP
          
   ebtables -t nat -A PREROUTING --in-interface $dev -j arpnat --arpnat-target ACCEPT
   ebtables -t nat -A POSTROUTING --out-interface $dev -j arpnat --arpnat-target ACCEPT
   ebtables -t broute -A BROUTING --in-interface $dev --protocol 0x888e -j DROP
+
+  read -rs us is </proc/uptime
+  echo bridge_is_setup: $us
 }
 
 stop() {
@@ -130,8 +146,12 @@ fi
 if [ -n "$bridge_settings" ]
 then
   #echo $self settings: $bridge_settings
+  #echo ifrc_settings: $ifrc_Settings
   eval $bridge_settings
 fi
+
+# br0 ifrc-flags
+: ${fls:=-x -v}
 
 case $cmd in
   stop)
@@ -145,6 +165,10 @@ case $cmd in
   restart)
     stop
     start
+    ;;
+
+  status)
+    status_of_bridge
     ;;
 
   '')
