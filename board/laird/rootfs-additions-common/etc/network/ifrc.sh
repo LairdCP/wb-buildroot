@@ -64,7 +64,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140310
+ifrc_Version=20140312
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -822,6 +822,7 @@ case $IFRC_ACTION in
       ## this de-configure (flush) will also re-'up' the interface...
       ## additional wait time may be required to be ready again
       ## operations continue below...
+      pause 0.333
     fi
     ;;
 
