@@ -47,4 +47,12 @@ BLUEZ_UTILS_CONF_OPT +=	\
 	--disable-usb
 endif
 
+define BLUEZ_UTILS_INSTALL_TARGET_CMDS
+	$(INSTALL) -m 0755 -D package/bluez_utils/S95bluetooth $(TARGET_DIR)/etc/init.d/opt/S95bluetooth
+endef
+
+define BLUEZ_UTILS_UNINSTALL_TARGET_CMDS
+	rm -f $(TARGET_DIR)/etc/init.d/opt/S95bluetooth
+endef
+
 $(eval $(autotools-package))
