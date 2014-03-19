@@ -65,6 +65,11 @@ start() {
   then
     echo 1 > /proc/sys/net/ipv4/conf/all/proxy_arp
     echo 1 > /proc/sys/net/ipv4/ip_forward
+
+    read braddr < /sys/class/net/$BRIDGE/address
+    ebtables -A FORWARD --in-interface $ETH_WIFI --protocol 0x0806 --arp-mac-src $braddr -j DROP
+    # prevent ARP packets from interfering w/DHCP by dropping the bridge's mac address
+
     ebtables -t nat -F PREROUTING
     ebtables -t nat -F POSTROUTING
     ebtables -t broute -F BROUTING
