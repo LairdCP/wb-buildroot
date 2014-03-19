@@ -64,7 +64,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140312
+ifrc_Version=20140314
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -187,9 +187,9 @@ ifnl_s=${ifnl_s//dormant/dt}
 
 pause() { 
   # n[.nnn] sec -- a zero value means indefinite
-  test -p ${ifrc_Lfp}/- || { rm -f ${ifrc_Lfp}/-; mkfifo ${ifrc_Lfp}/-; }
+  test -p ${ifrc_Lfp}/- || mkfifo ${ifrc_Lfp}/- 2>/dev/null
   read -rst${1:-1} <>${ifrc_Lfp}/- 2>/dev/null
-  if test $? -eq 2 
+  if test $? -eq 2
   then
     s="${1/.*}"
     us="000000"
@@ -250,7 +250,7 @@ show_interface_config_and_status() {
   # include association info for wireless dev
   if [ -d /sys/class/net/$dev/phy80211 ]
   then
-    echo -e "\nWiFi:  `grep -s . /sys/class/net/$dev/operstate`"
+    echo -e "\nWiFi:\t`sed 's/up/active/' /sys/class/net/$dev/operstate`"
     iw dev $dev link 2>/dev/null \
       |sed 's/^Connec/Associa/;s/t connec.*/t associated (on '$dev')/' \
       |sed '/[RT]X:/d;/^$/,$d;s/^\t/        /'
@@ -497,14 +497,15 @@ read -rs us is </proc/uptime
 { test 0`wc -c < $ifrc_Log` -le 102400 \
     || sed '21,41d;42i<snip>' -i $ifrc_Log; } 2>/dev/null
 
-test -f $ifrc_Log \
-  || x="\n\n\n     -- v$ifrc_Version - md5:`md5sum < $0`"
+test ! -f $ifrc_Log \
+  && x="\n\n\n     -- v$ifrc_Version - md5:`md5sum < $0`" || x=
 
 printf "${x%  -}\n% 13.2f __${ifrc_Cmd}  $ifrc_Via\n" $us >>$ifrc_Log
 msg3 -e "env:\n`env |sed -n 's/^IF[A-Z]*_.*/  &/p' |grep . || echo \ \ ...`\n"
 
-# external globals - carried per instance and can be used by *-do scripts too 
 make_() { ( eval $1; x=$?; [ ${1:0:1} == / ] && echo \ \ ${1##*/}: $x ); }
+
+# external globals - carried per instance and can be used by *-do scripts
 export IFRC_STATUS="${ifnl_s:-  ->  }"
 export IFRC_DEVICE=$dev
 export IFRC_ACTION
@@ -675,13 +676,6 @@ case $IFRC_ACTION in
       [ -n "$mii" ] && $mii $dev |sed -n '/Yo/,$d;/media type/,$p'
     fi
     show_interface_config_and_status
-    if [ -n "${vm:0}" ] && gipa $dev >/dev/null
-    then
-      echo -e "\nConnections:"
-      netstat -ntuw 2>/dev/null \
-      |sed -n "/${ip%%[ /]*}/!d;s/\(^....\) .*[0-9] [0-9.]*\(:.*\)/\1   \2/p" \
-      |grep . || echo \ \ ...
-    fi
     if [ "${dev:0:2}" == "br" ]
     then
       echo
@@ -699,6 +693,13 @@ case $IFRC_ACTION in
         arp -ani $dev \
         |sed -e '/[Nn]o match/a(empty)' -e '/[Nn]o match/d;s/on .*//;1i(cached)'
       fi
+    fi
+    if [ -n "${vm:0}" ] && gipa $dev >/dev/null
+    then
+      echo -e "\nConnections:"
+      netstat -ntuw 2>/dev/null \
+      |sed -n "/${ip%%[ /]*}/!d;s/\(^....\) .*[0-9] [0-9.]*\(:.*\)/\1   \2/p" \
+      |grep . || echo \ \ ...
     fi
     [ -n "${vm:0:1}" ] \
     && echo -e "\nProcesses:\n`ps ax -opid,args |grep "$dev\ " || echo \ \ ...`"
@@ -777,10 +778,10 @@ case $IFRC_ACTION in
       if mkdir ${ifrc_Lfp}/$dev.nis 2>/dev/null
       then
         sed '1cmp_cdt:' -i $ifrc_Log
-        IFRC_DEVICE= IFRC_METHOD= IFRC_SCRIPT= IFRC_STATUS=
+        unset IFRC_SCRIPT IFRC_STATUS
         msg "interface is not kernel-resident, trying to start ..."
-        msg1 $nis $devalias start
-        exec $nis $devalias start
+        msg1 exec $nis $devalias start ${IFRC_METHOD%% *}
+        exec $nis $devalias start ${IFRC_METHOD%% *}
       else
         msg "interface is not kernel-resident, try:  ifrc $dev start"
         exit 1
@@ -791,7 +792,7 @@ case $IFRC_ACTION in
     test "${methvia/*cfg*/cfg}" == "cfg" && re=re- || re=
     msg1 "${re}configuring $dev using ${IFRC_METHOD%% *} method ${methvia:-(?)}"
     mkdir ${ifrc_Lfp}/$dev.cfg 2>/dev/null \
-      || { msg1 "  ...already in progress"; exit 0; }
+      || { msg1 "  ...$dev.cfg already in progress"; exit 0; }
 
     if [ ! -n "$re" ]
     then
@@ -880,7 +881,7 @@ else
     # start the netlink daemon
     $ifnl -i$dev $api $nsl -fa -qMp -u0 -d0 -Ir$0
 
-    msg2 "  $ifnl started"
+    msg1 "  $ifnl started"
   fi
 fi
 rmdir ${ifrc_Lfp}/$dev.nld 2>/dev/null
@@ -944,7 +945,7 @@ cidr_to_ip_nm() {
     let px=${1#*/}/8 px*=4 mx=7-${1#*/}%8 mx*=4
     set -- ${maskpat:0:$px}${maskdgt:$mx:3}
     nm=${1:-0}.${2:-0}.${3:-0}.${4:-0}
-    unset px mx
+    unset px maskpat mx maskdgt
   fi
 }
 
