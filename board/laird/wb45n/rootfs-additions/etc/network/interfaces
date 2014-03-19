@@ -23,7 +23,7 @@
 #  pre-dcfg-do <shell command or script and args to do before deconfiguration>
 #  post-dcfg-do <shell command or script and args to do after deconfiguration>
 #  ...these are run in the background for the specific interface
-#  ...see examples in /etc/network
+#  ...see example *.conf files in /etc/network
 #
 
 
@@ -59,21 +59,14 @@ auto wl
 iface wl inet dhcp
   alias wl is wlan0
   #timeout 60
-  #pre-cfg-do echo -e "\a\t[ ...associated! ...applying settings ]"
-  #post-cfg-do echo -e "\a\t[ ...ready! ]"
-  #pre-dcfg-do echo -e "\a\t[ ...de-configuring interface ]"
-  #post-dcfg-do echo -e "\a\t[ ...interface de-configured ]"
 
 
 ## Bridge - setup handled by /etc/network/bridge.sh
 #auto br0
 iface br0 inet manual
   bridge_ports eth0 wlan0
-  #bridge_ports usb0 wlan0
   bridge_stp off
   bridge_fd 0
-  #post-cfg-do /etc/network/bridge_mode.conf eth0 wlan0
-  #pre-dcfg-do /etc/network/bridge_mode.conf eth0 wlan0
 
 
 ## USB
