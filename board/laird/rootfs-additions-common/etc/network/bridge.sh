@@ -3,9 +3,11 @@
 # Typically, to be called by the network init-script.
 # Settings may be applied via cli or the /e/n/i file.
 #
+# This init-script will setup wireless bridging.
+# And relies on the S??network init-script.
 # jon.hefling@lairdtech.com
 
-bridge_device="br0"
+bridge_iface="br0"
 bridge_method="manual"
 bridge_ports="eth0 wlan0"
 bridge_setfd="0"
@@ -13,29 +15,106 @@ bridge_stp="off"
   ## defaults in lieu of bridge_* settings from cli or from /e/n/i file
 
 
-show_bridge_mode() {
-  bridge_info() {
-    [ 3 -eq $# ] \
-    && echo -e "Bridge mode interface '$1' active using: ${2:--?-} ${3:--?-}"
+br_start() {
+  echo Starting bridged network: $bridge_ports
+
+  brctl addbr $bridge_iface \
+    || { echo \ \ ...failed; exit 1; }
+
+  brctl stp $bridge_iface $bridge_stp
+  brctl setfd $bridge_iface $bridge_setfd
+
+  modprobe nf_conntrack_ipv4
+  echo 1 > /proc/sys/net/ipv4/ip_forward
+  echo 1 > /proc/sys/net/ipv4/conf/all/proxy_arp
+
+  for dev in $bridge_ports
+  do
+    ts $nis $dev restart manual
+    # allow 5s for each port to setup
+    waitfor_interface net/$dev 5000 up \
+      && brctl addif $bridge_iface $dev \
+      || { echo \ \ ...bridge port n/a: $dev; exit 1; }
+  done
+
+  echo \ \ enabling $bridge_iface
+  $ifconfig $bridge_iface up \
+    || { echo \ \ ...failed; exit 1; }
+
+  echo \ \ installing L2 bridge rules
+  read braddr < /sys/class/net/$dev/address
+
+  # prevent bridge ARP packets from interfering w/DHCP
+  ebtables -A FORWARD -i wlan0 --protocol 0x0806 --arp-mac-src $braddr -j DROP
+
+  # apply arp nat for wireless
+  ebtables -t nat -A POSTROUTING -o wlan0 -j arpnat --arpnat-target ACCEPT
+  ebtables -t nat -A PREROUTING -i wlan0 -j arpnat --arpnat-target ACCEPT
+
+  # route EAPoL for wireless
+  ebtables -t broute -A BROUTING -i wlan0 --protocol 0x888e -j DROP
+
+  echo \ \ ...bridge init completed
+}
+
+br_stop() {
+  echo Stopping bridged network support.
+
+  ebtables -t broute -F
+  ebtables -t nat -F
+  ebtables -F
+  echo 0 > /proc/sys/net/ipv4/conf/all/proxy_arp
+  echo 0 > /proc/sys/net/ipv4/ip_forward
+
+  if [ -d /sys/class/net/$bridge_iface ]
+  then
+    for dev in $bridge_ports
+    do
+      brctl delif $bridge_iface $dev
+      $nis $dev stop
+    done
+
+    echo \ \ disabling $bridge_iface
+    $ifconfig $bridge_iface down
+    brctl delbr $bridge_iface \
+      && echo \ \ ...done
+  fi
+}
+
+br_status() {
+  br_info() {
+    echo -e "Bridge:\t$1:" \
+      `sed 's/up/active/' /sys/class/net/$1/operstate 2>/dev/null`
+
+    brctl showstp $1 \
+      |sed -n '/port id/{s/.*state[\t ]*\(.*\)/\1_/;H;g;s/^/\t/;s/ (.)/: /p};h' \
+      |tr -d '\n' \
+      |sed 's/_/\n/g'
   }
   if ps ax |grep -q 'S[0-9][0-9]bridge.*start'
   then
     echo "Bridge mode setting up..."
   elif grep -q 'br[0-9]' /proc/net/dev
   then
-    bmi=$( brctl show |sed -n '2{p;n;p;}' |grep -o '[a-z][a-z][a-z]*[0-9]' )
-    bridge_info $bmi
+    if [ -z "$cmd" ]
+    then
+      br_info $( brctl show |sed -n '2{p;n;p;}' |grep -o '[a-z][a-z][a-z]*[0-9]' )
+    else
+      echo
+      ebtables -t broute -L |sed '/table/{N;s/.*/\t-= ebtables broute =-/}'
+      echo
+      ebtables -t nat -L |sed '/table/{N;s/.*/\t-= ebtables nat =-/}'
+      echo
+      ebtables -t filter -L |sed '/table/{N;s/.*/\t-= ebtables filter =-/}'
+      echo
+      echo -e "\t-= bridge status =-"
+      brctl showstp $bridge_iface |sed 's/flags//;/^$/d'
+      brctl showmacs $bridge_iface
+      echo
+    fi
   else
     exit 1;
   fi
-}
-
-status_of_bridge() {
-  echo "brctl showstp $bridge_device"
-  brctl showstp $bridge_device
-  echo "brctl showmacs $bridge_device"
-  brctl showmacs $bridge_device
-  echo
 }
 
 waitfor_interface() {
@@ -48,137 +127,82 @@ waitfor_interface() {
     test "$3" == "down" && break
     test $n -lt $w && let n+=10 && usleep 9999 || break
   done
-  usleep 99999
   test $n -ge 10 && echo -en "  ...waited ${n}ms${mac:+\n}${3:+\n}"
   test -n "$mac" && rv=0 || rv=1
   return $rv
+} 2>/dev/null
+
+ts() {
+  # timestamp passed-in command+args
+  read -rs us is < /proc/uptime
+  echo \ br: ${us}s - $@
+  $@
 }
 
-start() {
-  echo Starting bridged network support: $bridge_ports
-  brctl addbr $bridge_device
-  brctl stp $bridge_device $bridge_stp
-  brctl setfd $bridge_device $bridge_setfd
 
-  for dev in $bridge_ports
-  do
-    echo \ \ br: ifrc $fls $dev up manual
-    ifrc $fls $dev up manual &
-
-    # allow 8s for interface to start
-    waitfor_interface net/$dev 8000 up \
-    && brctl addif $bridge_device $dev \
-    || { echo \ \ ...port n/a: $dev; exit 1; }
-  done
-
-  echo \ \ enablng $bridge_device
-  ifconfig $bridge_device up || { echo \ \ ...failed; exit 1; }
-  usleep 500000
-
-  modprobe nf_conntrack_ipv4
-  echo 1 > /proc/sys/net/ipv4/conf/all/proxy_arp
-  echo 1 > /proc/sys/net/ipv4/ip_forward
-
-  # disable ARP packets from interfering w/DHCP by dropping dev's mac address 
-  : ebtables -A FORWARD --in-interface $dev --protocol ARP --arp-mac-src $mac -j DROP
-         
-  ebtables -t nat -A PREROUTING --in-interface $dev -j arpnat --arpnat-target ACCEPT
-  ebtables -t nat -A POSTROUTING --out-interface $dev -j arpnat --arpnat-target ACCEPT
-  ebtables -t broute -A BROUTING --in-interface $dev --protocol 0x888e -j DROP
-
-  read -rs us is </proc/uptime
-  echo bridge_is_setup: $us
-}
-
-stop() {
-  echo Stopping bridged network support.
-
-  ebtables -t broute -F
-  ebtables -t nat -F
-  ebtables -F
-  echo 0 > /proc/sys/net/ipv4/conf/all/proxy_arp
-  echo 0 > /proc/sys/net/ipv4/ip_forward
-
-  if [ -d /sys/class/net/$bridge_device ]
-  then
-    echo \ \ disabling $bridge_device
-    ifconfig $bridge_device down 2>/dev/null
-    usleep 500000
-
-    # delete bridge name if it exists
-    brctl show |grep -q $bridge_device \
-    && { echo -en \ \ ; brctl delbr $bridge_device && echo \ \ done; }
-  fi
-}
-
-# invocation:
-# bridge [{stop|start|restart}] [iface] [bridge_settings...]
+# Invocation:
+# bridge [cmd] [iface] [bridge_settings...]
 #
 eni=/etc/network/interfaces
-self=\ \<\>\ ${0##*/}
 
-#echo $self $@
+nis=/etc/init.d/S??network
+
+ifconfig='ip link set dev'
+
+self=\ \<\>\ ${0##*/}
 cmd=$1 && shift
 
-[ -x /usr/sbin/brctl ] || { echo $self: brctl n/a; exit 1; }
-[ -x /sbin/ebtables ] || { echo $self: ebtables n/a; exit 1; }
-[ -x /sbin/ifrc ] || { echo $self: ifrc n/a; exit 1; }
-
-# take subsequent parameters as bridge device and settings
-# the bridge_device may also be included in the settings
+# Take subsequent args as device and bridge_*param=value
+# or read settings from bridge stanza in the /e/n/i file.
 if [ -n "$1" ]
 then
-  bridge_device=$1 && shift
+  bridge_iface=$1 && shift
 fi
-
-# use passed-in bridge_* settings or read bridge stanza settings from /e/n/i
 if [ "${1%%_*}" == "bridge" ]
 then
   bridge_settings="$@"
 else
   eval `sed -n "s/^iface \(br[i0-9][dge]*\) inet \([a-z]*\)/\
-     bridge_device=\1 bridge_method=\2/p" $eni 2>/dev/null`
+     bridge_iface=\1 bridge_method=\2/p" $eni 2>/dev/null`
 
-  [ -n "$bridge_device" ] \
-  && bridge_settings=$( sed -n "/^iface $bridge_device inet/,/^$/\
+  [ -n "$bridge_iface" ] \
+  && bridge_settings=$( sed -n "/^iface $bridge_iface inet/,/^$/\
      s/^[ \t][ ]*\(bridge_[a-z]*\)[ ]\(.*\)/\1=\"\2\"/p" $eni 2>/dev/null )
 fi
 if [ -n "$bridge_settings" ]
 then
-  #echo $self settings: $bridge_settings
-  #echo ifrc_settings: $ifrc_Settings
+: echo $self $bridge_settings
   eval $bridge_settings
 fi
 
-# br0 ifrc-flags
-: ${fls:=-x -v}
+[ -x /usr/sbin/brctl ] || { echo $self: brctl n/a; exit 1; }
+[ -x /sbin/ebtables ] || { echo $self: ebtables n/a; exit 1; }
 
+export bridge_=^
 case $cmd in
   stop)
-    stop
+    br_stop
     ;;
 
   start)
-    start
+    br_start
     ;;
 
   restart)
-    stop
-    start
+    br_stop
+    br_start
     ;;
 
-  status)
-    status_of_bridge
-    ;;
-
-  '')
-    show_bridge_mode
+  ''|status)
+    br_status
     ;;
 
   *)
-    echo "Usage: $0 {stop|start|restart} [<iface>] [<bridge_param=value> ...]"
+    echo "Bridging mode init-script."
+    echo " - typically called by the network init-script"
+    echo
+    echo "Usage:"
+    echo "# ${0##*/} {stop|start|restart|status} [<name>] [<param=value> ...]"
     exit 1
-    ;;
 esac
-exit 0
 
