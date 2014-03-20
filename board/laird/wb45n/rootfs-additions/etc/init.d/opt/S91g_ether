@@ -28,14 +28,19 @@ start() {
   [ ! -d /sys/module/usb_storage ] \
   || { echo "  Error: USB is already in host mode, for usb_storage."; return; }
  
-  # udc required, do not unload!
   modprobe atmel_usba_udc
-
   modprobe g_ether
   
   await_interface net/$iface 1200 up \
   || { echo "  Error: g_ether $iface n/a?"; return; }
-  
+
+  # store the dev_addr created by driver if not set
+  if ! grep -sq 'dev_addr=' /etc/modprobe.d/g_ether.conf
+  then
+    echo "  storing g_ether randomized device address"
+    echo "options g_ether dev_addr=$mac" >>/etc/modprobe.d/g_ether.conf
+  fi
+
   ifconfig $iface up
   rv=$?
 }
