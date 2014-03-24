@@ -4,9 +4,8 @@
 #
 #############################################################
 
-
 NCM_VERSION = local
-NCM_SITE = package/ncm
+NCM_SITE = package/lrd-closed-source/externals/ncm
 NCM_SITE_METHOD = local
 
 NCM_DEPENDENCIES = libnl sdcsdk libedit protobuf openssl
