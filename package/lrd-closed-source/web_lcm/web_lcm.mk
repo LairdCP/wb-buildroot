@@ -15,6 +15,7 @@ define WEB_LCM_INSTALL_TARGET_CMDS
 				$(@D)/status.html \
 				$(@D)/status_update.php \
 				$(@D)/title_update.php \
+				$(@D)/remote_update.php \
 		 $(TARGET_DIR)/var/www/docs
 	$(INSTALL) -D -m 0775 $(@D)/assets/css/bootstrap-responsive.min.css $(TARGET_DIR)/var/www/docs/assets/css
 	$(INSTALL) -D -m 0755 $(@D)/assets/css/bootstrap.min.css $(TARGET_DIR)/var/www/docs/assets/css
