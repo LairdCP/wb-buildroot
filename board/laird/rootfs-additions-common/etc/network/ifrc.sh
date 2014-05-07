@@ -64,7 +64,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140314
+ifrc_Version=20140319
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -483,7 +483,7 @@ for af in $flags_eni; do parse_flag $af && fls=$af\ $fls; done
 
 # Set logfile name for this iface.
 ifrc_Log=${dev:+${ifrc_Lfp}/$dev}
-read -rs us is </proc/uptime
+{ read -rs us is < /proc/uptime; } 2>/dev/null
 
 # A tmp file per iface is used for run-config and logging event/state/actions.
 # Reserved lines are:
@@ -1061,7 +1061,7 @@ check_link() {
     then
       grep -qs up /sys/class/net/${dev}/operstate && break
     else
-      grep -q 1 /sys/class/net/${dev}/carrier && break
+      grep -qs 1 /sys/class/net/${dev}/carrier && break
     fi
     let n+=200 && pause 0.2
   done
@@ -1074,7 +1074,7 @@ check_link() {
     grep -qs up /sys/class/net/${dev}/operstate \
     || { msg @. "  ...not associated, deferring"; rc_exit 0; }
   else
-    grep -q 1 /sys/class/net/${dev}/carrier \
+    grep -qs 1 /sys/class/net/${dev}/carrier \
     || { msg @. "  ...no cable/link, deferring"; rc_exit 0; }
   fi
 }
