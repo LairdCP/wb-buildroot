@@ -1,60 +1,110 @@
-#!/usr/bin/env ash
-# FirmWare Select Utility for WB40NBT/WB45NBT Linux
-# Jon Hefling, jon.hefling@lairdtech.com, 29-Jun'12
+#!/bin/ash
+# Firmware Select Utility for WB40n/WB45n
+# jon.hefling@lairdtech.com, 29-Jun'12
 #
-VERSION=20130313
+VERSION=20131217e
 SELF=${0##*/}
-TM_FILE=/etc/default/$SELF.test
+X=/dev/null
+
+# testmode flag/file
+TMF=/etc/default/$SELF.test
 
 # alternate rootfs
 ALT_ROOTFS_MOUNT=/mnt/alt_rootfs
 ALT_ROOTFS_LOCK=/tmp/alt_rootfs.lock
 
+
 show_usage_info() {
-  cat <<__End-Of-Usage-Info-Block
+  [ -z "$1" ] && cat << --Usage-Info--
 This utility is mainly useful to:
-  a.) Manually set the kernel-a/b and/or rootfs-a/b ...to use upon boot
-  Usage: [kernel|rootfs]-{a|b}
-  Example: to see the current settings
-  # $SELF
-  Example: to set rootfs-b
-  # $SELF rootfs-b
-  Example: to set both kernel-a and rootfs-a
-  # $SELF -a
-  
-  b.) Copy select files from the alternate rootfs to the current rootfs-a/b
-  Without given arg, files from alternate rootfs are copied, if via rcS.
-  With 'access' to mount/umount alternate rootfs.
-  With 'export' to push from the current to the alternate rootfs.
-  With 'import' to pull from alternate to the current rootfs.
-  Note: A list-file may be used, for copying additional items.
-  For more information on usage, try: --transfer help
-  Usage: --transfer [import|export [<path/to/list-file>]]"
-         --transfer [access {off}|help]
-  Example: to pull items from previously used rootfs, using a local list-file
-  # $SELF --transfer import my_list_file
-  
-  c.) Restore default bootcmd and bootargs via u-boot image
-  Without given arg, just restore bootcmd, bootargs and any dependent variables.
+
+a.) Switch the kernel-a/b and/or rootfs-a/b images to use upon boot.
+  Example usage: [kernel|rootfs]-{a|b}
+    fw_select                          (..see the current settings)
+    fw_select -a                 (..set both kernel-a and rootfs-a)
+    fw_select rootfs-b                        (..set just rootfs-b)
+
+b.) Copy select files between the alternate rootfs and the current rootfs-a/b.
+  (For more details and for using a list-file, do: --transfer help)
+  Use 'import' to pull from alternate to the current rootfs.
+  Use 'export' to push from the current to the alternate rootfs.
+  Use 'access [off]' to just mount or unmount the alternate rootfs.
+  Usage: --transfer {import|export [<path/to/list-file>]}
+         --transfer {access [off]}
+  Example:
+    fw_select --transfer access       (..mount the $ALT_ROOTFS_MOUNT)
+
+c.) Restore default bootcmd and bootargs from the u-boot image.
+  Without given arg, just restore bootcmd, bootargs and dependent variables.
   With '...' the extracted defaults are also displayed.
-  With 'erase' the u-boot_env is erased, and upon reboot, all defaults restored.
-  Usage: --default [...|erase|help]
-  Example: to restore bootargs
-  # $SELF --default
-  
-  d.) Set the loglevel value in bootargs
-  Without given value, then default value is used.
-  Usage: --loglevel=N
-  
-  e.) Show details of active partition-map, and u-boot_env
+  With 'erase' the u-boot_env is erased, defaults restored on reboot.
+  Usage: --default [...|erase]
+  Example:
+    fw_select --default            (..restore bootcmd and bootargs)
+
+d.) Set kernel loglevel value in bootargs, or restore it.
+  Without a given value, then a default value from the u-boot image is used.
+  Usage: --loglevel=[0-8]
+  Example:
+    fw_select --loglevel                   (..set default loglevel)
+
+e.) Show details of flash memory layout and images.
   Usage: --show
-  
-__End-Of-Usage-Info-Block
+
+--Usage-Info--
+
+  [ "transfer" == "$1" ] && cat << --Usage-Info--
+This option allows copying select files between the two root-filesystems.
+  (such as settings, profiles, certs, keys, etc...)
+
+Use 'import' to copy from the other filesystem to the current filesystem.
+Use 'export' to copy from the current filesystem to the other filesystem.
+  Additional folders/files may be copied (to mirrored locations) by using a
+  specified 'transfer-list' file, or if '/tmp/alt_rootfs.transfer-list' file
+  exists. Format is simply a list of paths, and '#' comment lines are ignored.
+
+  Items automatically transferred:
+    /etc/summit/profiles.conf
+    /etc/random-seed
+    /etc/ssl/certs
+    /etc/ssh
+    /root/.ssh
+
+  Usage: --transfer import|export [<path/to/list-file>]
+  Example:
+    fw_select --transfer import /root/mylist.txt
+             (..pull-in default items and also items in mylist.txt)
+
+Use 'access' to just mount the other filesystem at $ALT_ROOTFS_MOUNT.
+Use 'access off' to umount the other filesystem at $ALT_ROOTFS_MOUNT.
+  These operations contain several sanity checks for the NAND ubifs.
+  And are performed automatically when using import or export.
+  Usage: --transfer access [off]
+  Example:
+    fw_select --transfer access off     (..unmount $ALT_ROOTFS_MOUNT)
+
+--Usage-Info--
+
+  [ "default" == "$1" ] && cat << --Usage-Info--
+This option allows restoring the u-boot_env bootcmd and bootargs.
+  (the defaults are extracted from the u-boot binary image)
+
+Use '...' to also see the defaults from the image.
+
+Use 'erase' to completely restore all of u-boot_env to defaults, upon reboot.
+  Note: the current ethaddr value will be lost, so it is necessary to manually
+  write this value back after rebooting.
+
+  Usage: --default [...|erase]
+  Example:
+    fw_select --default ...           (..restore/show bootcmd+args)
+
+--Usage-Info--
 }
 
-# set testmode if the TM_FILE exists
-test -f "$TM_FILE" && tm=echo\ -e || tm=
-grep -sq verbose "$TM_FILE" && set -x
+# set testmode if the flag/file exists
+test -f "$TMF" && tm=echo\ -e || tm=
+grep -sq verbose "$TMF" && set -x
 
 # set some commands in testmode so won't do any writes
 cp=$tm\ cp
@@ -62,31 +112,33 @@ reboot=$tm\ reboot
 flash_erase=$tm\ flash_erase
 fw_setenv=$tm\ fw_setenv
 fw_printenv=fw_printenv
-if ! $fw_printenv >/dev/null
+if ! $fw_printenv >$X
 then
-  test -f /etc/fw_env.config || echo "  ...missing: /etc/fw_env.config"
+  test -f /etc/fw_env.config \
+    || echo "  ...missing: /etc/fw_env.config"
   ${tm:-exit 1}
 fi
 
 rm -f /tmp/incompatible_u-boot_env
 
-eval $( $fw_printenv -n updated_% 2>/dev/null \
-      |grep -oE "at91bs=.|u_boot=.|kernel=.|rootfs=." )
+eval $( $fw_printenv -n updated_% 2>$X \
+      |grep -o "at91bs=.\|u_boot=.\|kernel=.\|rootfs=." )
 
-# check description of machine: <string> and determine settings
-md=$( sed -n 's/Hardware.*: \(.*\)/\1/p' /proc/cpuinfo )
+# check/parse description-of-machine: <string> and determine settings
+ls -l /bin/ash |grep -qo busybox || exit_error "busybox-ash required"
+md=$( sed -n 's/Hardware.*\(:.*\)/\1/p' /proc/cpuinfo )
 case $md in
-  'Workgroup Bridge 40N'*) ### arch/arm/mach-at91/board-wb40n.c
-    wb=wb40nbt
+  ': Workgroup Bridge 40N'*) ### arch/arm/mach-at91/board-wb40n.c
+    wb=wb40n
     ;;
-  'Workgroup Bridge 45N'*) ### arch/arm/mach-at91/board-dt.c
-    wb=wb45nbt
+  ': Workgroup Bridge 45N'*) ### arch/arm/mach-at91/board-dt.c
+    wb=wb45n
     ;;
-  *) ### unknown architecture...
-    grep -e ^Processor -e ^Hardware /proc/cpuinfo
-    echo "  ...unsupported"
-    ${tm:-exit 1}
-    fw_printenv=$tm\ $fw_printenv
+  *) ### architecture unknown...
+    echo -e ${md:-\\\c} >&2
+    grep -om1 ': ARM' /proc/cpuinfo >&2 \
+      || sed -n '/name/{s/model name.*\(: .*\)/\1/p;q}' /proc/cpuinfo >&2
+    exit_error "unsupported, must be Laird WB platform"                  
     ;;
 esac
 case $wb in
@@ -109,23 +161,19 @@ esac
 clx='printf `usleep 333333` \\033[1K\\r'
 ask() { read -rst1 -n999 a; eval ${@##* }=; read -r "$@"; eval $clx; }
 
-exit_error() { [ -n "$1" ] && echo -e \ \ ..."$@" >&2; exit 1; }
+exit_error() {
+  echo -e "${1:+  ...$@}"
+  exit 1
+} >&2
 
 # special functions to evaluate arithimetic expressions
 iszero() { ! let ${1:-0} && return 0 || return 1; }
 hexify() { let x=${1:-0}; printf "0x%08x" $x; }
 
-
 bootcmd_x() {
   # parse formatted kernel-image-address and also copy any boot commands
   eval $( BC_kia=; BC_boot=; F='0x[0-9A-Fa-f]*'; $fw_printenv -n bootcmd \
         |sed -n "s/nand read $F \($F\) $F[; ]*\(.*\)/BC_kia=\1 BC_boot='\2'/p" )
-
-# if [ -z "$BC_boot" ]
-# then
-#   # assume in lieu of none
-#   BC_boot=${BC_}
-# fi
 
   BC_kia=$( hexify $BC_kia )
 
@@ -169,13 +217,12 @@ rootfs_ab() {
 }
 
 kernel_x() {
-  # report the kernel partition being used...
-  if bootcmd_x
+  # report the kernel partition being used... (pseudo-static)
+  if x=0 bootcmd_x
   then
-    iszero $BC_kia-$KIA && echo $KIP || echo `expr $KIP + 1`
-  else
-    echo 0
+    iszero $BC_kia-$KIA && let x=$KIP || let x=$KIP+1
   fi
+  echo $x
 }
 
 rootfs_x() {
@@ -184,7 +231,7 @@ rootfs_x() {
 }
 
 current_configuration() {
-  echo $wb - $( sed -n 1p /etc/*-release 2>/dev/null )
+  echo -e "$wb - `sed -n "1s/.*$wb/\r&/;p" /etc/*-release 2>$X`"
   iszero `rootfs_x`-$RIP && ab=a || ab=b
   echo " -> `uname -nr` on rootfs-$ab"
   echo "     ...mismatched kernel: `ls -d /lib/modules/*`" |grep -v `uname -r`
@@ -220,7 +267,7 @@ alt_rootfs() {
     u*) # try to unmount
       if [ -f $ALT_ROOTFS_LOCK ]
       then
-        umount $ALT_ROOTFS_MOUNT 2>/dev/null
+        umount $ALT_ROOTFS_MOUNT 2>$X
         ubidetach -p /dev/mtd${rip}
         rmdir $ALT_ROOTFS_MOUNT
         rm -f $ALT_ROOTFS_LOCK
@@ -232,7 +279,7 @@ alt_rootfs() {
     m*) # try to mount
       if [ -f $ALT_ROOTFS_LOCK ]
       then
-        mount |grep `cat $ALT_ROOTFS_LOCK` 2>/dev/null
+        mount |grep `cat $ALT_ROOTFS_LOCK` 2>$X
         #ubinfo /dev/`cat $ALT_ROOTFS_LOCK`
         echo "  ...already attached/mounted  (try: '--transfer access off')"
         echo \ \ \ alt_rootfs-`alt_rootfs`: \
@@ -261,7 +308,7 @@ alt_rootfs() {
   esac
 }
 
-transfer_system_settings() {
+transfer_system_files() {
   alt_rootfs m || return 1
   test $1 == -v && { shift; echo transferring system settings; }
   test $1 != / && echo copying from $1 || echo copying to $2
@@ -297,81 +344,61 @@ case $1 in
           [ "off" != "$3" ] && alt_rootfs m || alt_rootfs u
           ;;
         export|push) # push select files to alternate rootfs
-          transfer_system_settings / $ALT_ROOTFS_MOUNT/ $3
+          transfer_system_files / $ALT_ROOTFS_MOUNT/ $3
           ;;
         import|pull) # pull select files to current rootfs
-          transfer_system_settings $ALT_ROOTFS_MOUNT/ / $3
+          transfer_system_files $ALT_ROOTFS_MOUNT/ / $3
           ;;
         '') # assume 'push/pull' based on rule
-          [ -n "$rcS_" ] && transfer_system_settings -v $ALT_ROOTFS_MOUNT/ /
-          [ -n "$rootfs" ] && transfer_system_settings -v / $ALT_ROOTFS_MOUNT/
+          [ -n "$rcS_" ] && transfer_system_files -v $ALT_ROOTFS_MOUNT/ /
+          [ -n "$rootfs" ] && transfer_system_files -v / $ALT_ROOTFS_MOUNT/
           let $? && { echo \?; exit_error; }
           ;;
         *) # show relevant usage/help
-          echo "This option allows copying standard settings, profiles, certs and keys,"
-          echo "  between the two root-filesystems."
-          echo
-          echo "Use 'access [off]' to just u/mount the other filesystem at $ALT_ROOTFS_MOUNT."
-          echo
-          echo "Use 'import' to copy from the other filesystem to the current filesystem."
-          echo "Use 'export' to copy from the current filesystem to the other filesystem."
-          echo "  ...Additional folders/files may be copied (to mirrored locations) by using"
-          echo "  specified 'transfer-list' file, or if '/tmp/alt_rootfs.transfer-list' file"
-          echo "  exists. The format is simply a list of paths, and '#' comments are ignored."
-          echo
-          echo "  Items automatically transferred:"
-          echo "    /etc/summit/profiles.conf"
-          echo "    /etc/random-seed"
-          echo "    /etc/ssl/certs"
-          echo "    /etc/ssh"
-          echo "    /root/.ssh"
-          echo
-          echo "Usage:"
-          echo "  $SELF --transfer import|export [<path/to/list-file>]"
-          echo "  $SELF --transfer access [off]"
+          show_usage_info transfer
           ;;
       esac
     fi
     ;;
 
-  --loglevel*) ## restore or set new value '--loglevel=N'
-    test -n "${1:11}" \
-    && eval ${1:2} \
-    || eval `nanddump --bb=skipbad --omitoob --quiet /dev/mtd1 2>/dev/null |strings |grep -m1 -o loglevel=.`
-    # set loglevel with given value or default value or assume '4'
-    bootargs=$( $fw_printenv -n bootargs \
-              |sed "s/loglevel=./loglevel=${loglevel:-4}/" )
-    $fw_setenv bootargs $bootargs \
+  --loglevel*) ## restore or set new value '--loglevel=[0-8]'
+    test "printk" == "${1/*=[0-8]/printk}" && eval ${1#--} \
+      || { nanddump='nanddump --bb=skipbad --omitoob --quiet'
+      eval `$nanddump /dev/mtd1 2>$X |grep -m1 -o loglevel=.`
+    }
+    # set loglevel with given value or default value from u-boot or assume '4'
+    args=$( $fw_printenv -n bootargs |sed "s/\(loglevel=\)./${loglevel:-4}/" )
+    $fw_setenv bootargs $args \
     && echo set loglevel=${loglevel:-4}
     ;;
 
-  --default*) ## restore u-boot_env variables '--default help'
+  --default*) ## restore default u-boot_env variables '--default help'
     case $2 in
       erase) # set all defaults by erasing u-boot_env
         echo erasing u-boot_env to restore defaults, then will reboot
-        $fw_printenv ethaddr 2>/dev/null \
+        $fw_printenv ethaddr 2>$X \
           |sed 's/.*/\nWarning: this will remove the current &/;s/=/ /'
         #
         ask -p"  Are you sure? [y/N ..5s]" -t5 -n1 a
         [ "$a" != "y" ] && exit_error aborted
         case $wb in
-          wb40*) ### erase
+          wb40n) ### erase
             $flash_erase -q /dev/mtd2 0 0
             ;;
-          wb45*) ### erase procedure for redundant u-boot_env
+          wb45n) ### erase procedure for redundant u-boot_env
             $flash_erase -q /dev/mtd3 0 0 && $flash_erase -q /dev/mtd2 0 0
             ;;
         esac
         [ $? -eq 0 ] && $reboot || exit_error "failed to erase u-boot_env"
         ;;
-      ''|...) # set default bootcmd, bootargs and dependent vars by reading u-boot image
+      ''|\.\.\.) # set default bootcmd/args and dependents from u-boot image
         echo reading /dev/mtd1
         nanddump --bb=skipbad --omitoob --quiet /dev/mtd1 |strings \
-        |sed '/audrate=/,/audrate=/!d' >/tmp/u-boot
-        [ -f /tmp/u-boot ] \
-        || exit_error "unable to get default settings from image at /dev/mtd1"
-        [ "..." == "$2" ] \
-        && echo -e "\nu-boot: (defaults)\n`sed -n '2,$p' /tmp/u-boot`\n"
+          |sed '/audrate=/,/audrate=/!d' >/tmp/u-boot
+        test -f /tmp/u-boot \
+          || exit_error "unable to get default settings from image at /dev/mtd1"
+        test "..." == "$2" \
+          && echo -e "\nu-boot: (defaults)\n`sed -n '2,$p' /tmp/u-boot`\n"
         echo restoring...
         bootcmd=$( sed -n "1,/^bootcmd/s/bootcmd=\(.*\)/\1/p" /tmp/u-boot )
         $fw_setenv bootcmd $bootcmd && echo "  bootcmd"
@@ -380,21 +407,15 @@ case $1 in
         for x in `echo $bootcmd |sed -n 's/.*run \(.*\);.*/\1/p'`
         do
           # set any dependent variables too
-          $fw_setenv $x $( sed -n "1,/^$x/s/$x=\(.*\)/\1/p" /tmp/u-boot ) && echo "  $x"
+          $fw_setenv $x $( sed -n "1,/^$x/s/$x=\(.*\)/\1/p" /tmp/u-boot ) \
+          && echo "  $x"
         done
         rm -f /tmp/u-boot
         echo -e "\nu-boot_env: ($fw_printenv)"
         $fw_printenv
         ;;
       *) # show relevant usage/help
-        echo "This option allows restoring u-boot_env bootcmd and bootargs."
-        echo "  (the defaults are extracted from the u-boot binary image)"
-        echo
-        echo "Use '...' to also see the defaults from the image."
-        echo "Use 'erase' to completely restore all of u-boot_env to defaults."
-        echo
-        echo "Usage:"
-        echo "  $SELF --default [...|erase]"
+        show_usage_info default
         ;;
     esac
     ;;
@@ -404,38 +425,41 @@ case $1 in
     exec $0 -h
     ;;
 
-  --show) ## details of active partition map, and u-boot_env
-    echo active partitions:
-    let kip=0 #+`kernel_x`
-    let rip=0+`rootfs_x`
-    let addr=0
+  --show) ## flash memory layout and images info
+    let kip=0+`kernel_x` rip=0+`rootfs_x` addr=0
+    echo $wb - flash memory
     echo "  mtd     address     size      description"
     for x in `grep -l nand /sys/class/mtd/*/type`
     do
       mtd=${x%%/type}
       name=`cat $mtd/name`
       let size=`cat $mtd/size`
-      mtd=${mtd##/sys/class/mtd/mtd}
-      [ $mtd -gt 0 -a $mtd -eq $kip -o $mtd -eq $rip ] && ap='->' || ap='  '
-      printf " %s% 2d:  0x%08x  0x%08x  %s\n" "$ap" $mtd $addr $size "$name"
+      mtd=/dev/mtd${mtd##/sys/class/mtd/mtd}
+      [ ${mtd/*mtd} -gt 0 ] \
+      && [ ${mtd/*mtd} -eq $kip -o ${mtd/*mtd} -eq $rip ] && ap='->' || ap='  '
+      version=
+      case $name in
+        at91bs*) version=`sed -n 's/\(^[0-9]\..\..-.*\) (.*)/\1/p' $mtd`;;
+        u-boot*) version=`sed -n 's/\(^U-Boot 20...*\) (.*)/\1/p' $mtd`;;
+        kernel*) version=`sed '/^Linux-.*/!d;q' $mtd`;;
+        rootfs*) version=`sed -n '/^Laird.*wb.*-/{s/.*\(wb.*\)/\1/p;q}' $mtd`;;
+      esac
+      printf " %s% 2d:  0x%08x  0x%08x  %s  \t%s\n" \
+        "$ap" ${mtd/*mtd} $addr $size "$name" "$version"
+      #
       let addr+=$size
     done
     echo
     if [ -f $ALT_ROOTFS_LOCK ]
     then
       echo access to alt_rootfs-`alt_rootfs`:
-      mount |grep `cat $ALT_ROOTFS_LOCK` 2>/dev/null \
-      || echo not mounted
-      echo
+      mount |grep `cat $ALT_ROOTFS_LOCK` 2>$X || echo not mounted; echo
     fi
-    echo -e "kernel parameters:\n'`cat /proc/cmdline`'\n"
-    $fw_printenv -n bootcmd |sed -n "s/\(.*\)/u-boot_env bootcmd:\n'\1'\n/p"
-    $fw_printenv -n bootargs |sed -n "s/\(.*\)/u-boot_env bootargs:\n'\1'\n/p"
     current_configuration
     ;;
 
-  --tm*) ## enable testmode ...or disable '--tm off'
-    [ "$2" == "off" ] && rm -fv $TM_FILE || echo $2 >$TM_FILE; exec $0 --
+  --tm*) ## enable persistent testmode, or disable '--tm off'
+    [ "off" == "$2" ] && rm -fv $TMF || echo $2 >$TMF; exec $0 --
     ;;
 
   *-a) ## set kernel/rootfs to use '-a' images
@@ -443,14 +467,16 @@ case $1 in
     if [ "kernel" == "${1:0:6}" ] || [ "-a" == "${1}" ]
     then
       kia=$( hexify $KIA+0 )
-      $fw_setenv bootcmd "nand read $UBM $kia $KIS; $BC_boot" && echo set kernel-a
+      $fw_setenv bootcmd "nand read $UBM $kia $KIS; $BC_boot" \
+        && echo set kernel-a
     fi
     bootargs_x
     if [ "rootfs" == "${1:0:6}" ] || [ "-a" == "${1}" ]
     then
       let mtd=$RIP+0
       bootargs=$( $fw_printenv -n bootargs |sed "s/ubi.mtd=./ubi.mtd=$mtd/" )
-      $fw_setenv bootargs $bootargs && echo set rootfs-a
+      $fw_setenv bootargs $bootargs \
+        && echo set rootfs-a
     fi
     ;;
 
@@ -459,27 +485,29 @@ case $1 in
     if [ "kernel" == "${1:0:6}" ] || [ "-b" == "${1}" ]
     then
       kia=$( hexify $KIA+$KIS )
-      $fw_setenv bootcmd "nand read $UBM $kia $KIS; $BC_boot" && echo set kernel-b
+      $fw_setenv bootcmd "nand read $UBM $kia $KIS; $BC_boot" \
+        && echo set kernel-b
     fi
     bootargs_x
     if [ "rootfs" == "${1:0:6}" ] || [ "-b" == "${1}" ]
     then
       let mtd=$RIP+1
       bootargs=$( $fw_printenv -n bootargs |sed "s/ubi.mtd=./ubi.mtd=$mtd/" )
-      $fw_setenv bootargs $bootargs && echo set rootfs-b
+      $fw_setenv bootargs $bootargs \
+        && echo set rootfs-b
     fi
     ;;
 
-  --) ## affirm executable, version and mode
-    echo $SELF v$VERSION ${tm:+testmode_active} && exit 0
+  --|--version) ## affirm executable, version and mode
+    echo $SELF v$VERSION  ${tm:+\[testmode\]}
+    exit 0
     ;;
 
-  -h|--help) # quick ref
-    echo "Quick reference...  (askerisk denotes variations of an option)"
+  --help|-h) # quick help
+    echo "Quick reference...  (*askerisk denotes variations of an option)"
     echo "Options:"
-    sed -n 's/\(^  .*[a-z\*-]\)) ## \(.*\)/\1    \2/p' $0
-    echo "Usage:"
-    echo "  $SELF [option]"
+    sed -n 's/\(^  [a-z\*-]\+\)[^|]*.*) ## \(.*\)/\1    \2/p' $0
+    echo -e "Usage:\n  fw_select [option]\n"
     ;;
 
   '') ## show current settings
@@ -490,9 +518,10 @@ case $1 in
     exit_error "unknown option specified"
     ;;
 esac
-echo
+
 if [ -f /tmp/incompatible_u-boot_env ]
 then
+  echo
   exit_error \
   "incompatible u-boot_env detected\n" \
   " check u-boot_env settings:\n" \
@@ -501,6 +530,4 @@ then
   "   $SELF --default help\n"
 fi
 
-${tm:-:} "  ...remove '$TM_FILE' to disable testmode, try: '--tm off'" >&2
-
-exit 0
+${tm:-:} "\n  testmode active\n  ...remove '$TMF'\n     or try: '--tm off'" >&2
