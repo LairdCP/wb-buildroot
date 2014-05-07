@@ -8,7 +8,7 @@ set -x -e
 
 cp "$IMAGESDIR/uImage"                "$IMAGESDIR/kernel.bin"
 cp "$IMAGESDIR/rootfs.ubi"            "$IMAGESDIR/rootfs.bin"
-cp "$IMAGESDIR/$BR2_LRD_PLATFORM.bin" "$IMAGESDIR/bootstrap.bin"
+cp "$IMAGESDIR/$BR2_LRD_PLATFORM.bin" "$IMAGESDIR/at91bs.bin"
 
 cp board/laird/rootfs-additions-common/usr/sbin/fw_select "$IMAGESDIR/"
 cp board/laird/rootfs-additions-common/usr/sbin/fw_update "$IMAGESDIR/"
