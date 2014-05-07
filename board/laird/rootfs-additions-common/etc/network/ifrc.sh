@@ -64,7 +64,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140319
+ifrc_Version=20140417
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/var/log/ifrc
@@ -382,6 +382,7 @@ case $1 in
   noauto|auto) ## report 'auto <iface>'s
     echo $1 interfaces: `sed -n "/^${1/no/#} [a-z]/s/^.* / /p" $eni |tr -d '\n'`
     echo "  ...usage: ${0##*/} <iface> {noauto|auto}"
+    exit 0
     ;;
 
   flags|status|down|dn|up) ## require iface
