@@ -2,7 +2,7 @@
 # Firmware Select Utility for WB40n/WB45n
 # jon.hefling@lairdtech.com, 29-Jun'12
 #
-VERSION=20131217e
+VERSION=20131217f
 SELF=${0##*/}
 X=/dev/null
 
@@ -434,19 +434,19 @@ case $1 in
       mtd=${x%%/type}
       name=`cat $mtd/name`
       let size=`cat $mtd/size`
-      mtd=/dev/mtd${mtd##/sys/class/mtd/mtd}
-      [ ${mtd/*mtd} -gt 0 ] \
-      && [ ${mtd/*mtd} -eq $kip -o ${mtd/*mtd} -eq $rip ] && ap='->' || ap='  '
-      version=
-      case $name in
-        at91bs*) version=`sed -n 's/\(^[0-9]\..\..-.*\) (.*)/\1/p' $mtd`;;
-        u-boot*) version=`sed -n 's/\(^U-Boot 20...*\) (.*)/\1/p' $mtd`;;
-        kernel*) version=`sed '/^Linux-.*/!d;q' $mtd`;;
-        rootfs*) version=`sed -n '/^Laird.*wb.*-/{s/.*\(wb.*\)/\1/p;q}' $mtd`;;
+      mtd=${mtd##/sys/class/mtd/mtd}
+      [ $mtd -gt 0 ] && [ $mtd -eq $kip -o $mtd -eq $rip ] && ap='->' || ap='  '
+      printf " $ap% 2d:  0x%08x  0x%08x  %-13s?\b" $mtd $addr $size "$name"
+      mtd=/dev/mtd${mtd}
+      vers=' '
+      case "$name" in
+        *tstrap) vers=`strings $mtd |sed -n 's/\(^[0-9]\..\..-.*\) (.*)/\1/p'`;;
+        at91bs ) vers=`strings $mtd |sed -n 's/\(^[0-9]\..\..-.*\) (.*)/\1/p'`;;
+        u-boot ) vers=`strings $mtd |sed -n 's/^U-Boot \(20...*\) (.*)/\1/p'`;;
+        kernel*) vers=`strings $mtd |sed '/^Linux-.*/!d;q'`;;
+        rootfs*) vers=`strings $mtd |sed -n '/Laird Linux/{s/.* //p;q}'`;;
       esac
-      printf " %s% 2d:  0x%08x  0x%08x  %s  \t%s\n" \
-        "$ap" ${mtd/*mtd} $addr $size "$name" "$version"
-      #
+      echo "$vers"
       let addr+=$size
     done
     echo
