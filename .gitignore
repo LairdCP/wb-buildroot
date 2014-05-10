@@ -25,6 +25,7 @@
 !/configs/msd40n_defconfig
 !/configs/msd45n_defconfig
 !/configs/msd45n_fips_defconfig
+!/configs/msd45n-x86_defconfig
 !/configs/wb40n_defconfig
 !/configs/wb40n_devel_defconfig
 !/configs/wb45n_defconfig
