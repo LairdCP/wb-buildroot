@@ -27,6 +27,7 @@ define MSD45N_BINARIES_INSTALL_TARGET_CMDS
     mkdir -p $(TARGET_DIR)/var/www/docs/assets/img
     mkdir -p $(TARGET_DIR)/var/www/docs/assets/js
     $(INSTALL) -D -m 644  $(@D)/var/www/docs/*.html   $(TARGET_DIR)/var/www/docs/
+	$(INSTALL) -D -m 644  $(@D)/var/www/docs/*.php   $(TARGET_DIR)/var/www/docs/
     $(INSTALL) -D -m 644  $(@D)/var/www/docs/assets/css/*.css   $(TARGET_DIR)/var/www/docs/assets/css/
     $(INSTALL) -D -m 644  $(@D)/var/www/docs/assets/img/*.png   $(TARGET_DIR)/var/www/docs/assets/img/
     $(INSTALL) -D -m 644  $(@D)/var/www/docs/assets/js/*.js   $(TARGET_DIR)/var/www/docs/assets/js/
