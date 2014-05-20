@@ -2,7 +2,7 @@
 # Firmware Update Utility for WB40n/WB45n
 # jon.hefling@lairdtech.com, 29-Jun'12
 #
-VERSION=20131217f
+VERSION=20131217g
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
@@ -561,7 +561,7 @@ assert_image() {
       if wget -q -O - $src 2>$X |grep -q .....
       then
         # try reading file when length n/a via spider
-        let sz=\$${1}_LEN || sz=$( wget -q -O - $src |wc -c )
+        eval let sz=\$${1}_LEN || sz=$( wget -q -O - $src |wc -c )
       fi
     fi
   else
@@ -569,7 +569,7 @@ assert_image() {
     if [ -s $src ]
     then
       # get file info for method local:
-      let sz=\$${1}_LEN || sz=$( wc -c < $src )
+      eval let sz=\$${1}_LEN || sz=$( wc -c < $src )
     fi
   fi
   let sz+=0 \
