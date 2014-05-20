@@ -2,7 +2,7 @@
 # Firmware Select Utility for WB40n/WB45n
 # jon.hefling@lairdtech.com, 29-Jun'12
 #
-VERSION=20131217f
+VERSION=20131217g
 SELF=${0##*/}
 X=/dev/null
 
@@ -367,7 +367,7 @@ case $1 in
       eval `$nanddump /dev/mtd1 2>$X |grep -m1 -o loglevel=.`
     }
     # set loglevel with given value or default value from u-boot or assume '4'
-    args=$( $fw_printenv -n bootargs |sed "s/\(loglevel=\)./${loglevel:-4}/" )
+    args=$( $fw_printenv -n bootargs |sed "s/\(loglevel=\)./\1${loglevel:-4}/" )
     $fw_setenv bootargs $args \
     && echo set loglevel=${loglevel:-4}
     ;;
