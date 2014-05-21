@@ -103,6 +103,7 @@ wifi_fips_mode()
 
 wifi_start()
 {
+  mkdir -p /tmp/wifi^
   if grep -q "${module/.ko/}" /proc/modules
   then
     msg "checking interface/mode"
@@ -167,6 +168,7 @@ wifi_stop()
 {
   ## Stopping means packets can't use wifi and interface will be removed.
   ##
+  mkdir -p /tmp/wifi^
   if [ -n "$WIFI_DEV" ] \
   && grep -q "$WIFI_DEV" /proc/net/dev
   then
@@ -228,6 +230,9 @@ usleep='busybox usleep'
 
 # optionally, set fips-mode via cmdline
 [ "$1" == fips ] && { shift; WIFI_FIPS=-F; }
+
+# timed-wait (n deciseconds) for prior wifi task
+let n=27 && while [ -d /tmp/wifi^ ] && let n--; do usleep 98765; done
 
 # command
 case $1 in
@@ -292,4 +297,6 @@ case $1 in
     false
     ;;
 esac
-exit $?
+E=$?
+rm -fr /tmp/wifi^
+exit $E
