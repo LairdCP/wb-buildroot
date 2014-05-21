@@ -83,6 +83,7 @@ wifi_queryinterface()
 
 wifi_start()
 {
+  mkdir -p /tmp/wifi^
   if grep -q "${module/.ko/}" /proc/modules
   then
     wifi_queryinterface || exit 1
@@ -168,6 +169,7 @@ wifi_stop()
 {
   ## Stopping means packets can't use wifi and interface will be removed.
   ##
+  mkdir -p /tmp/wifi^
   if [ -n "$WIFI_DEV" ] \
   && grep -q "$WIFI_DEV" /proc/net/dev
   then
@@ -216,6 +218,9 @@ esac
 supp_sd=/tmp/wpa_supplicant
 module=${WIFI_MODULE##*/}
 usleep='busybox usleep'
+
+# timed-wait (n deciseconds) for prior wifi task
+let n=27 && while [ -d /tmp/wifi^ ] && let n--; do usleep 98765; done
 
 # command
 case $1 in
@@ -279,4 +284,6 @@ case $1 in
     false
     ;;
 esac
-exit $?
+E=$?
+rm -fr /tmp/wifi^
+exit $E
