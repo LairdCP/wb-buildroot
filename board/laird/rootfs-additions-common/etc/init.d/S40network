@@ -26,8 +26,8 @@ bridge=/etc/network/bridge.sh
 pppd=/etc/init.d/opt/S??pppd
 g_ether=/etc/init.d/opt/S??g_ether
 
-# Interface up/down via ifconfig.
-ifconfig=ifconfig
+# Interface activation.
+ifconfig='ip link set dev'
 
 # Interface configuration.
 ifrc=/etc/network/ifrc.sh
