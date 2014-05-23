@@ -1,68 +1,80 @@
 #!/usr/bin/env ash
 # /etc/network/bridge.sh
-# Typically, to be called by the network init-script.
+# This script sets up wireless bridging.
+# And works with the S??network init-script.
 # Settings may be applied via cli or the /e/n/i file.
-#
-# This init-script will setup wireless bridging.
-# And relies on the S??network init-script.
 # jon.hefling@lairdtech.com
+#
+# Usage:
+#   bridge.sh {stop|start|restart|status} [<name>] [<param=value> ...]
+#
 
-bridge_iface="br0"
-bridge_method="manual"
-bridge_ports="eth0 wlan0"
-bridge_setfd="0"
-bridge_stp="off"
-  ## defaults in lieu of bridge_* settings from cli or from /e/n/i file
+bridge_iface="br0"              ## iface device name
+bridge_method="manual"          ## config method is manual/static/dhcp/...
+bridge_ports="eth0 wlan0"       ## iface ports to be bridged
+bridge_fd="0"                   ## set forwarding delay in seconds
+bridge_stp="off"                ## spanning tree protocol is off/on
+bridge_setup="auto"             ## setup is auto/manual, and any flags [-v]
+  ##
+  ## defaults in lieu of bridge_* settings from cli or from the /e/n/i file
 
 
 br_start() {
-  echo Starting bridged network: $bridge_ports
+  echo Starting bridge-mode $bridge_iface: $bridge_ports
 
+  # create bridge device
   brctl addbr $bridge_iface \
     || { echo \ \ ...failed; exit 1; }
 
+  # set bridge device options
   brctl stp $bridge_iface $bridge_stp
-  brctl setfd $bridge_iface $bridge_setfd
+  brctl setfd $bridge_iface $bridge_fd
 
+  # support arp/forwarding
   modprobe nf_conntrack_ipv4
   echo 1 > /proc/sys/net/ipv4/ip_forward
   echo 1 > /proc/sys/net/ipv4/conf/all/proxy_arp
 
+  # check/start each port
   for dev in $bridge_ports
   do
-    ts $nis $dev restart manual
-    # allow 5s for each port to setup
+    test "${bridge_setup/auto*/a}" == "a" \
+      && $nis $dev restart manual
+
+    # allow 5s for bridge port to setup
     waitfor_interface net/$dev 5000 up \
       && brctl addif $bridge_iface $dev \
+      && $ifconfig $dev up \
       || { echo \ \ ...bridge port n/a: $dev; exit 1; }
   done
 
-  echo \ \ enabling $bridge_iface
+  # activate bridge-mode
   $ifconfig $bridge_iface up \
-    || { echo \ \ ...failed; exit 1; }
+    || { echo \ \ ...bridge n/a; exit 1; }
 
-  echo \ \ installing L2 bridge rules
-  read braddr < /sys/class/net/$dev/address
+  # display bridge/ports
+  brctl show $bridge_iface
 
+  # read mac of the virtual bridge interface
+  read braddr < /sys/class/net/$bridge_iface/address
+
+  echo Installing L2 bridging rules.
   # prevent bridge ARP packets from interfering w/DHCP
   ebtables -A FORWARD -i wlan0 --protocol 0x0806 --arp-mac-src $braddr -j DROP
-
   # apply arp nat for wireless
   ebtables -t nat -A POSTROUTING -o wlan0 -j arpnat --arpnat-target ACCEPT
   ebtables -t nat -A PREROUTING -i wlan0 -j arpnat --arpnat-target ACCEPT
-
   # route EAPoL for wireless
   ebtables -t broute -A BROUTING -i wlan0 --protocol 0x888e -j DROP
-
-  echo \ \ ...bridge init completed
 }
 
 br_stop() {
-  echo Stopping bridged network support.
+  echo Stopping bridge-mode $bridge_iface: $bridge_ports
 
   ebtables -t broute -F
   ebtables -t nat -F
   ebtables -F
+
   echo 0 > /proc/sys/net/ipv4/conf/all/proxy_arp
   echo 0 > /proc/sys/net/ipv4/ip_forward
 
@@ -74,10 +86,9 @@ br_stop() {
       $nis $dev stop
     done
 
-    echo \ \ disabling $bridge_iface
+    echo Removing $bridge_iface
     $ifconfig $bridge_iface down
-    brctl delbr $bridge_iface \
-      && echo \ \ ...done
+    brctl delbr $bridge_iface
   fi
 }
 
@@ -91,7 +102,7 @@ br_status() {
       |tr -d '\n' \
       |sed 's/_/\n/g'
   }
-  if ps ax |grep -q 'S[0-9][0-9]bridge.*start'
+  if ps ax |grep -q '[b]ridge.*start'
   then
     echo "Bridge mode setting up..."
   elif grep -q 'br[0-9]' /proc/net/dev
@@ -113,7 +124,7 @@ br_status() {
       echo
     fi
   else
-    exit 1;
+    exit 1
   fi
 }
 
@@ -127,17 +138,11 @@ waitfor_interface() {
     test "$3" == "down" && break
     test $n -lt $w && let n+=10 && usleep 9999 || break
   done
-  test $n -ge 10 && echo -en "  ...waited ${n}ms${mac:+\n}${3:+\n}"
-  test -n "$mac" && rv=0 || rv=1
-  return $rv
+  test $n -ge 10 \
+    && echo -en "  ...waited ${n}ms for $1\n"
+  test -n "$mac"
+  return $?
 } 2>/dev/null
-
-ts() {
-  # timestamp passed-in command+args
-  read -rs us is < /proc/uptime
-  echo \ br: ${us}s - $@
-  $@
-}
 
 
 # Invocation:
@@ -146,8 +151,6 @@ ts() {
 eni=/etc/network/interfaces
 
 nis=/etc/init.d/S??network
-
-ifconfig='ip link set dev'
 
 self=\ \<\>\ ${0##*/}
 cmd=$1 && shift
@@ -165,18 +168,20 @@ else
   eval `sed -n "s/^iface \(br[i0-9][dge]*\) inet \([a-z]*\)/\
      bridge_iface=\1 bridge_method=\2/p" $eni 2>/dev/null`
 
-  [ -n "$bridge_iface" ] \
-  && bridge_settings=$( sed -n "/^iface $bridge_iface inet/,/^$/\
-     s/^[ \t][ ]*\(bridge_[a-z]*\)[ ]\(.*\)/\1=\"\2\"/p" $eni 2>/dev/null )
+  test -n "$bridge_iface" \
+    && bridge_settings=$( sed -n "/^iface $bridge_iface inet/,/^$/\
+       s/^[ \t]\+\(bridge_[a-z]*\)[ ]\(.*\)/\1=\"\2\"/p" $eni 2>/dev/null )
 fi
-if [ -n "$bridge_settings" ]
-then
-: echo $self $bridge_settings
-  eval $bridge_settings
-fi
+test -n "$bridge_settings" \
+  && eval $bridge_settings
 
 [ -x /usr/sbin/brctl ] || { echo $self: brctl n/a; exit 1; }
 [ -x /sbin/ebtables ] || { echo $self: ebtables n/a; exit 1; }
+
+test "${bridge_setup/*-v*/v}" == "v" \
+  && verbose=true || verbose=false
+
+ifconfig='ip link set dev'
 
 export bridge_=^
 case $cmd in
@@ -197,12 +202,7 @@ case $cmd in
     br_status
     ;;
 
-  *)
-    echo "Bridging mode init-script."
-    echo " - typically called by the network init-script"
-    echo
-    echo "Usage:"
-    echo "# ${0##*/} {stop|start|restart|status} [<name>] [<param=value> ...]"
-    exit 1
+  help|*-h*)
+    sed '2,/^[^#]/s/.*/&/;/^$/q' $0
 esac
 
