@@ -35,22 +35,26 @@ ifrc=/etc/network/ifrc.sh
 # Logfile rotation.
 log=/var/log/nis.log
 test -z $rcS_ \
-&& { test 0`wc -c < $log` -le 2048 || mv -f $log $log.0; } 2>/dev/null
+  && { test 0`wc -c < $log` -le 2048 || mv -f $log $log.0; } 2>/dev/null
 
 # Ensure /e/n/i exists and is not empty.
 # Fallback to a backup edit, or default copy.
 # If all else fails, just create a loopback entry.
 test -s $eni \
-|| { test -s $eni~ && mv -f $eni~ $eni; } \
-|| { rm -f $eni~ && gzip -fdc $eni~.gz >$eni; } \
-|| { printf "# $eni - nis\n\nauto lo\niface lo inet loopback\n\n\n" >$eni; }
+  || { test -s $eni~ && mv -f $eni~ $eni; } \
+  || { rm -f $eni~ && gzip -fdc $eni~.gz >$eni; } \
+  || { printf "# $eni - nis\n\nauto lo\niface lo inet loopback\n\n\n" >$eni; }
+
+# Suppress recursive network-init-script messages
+{ read -rs pp < /proc/$PPID/comm; } 2>/dev/null
+[ "$pp" != "${0##*/}" ] && msg=echo\ -e || msg=:
 
 # Check /e/n/i option for testmode.
 { read -r nopt < $eni; } 2>/dev/null
 if [ ${nopt##*${eni}}"" == -x ]
 then
   # the 1st line contained the testmode flag
-  tm=echo && echo \ \ $0 $@ [TESTMODE ACTIVE]
+  tm=echo && $tm \ \ $0 $@ [TESTMODE ACTIVE]
 fi
 
 # An optionally specified iface is shifted into the device-list to act on, or..
@@ -69,16 +73,16 @@ case $1 in
 esac
 
 
-bring() {
-  # args: <dev> <up/down> <start/stop>
+iface() {
+  # args: <dev> <up/down> <start/stop> [method]
+  # bring 'up' -or- 'down' an interface phy
+  logger -pinfo -s -t\ \ \ nis -- $* 2>&1
 
-  [ "${2:0:1}" == "u" ] && up=true && dn=false
-  [ "${2:0:1}" == "d" ] && up=false && dn=true
-  
-  # now bring 'up' -or- 'down' an interface phy
-  echo \ \ nis: bring $@ ${rcS_:+(via rcS)}
-  case "$1" in
-  
+  case $2 in
+    u*) up=true; dn=false;;
+    d*) up=false; dn=true;;
+  esac
+  case $1 in
     lo) ## loopback support
       $tm $ifrc $1 $2 &
       $dn && wait && $tm $ifconfig $1 $2
@@ -97,7 +101,7 @@ bring() {
         echo \ \ interface-phy $1 is not available
       else
         # ifrc script handles eth* up, config, or deconfig
-        $tm $ifrc $1 $2 $method &
+        $tm $ifrc $1 $2 $4 &
       fi
       $dn && wait && $tm $ifconfig $1 $2
       ;;
@@ -111,7 +115,7 @@ bring() {
     usb*) ## usb-g_ether support
       $dn && $tm $ifrc $1 $2
       $tm $g_ether $3
-      $up && $tm $ifrc $1 $2 $method &
+      $up && $tm $ifrc $1 $2 $4 &
       ;;
 
     wl*) ## wireless device support
@@ -120,36 +124,42 @@ bring() {
       # and the ifrc script will handle configuration
       $dn && $tm $ifrc -x $1 $2
       $tm $wifi $3
-      $up && $tm $ifrc $1 $2 $method &
+      $up && $tm $ifrc $1 $2 $4 &
       $dn && wait
       ;;
 
     br*) ## bridge-mode support
       $dn && $tm $ifrc $1 $2
       $tm $bridge $3 $1
-      $up && $tm $ifrc $1 $2 $method & 
+      $up && $tm $ifrc $1 $2 $4 &
       ;;
 
     *) ## unhandled interface name
       echo \ \ ...unhandled interface name
       ;;
   esac
-} >>$log
+}
+
+save_log_of() {
+  sed 's/\(.*\)nis:/\1\n   nis:/' $log.$1 >>$log
+  rm -f $log.$1
+} 2>/dev/null
 
 check_ifrc() {
-  # warn if the ifrc utility is disabled/missing
+  alert= # warn if the ifrc utility is disabled/missing
   if [ -x $ifrc ]
   then
     if [ -f /etc/default/ifrc.disable ]
     then
-      echo \ \ /etc/default/ifrc.disable exists ...not using ifrc to configure
+      alert="/etc/default/ifrc.disable exists"
+      ifrc=:
       return 1
     fi
   else
-    echo \ \ $ifrc missing ...not using ifrc to configure
+    alert="$ifrc missing - not using ifrc to configure"
+    ifrc=:
     return 1
   fi
-  return 0
 }
 
 
@@ -161,29 +171,47 @@ wnw=wait
 act=$1 && shift
 case $act in
   stop)
-    echo -n Stopping network interfaces... #$devls
+    $msg -n Stopping network interfaces...\ ;
     #
-    # fallback to ifconfig
-    check_ifrc || ifrc=$ifconfig
-    #
-    for dev in $devls; do echo -n \ $dev; bring $dev down $act; $wnw; done
-    echo
+    check_ifrc
+    for dev in $devls
+    do
+      $msg -n $dev\ ;
+      iface $dev down $act >>$log; $wnw
+    done
+    $msg ${alert:+\\\n \ $alert}
     ;;
 
   start)
-    echo Starting network interfaces... $devls
+    $msg -n Starting network interfaces... $devls
     #
     # option for skipping configuration
-    [ "$1" == "manual" ] && { method=manual; shift; }
+    [ "$1" == "manual" ] && { meth=manual; shift; }
     #
-    # fallback to ifconfig
-    check_ifrc || ifrc=$ifconfig
-    #
-    for dev in $devls; do ( bring $dev up $act )& : $wnw; done
+    # check bridge-mode
+    case $devls in *br*)
+      # get bridge ports list if bridge_setup is not manual
+      bpls=$( sed -n '/^iface br.* inet/,/^$/\
+          {/^[ \t]\+bridge_ports/h;/^[ \t]\+bridge_setup manual/q};$x;$p' $eni )
+      #
+      test -n "$bpls" \
+        && echo -n \ \[${bpls##*ports }\]
+    esac
+    wls=:
+    check_ifrc
+    for dev in $devls
+    do
+      # skip auto starting for bridge-mode ports
+      case ${bpls##*ports } in *${dev:-X}*) continue;; esac
+      #
+      ( $wls; iface $dev up $act $meth >>$log.$dev; $wnw; save_log_of $dev )&
+      #
+      wls=wait\ $!
+    done
+    $msg ${alert:+\\\n \ $alert}
     ;;
 
   restart)
-    echo Restarting network...
     $0 $devls stop $@
     $0 $devls start $@
     ;;
