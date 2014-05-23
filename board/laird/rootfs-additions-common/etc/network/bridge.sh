@@ -23,27 +23,27 @@ br_start() {
   echo Starting bridge-mode $bridge_iface: $bridge_ports
 
   # create bridge device
-  brctl addbr $bridge_iface \
+  $brctl addbr $bridge_iface \
     || { echo \ \ ...failed; exit 1; }
 
   # set bridge device options
-  brctl stp $bridge_iface $bridge_stp
-  brctl setfd $bridge_iface $bridge_fd
+  $brctl stp $bridge_iface $bridge_stp
+  $brctl setfd $bridge_iface $bridge_fd
 
   # support arp/forwarding
-  modprobe nf_conntrack_ipv4
-  echo 1 > /proc/sys/net/ipv4/ip_forward
-  echo 1 > /proc/sys/net/ipv4/conf/all/proxy_arp
+  fn 'modprobe nf_conntrack_ipv4'
+  fn 'echo 1 > /proc/sys/net/ipv4/ip_forward'
+  fn 'echo 1 > /proc/sys/net/ipv4/conf/all/proxy_arp'
 
   # check/start each port
   for dev in $bridge_ports
   do
     test "${bridge_setup/auto*/a}" == "a" \
-      && $nis $dev restart manual
+      && $nis $dev start manual
 
     # allow 5s for bridge port to setup
     waitfor_interface net/$dev 5000 up \
-      && brctl addif $bridge_iface $dev \
+      && $brctl addif $bridge_iface $dev \
       && $ifconfig $dev up \
       || { echo \ \ ...bridge port n/a: $dev; exit 1; }
   done
@@ -60,35 +60,35 @@ br_start() {
 
   echo Installing L2 bridging rules.
   # prevent bridge ARP packets from interfering w/DHCP
-  ebtables -A FORWARD -i wlan0 --protocol 0x0806 --arp-mac-src $braddr -j DROP
+  $ebtables -A FORWARD -i wlan0 --protocol 0x0806 --arp-mac-src $braddr -j DROP
   # apply arp nat for wireless
-  ebtables -t nat -A POSTROUTING -o wlan0 -j arpnat --arpnat-target ACCEPT
-  ebtables -t nat -A PREROUTING -i wlan0 -j arpnat --arpnat-target ACCEPT
+  $ebtables -t nat -A POSTROUTING -o wlan0 -j arpnat --arpnat-target ACCEPT
+  $ebtables -t nat -A PREROUTING -i wlan0 -j arpnat --arpnat-target ACCEPT
   # route EAPoL for wireless
-  ebtables -t broute -A BROUTING -i wlan0 --protocol 0x888e -j DROP
+  $ebtables -t broute -A BROUTING -i wlan0 --protocol 0x888e -j DROP
 }
 
 br_stop() {
   echo Stopping bridge-mode $bridge_iface: $bridge_ports
 
-  ebtables -t broute -F
-  ebtables -t nat -F
-  ebtables -F
+  $ebtables -t broute -F
+  $ebtables -t nat -F
+  $ebtables -F
 
-  echo 0 > /proc/sys/net/ipv4/conf/all/proxy_arp
-  echo 0 > /proc/sys/net/ipv4/ip_forward
+  fn 'echo 0 > /proc/sys/net/ipv4/conf/all/proxy_arp'
+  fn 'echo 0 > /proc/sys/net/ipv4/ip_forward'
 
   if [ -d /sys/class/net/$bridge_iface ]
   then
     for dev in $bridge_ports
     do
-      brctl delif $bridge_iface $dev
+      $brctl delif $bridge_iface $dev
       $nis $dev stop
     done
 
     echo Removing $bridge_iface
     $ifconfig $bridge_iface down
-    brctl delbr $bridge_iface
+    $brctl delbr $bridge_iface
   fi
 }
 
@@ -144,6 +144,11 @@ waitfor_interface() {
   return $?
 } 2>/dev/null
 
+fn() {
+  # verbosely show cmd+args before executing cmd+args
+  { $verbose && echo \+ "$*"; } 2>/dev/null; eval "$*"
+}
+
 
 # Invocation:
 # bridge [cmd] [iface] [bridge_settings...]
@@ -181,7 +186,9 @@ test -n "$bridge_settings" \
 test "${bridge_setup/*-v*/v}" == "v" \
   && verbose=true || verbose=false
 
-ifconfig='ip link set dev'
+ifconfig=fn\ 'ip link set dev'
+ebtables=fn\ 'ebtables'
+brctl=fn\ 'brctl'
 
 export bridge_=^
 case $cmd in
