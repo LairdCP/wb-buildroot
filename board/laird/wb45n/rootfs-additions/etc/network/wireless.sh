@@ -177,7 +177,7 @@ wifi_start() {
 
   # see if enabled in /e/n/i stanza for wl*
   sdcsupp=$( sed -n '/^iface wl.* inet/,/^[ \t]\+.*.[dp].supp/h;$x;$p' $eni )
-  if [ -n "$sdcsupp" -o "$hostapd" != "started" ] \
+  if [ -n "$sdcsupp" -o "${hostapd:-not}" != "started" ] \
   && [ "${1/*host*/X}" != "X" ]
   then
     # launch supplicant if exists and not already running
