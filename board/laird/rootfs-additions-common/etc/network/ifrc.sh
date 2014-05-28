@@ -64,7 +64,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140507
+ifrc_Version=20140522
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -111,7 +111,7 @@ msg() {
     if [ -n "$mm" ]
     then
       # to controlling pty in monitor-mode
-      echo -e "$@" >$mm 2>/dev/null || mm=
+      echo "$@" >$mm 2>/dev/null || mm=
       # and to syslog if verbose too
       test -n "$vm" \
         && logger -tifrc \
@@ -120,10 +120,10 @@ msg() {
     fi
   else
     # to stdout while not quiet-mode
-    [ -z "$qm" ] && echo -e "$@" || :
+    [ -z "$qm" ] && echo "$@" || :
   fi
   # and log to file unless set to /dev/null
-  echo -e "$@" >>${ifrc_Log:-/dev/null} || :
+  echo "$@" >>${ifrc_Log:-/dev/null} || :
 }
 
 parse_flag() {
@@ -584,9 +584,13 @@ then
     IFRC_METHOD="dhcp"
   fi
   IFRC_SCRIPT=${IFRC_SCRIPT/$IFRC_METHOD}
-  eval $IFRC_SCRIPT \
-    || msg "**cfg-do-task error - $IFRC_SCRIPT"
 fi
+if [ "$IFRC_ACTION" == "dn" ]
+then
+  IFRC_SCRIPT=${mp_cdt/*cdt{/{}
+fi
+eval $IFRC_SCRIPT \
+  || msg "**cfg-do-task error - $IFRC_SCRIPT"
 
 # Determine netlink event rule to apply via the reported iface status.
 # The action may be overridden depending on the following event rules.
@@ -754,7 +758,7 @@ case $IFRC_ACTION in
     ##
     if [ -n "$pre_dcfg_do" ]
     then
-      msg1 "  pre-dcfg-do( $pre_dcfg_do )"
+      msg1 -E "  pre-dcfg-do( $pre_dcfg_do )"
       make_ "$pre_dcfg_do" |tee -a $ifrc_Log & pre_dcfg_do=
     fi
     sed '1cmp_cdt:' -i $ifrc_Log
@@ -771,7 +775,7 @@ case $IFRC_ACTION in
     ##
     if [ -n "$post_dcfg_do" ]
     then
-      msg1 "  post-dcfg-do( $post_dcfg_do )"
+      msg1 -E "  post-dcfg-do( $post_dcfg_do )"
       make_ "$post_dcfg_do" |tee -a $ifrc_Log & post_dcfg_do=
     fi
     rmdir ${ifrc_Lfp}/$dev.* 2>/dev/null
@@ -1196,7 +1200,7 @@ await_timeout_for_dhcp() {
 if [ "${methvia/*cfg*/cfg}" != "cfg" ] \
 && [ -n "$pre_cfg_do" ]
 then
-  msg1 "  pre-cfg-do( $pre_cfg_do )"
+  msg1 -E "  pre-cfg-do( $pre_cfg_do )"
   make_ "$pre_cfg_do" |tee -a $ifrc_Log & pre_cfg_do=
 fi
 #
@@ -1326,7 +1330,7 @@ esac
 if [ "${methvia/*cfg*/cfg}" != "cfg" ] \
 && [ -n "$post_cfg_do" ]
 then
-  msg1 "  post-cfg-do( $post_cfg_do )"
+  msg1 -E "  post-cfg-do( $post_cfg_do )"
   make_ "$post_cfg_do" |tee -a $ifrc_Log & post_cfg_do=
 fi
 rc_exit 0
