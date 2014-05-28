@@ -32,7 +32,8 @@ usage() {
 	Action:
 	  stop|start|restart   - act on phy-init/driver (up or down the hw-phy)
 	  noauto|auto   - unset or set auto-starting an interface (for init/rcS)
-	  status   - check an interface and report its ip-address, w/ exit code
+	  address   - check an interface and report its ip-address, w/ exit code
+	  status   - check an interface hw-phy status (if supported by phy-init)
 	  up|dn   - up or down the interface configuration (re-'up' to renew)
 	  logs   - list or manage related files: {clean|show [<iface>]}
 	  eni   - edit file: /etc/network/interfaces
@@ -64,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140522
+ifrc_Version=20140523
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -320,7 +321,7 @@ case $1 in
   stop|start|restart) ## call network-init-script w/action-&-method, no return
     ifrc_stop_netlink_daemon
     [ -n "${vm:0:1}" ] && set -x
-    exec $nis "" $1 $2
+    exec $nis $1 $2
     ;;
 
   log|logs) ## ifrc files
@@ -384,7 +385,7 @@ case $1 in
     exit 0
     ;;
 
-  flags|status|down|dn|up) ## require iface
+  flags|address|status|down|dn|up) ## require iface
     usage error: "...must specify an interface" "ifrc <iface> $1" 
     ;;
 
@@ -667,13 +668,18 @@ fi
 # This script uses down/up with respect to interface (de)configuration only!!
 #
 case $IFRC_ACTION in
-  status) ## check if iface is configured and show its ip-address
+  address) ## check if iface is configured and show its ip-address
     # affirm configured <iface>: ip-address [...status]:0/1
     # returns true if the iface is configured with an ip-address
     is=; ip=$( gipa $dev ); rv=$?
     [ -n "${vm:0:1}" ] && { ip=${ip:-0.0.0.0}; summarize_interface_status; }
     [ -n "$ip$is" ] && msg $ip $is
     exit $rv
+    ;;
+
+  status) ## call on phy-init for status, no return
+    [ -n "${vm:0:1}" ] && set -x
+    exec $nis $devalias $IFRC_ACTION ${IFRC_METHOD%% *}
     ;;
 
   show) ## show info/status for an iface
@@ -748,7 +754,7 @@ case $IFRC_ACTION in
     exit $?
     ;;
 
-  stop|start|restart) ## act on init/driver, does not return
+  stop|start|restart) ## act on phy-init/driver, does not return
     ifrc_stop_netlink_daemon
     [ -n "${vm:0:1}" ] && set -x
     exec $nis $devalias $IFRC_ACTION ${IFRC_METHOD%% *}
@@ -791,7 +797,7 @@ case $IFRC_ACTION in
         sed '1cmp_cdt:' -i $ifrc_Log
         unset IFRC_SCRIPT IFRC_STATUS
         msg "interface is not kernel-resident, trying to start ..."
-        msg1 exec $nis $devalias start ${IFRC_METHOD%% *}
+        [ -n "${vm:0:1}" ] && set -x
         exec $nis $devalias start ${IFRC_METHOD%% *}
       else
         msg "interface is not kernel-resident, try:  ifrc $dev start"
