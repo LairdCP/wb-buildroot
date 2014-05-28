@@ -1,4 +1,0 @@
-config BR2_PACKAGE_AR6KL_TOOLS_V311
-	bool "Ar6kl Tools v3.1.1 (dbgParser)"
-	help
-	  Ar6kl Tools v3.1.1 for dbgParser. It dbgParser doesn't exist in later versions.
