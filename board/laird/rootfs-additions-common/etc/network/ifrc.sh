@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140523
+ifrc_Version=20140527
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -200,8 +200,7 @@ pause() {
 }
 
 gipa() {
-# ip=`ip addr show $1 2>/dev/null \
-  ip=`ifconfig $1 2>/dev/null \
+  ip=`ip addr show $1 2>/dev/null \
      |grep -o '[0-9]*\.[0-9]*\.[0-9]*\.[0-9/]* *'` && echo ${ip%% *}
 }
 
@@ -215,7 +214,7 @@ sleuth_wl() {
 }
 
 summarize_interface_status() {
-  if ! ifconfig $dev 2>/dev/null |grep -q " UP "
+  if ! grep -qs 'u[pn]' /sys/class/net/$dev/operstate
   then
     is=inactive
   else
@@ -234,19 +233,20 @@ summarize_interface_status() {
 }
 
 show_interface_config_and_status() {
-  ida=$( ifconfig -a |sed -n '/./{H;$!d;};x;/\ UP/!p' \
-                     |sed -n 's/\(^[a-z][a-z0-9]*\).*/\1 /p' \
-                     |tr -d '\n' )
+  # find available iface's not configured
+  # these will exist, and be in down state
+  ida=$( grep -s down /sys/class/net/*/operstate \
+        |sed 's/.*net\/\(.*[^/]\)\/.*/ \1/' \
+        |tr -d '\n' )
 
   [ -z "$dev" -a -n "$ida" ] \
   && echo "       Available, but not configured: $ida"
   echo
-  ifconfig |sed -n "/packe/d;/queue/d;/nterr/d;/cope/d;/${dev:-.}/,/^$/p;" \
-           |sed 's/^\(.......\)\ *\([^ ].*[^ ]\)\ */\1\2/g; s/0-0/0:0/g' \
-           |sed 's/^$/       /; $d' |grep ....... || return 1
+  ip addr show ${dev:+dev $dev} \
+    |sed -e 's/^[0-9]\+: //;s/\([a-z].*:\) /\n\1\t/;s/state/\n\t&/;s/    /\t/' \
+         -e '/inet6/d;/valid_lft/d'
 
-  test -z "$dev" && dev=$( sleuth_wl )
-  #
+  : ${dev:=$( sleuth_wl )}
   # include association info for wireless dev
   if [ -d /sys/class/net/$dev/phy80211 ]
   then
@@ -348,7 +348,8 @@ case $1 in
     then
       echo
       /etc/network/bridge.sh 2>/dev/null && echo
-      route -n
+      echo Routing:
+      ip route show
       echo -e "\nDNS:\r\t/etc/resolv.conf"
       sed '$G' /etc/resolv.conf 2>/dev/null
     fi
@@ -511,6 +512,8 @@ msg3 -e "env:\n`env |sed -n 's/^IF[A-Z]*_.*/  &/p' |grep . || echo \ \ ...`\n"
 
 make_() { ( eval $1; x=$?; [ ${1:0:1} == / ] && echo \ \ ${1##*/}: $x ); }
 
+fn() { { msg2 \+ "$*"; } 2>/dev/null; eval "$*"; }
+
 export ifrc_Settings=fls=\"$fls\"\ mm=$mm\ vm=$vm\ qm=$qm
 
 # external globals - carried per instance and can be used by *-do scripts
@@ -633,7 +636,7 @@ then
     fi
 
     ## by default the ip-cfg is not retained on a down event
-    ifconfig $dev 0.0.0.0 2>/dev/null
+    ip addr flush dev $dev 2>/dev/null
 
     ## otherwise ignore down event via ifnl - no deconfigure
     IFRC_ACTION=xx
@@ -663,9 +666,8 @@ then
 fi
 
 #
-# Do not really 'down' or 'up' an interface here with: 'ifconfig <dev> down/up'
-# We leave that to the driver init-scripts instead, so they handle stop/start.
-# This script uses down/up with respect to interface (de)configuration only!!
+# The hw-phy/init scripts are responsible for creating/removing an iface.
+# This script uses down/up with respect to interface (de)configuration only!
 #
 case $IFRC_ACTION in
   address) ## check if iface is configured and show its ip-address
@@ -706,18 +708,19 @@ case $IFRC_ACTION in
       else
         echo -e "\nRouting: "
         ip route show dev $dev
-        echo -e "\nARP:     \c"
-        arp -ani $dev \
-        |sed -e '/[Nn]o match/a(empty)' -e '/[Nn]o match/d;s/on .*//;1i(cached)'
+        echo -e "\nARP:     \n  ...\c"
+        ip neigh show dev $dev \
+          |sed '1s/^./\r&/;s/lladdr/at/'
       fi
     fi
     if [ -n "${vm:0}" ] && gipa $dev >/dev/null
     then
-      echo -e "\nConnections:"
-      netstat -ntuw 2>/dev/null \
-      |sed -n "/${ip%%[ /]*}/!d;s/\(^....\) .*[0-9] [0-9.]*\(:.*\)/\1   \2/p" \
-      |grep . || echo \ \ ...
+      af='.*\(\".*\",[0-9]*\),.*'
+      echo -e "\nConnections:\n  ...\c"
+      ss -4ntuwp \
+      |sed -e '1d;s/^\(....\) .*\(:[^ ]* *[0-9.]*:[^ ]*\) '$af'/\r\1   \2   \3/'
     fi
+    echo
     [ -n "${vm:0:1}" ] \
     && echo -e "\nProcesses:\n`ps ax -opid,args |grep "$dev\ " || echo \ \ ...`"
     echo
@@ -773,11 +776,7 @@ case $IFRC_ACTION in
     # terminate any other netlink/dhcp_client daemons and de-configure
     ifrc_stop_netlink_daemon 
     signal_dhcp_client TERM
-    #
-    # de-configure (flush) only on an 'up' interface
-    { read -r operstate </sys/class/net/$dev/operstate; } 2>/dev/null
-    [ "$operstate" == "up" ] \
-    && { ifconfig $dev 0.0.0.0 2>/dev/null; pause 0.333; }
+    fn ip addr flush dev $dev
     ##
     if [ -n "$post_dcfg_do" ]
     then
@@ -834,13 +833,12 @@ case $IFRC_ACTION in
         && ifrc_stop_netlink_daemon
 
       signal_dhcp_client TERM
-
-      ifconfig $dev 0.0.0.0 2>/dev/null \
-      || msg "  ...deconfig for up_action resulting in error, ignored"
-      ## this de-configure (flush) will also re-'up' the interface...
+      fn ip addr flush dev $dev
+      fn ip link set dev $dev up
+      ## the interface is now de-configured (flush) and also re-'up'd
       ## additional wait time may be required to be ready again
       ## operations continue below...
-      pause 0.333
+      #pause 0.333
     fi
     ;;
 
@@ -1212,6 +1210,8 @@ fi
 #
 # The interface exists and is ready to be configured.
 # And so the specified method and optional parameters will now be applied.
+# Note that only the primary ip-address and basic options are handled here.
+# Additional configurations may be handled by *-do directives or *.conf's.
 #
 case ${IFRC_METHOD%% *} in
 
@@ -1264,7 +1264,6 @@ case ${IFRC_METHOD%% *} in
     echo -en \\\r 
 
     rmdir ${ifrc_Lfp}/$dev.dhcp 2>/dev/null
-
     test -n "$to" && await_timeout_for_dhcp 
 
     ## restart auto-negotiation after using fixed speed
@@ -1283,18 +1282,19 @@ case ${IFRC_METHOD%% *} in
       ifrc_stop_netlink_daemon
       rc_exit 1
     else
-      msg2 \
-      ifconfig $dev $ip ${nm:+netmask $nm}
-      ifconfig $dev $ip ${nm:+netmask $nm}
+      xip=`ip addr show dev $dev |sed -n '/ *inet/{s/ *net \([^ ]*\).*/\1/p;q}'`
+      if [ -n "$xip" ]
+    then
+        fn ip addr add $ip/32 dev $dev
+        fn ip addr del $xip dev $dev
+    fi
+      ## ip-addr-modify NIP/NM and BRD
+      fn ip addr add $ip${nm:+/$nm} ${bc:+broadcast $bc} dev $dev
+      test -n "$xip" \
+        && fn ip addr del $ip/32 dev $dev
     fi
     ## replace default gw in routing table
-    while route del default gw 0.0.0.0 dev $dev 2>/dev/null; do :; done
-    if [ -n "$gw" ]
-    then
-      msg2 \
-      route add default gw $gw dev $dev metric ${metric:-0}
-      route add default gw $gw dev $dev metric ${metric:-0}
-    fi
+    fn ip route replace default via $gw dev $dev
     ## add new nameservers
     if [ -n "$ns" ]
     then
@@ -1312,8 +1312,10 @@ case ${IFRC_METHOD%% *} in
     # use default ip if none specified
     [ -z "$ip" ] && ip=127.0.0.1
     msg "configuring localhost address $ip"
-    ifconfig $dev $ip
-    # probably don't need anything beyond this
+    # note, operstate can be down or unknown(up)
+    # global scope independent is assumed with '/32'
+    msg "configuring localhost address $ip"
+    fn ip addr add $ip dev $dev
     ;;
 
   manual) ## method ...no params
