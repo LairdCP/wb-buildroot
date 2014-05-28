@@ -24,7 +24,7 @@ RESOLV_CONF=${resolv_conf:-${RESOLV_CONF:-'/etc/resolv.conf'}}
 RESOLV_HOOK=${resolv_hook:-${RESOLV_HOOK:-''}}
 
 # The leases file is maintained in a 'dhclient' compatible format, w/last
-# event action state, plus the previous lease info and current lease info.
+# event state action, plus the previous lease info and current lease info.
 # Assign a file name per interface, and ensure it exists.
 # Also create a /tmp destination for the leases file, if necessary.
 LEASES_FILE=${leases_file:-${LEASES_FILE:-'/var/lib/dhcp/dhclient.leases'}}
@@ -88,7 +88,7 @@ dateT0=`date +%u\ %Y/%m/%d\ %H:%M:%S -d @$dateRT`
 # Repair leases file as necessary.
 sed '/^ *$/{$!d};1,/^leas/{/^leas/{s/^/\n&/}}' -i $LEASES_FILE
 
-# Update leases file w/ this event action state.
+# Update leases file w/ this event state action.
 esa=$( printf "# esa: %10.10s - %s" "$action" "$dateT0" )
 sed "/^${esa:0:17}/d;/^#/h;/^ *$/{s,^,${esa}\n,}" -i $LEASES_FILE
 
@@ -119,17 +119,13 @@ fi
 
 case $action in
   deconfig)
-    fn ifconfig $interface 0.0.0.0 \
-    || exit_err ${interface:-<interface>}?
-    # This de-configures the interface, so packets can't use it...
-    # And removes (flushes) all relative entries from the routing table.
-    # It is still (up) and accessible to the IP layer (kernel-resident).
+    # Deconfigure the interface.
+    # And remove all relative entries from the routing table.
+    # It is still up and accessible to the IP layer (kernel-resident).
+    fn ip addr flush dev $interface
     ;;
 
   renew|bound)
-    # Ensure the <interface> is set.
-    [ -n "$interface" ] || exit_err ${interface:-<interface>?}
-
     # Copy value to a 'variable_set-value'.
     [ -n "$subnet" ] && netmask_sv="netmask $subnet"
     [ -n "$broadcast" ] && broadcast_sv="broadcast $broadcast"
@@ -148,22 +144,15 @@ case $action in
     fi
 
     # Configure the interface.
-    fn ifconfig $interface ${ip:-up} $broadcast_sv $netmask_sv \
-    || exit_err args: $interface ${ip:-up} $broadcast_sv $netmask_sv
+    fn ip addr add $ip${subnet:+/$subnet} $broadcast_sv dev $interface
 
     # Re-write entries in routing table, only for this interface, if set.
     # A metric value may be passed in via settings, or is zero by default.
     if [ -n "$router" ]
     then
-      while :
-      do
-        fn route del default gw 0.0.0.0 dev $interface 2>/dev/null || break
-      done
-      for x in $router
-      do
-        fn route add default gw $x dev $interface metric ${metric:-0}
-        let metric++
-      done
+      x=${router%% *}
+      fn ip route replace default via $x dev $interface metric ${metric:-0}
+      ## change or add only first given router, as *the* default route
     fi
 
     # Call on a resolv-conf-handler if setup, or write resolv-conf directly.
