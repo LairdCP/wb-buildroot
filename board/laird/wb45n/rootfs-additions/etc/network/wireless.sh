@@ -24,8 +24,7 @@ WIFI_80211=-Dnl80211                          ## supplicant driver nl80211
 #WIFI_FIPS=-F                                  ## FIPS mode support '-F'
 
 
-wifi_config()
-{
+wifi_config() {
   # ensure that the profiles.conf file exists and is not zero-length
   # avoids issues while loading drivers and starting the supplicant
   [ ! -s "$WIFI_PROFILES" -a -x "$SDC_CLI" ] \
@@ -39,25 +38,47 @@ wifi_config()
   return 0
 }
 
-msg()
-{
+msg() {
   echo "$@"
 }
 
-wifi_awaitinterface()
-{
+wifi_status() {
+  module=${module/.ko/}
+  echo -e "Modules loaded and size:"
+  grep -s -e "${module%%_*}" -e "sdcu" -e "sdc2u" /proc/modules \
+  && echo "  `dmesg |sed -n '/ath6kl: ar6003 .* fw/h;$g;$s/^.*ath6kl: //p'`" \
+  || echo "  ..."
+
+  echo -e \
+  "\nProcesses related for ${WIFI_DRIVER}${WIFI_FIPS:+, fips}, apd, supp:"
+  top -bn1 \
+  |sed 's/\(^....[^ ]\ \+[^ ]\+\ \)\+[^ ]\+\ \+\(.*\)/\1\2/' \
+  |sed -n '/sed/d;4H;/hostapd/H;/.[dp].supp/H;/sdcu/H;/'"${module%%_*}"'/{H;x;p;}' \
+  |uniq |grep . || echo "  ..."
+
+  if wifi_queryinterface
+  then
+    sed 's/^Inter-/\n\/proc\/net\/wireless:\n&/;$a' \
+      /proc/net/wireless 2>/dev/null || echo
+
+    iw dev $WIFI_DEV link \
+      |sed 's/onnec/ssocia/;s/cs/as/;s/Cs/As/;s/(.*)//;/[RT]X:/d;/^$/,$d'
+  fi
+  echo
+}
+
+wifi_awaitinterface() {
   # arg1 is timeout (10*mSec) to await availability
   let x=0
   while [ $x -lt $1 ]
   do
     grep -q "${WIFI_DEV:-xx}" /proc/net/dev && break
-    $usleep 10000 && { let x+=1; msg -en .; }
+    $usleep 10000 && { let x+=1; msg -n .; }
   done
   [ $x -lt $1 ] && return 0 || return 1
 }
 
-wifi_queryinterface()
-{
+wifi_queryinterface() {
   # determine iface via path with matching device/uevent (do not quote token)
   WIFI_DEV=$( grep -s "$WIFI_DRIVER" /sys/class/net/*/device/uevent \
                |sed -n 's,/sys/class/net/\([a-z0-9]\+\)/device.*,\1,p' )
@@ -72,15 +93,13 @@ wifi_queryinterface()
   return 0
 }
 
-wifi_fips_mode()
-{
+wifi_fips_mode() {
   if [ -f "$WIFI_KMPATH/kernel/drivers/net/wireless/laird_fips/ath6kl_laird.ko" ] \
   && [ -f "$WIFI_KMPATH/kernel/drivers/net/wireless/laird_fips/sdc2u.ko" ] \
   && : #[ -x "/usr/bin/sdcu" ]
   then
-    # note - only 'WPA2 EAP-TLS' is supported
-    #msg "enabling FIPS mode"
     msg "configuring for FIPS mode"
+    # note - only 'WPA2 EAP-TLS' is supported
     insmod ${WIFI_KMPATH}/${WIFI_MODULE%/*}/ath6kl_core.ko fips_mode=y || return 1
     insmod ${WIFI_KMPATH}/kernel/drivers/net/wireless/laird_fips/sdc2u.ko || return 1
     insmod ${WIFI_KMPATH}/kernel/drivers/net/wireless/laird_fips/ath6kl_laird.ko || return 1
@@ -93,15 +112,13 @@ wifi_fips_mode()
     # launch daemon to perform crypto operations
     sdcu >/var/log/sdcu.log 2>&1 &
   else
-    #msg "disabled FIPS mode - support missing"
     msg "configuring non-FIPS mode"
     WIFI_FIPS=
   fi
   return 0
 }
 
-wifi_start()
-{
+wifi_start() {
   mkdir -p /tmp/wifi^
   if grep -q "${module/.ko/}" /proc/modules
   then
@@ -135,7 +152,7 @@ wifi_start()
 
   # enable interface  
   [ -n "$WIFI_DEV" ] \
-  && { msg "activate: $WIFI_DEV  ...`ifconfig $WIFI_DEV up 2>&1 && echo okay`"; } \
+  && { msg "activate: $WIFI_DEV  ...`ifconfig $WIFI_DEV up 2>&1 && echo ok`"; } \
   || { msg iface $WIFI_DEV n/a, maybe fw issue, try: wireless restart; return 1; }
 
   # save MAC address for WIFI if necessary
@@ -166,25 +183,22 @@ wifi_start()
       && { msg "$supp_sd/*.pid exists"; return 1; }
 
       supp_opt=$WIFI_80211\ $WIFI_DEBUG\ $WIFI_FIPS
-      msg -en executing: $SDC_SUPP -i$WIFI_DEV $supp_opt -s'  '
+      msg -n executing: $SDC_SUPP -i$WIFI_DEV $supp_opt -s'  '
       #
       $SDC_SUPP -i$WIFI_DEV $supp_opt -s >/dev/null 2>&1 &
       #
       # the 'daemonize' option may have issues, so using dynamic wait instead
-      until test -e $supp_sd || ! let n=$n-1; do msg -en .; $usleep 500000; done
+      until test -e $supp_sd || ! let n=$n-1; do msg -n .; $usleep 500000; done
       # check that supplicant is running and store its process id
       pidof ${SDC_SUPP##*/} 2>/dev/null >$supp_sd/${SDC_SUPP##*/}.pid \
       || { msg ..error; return 1; }
-      msg ..okay
+      msg ...ok
     fi
   fi
   return 0
 }
 
-wifi_stop()
-{
-  ## Stopping means packets can't use wifi and interface will be removed.
-  ##
+wifi_stop() {
   mkdir -p /tmp/wifi^
   if [ -n "$WIFI_DEV" ] \
   && grep -q "$WIFI_DEV" /proc/net/dev
@@ -199,8 +213,8 @@ wifi_stop()
     && let pid=$( grep -s ^ $supp_sd/*.pid )+0
     then
       rm -f $supp_sd/*.pid
-      kill $pid && { let n=27; msg -en "supplicant terminating."; }
-      while let n-- && [ -d /proc/$pid ]; do $usleep 50000; msg -en .; done; msg
+      kill $pid && { let n=27; msg -n "supplicant terminating."; }
+      while let n-- && [ -d /proc/$pid ]; do $usleep 50000; msg -n .; done; msg
     fi
 
     ## terminate hostap daemon if running
@@ -215,15 +229,15 @@ wifi_stop()
     ## down the interface
     # This step avoids occasional problems when the driver is unloaded
     # while the iface is still being used.
-    msg -en "disabling interface  "
+    msg -n "disabling interface  "
     ifconfig $WIFI_DEV down && { $usleep 500000; msg ...down; } || msg
   fi
 
   ## unload fips related modules
   if let pid=$( pidof sdcu )+0 && kill $pid && n=27
   then
-    msg -en "sdcu terminating"
-    while [ -d /proc/$pid ] && let n--; do $usleep 50000; msg -en .; done; msg
+    msg -n "sdcu terminating"
+    while [ -d /proc/$pid ] && let n--; do $usleep 50000; msg -n .; done; msg
   fi
   if mls=$( grep -os -e "^sdc2u" -e "^ath6kl_laird" /proc/modules )
   then
@@ -237,9 +251,8 @@ wifi_stop()
     msg unloading: $mls
     rmmod $mls
   fi
-  [ $? -eq 0 ] && { msg "  ...okay"; return 0; } || return 1
+  [ $? -eq 0 ] && { msg "  ...ok"; return 0; } || return 1
 }
-
 
 
 # ensure this script is available as system command
@@ -281,31 +294,11 @@ case $1 in
     $0 stop $2 && exec $0 $WIFI_DEBUG ${WIFI_FIPS:+fips} start $2 || false
     ;;
 
-  ''|status)
-    module=${module/.ko/}
-    echo -e "Modules loaded and size:"
-    grep -s -e "${module%%_*}" -e "sdcu" -e "sdc2u" /proc/modules \
-    && echo "  `dmesg |sed -n '/ath6kl: ar6003 .* fw/h;$g;$s/^.*ath6kl: //p'`" \
-    || echo "  ..." 
-    echo -e \
-    "\nProcesses related for ${WIFI_DRIVER}${WIFI_FIPS:+, fips} and supplicant:"
-    top -bn1 \
-    |sed 's/\(^....[^ ]\ \+[^ ]\+\ \)\+[^ ]\+\ \+\(.*\)/\1\2/' \
-    |sed -n '/sed/d;4H;/'"${SDC_SUPP##*/}"'/H;/sdcu/H;/'"${module%%_*}"'/{H;x;p;}' \
-    |uniq |grep . || echo "  ..."
-
-    if wifi_queryinterface
-    then
-      sed 's/^Inter-/\n\/proc\/net\/wireless:\n&/;$a' \
-        /proc/net/wireless 2>/dev/null || echo
-
-      iw dev $WIFI_DEV link \
-        |sed 's/onnec/ssocia/;s/cs/as/;s/Cs/As/;s/(.*)//;/[RT]X:/d;/^$/,$d'
-    fi
-    echo
+  status|'')
+    wifi_status
     ;;
     
-  \?|-h|--help)
+  -h|--help)
     echo "$0"
     echo "  ...stop/start/restart the '$WIFI_PREFIX#' interface"
     echo "Manages the '$WIFI_DRIVER' wireless device driver: $module"
