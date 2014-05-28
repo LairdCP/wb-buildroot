@@ -64,14 +64,17 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140417
+ifrc_Version=20140507
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
-ifrc_Lfp=/var/log/ifrc
+ifrc_Lfp=/tmp/ifrc
 ifrc_Cmd=$0\ $@
 ifrc_Pid=$$
 ifrc_Via=''
 ifrc_Log=${ifrc_Lfp}/msg
+
+# latch settings
+eval $ifrc_Settings
 
 # ensure ifrc exists and is supported as a system executable
 ifrc=/sbin/ifrc
@@ -104,11 +107,11 @@ fi
 msg() {
   if [ "$1" == "@." ] && shift
   then
-    # to controlling tty w/'@.' prefix in monitor-mode
+    # w/'@.' prefix
     if [ -n "$mm" ]
     then
-      tty >/dev/null 2>&1 && tty >$ifrc_Lfp/$dev.tty
-      echo -e "$@" >`cat $ifrc_Lfp/$dev.tty 2>/dev/null || echo -n /dev/console`
+      # to controlling pty in monitor-mode
+      echo -e "$@" >$mm 2>/dev/null || mm=
       # and to syslog if verbose too
       test -n "$vm" \
         && logger -tifrc \
@@ -126,11 +129,10 @@ msg() {
 parse_flag() {
   case $1 in
     -h|--help|--usage) ## show usage
-      usage
+      usage $2
       ;;
     --|--version) ## just report version
-      echo ifrc -- v$ifrc_Version - md5:`md5sum < $0` len:`wc -c < $0`
-      exit 0
+      echo ifrc -- v$ifrc_Version - md5:`md5sum < $0` len:`wc -c < $0`; exit 0
       ;;
     -q) ## quiet, no stdout
       qm='>/dev/null'
@@ -141,24 +143,21 @@ parse_flag() {
     -n) ## do not use a log file
       ifrc_Log=/dev/null
       ;;
-    -m) ## monitor nl/ifrc events for iface
-      mm=@
+    -m*) ## monitor nl/ifrc events for iface
+      test -z "${mm:=${1:2}}" && { mm=`tty` || mm=/dev/console; }; true
       ;;
     -x) ## do not run netlink daemon
       ifnl_disable=.
       ;;
     -*) ## ignore
-      msg \ \ ...ignoring: $1
-      return 1
+      msg \ \ ...ignoring: \[$1\]; return 0
       ;;
-  esac
-  return 0
+    *) ## break
+      return 1
+  esac \
+    && fls=${fls:+$fls }$1
 }
-while [ "${1/[\?-]*/%}" == "%" ]; do parse_flag $@ && fls=$1\ $fls; shift; done
-
-# latch settings
-eval $ifrc_Settings
-export ifrc_Settings=fls=\"$fls\"\ mm=$mm\ vm=$vm\ qm=$qm  
+while :; do parse_flag $1 && shift || break; done
 
 # set some message levels according to verbose-mode
 [ -n "${vm:2:1}" ] && alias msg3=msg || alias msg3=:                           
@@ -417,9 +416,9 @@ read_ifrc_info() {
 
     if [ -n "$ifrc_i" ]
     then
-      #:alias=iface -v
-      flags=${ifrc_i#* }
-      ifrc_i=${ifrc_i/ $flags}
+      #:alias=iface & settings
+      ifrc_Settings=${ifrc_i#* }
+      ifrc_i=${ifrc_i% $ifrc_Settings}
       devalias=${ifrc_i%=*}
       dev=${ifrc_i#*=}
     fi
@@ -433,7 +432,8 @@ read_ifrc_info() {
   return 1
 }
 
-if ! read_ifrc_info $dev
+if ! read_ifrc_info $dev \
+|| [ -z "$mp_cdt" ]
 then
   # Generally, operations are on a specific interface.
   # It is possible that the $dev may initially be unknown.
@@ -464,14 +464,20 @@ then
   fi
   # dev*alias is used to further process settings for dev*iface in /e/n/i
   msg3 "  iface stanza: ${ifacemsg:-?}"
-  test -n "$devalias" || exit 1
+  test -n "$devalias" \
+    || exit 1
+
+  # re-attempt lookup
+  read_ifrc_info $dev
 
   # read ifrc-flags if not more than '-v' specified on cli - cummulative
   test -z "${fls//-v/}" \
+    && fls=${fls//-v/} \
     && flags_eni=$( sed -n "/^iface $devalias/,/^$/\
                       s/^[ \t]\+[^#]ifrc-flags \(.*\)/\1/p" $eni )
-  # re-attempt lookup
-  read_ifrc_info $dev
+
+  # apply flags from iface stanza in /e/n/i
+  for af in $flags_eni; do parse_flag $af || break; done
 fi
 msg3 "  deviface: ${dev:-?}"
 test -n "$dev" \
@@ -479,8 +485,6 @@ test -n "$dev" \
 
 # check if this is a wireless interface
 test -d /sys/class/net/$dev/phy80211 && phy80211=true || phy80211=false
-
-for af in $flags_eni; do parse_flag $af && fls=$af\ $fls; done
 
 # Set logfile name for this iface.
 ifrc_Log=${dev:+${ifrc_Lfp}/$dev}
@@ -505,6 +509,8 @@ printf "${x%  -}\n% 13.2f __${ifrc_Cmd}  $ifrc_Via\n" $us >>$ifrc_Log
 msg3 -e "env:\n`env |sed -n 's/^IF[A-Z]*_.*/  &/p' |grep . || echo \ \ ...`\n"
 
 make_() { ( eval $1; x=$?; [ ${1:0:1} == / ] && echo \ \ ${1##*/}: $x ); }
+
+export ifrc_Settings=fls=\"$fls\"\ mm=$mm\ vm=$vm\ qm=$qm
 
 # external globals - carried per instance and can be used by *-do scripts
 export IFRC_STATUS="${ifnl_s:-  ->  }"
@@ -801,7 +807,7 @@ case $IFRC_ACTION in
       mp_cdt=
       sed -e "1cmp_cdt:$mp_cdt" \
           -e "2ceni_sk:$eni_sc" \
-          -e "3cifrc_i:$devalias=$dev $fls" \
+          -e "3cifrc_i:$devalias=$dev $ifrc_Settings" \
           -i $ifrc_Log
 
       if [ "$dev" != "lo" ] && [ "$devalias" != "wl" ] && ! $phy80211
@@ -828,13 +834,14 @@ case $IFRC_ACTION in
     fi
     ;;
 
-  \.\.) ## refresh configuration
+  \.\.) ## refresh cached configuration
+    eni_sc=$( sed '/./{H;$!d;};x;/[#]*iface '$devalias' inet/!d;n' $eni |cksum )
     if [ -d ${ifrc_Lfp}/$dev.cfg ]
     then
       msg1 \ \ ...$dev.cfg exists, no refresh
     else
       sed -e "2ceni_sk:$eni_sc" \
-          -e "3cifrc_i:$devalias=$dev $fls" \
+          -e "3cifrc_i:$devalias=$dev $ifrc_Settings" \
           -i $ifrc_Log
     fi
     exit 0
