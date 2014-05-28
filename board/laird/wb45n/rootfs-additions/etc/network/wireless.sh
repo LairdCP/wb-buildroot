@@ -38,6 +38,10 @@ wifi_config() {
   return 0
 }
 
+wifi_set_dev() {
+  ip link set dev $WIFI_DEV $1 2>&1 #/dev/null
+}
+
 msg() {
   echo "$@"
 }
@@ -152,8 +156,8 @@ wifi_start() {
 
   # enable interface  
   [ -n "$WIFI_DEV" ] \
-  && { msg "activate: $WIFI_DEV  ...`ifconfig $WIFI_DEV up 2>&1 && echo ok`"; } \
-  || { msg iface $WIFI_DEV n/a, maybe fw issue, try: wireless restart; return 1; }
+  && { msg -n "activate: $WIFI_DEV  ..."; wifi_set_dev up && msg ok; } \
+  || { msg "iface $WIFI_DEV n/a, FW issue?  -try: wireless restart"; return 1; }
 
   # save MAC address for WIFI if necessary
   grep -sq ..:..:..:..:..:.. $WIFI_MACADDR \
@@ -192,7 +196,7 @@ wifi_start() {
       # check that supplicant is running and store its process id
       pidof ${SDC_SUPP##*/} 2>/dev/null >$supp_sd/${SDC_SUPP##*/}.pid \
       || { msg ..error; return 1; }
-      msg ...ok
+      msg ..ok
     fi
   fi
   return 0
@@ -206,7 +210,7 @@ wifi_stop() {
     ## de-configure the interface
     # This step allows for a cleaner shutdown by flushing settings,
     # so packets don't use it.  Otherwise stale settings can remain.
-    ifconfig $WIFI_DEV 0.0.0.0 && msg "  ...de-configured"
+    ip addr flush dev $WIFI_DEV && msg "  ...de-configured"
 
     ## terminate the supplicant by looking up its process id
     if [ "$1/*host*/X}" != "X" ] \
@@ -230,7 +234,7 @@ wifi_stop() {
     # This step avoids occasional problems when the driver is unloaded
     # while the iface is still being used.
     msg -n "disabling interface  "
-    ifconfig $WIFI_DEV down && { $usleep 500000; msg ...down; } || msg
+    wifi_set_dev down && { $usleep 500000; msg ...down; } || msg
   fi
 
   ## unload fips related modules
