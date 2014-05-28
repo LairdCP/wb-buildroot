@@ -1,0 +1,14 @@
+#!/bin/ash
+# lighty - init script support for inetd
+# Main script resides as /usr/sbin/lighty.
+# jon.hefling@lairdtech.com
+
+case $1 in
+  stop)
+    ;;
+  check)
+    /usr/sbin/lighty check
+    ;;
+esac
+
+exit $?

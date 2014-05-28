@@ -1,27 +1,54 @@
-#!/bin/sh 
+#!/bin/ash
+# lighttpd - webserver init
+# This init-script includes support for inetd.
+# jon.hefling@lairdtech.com
 #
-trap "" 1
-trap "" 15
-test -f /usr/sbin/lighttpd || exit 0
+# Usage:
+# ./S??lighttpd {stop|start|restart|status|check}
+#
+# Invocation:
+# ./S??lighttpd start [/etc/lighttpd/lighttpd.conf]
+#
+
+
+status() {
+  echo "+ ps ax -opid,args"
+  ps ax -opid,args |grep -e"[^0-9]lighttp[d]" -e"php[-]"
+}
 
 start() {
-  echo "Starting LigHTTPd"
-  /usr/sbin/lighttpd -f /etc/lighttpd/lighttpd.conf >/var/log/lighttpd 2>&1
+  if ! status >/dev/null
+  then
+    test -x /usr/sbin/lighttpd \
+      || { echo "  lighttpd n/a"; exit 1; }
+
+    echo "Starting LigHTTPd"
+    /usr/sbin/lighttpd -f ${lighttpd_conf} \
+      >/var/log/lighttpd 2>&1
+  fi
 }
 
 stop() {
-  echo "Stopping LigHTTPd"
-  killall lighttpd
+  if status >/dev/null
+  then
+    echo "Stopping LigHTTPd"
+    killall lighttpd 2>/dev/null
+    killall php-cgi 2>/dev/null
+  fi
+  true
 }
 
-case "$1" in
+# Note: invocation is start [conf]
+# The config file can be a symlink or passed-in.
+lighttpd_conf=${2:-/etc/lighttpd/lighttpd.conf}
+
+case $1 in
+  stop)
+    stop
+    ;;
 
   start)
     start
-    ;;
-
-  stop)
-    stop
     ;;
 
   restart)
@@ -29,10 +56,22 @@ case "$1" in
     start
     ;;
 
-  *)
-    echo "Usage: $0 {start|stop|restart}"
-    exit 1
+  status)
+    status
     ;;
+
+  check) ## required for S??inetd pre-checking
+    test -s ${lighttpd_conf} \
+      || { echo "  $lighttpd_conf n/a"; return 2; }
+
+    test -x /usr/sbin/lighttpd-angel \
+      && /usr/sbin/lighttpd-angel -t -f ${lighttpd_conf} \
+           2>&1 |sed 's/.*\(exitcode.*\)/  ...\1/'
+    ;;
+
+  *)
+    echo "Usage: ${0##*/} {stop|start|restart|status|check}"
+    false
 esac
 
-exit 0
+exit $?

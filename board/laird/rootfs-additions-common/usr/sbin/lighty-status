@@ -1,0 +1,33 @@
+#!/bin/ash
+# /usr/sbin/lighty-status
+# Shows related webserver processes.
+# Parses lighttpd.conf and inetd.conf files for configured ports to report on.
+# jon.hefling@lairdtech.com
+
+status() {
+  eval $( ps axopid,args \
+    |sed -n '/[^S0-9]*lighttp[d]/s/ *\([^ ]*\) .*-f *\([^ ]*\)/pid=\1 cf=\2/p' )
+  #
+  # get service ports configured for lighttpd
+  test -n "$cf" \
+    && ports=$( sed -e '/server\.port/s/^[^#].* = \([0-9]\+\)/ -e \":\1\"/p' \
+                    -e '/socket/s/^[^#].*\(:[0-9]\+\).*/ -e \"\1\"/p' \
+                    -n $cf |tr -d '\n' )
+  #
+  # get service port configured for inetd
+  service=$( sed -n '/^[^#].*lighty/s/^\([^#][^ ]\+\) .*/\1/p' /etc/inetd.conf )
+  test -n "$service" \
+    && ports=$ports\ $( sed -e "s/^$service[ \t]\+\([0-9]\+\)\/tcp.*/:\1/p" \
+                            -n /etc/services )
+  #
+  # report relative service PIDs
+  echo "+ ps ax -opid,args"
+  ps ax -opid,args |grep -e"[^0-9]ligh[t]" -e"php[-]"
+  echo
+  #
+  # report relative socket-statistics
+  echo "+ ss -tna"
+  eval "ss -tna |grep -e State${ports}"
+}
+
+status

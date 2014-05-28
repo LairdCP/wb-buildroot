@@ -1,0 +1,95 @@
+#!/bin/ash
+# /usr/sbin/lighty - a service wrapper for lighttpd
+#
+# The following line in /etc/inetd.conf allows stateless connect handling:
+# http     stream  tcp       nowait  root    /usr/sbin/lighty  lighty -v start
+#
+# On an incoming TCP service request via inetd, the webserver is started.
+# A redirect is then sent back to the requesting host.
+# jon.hefling@lairdtech.com
+#
+# Usage:
+#   lighty [-v] {stop|start|restart|status|check}
+
+
+self=${0##*/}
+console=/dev/console
+
+# webserver init-script w/o exec bit set
+lighttpd_initscript=/etc/init.d/S??lighttpd
+
+redirect() {
+  # redirect the host and close
+  printf "HTTP/1.1 302 Found\r\n"
+  printf "Location: https://$host\r\n"
+  printf "Connection: close\r\n"
+  printf "\r\n"
+}
+
+# option verbose
+test "$1" == "-v" \
+  && { verbose() { printf "$@" >>$console; }; shift; } \
+  || { verbose() { : ; }; console=/dev/null; }
+
+# report invocation
+test -n "$inetd_" \
+  && verbose "\n(lighty triggered via inetd)\n" \
+  || verbose "\n(lighty is running manually)\n"
+
+# main
+case $1 in
+  stop) ## terminate webserver
+    ash $lighttpd_initscript stop >>$console 2>&1
+    exit $?
+    ;;
+
+  start) ## start webserver as necessary
+    if ! pidof lighttpd >/dev/null
+    then
+      ash $lighttpd_initscript start >>$console 2>&1
+    fi
+    ;;
+
+  restart) ## restart the webserver
+    ash $lighttpd_initscript restart
+    exit $?
+    ;;
+
+  status) ## report webserver related detail
+    lighty-status 2>/dev/null \
+      || ash $lighttpd_initscript status
+    exit $?
+    ;;
+
+  check) ## check webserver configuration
+    chmod -x $lighttpd_initscript
+    ash $lighttpd_initscript check
+    exit $?
+    ;;
+
+  *) ## show about/usage
+    sed -n '2,/^[^#]/s/.*/&/p;/^$/q' $0
+    exit 1
+esac
+
+# read req-&-headers
+while read -rt1 stream
+do
+  verbose "$stream\n"
+  case $stream in
+    GET\ *)
+      req=$stream
+      ;;
+    Host:\ *)
+      host=${stream#*: }
+      host=${host%$'\r'*}
+      ;;
+  esac
+done
+
+# proceed w/connection from host
+test -n "$host" \
+  && redirect |tee -a $console
+
+exit $?
+
