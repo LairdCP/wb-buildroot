@@ -41,8 +41,7 @@ wifi_config()
 
 msg()
 {
-  # display to stdout if not via init/rcS
-  [ -n "$rcS_" ] && echo "$@" >>$rcS_log || echo "$@"
+  echo "$@"
 }
 
 wifi_awaitinterface()
@@ -143,23 +142,41 @@ wifi_start()
   grep -sq ..:..:..:..:..:.. $WIFI_MACADDR \
   || cat /sys/class/net/$WIFI_DEV/address >$WIFI_MACADDR
 
-  # launch supplicant if exists and not already running
-  if test -e "$SDC_SUPP" && ! ps |grep -q "[ ]$SDC_SUPP" && let n=17
+  # see if enabled in /e/n/i stanza for wl* -or- requested via cmdline
+  hostapd=$( sed -n '/^iface wl.* inet/,/^[ \t]\+.*hostapd/h;$x;$p' $eni )
+  if [ "${hostapd/*#*/X}" != "X" ] || let ${1/*host*/1}+0
   then
-    [ -f $supp_sd/*.pid ] \
-    && { msg "$supp_sd/*.pid exists"; return 1; }
+    if ! pidof hostapd >/dev/null \
+    && ! pidof sdcsupp >/dev/null
+    then
+      msg \+ $hostapd
+      eval $hostapd && hostapd=started || return $?
+    fi
+  fi
 
-    supp_opt=$WIFI_80211\ $WIFI_DEBUG\ $WIFI_FIPS
-    msg -en executing: $SDC_SUPP -i$WIFI_DEV $supp_opt -s'  '
-    #
-    $SDC_SUPP -i$WIFI_DEV $supp_opt -s >/dev/null 2>&1 &
-    #
-    # the 'daemonize' option may have issues, so using dynamic wait instead
-    until test -e $supp_sd || ! let n=$n-1; do msg -en .; $usleep 500000; done
-    # check that supplicant is running and store its process id
-    pidof ${SDC_SUPP##*/} 2>/dev/null >$supp_sd/${SDC_SUPP##*/}.pid \
-    || { msg ..error; return 1; }
-    msg ..okay
+  # see if enabled in /e/n/i stanza for wl*
+  sdcsupp=$( sed -n '/^iface wl.* inet/,/^[ \t]\+.*.[dp].supp/h;$x;$p' $eni )
+  if [ -n "$sdcsupp" -o "$hostapd" != "started" ] \
+  && [ "${1/*host*/X}" != "X" ]
+  then
+    # launch supplicant if exists and not already running
+    if test -e "$SDC_SUPP" && ! ps |grep -q "[ ]$SDC_SUPP" && let n=17
+    then
+      [ -f $supp_sd/*.pid ] \
+      && { msg "$supp_sd/*.pid exists"; return 1; }
+
+      supp_opt=$WIFI_80211\ $WIFI_DEBUG\ $WIFI_FIPS
+      msg -en executing: $SDC_SUPP -i$WIFI_DEV $supp_opt -s'  '
+      #
+      $SDC_SUPP -i$WIFI_DEV $supp_opt -s >/dev/null 2>&1 &
+      #
+      # the 'daemonize' option may have issues, so using dynamic wait instead
+      until test -e $supp_sd || ! let n=$n-1; do msg -en .; $usleep 500000; done
+      # check that supplicant is running and store its process id
+      pidof ${SDC_SUPP##*/} 2>/dev/null >$supp_sd/${SDC_SUPP##*/}.pid \
+      || { msg ..error; return 1; }
+      msg ..okay
+    fi
   fi
   return 0
 }
@@ -178,13 +195,22 @@ wifi_stop()
     ifconfig $WIFI_DEV 0.0.0.0 && msg "  ...de-configured"
 
     ## terminate the supplicant by looking up its process id
-    if let pid=$( grep -s ^ $supp_sd/*.pid )+0
+    if [ "$1/*host*/X}" != "X" ] \
+    && let pid=$( grep -s ^ $supp_sd/*.pid )+0
     then
       rm -f $supp_sd/*.pid
       kill $pid && { let n=27; msg -en "supplicant terminating."; }
       while let n-- && [ -d /proc/$pid ]; do $usleep 50000; msg -en .; done; msg
     fi
-    let ${1/*supp*/1}+0 && return $?
+
+    ## terminate hostap daemon if running
+    if [ "$1/*supp*/X}" != "X" ]
+    then
+      killall hostapd 2>/dev/null
+    fi
+
+    ## return if only stopping sdcsupp or hostapd
+    test "${1/*supp*/X}" == "X" -o "${1/*host*/X}" == "X" && return $?
 
     ## down the interface
     # This step avoids occasional problems when the driver is unloaded
@@ -214,6 +240,8 @@ wifi_stop()
   [ $? -eq 0 ] && { msg "  ...okay"; return 0; } || return 1
 }
 
+
+
 # ensure this script is available as system command
 [ -x /sbin/wireless ] || ln -sf /etc/network/wireless.sh /sbin/wireless
 
@@ -224,6 +252,7 @@ case $1 in
     ;;
 esac
 
+eni=/etc/network/interfaces
 supp_sd=/tmp/wpa_supplicant
 module=${WIFI_MODULE##*/}
 usleep='busybox usleep'
@@ -239,12 +268,12 @@ case $1 in
   
   stop|down)
     wifi_queryinterface
-    echo \ \ Stopping wireless $WIFI_DEV $2
+    echo Stopping wireless $WIFI_DEV $2
     wifi_stop $2 || false
     ;;
 
   start|up)
-    echo \ \ Starting wireless
+    echo Starting wireless
     wifi_config && wifi_start $2 || false
     ;;
 
