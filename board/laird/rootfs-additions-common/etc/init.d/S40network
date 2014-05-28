@@ -61,14 +61,14 @@ fi
 # Parse the /e/n/i for '^auto <iface>' enabled stanzas, in lieu of given iface.
 # The device-list order is as in /e/n/i for 'start', and reversed for 'stop'.
 case $1 in
-  restart) ## ignored, bypass this step
-    ;;
   stop|start) ## check /e/n/i 
     ls=; devls=$( sed -n 's/^auto \([a-z][a-z0-9]*\).*$/\1/p' $eni )
     test $1 != start && for dev in $devls; do ls=$dev\ $ls; done && devls=$ls
     ;;
+  restart) ## bypass device-list step
+    ;;
   *) ## <iface> assumed
-    [ -n "$1" ] && devls=$1 && shift
+    test -n "$1" && devls=$1 && shift
     ;;
 esac
 
@@ -78,9 +78,11 @@ iface() {
   # bring 'up' -or- 'down' an interface phy
   logger -pinfo -s -t\ \ \ nis -- $* 2>&1
 
+  up=false
+  dn=false
   case $2 in
-    u*) up=true; dn=false;;
-    d*) up=false; dn=true;;
+    u*) up=true;;
+    d*) dn=true;;
   esac
   case $1 in
     lo) ## loopback support
@@ -216,13 +218,17 @@ case $act in
     $0 $devls start $@
     ;;
 
+  status)
+    iface ${devls%% *} xx $act
+    ;;
+
   *)
     echo "This script handles all interface-phy-hw init."
     echo "Calls on other network init-scripts as necessary."
     echo "The /e/n/i file is checked for \"auto <iface>\" stanzas."
     echo "Or, you may specify an <iface> to act on, and <args...>."
     echo "Usage:"
-    echo "  ${0##*/} [<iface>] {stop|start|restart} [<args...>]"
+    echo "  ${0##*/} [<iface>] {stop|start|restart|status} [<args...>]"
     exit 1
 esac
 
