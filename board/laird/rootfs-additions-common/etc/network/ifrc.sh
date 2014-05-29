@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140527
+ifrc_Version=20140529
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -1276,26 +1276,32 @@ case ${IFRC_METHOD%% *} in
   static) ## method + optional params
     ifrc_validate_static_method_params
     ## configure interface <ip [+nm] [+gw] [+ns]..>
+    #
     if [ -z "$ip" ]
     then
       msg "configuration in-complete, need at least an address: ip=x.x.x.x[/b]"
       ifrc_stop_netlink_daemon
       rc_exit 1
     else
+    # ip-addr-modify NIP/NM and BRD
       xip=`ip addr show dev $dev |sed -n '/ *inet/{s/ *net \([^ ]*\).*/\1/p;q}'`
       if [ -n "$xip" ]
-    then
+      then
         fn ip addr add $ip/32 dev $dev
         fn ip addr del $xip dev $dev
-    fi
-      ## ip-addr-modify NIP/NM and BRD
+      fi
       fn ip addr add $ip${nm:+/$nm} ${bc:+broadcast $bc} dev $dev
       test -n "$xip" \
         && fn ip addr del $ip/32 dev $dev
     fi
-    ## replace default gw in routing table
-    fn ip route replace default via $gw dev $dev
-    ## add new nameservers
+
+    # add default gw route in table
+    if [ -n "$gw" ]
+    then
+      fn ip route add default via $gw dev $dev
+    fi
+
+    # add new nameservers
     if [ -n "$ns" ]
     then
       echo "# statically assigned via ifrc" >/etc/resolv.conf
