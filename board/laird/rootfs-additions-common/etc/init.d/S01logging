@@ -7,8 +7,6 @@ case $1 in
   stop)
     echo -n "Stopping logging services:"
     
-    killall event_mon 2>/dev/null
-
     killall syslogd \
     && echo -n " syslogd"
     
@@ -28,7 +26,6 @@ case $1 in
     && echo -n " klogd"
     
     echo
-    event_mon --output logging &
     ;;
 	
   restart)
