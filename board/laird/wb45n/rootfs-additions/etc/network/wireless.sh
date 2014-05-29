@@ -165,7 +165,8 @@ wifi_start() {
 
   # see if enabled in /e/n/i stanza for wl* -or- requested via cmdline
   hostapd=$( sed -n '/^iface wl.* inet/,/^[ \t]\+.*hostapd/h;$x;$p' $eni )
-  if [ "${hostapd/*#*/X}" != "X" ] || let ${1/*host*/1}+0
+  if [ -n "$hostapd" -a "${hostapd/*#*/X}" != "X" ] \
+  || [ "${1/*host*/X}" == "X" ] #let ${1/*host*/1}+0
   then
     if ! pidof hostapd >/dev/null \
     && ! pidof sdcsupp >/dev/null
@@ -175,7 +176,7 @@ wifi_start() {
     fi
   fi
 
-  # see if enabled in /e/n/i stanza for wl*
+  # see if enabled in /e/n/i stanza for wl* -or- requested via cmdline
   sdcsupp=$( sed -n '/^iface wl.* inet/,/^[ \t]\+.*.[dp].supp/h;$x;$p' $eni )
   if [ -n "$sdcsupp" -o "${hostapd:-not}" != "started" ] \
   && [ "${1/*host*/X}" != "X" ]
