@@ -166,7 +166,7 @@ wifi_start() {
   # see if enabled in /e/n/i stanza for wl* -or- requested via cmdline
   hostapd=$( sed -n '/^iface wl.* inet/,/^[ \t]\+.*hostapd/h;$x;$p' $eni )
   if [ -n "$hostapd" -a "${hostapd/*#*/X}" != "X" ] \
-  || [ "${1/*host*/X}" == "X" ] #let ${1/*host*/1}+0
+  || [ "${1/*host*/X}" == "X" ]
   then
     if ! pidof hostapd >/dev/null \
     && ! pidof sdcsupp >/dev/null
@@ -199,6 +199,10 @@ wifi_start() {
       || { msg ..error; return 1; }
       msg ..ok
     fi
+    if ! pidof event_mon >/dev/null
+    then
+      event_mon --output logging & msg "  started: event_mon[$!]"
+    fi
   fi
   return 0
 }
@@ -218,6 +222,8 @@ wifi_stop() {
     && let pid=$( grep -s ^ $supp_sd/*.pid )+0
     then
       rm -f $supp_sd/*.pid
+      # and terminate event_mon too
+      killall event_mon 2>/dev/null && msg "event_mon stopped"
       kill $pid && { let n=27; msg -n "supplicant terminating."; }
       while let n-- && [ -d /proc/$pid ]; do $usleep 50000; msg -n .; done; msg
     fi
