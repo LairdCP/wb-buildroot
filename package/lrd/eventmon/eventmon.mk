@@ -8,7 +8,12 @@ EVENTMON_VERSION = 1.1
 EVENTMON_SITE = $(DL_DIR)/
 EVENTMON_METHOD = file
 
-EVENTMON_DEPENDENCIES = sdcsdk
+ifeq ($(BR2_PACKAGE_MSD45N_BINARIES),y)
+	EVENTMON_DEPENDENCIES = msd45n-binaries
+else
+	EVENTMON_DEPENDENCIES = sdcsdk
+endif
+
 EVENTMON_MAKE_ENV = CC="$(TARGET_CC)" \
                     CXX="$(TARGET_CXX)" \
                     ARCH="$(KERNEL_ARCH)" \
