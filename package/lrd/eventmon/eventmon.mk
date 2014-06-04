@@ -4,7 +4,7 @@
 #
 #############################################################
 
-EVENTMON_VERSION = 1.1
+EVENTMON_VERSION = 1.1.1
 EVENTMON_SITE = $(DL_DIR)/
 EVENTMON_METHOD = file
 
