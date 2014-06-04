@@ -1,8 +1,8 @@
 #!/bin/ash
 # Firmware Update Utility for WB40n/WB45n
-# jon.hefling@lairdtech.com, 29-Jun'12
+# jon.hefling@lairdtech.com, 29-Jun'12 - 02-Jun'14
 #
-VERSION=20131217g
+VERSION=20131217h
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
@@ -548,21 +548,21 @@ assert_image() {
     ping_server $src \
       || { echo - server n/a; return 2; }
 
-    if [ "$wget_version" == "gnu" ]
+    # check image file is really available
+    # firstly try to get file info via spider
+    # fallback with read/count method on failure
+    #
+    #==> SIZE kernel.bin ... 1782232 .....ftp method
+    #Length: 24133632 (23M) [application/octet-stream] .....http method
+    #
+    sz=$( wget --spider $src 2>&1 |tee /tmp/fwu.error \
+        |sed -n 's/.*SIZE.* \([0-9]*\)/\1/p;s/Length: \([0-9]*\)\ .*/\1/p' )
+
+    if [ -z "$sz" ] \
+    && wget -q -O - $src 2>$X |grep -q .....
     then
-      # get file info via spider
-      #==> SIZE kernel.bin ... 1782232 .....ftp method
-      #Length: 24133632 (23M) [application/octet-stream] .....http method
-      #
-      sz=$( wget --spider $src 2>&1 \
-          |sed -n 's/.*SIZE.* \([0-9]*\)/\1/p;s/Length: \([0-9]*\)\ .*/\1/p' )
-    else
-      # check file is not zero-length
-      if wget -q -O - $src 2>$X |grep -q .....
-      then
-        # try reading file when length n/a via spider
-        eval let sz=\$${1}_LEN || sz=$( wget -q -O - $src |wc -c )
-      fi
+      # try reading file when length n/a via spider
+      eval let sz=\$${1}_LEN || sz=$( wget -q -O - $src |wc -c )
     fi
   else
     # method local
@@ -573,7 +573,7 @@ assert_image() {
     fi
   fi
   let sz+=0 \
-    || { echo - file n/a; echo \ \ $src; return 3; }
+    || { echo -e - file n/a\\\n\\\t\ $src; grep -s . /tmp/fwu.error; return 3; }
 
   eval md5=\$${1}_MD5
   test -n "$md5" \
