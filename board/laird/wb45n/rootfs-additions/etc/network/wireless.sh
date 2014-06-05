@@ -183,7 +183,7 @@ wifi_start() {
         || { msg "hostapd.conf error"; return 1; }
 
       # ensure the ssid has wl_vei suffix
-      wl_vei=${wl_mac#??:??:??} wl_vei=${vei//:}
+      wl_vei=${wl_mac#??:??:??} wl_vei=${wl_vei//:}
       grep -q "^ssid=wb..n_${wl_vei}" $cf \
         || sed "/^ssid=wb..n/s/\(=wb..n\).*/\1_${wl_vei}/" -i $cf
 
