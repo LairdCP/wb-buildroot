@@ -201,7 +201,7 @@ wifi_start() {
     fi
     if ! pidof event_mon >/dev/null
     then
-      event_mon --output logging & msg "  started: event_mon[$!]"
+      event_mon --output logging --bitmask 0x0000001FA3008000 & msg "  started: event_mon[$!]"
     fi
   fi
   return 0
