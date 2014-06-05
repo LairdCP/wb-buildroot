@@ -160,24 +160,51 @@ wifi_start() {
   || { msg "iface $WIFI_DEV n/a, FW issue?  -try: wireless restart"; return 1; }
 
   # save MAC address for WIFI if necessary
+  read -r wl_mac < /sys/class/net/$WIFI_DEV/address
   grep -sq ..:..:..:..:..:.. $WIFI_MACADDR \
-  || cat /sys/class/net/$WIFI_DEV/address >$WIFI_MACADDR
+    || echo $wl_mac >$WIFI_MACADDR
+
+  # dynamic wait for socket args: <socket> <interval>
+  await() { n=27; until [ -e $1 ] || ! let n--; do msg -n .; $usleep $2; done; }
+
+  # the /e/n/i wl* stanza
+  stanza='^iface wl.* inet'
 
   # see if enabled in /e/n/i stanza for wl* -or- requested via cmdline
-  hostapd=$( sed -n '/^iface wl.* inet/,/^[ \t]\+.*hostapd/h;$x;$p' $eni )
+  hostapd=$( sed -n "/$stanza/"',/^[ \t]\+.*hostapd/h;$x;$s/[ \t]*//p' $eni )
   if [ -n "$hostapd" -a "${hostapd/*#*/X}" != "X" ] \
-  || [ "${1/*host*/X}" == "X" ]
+  || [ "${1/*apd*/X}" == "X" ]
   then
     if ! pidof hostapd >/dev/null \
     && ! pidof sdcsupp >/dev/null
     then
-      msg \+ $hostapd
-      eval $hostapd && hostapd=started || return $?
+      cf=${hostapd##* }                             ## must have config file
+      test -s "$cf" \
+        || { msg "hostapd.conf error"; return 1; }
+
+      # ensure the ssid has wl_vei suffix
+      wl_vei=${wl_mac#??:??:??} wl_vei=${vei//:}
+      grep -q "^ssid=wb..n_${wl_vei}" $cf \
+        || sed "/^ssid=wb..n/s/\(=wb..n\).*/\1_${wl_vei}/" -i $cf
+
+      # construct the hostapd invocation and execute
+      #debug=-d
+      #pf=-P/var/run/hostapd/pid
+      hostapd=${hostapd/apd/apd $debug $pf}                ## insert options
+      hostapd=${hostapd/-B}                       ## allow debug/err capture
+      msg -n executing: $hostapd'  '
+      $hostapd 2>&1 &
+      #
+      await $apd_sd/$WIFI_DEV 200000; msg .ok
+      # check and store the process id
+      pidof hostapd >/tmp/hostapd/pid \
+        && hostapd=started \
+        || return 2
     fi
   fi
 
   # see if enabled in /e/n/i stanza for wl* -or- requested via cmdline
-  sdcsupp=$( sed -n '/^iface wl.* inet/,/^[ \t]\+.*.[dp].supp/h;$x;$p' $eni )
+  sdcsupp=$( sed -n "/$stanza/"',/^[ \t]\+.*.[dp].supp/h;$x;$s/[ \t]*//p' $eni )
   if [ -n "$sdcsupp" -o "${hostapd:-not}" != "started" ] \
   && [ "${1/*host*/X}" != "X" ]
   then
@@ -192,16 +219,16 @@ wifi_start() {
       #
       $SDC_SUPP -i$WIFI_DEV $supp_opt -s >/dev/null 2>&1 &
       #
-      # the 'daemonize' option may have issues, so using dynamic wait instead
-      until test -e $supp_sd || ! let n=$n-1; do msg -n .; $usleep 500000; done
-      # check that supplicant is running and store its process id
-      pidof ${SDC_SUPP##*/} 2>/dev/null >$supp_sd/${SDC_SUPP##*/}.pid \
-      || { msg ..error; return 1; }
-      msg ..ok
+      await $supp_sd/$WIFI_DEV 500000
+      # check and store the process id
+      pidof sdcsupp 2>/dev/null >$supp_sd/sdcsupp.pid \
+      || { msg ..error; return 2; }
+      msg .ok
     fi
     if ! pidof event_mon >/dev/null
     then
-      event_mon --output logging --bitmask 0x0000001FA3008000 & msg "  started: event_mon[$!]"
+      event_mon --output logging --bitmask 0x0000001FA3008000 &
+      msg "  started: event_mon[$!]"
     fi
   fi
   return 0
@@ -231,6 +258,7 @@ wifi_stop() {
     ## terminate hostap daemon if running
     if [ "$1/*supp*/X}" != "X" ]
     then
+      rm -f /tmp/hostapd/pid
       killall hostapd 2>/dev/null
     fi
 
@@ -278,6 +306,8 @@ esac
 
 eni=/etc/network/interfaces
 supp_sd=/tmp/wpa_supplicant
+apd_sd=/tmp/hostapd
+
 module=${WIFI_MODULE##*/}
 usleep='busybox usleep'
 
