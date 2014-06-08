@@ -1,0 +1,11 @@
+diff -purN openssl-1.0.1h.orig/ssl/s3_clnt.c openssl-1.0.1h/ssl/s3_clnt.c
+--- openssl-1.0.1h.orig/ssl/s3_clnt.c	2014-06-05 02:44:33.000000000 -0700
++++ openssl-1.0.1h/ssl/s3_clnt.c	2014-06-08 10:19:21.643271429 -0700
+@@ -901,6 +901,7 @@ int ssl3_get_server_hello(SSL *s)
+ 			{
+ 			s->session->cipher = pref_cipher ?
+ 				pref_cipher : ssl_get_cipher_by_char(s, p+j);
++			s->s3->flags |= SSL3_FLAGS_CCS_OK;
+ 			}
+ 		}
+ #endif /* OPENSSL_NO_TLSEXT */
