@@ -50,7 +50,7 @@ usage() {
 	     - use settings from /e/n/i file or those given on commandline
 	       params:  address, netmask, broadcast, gateway  (ip,nm,bc,gw)
 	
-	  loopback [ip=x.x.x.x]
+	  loopback [ip=x.x.x.x[/b]]
 	     - use to set a specific localhost address
 	
 	  manual
@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140604b
+ifrc_Version=20140605
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -1321,13 +1321,10 @@ case ${IFRC_METHOD%% *} in
 
   loopback) ## method + optional params
     ifrc_validate_loopback_method_params
-    # use default ip if none specified
-    [ -z "$ip" ] && ip=127.0.0.1
-    msg "configuring localhost address $ip"
-    # note, operstate can be down or unknown(up)
-    # global scope independent is assumed with '/32'
-    msg "configuring localhost address $ip"
-    fn ip addr add $ip dev $dev
+    # operstate can be down or unknown(up)
+    # using a default address if none specified
+    # an 'ip link set up' may auto-config the default
+    fn ip addr add ${ip:=127.0.0.1/8} dev $dev 2>/dev/null
     ;;
 
   manual) ## method ...no params
