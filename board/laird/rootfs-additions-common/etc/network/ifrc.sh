@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140604a
+ifrc_Version=20140604b
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -86,14 +86,14 @@ ifrc=/sbin/ifrc
 # check network-init-script
 nis=/etc/init.d/S??network
 test -x $nis \
-|| nis="echo Cant exec: ${nis:-network-init-script}"
+  || nis="echo Cant exec: ${nis:-network-init-script}"
 
 # ensure /e/n/i exists...
 eni=/etc/network/interfaces
 test -s $eni \
-|| { test -s $eni~ && mv -f $eni~ $eni; } \
-|| { rm -f $eni~ && gzip -fdc $eni~.gz >$eni; } \
-|| { printf "# $eni - ifrc\n\nauto lo\niface lo inet loopback\n\n\n" >$eni; }
+  || { test -s $eni~ && mv -f $eni~ $eni; } \
+  || { rm -f $eni~ && gzip -fdc $eni~.gz >$eni; } \
+  || { printf "# $eni - ifrc\n\nauto lo\niface lo inet loopback\n\n\n" >$eni; }
 
 # check mii (optional)
 mii=/usr/sbin/mii-diag
@@ -241,9 +241,13 @@ show_interface_config_and_status() {
 
   [ -z "$dev" -a -n "$ida" ] \
   && echo "       Available, but not configured: $ida"
-  echo
+
+  [ -n "${vm:1:1}" ] \
+  && filter=';s/ mtu/\n\t&/;s/\( state [^ ]*\)\(.*\)/\2\1/' \
+  || filter=';s/ qdisc//;s/ pfi[^ ]*//;s/ qlen [0-9]\+//'
+
   ip addr show ${dev:+dev $dev} \
-    |sed -e 's/^[0-9]\+: //;s/\([a-z].*:\) /\n\1\t/;s/state/\n\t&/;s/    /\t/' \
+    |sed -e 's/^[0-9]\+: //;s/\([a-z].*:\) /\n\1\t/'"$filter"';s/    /\t/' \
          -e '/inet6/d;/valid_lft/d'
 
   : ${dev:=$( sleuth_wl )}
@@ -350,14 +354,8 @@ case $1 in
       /etc/network/bridge.sh 2>/dev/null && echo
       echo Routing:
       ip route show
-      echo -e "\nDNS:\r\t/etc/resolv.conf"
+      echo -e "\nDNS:\r\tresolv.conf"
       sed '$G' /etc/resolv.conf 2>/dev/null
-    fi
-    if [ -n "${vm:0:1}" ]
-    then
-      echo Processes:
-      ps ax -opid,args \
-      |grep -E 'dhc[pl]|ifplug[d]|wi[rf][ei]|sup[p]|ne[t]|br[i]' || echo \ \ ...
     fi
     exit 0
     ;;
@@ -512,7 +510,7 @@ msg3 -e "env:\n`env |sed -n 's/^IF[A-Z]*_.*/  &/p' |grep . || echo \ \ ...`\n"
 
 make_() { ( eval $1; x=$?; [ ${1:0:1} == / ] && echo \ \ ${1##*/}: $x ); }
 
-fn() { { msg2 \+ "$*"; } 2>/dev/null; eval "$*"; }
+fn() { { msg2 "+ $*"; } 2>/dev/null; eval "$*" 2>&1 || { msg "? $*"; false; }; }
 
 export ifrc_Settings=fls=\"$fls\"\ mm=$mm\ vm=$vm\ qm=$qm
 
@@ -718,14 +716,19 @@ case $IFRC_ACTION in
     fi
     if [ -n "${vm:0}" ] && gipa $dev >/dev/null
     then
-      af='.*\(\".*\",[0-9]*\),.*'
+      f1='\(....\)'
+      f2='\(:[^ ]* *[^ ]*:[^ ]* *\)'
+      f3='\(\".*\",[0-9]*\)'
       echo -e "\nConnections:\n  ...\c"
       ss -4ntuwp \
-      |sed -e '1d;s/^\(....\) .*\(:[^ ]* *[0-9.]*:[^ ]*\) '$af'/\r\1   \2   \3/'
+        |sed -e '1{s/.*//;N;s/\n//}' \
+             -e 's/^'"$f1"'.*'"$f2"'u[^ ]\+'"$f3"',.*/\r\1   \2   \3/'
     fi
-    echo
-    [ -n "${vm:0:1}" ] \
-    && echo -e "\nProcesses:\n`ps ax -opid,args |grep "$dev\ " || echo \ \ ...`"
+    if [ -n "${vm:0}" ]
+    then
+      echo -e "\nProcesses:"
+      ps ax -opid,stat,args |grep "[ .iI]$dev[ .]" || echo \ \ ...
+    fi
     echo
     exit 0
     ;;
