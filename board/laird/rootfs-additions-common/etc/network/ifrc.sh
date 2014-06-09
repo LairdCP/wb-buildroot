@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140604
+ifrc_Version=20140529
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -86,14 +86,14 @@ ifrc=/sbin/ifrc
 # check network-init-script
 nis=/etc/init.d/S??network
 test -x $nis \
-  || nis="echo Cant exec: ${nis:-network-init-script}"
+|| nis="echo Cant exec: ${nis:-network-init-script}"
 
 # ensure /e/n/i exists...
 eni=/etc/network/interfaces
 test -s $eni \
-  || { test -s $eni~ && mv -f $eni~ $eni; } \
-  || { rm -f $eni~ && gzip -fdc $eni~.gz >$eni; } \
-  || { printf "# $eni - ifrc\n\nauto lo\niface lo inet loopback\n\n\n" >$eni; }
+|| { test -s $eni~ && mv -f $eni~ $eni; } \
+|| { rm -f $eni~ && gzip -fdc $eni~.gz >$eni; } \
+|| { printf "# $eni - ifrc\n\nauto lo\niface lo inet loopback\n\n\n" >$eni; }
 
 # check mii (optional)
 mii=/usr/sbin/mii-diag
@@ -591,10 +591,7 @@ then
 fi
 if [ "$IFRC_ACTION" == "dn" ]
 then
-  if [ "${mp_cdt/*cdt(*/cdt}" == "cdt" ]
-  then
-    IFRC_SCRIPT=${mp_cdt/*cdt{/{}
-  fi
+  IFRC_SCRIPT=${mp_cdt/*cdt{/{}
 fi
 eval $IFRC_SCRIPT \
   || msg "**cfg-do-task error - $IFRC_SCRIPT"
