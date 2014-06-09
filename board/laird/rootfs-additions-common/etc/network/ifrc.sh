@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140529
+ifrc_Version=20140604a
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -591,7 +591,10 @@ then
 fi
 if [ "$IFRC_ACTION" == "dn" ]
 then
-  IFRC_SCRIPT=${mp_cdt/*cdt{/{}
+  if [ "${mp_cdt/*cdt{*/cdt}" == "cdt" ]
+  then
+    IFRC_SCRIPT=${mp_cdt/*cdt{/{}
+  fi
 fi
 eval $IFRC_SCRIPT \
   || msg "**cfg-do-task error - $IFRC_SCRIPT"
