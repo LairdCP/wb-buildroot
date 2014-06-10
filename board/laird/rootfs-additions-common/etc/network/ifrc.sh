@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140605
+ifrc_Version=20140606a
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -1290,7 +1290,7 @@ case ${IFRC_METHOD%% *} in
       rc_exit 1
     else
     # ip-addr-modify NIP/NM and BRD
-      xip=`ip addr show dev $dev |sed -n '/ *inet/{s/ *net \([^ ]*\).*/\1/p;q}'`
+      xip=$( ip addr show dev $dev |sed -n '/inet/{s/.*t \([^ ]*\).*/\1/p;q}' )
       if [ -n "$xip" ]
       then
         fn ip addr add $ip/32 dev $dev
