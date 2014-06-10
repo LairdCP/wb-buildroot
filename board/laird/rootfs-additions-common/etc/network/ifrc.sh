@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140606a
+ifrc_Version=20140606b
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -721,7 +721,7 @@ case $IFRC_ACTION in
       f3='\(\".*\",[0-9]*\)'
       echo -e "\nConnections:\n  ...\c"
       ss -4ntuwp \
-        |sed -e '1{s/.*//;N;s/\n//}' \
+        |sed -e '1{s/.*//;N;s/\n//};/user/!d' \
              -e 's/^'"$f1"'.*'"$f2"'u[^ ]\+'"$f3"',.*/\r\1   \2   \3/'
     fi
     if [ -n "${vm:0}" ]
