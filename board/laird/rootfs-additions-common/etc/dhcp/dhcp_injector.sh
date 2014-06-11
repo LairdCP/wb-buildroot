@@ -3,39 +3,39 @@
 # Event
 case $action in
 	deconfig)
-		event_injector -t 24 -s 1
+		dhcp_injector -s DECONFIG
 		;;
 
 	renew)
-		event_injector -t 24 -s 4
+		dhcp_injector -s RENEWED
 		;;
 
 	bound)
-		event_injector -t 24 -s 6
+		dhcp_injector -s BOUND
 		;;
 
 	leasefail)
-		event_injector -t 24 -s 8
+		dhcp_injector -s LEASEFAIL
 		;;
 
 	nak)
-		event_injector -t 24 -s 7
+		dhcp_injector -s NAK
 		;;
 
 	requesting)
-		event_injector -t 24 -s 2
+		dhcp_injector -s REQUESTING
 		;;
 
 	renewing)
-		event_injector -t 24 -s 3
+		dhcp_injector -s RENEWING
 		;;
 
 	rebinding)
-		event_injector -t 24 -s 5
+		dhcp_injector -s REBINDING
 		;;
 
 	released)
-		event_injector -t 24 -s 9
+		dhcp_injector -s RELEASED
 		;;
 
 	*)
