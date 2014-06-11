@@ -18,7 +18,7 @@ define MSD40N_BINARIES_INSTALL_TARGET_CMDS
     $(INSTALL) -D -m 755 $(@D)/usr/bin/sdc_cli $(TARGET_DIR)/usr/bin/sdc_cli
     $(INSTALL) -D -m 755 $(@D)/usr/sbin/smu_cli $(TARGET_DIR)/usr/sbin/smu_cli
     $(INSTALL) -D -m 755 $(@D)/usr/bin/sdcsupp $(TARGET_DIR)/usr/bin/sdcsupp
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/event_injector $(TARGET_DIR)/usr/bin/event_injector
+	$(INSTALL) -D -m 755 $(@D)/usr/bin/dhcp_injector $(TARGET_DIR)/usr/bin/dhcp_injector
     mkdir -p $(TARGET_DIR)/usr/lib
     $(INSTALL) -m 755 $(@D)/usr/lib/libsdc_sdk.so* $(TARGET_DIR)/usr/lib/
     $(INSTALL) -D -m 755 $(@D)/usr/bin/wl $(TARGET_DIR)/usr/bin/wl

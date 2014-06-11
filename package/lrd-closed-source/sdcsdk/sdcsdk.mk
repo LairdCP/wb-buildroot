@@ -36,9 +36,9 @@ endef
 
 define SDCSDK_INSTALL_STAGING_CMDS
     rm -f $(STAGING_DIR)/usr/lib/libsdc_sdk.so*
-	rm -f $(STAGING_DIR)/usr/bin/event_injector
+	rm -f $(STAGING_DIR)/usr/bin/dhcp_injector
 	$(INSTALL) -D -m 0755 $(@D)/libsdc_sdk.so.1.0 $(STAGING_DIR)/usr/lib/
-	$(INSTALL) -D -m 0755 $(@D)/event_injector $(STAGING_DIR)/usr/bin/
+	$(INSTALL) -D -m 0755 $(@D)/dhcp_injector $(STAGING_DIR)/usr/bin/
 	cd  $(STAGING_DIR)/usr/lib/ && ln -s libsdc_sdk.so.1.0 libsdc_sdk.so.1
     cd  $(STAGING_DIR)/usr/lib/ && ln -s libsdc_sdk.so.1 libsdc_sdk.so
 	$(INSTALL) -D -m 0755 $(@D)/src/sdc_sdk.h \
@@ -54,12 +54,12 @@ endef
 
 define SDCSDK_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 0755 $(@D)/libsdc_sdk.so.1.0 $(SDCSDK_TARGET_DIR)/usr/lib/libsdc_sdk.so.1.0
-	$(INSTALL) -D -m 0755 $(@D)/event_injector $(SDCSDK_TARGET_DIR)/usr/bin/event_injector
+	$(INSTALL) -D -m 0755 $(@D)/dhcp_injector $(SDCSDK_TARGET_DIR)/usr/bin/dhcp_injector
 endef
 
 define SDCSDK_UNINSTALL_TARGET_CMDS
 	rm -f $(SDCSDK_TARGET_DIR)/usr/lib/libsdc_sdk.so.1.0
-	rm -f $(SDCSDK_TARGET_DIR)/usr/bin/event_injector
+	rm -f $(SDCSDK_TARGET_DIR)/usr/bin/dhcp_injector
 endef
 
 $(eval $(generic-package))
