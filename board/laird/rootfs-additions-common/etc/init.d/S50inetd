@@ -8,21 +8,20 @@
 # This allows using TCPwrappers to respond fast to a requested protocol.
 # jon.hefling@lairdtech.com
 
-rcS_log=${rcS_log:-/dev/null}
+# capture messages to a log-file
+lf=${rcS_log:-/tmp/inetd.log}
 
 log() {
-  echo "$@" >>$rcS_log
-}
+  echo "inetd: $@" >>$lf
+} 2>/dev/null
 
-inetd_daemon_check() {
+inetd_services_check() {
+  echo -n services:
   while read -r a1 a2 a3 a4 a5 a6 a7
   do
-    # parse daemon-executable, daemon-name, daemon-init-script
-    # via args list from the inetd.conf file
-    #
-    [ -z $a1 ] && continue
-    [ "${a1}" == "#" ] && continue
-    [ "${a1:0:2}" == "#!" ] && continue
+    # parse service parameters: daemon-exec, daemon-name, daemon-init
+    # from each {7+}args line contained in file: inetd.conf
+    [ "$a1" != "#" ] && [ -n "$a7" ] || continue
 
     srv=$a1
     daemon_exec=$a6
@@ -30,29 +29,53 @@ inetd_daemon_check() {
     daemon_init=/etc/init.d/opt/S??${daemon_name}
     #
     # check if this service daemon can be enabled
-    [ ${daemon_name:0:1} == "#" ] && { log "  $srv is disabled"; continue; }
-    [ -x $daemon_exec"" ] || { log "  $srv is n/a, missing"; continue; }
-    [ -x $daemon_init"" ] || { log "  $srv check is n/a"; continue; }
+    [ \# != ${srv::1}"" ] || { log "  $srv - $daemon_name disabled"; continue; }
+    [ -x $daemon_exec"" ] || { log "  $srv - daemon/exec n/a"; continue; }
+    [ -x $daemon_init"" ] || { log "  $srv - init/check n/a"; continue; }
+    #
+    : ${checkls:=:}
+    # skip doing any duplicate checks
+    test -n "${checkls/*$daemon_name*}"  \
+      && checkls=$checkls\ $daemon_name \
+      || continue
     #
     # wait on any net-init firstly, to avoid conflicts due to excessive load
     # run an enabled daemon-init-script to perform a pre-check in background
     # ( this allows the service to be started quickly when actually needed )
     # and add each daemon-init pid to list, to wait on before starting inetd
     #
-    ( wait $net_init_pids; $daemon_init check >>$rcS_log; )&
+    ( wait $net_init_pids
+    { $daemon_init check && echo \ \ ...$daemon_name ready; } >>$lf )&
+
     srv_init_pids=$srv_init_pids\ $!
-    log "  $daemon_init check - $!"
+    log "    $daemon_init check - $!"
     echo -n " $srv"
 
   done < /etc/inetd.conf
 }
 
 # find any network and bridge init-script pids
-let net_init_pids=$( ps |sed -n '/[S]..[nb][er][ti][wd][og][re]/s/^\ *\([0-9]\+\).*/\1/p' )+0
+let net_init_pids=$( ps ax |sed -n '/[S]..[nb][er][ti][wd][og][re]/\
+                                          s/^\ *\([0-9]\+\).*/\1/p' )+0
+inetd_wait_run() {
+  echo \ ...
+  wait $srv_init_pids
+  #
+  if cp /etc/inetd.conf /tmp/inetd.conf \
+  && /usr/sbin/inetd -e /tmp/inetd.conf
+  then
+    echo "inetd: started" >>$lf
+    #
+    # dump log-cache to console
+    grep -s . /tmp/inetd.log \
+      && rm /tmp/inetd.log
+  fi
+  pidof inetd >/var/run/inetd.pid \
+    || echo "inetd: failed" >&2
+}
 
 export inetd_=^
 case $1 in
-
   reload)
     echo "Reloading inetd configuration."
     killall -s HUP inetd
@@ -62,25 +85,30 @@ case $1 in
     $0 stop
     $0 start
     ;;
-    
+
   start)
-    echo -n "Checking inetd services..."
+    echo -n "Checking inetd "
     # the config file is required
-    if [ ! -f /etc/inetd.conf ]
+    if [ ! -s /etc/inetd.conf ]
     then
-      echo -e "\n  file /etc/inetd.conf is missing"
+      echo "- /etc/inetd.conf n/a"
       exit 1
     fi
-    inetd_daemon_check
-    echo
-    #
-    # wait in background to run super server 
-    ( wait $srv_init_pids; /usr/sbin/inetd && echo "  inetd ready" >>$rcS_log )&
+    # run pre-checks on enabled services
+    inetd_services_check
+    # wait in background to run daemon
+    inetd_wait_run &
     ;;
-    
+
   stop)
-    echo "Stopping inetd."
-    killall inetd 2>/dev/null
+    if [ -f /var/run/inetd.pid ]
+    then
+      echo "Stopping inetd."
+      read -r pid < /var/run/inetd.pid \
+        && rm /var/run/inetd.pid
+      kill $pid 2>/dev/null
+      rm -f /tmp/inetd.conf
+    fi
     ;;
 
   *)
