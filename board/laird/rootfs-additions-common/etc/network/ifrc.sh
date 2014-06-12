@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140610
+ifrc_Version=20140612
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -358,7 +358,7 @@ case $1 in
       echo Routing:
       ip route show
       echo -e "\nDNS:\r\tresolv.conf"
-      sed '$G' /etc/resolv.conf 2>/dev/null
+      sed '/^#/d;/^$/d' /etc/resolv.conf 2>/dev/null
     fi
     exit 0
     ;;
@@ -589,8 +589,9 @@ then
     IFRC_METHOD="dhcp"
   fi
   IFRC_SCRIPT=${IFRC_SCRIPT/$IFRC_METHOD}
-fi
-if [ "$IFRC_ACTION" == "dn" ]
+elif \
+   [ "$IFRC_ACTION" == "dn" ] \
+|| [ "$IFRC_ACTION" == "down" ]
 then
   if [ "${mp_cdt/*cdt{*/cdt}" == "cdt" ]
   then
