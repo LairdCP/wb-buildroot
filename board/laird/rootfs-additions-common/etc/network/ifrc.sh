@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140606b
+ifrc_Version=20140609
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -664,6 +664,16 @@ then
 
   msg @. ifrc_s/d/a/m: "$IFRC_STATUS" $IFRC_DEVICE ${IFRC_ACTION:---} \
                        ${IFRC_METHOD%% *} #cdt"${IFRC_SCRIPT:-{\}}"
+else
+  # rt_tables support...
+  if ip rule >/dev/null 2>&1 \
+  && [ -f /etc/iproute2/rt_tables ] \
+  && { read i < /sys/class/net/$dev/ifindex; } 2>/dev/null
+  then
+    let i+=100; tn=t.$dev
+    grep -q "$tn" /etc/iproute2/rt_tables \
+      || printf "$i\t$tn\n" >>/etc/iproute2/rt_tables
+  fi
 fi
 
 #
@@ -782,7 +792,11 @@ case $IFRC_ACTION in
     # terminate any other netlink/dhcp_client daemons and de-configure
     ifrc_stop_netlink_daemon 
     signal_dhcp_client TERM
+    # remove all relative entries from the routing table
+    # the iface is still up and accessible to the IP layer
     fn ip addr flush dev $dev
+    # also remove any applicable policy rules for the iface
+    while ip rule del not table $tn 2>/dev/null; do :;done
     ##
     if [ -n "$post_dcfg_do" ]
     then
@@ -1002,7 +1016,7 @@ ifrc_validate_static_method_params() {
         nm=${x##*=}
         ;;
       gw|gateway)
-        gw=${x##*=}
+        gw=${gw:+$gw }${x##*=}
         ;;
       bc|broadcast)
         bc=${x##*=}
@@ -1012,6 +1026,9 @@ ifrc_validate_static_method_params() {
         ;;
       metric)
         metric=${x##*=}
+        ;;
+      weight)
+        weight=${x##*=}
         ;;
       fpsd|portspeed)
         fpsd=${x##*=}
@@ -1034,8 +1051,11 @@ ifrc_validate_dhcp_method_params() {
       rip|requestip) ## specify ip to request from server (if supported)
         rip=${x##*=}
         ;;
-      metric) ## apply a hop metric for default the router
+      metric) ## apply a hop metric for default router
         metric=${x##*=}
+        ;;
+      weight) ## apply a nexthop weight for router
+        weight=${x##*=}
         ;;
       fpsd|portspeed) ## specify a fixed-port-speed-duplex
         fpsd=${x##*=}
@@ -1301,10 +1321,48 @@ case ${IFRC_METHOD%% *} in
         && fn ip addr del $ip/32 dev $dev
     fi
 
-    # add default gw route in table
+    # add default route
     if [ -n "$gw" ]
     then
-      fn ip route add default via $gw dev $dev
+      # preserve other-default-routes excluding this interface
+      odr=$( ip route |sed -n "/via /{/$dev/d;s/^[ \t]*//p}" )
+
+      { read -r ifindex < /sys/class/net/$dev/ifindex; } 2>/dev/null
+
+      # for rt_tables
+      if [ -n "$tn" ]
+      then
+        # determine a weight for the interface
+        weight=weight\ ${weight:-${ifindex:-1}}
+        nexthop=nexthop
+      else
+        nexthop=
+        odr=
+      fi
+      default=default
+
+      for ra in $gw
+      do
+        fn ip route replace $default \
+          $nexthop via $ra dev $dev $weight \
+            ${odr//default/$nexthop} ;
+
+        # only the first router-addr can be default
+        [ -n "$nexthop" ] || default=
+      done
+
+      # for rt_tables
+      if [ -n "$tn" ]
+      then
+        # add network and gateway routes to table
+        fn ip route add $network/$subnet dev $dev src $ip table $tn
+        fn ip route add default via $ra dev $dev table $tn
+        # rewrite policy rules in the lookup table
+        while ip rule del not table $tn 2>/dev/null; do :;done
+        fn ip rule add from ${ip}/32 lookup $tn  ### outgoing ##
+        fn ip rule add to ${ip}/32 lookup $tn  ### incoming ##
+      fi
+      fn ip route flush cache
     fi
 
     # add new nameservers
