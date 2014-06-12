@@ -211,10 +211,10 @@ case $action in
     fi
     fn ip route flush cache
 
-    # Call on a resolv-conf-handler if setup, or write resolv-conf directly.
-    if [ -f "$RESOLV_HOOK" ]
+    # Call on a resolv-conf-handler, or write resolv-conf directly.
+    if [ -x "$RESOLV_HOOK" ]
     then
-      do_source $RESOLV_HOOK
+      $RESOLV_HOOK -a $interface ${domain:+search $domain} nameserver $dns
     elif [ -n "$RESOLV_CONF" ]
     then
       if : >$RESOLV_CONF
