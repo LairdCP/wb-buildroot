@@ -84,7 +84,7 @@ ifrc=/sbin/ifrc
 [ -d "$ifrc_Lfp" ] || mkdir -p ${ifrc_Lfp}
 
 # check network-init-script
-test -x ${nis:=/etc/init.d/S??network \
+test -x ${nis:=/etc/init.d/S??network} \
   || nis="echo Cant exec: ${nis:-network-init-script}"
 
 # ensure /e/n/i exists...
