@@ -64,9 +64,8 @@ case $1 in
     test -s ${lighttpd_conf} \
       || { echo "  $lighttpd_conf n/a"; return 2; }
 
-    test -x /usr/sbin/lighttpd-angel \
-      && /usr/sbin/lighttpd-angel -t -f ${lighttpd_conf} \
-           2>&1 |sed 's/.*\(exitcode.*\)/  ...\1/'
+    /usr/sbin/lighttpd -tf ${lighttpd_conf} |grep -q 'Syntax OK' \
+    || { echo "  $lighttpd_conf error"; false; }
     ;;
 
   *)
