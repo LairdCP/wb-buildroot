@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140609
+ifrc_Version=20140610
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -84,13 +84,11 @@ ifrc=/sbin/ifrc
 [ -d "$ifrc_Lfp" ] || mkdir -p ${ifrc_Lfp}
 
 # check network-init-script
-nis=/etc/init.d/S??network
-test -x $nis \
+test -x ${nis:=/etc/init.d/S??network \
   || nis="echo Cant exec: ${nis:-network-init-script}"
 
 # ensure /e/n/i exists...
-eni=/etc/network/interfaces
-test -s $eni \
+test -s ${eni:=/etc/network/interfaces} \
   || { test -s $eni~ && mv -f $eni~ $eni; } \
   || { rm -f $eni~ && gzip -fdc $eni~.gz >$eni; } \
   || { printf "# $eni - ifrc\n\nauto lo\niface lo inet loopback\n\n\n" >$eni; }
@@ -104,6 +102,11 @@ else
   # this package is used to optionally set a fixed port speed during dhcp
   mii_usage="portspeed=10baseT...   - use a fixed speed during dhcp trial"$'\n'
 fi
+
+# check resolv.conf configurator (optional
+test -x ${conf_resolv:=/usr/sbin/conf-resolv} \
+  || conf_resolv=:\ $conf_resolv
+$conf_resolv -c
 
 msg() {
   if [ "$1" == "@." ] && shift
@@ -1253,6 +1256,7 @@ case ${IFRC_METHOD%% *} in
       && rc_exit 0
 
     check_link
+    $conf_resolv -c
 
     ## allow using a fixed-port-speed-duplex, intended only for wired ports
     if [ ! -d /sys/class/net/$dev/phy80211 ] && [ -n "$mii" ]
@@ -1365,16 +1369,8 @@ case ${IFRC_METHOD%% *} in
       fn ip route flush cache
     fi
 
-    # add new nameservers
-    if [ -n "$ns" ]
-    then
-      echo "# statically assigned via ifrc" >/etc/resolv.conf
-      for x in $ns
-      do
-        echo "nameserver ${x##=*}" >>/etc/resolv.conf
-      done
-      echo >>/etc/resolv.conf
-    fi
+    # update w/validated nameserver
+    $conf_resolv -a $dev nameserver $ns
     ;;
 
   loopback) ## method + optional params
