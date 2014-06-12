@@ -9,27 +9,50 @@
 # jon.hefling@lairdtech.com
 #
 # Usage:
-#   lighty [-v] {stop|start|restart|status|check}
+#   lighty [-v] {stop|start|restart|status|check} [--redirect]
 
 
 self=${0##*/}
 console=/dev/console
+lockfile=/tmp/lighty^
 
 # webserver init-script w/o exec bit set
 lighttpd_initscript=/etc/init.d/S??lighttpd
-
-redirect() {
-  # redirect the host and close
-  printf "HTTP/1.1 302 Found\r\n"
-  printf "Location: https://$host\r\n"
-  printf "Connection: close\r\n"
-  printf "\r\n"
-}
 
 # option verbose
 test "$1" == "-v" \
   && { verbose() { printf "$@" >>$console; }; shift; } \
   || { verbose() { : ; }; console=/dev/null; }
+
+redirect() {
+  # redirect the host and close
+  printf "HTTP/1.1 302 Found\r\n"
+  printf "Location: https://$host/$req\r\n"
+  printf "Content-Length: 0\r\n"
+  printf "Connection: close\r\n"
+  printf "\r\n"
+}
+
+inet_service() {
+  # args: <service> <dis/enable>
+  if { read -r inetd_pid < /var/run/inetd.pid; } 2>/dev/null
+  then
+    test -f /tmp/inetd.conf \
+      || cp /etc/inetd.conf /tmp
+
+    case $2 in
+      disable)
+        sed "s/^$1/#$1/" -i /tmp/inetd.conf
+        ;;
+      enable)
+        rmdir $lockfile 2>/dev/null
+        sed "s/^#$1/$1/" -i /tmp/inetd.conf
+        ;;
+    esac
+    kill -s HUP $inetd_pid \
+      || echo $0 $* - failed >/dev/console
+  fi
+}
 
 # report invocation
 test -n "$inetd_" \
@@ -40,13 +63,19 @@ test -n "$inetd_" \
 case $1 in
   stop) ## terminate webserver
     ash $lighttpd_initscript stop >>$console 2>&1
+    chmod +x $lighttpd_initscript
+    killall lighty_wd 2>/dev/null
+    rmdir $lockfile 2>/dev/null
     exit $?
     ;;
 
   start) ## start webserver as necessary
-    if ! pidof lighttpd >/dev/null
+    if [ ! -d $lockfile ]
     then
+      mkdir -p $lockfile
+      inet_service https disable
       ash $lighttpd_initscript start >>$console 2>&1
+      rmdir $lockfile 2>/dev/null
     fi
     ;;
 
@@ -56,6 +85,9 @@ case $1 in
     ;;
 
   status) ## report webserver related detail
+    echo "+ ls -l /tmp/light*"
+    { ls -l /tmp/light* 2>/dev/null || echo \ \ ...; } |sed '/^$/,$d' && echo
+
     lighty-status 2>/dev/null \
       || ash $lighttpd_initscript status
     exit $?
@@ -64,6 +96,12 @@ case $1 in
   check) ## check webserver configuration
     chmod -x $lighttpd_initscript
     ash $lighttpd_initscript check
+    lighty_wd
+    exit $?
+    ;;
+
+  *service) ## un/set inet service
+    inet_service https $1
     exit $?
     ;;
 
@@ -72,13 +110,17 @@ case $1 in
     exit 1
 esac
 
+test "$2" == "--redirect" \
+  || exit 0
+
 # read req-&-headers
 while read -rt1 stream
 do
   verbose "$stream\n"
   case $stream in
     GET\ *)
-      req=$stream
+      req=${stream#*/}
+      req=${req%% *}
       ;;
     Host:\ *)
       host=${stream#*: }
