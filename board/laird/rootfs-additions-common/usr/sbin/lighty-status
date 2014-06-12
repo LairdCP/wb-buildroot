@@ -5,29 +5,48 @@
 # jon.hefling@lairdtech.com
 
 status() {
+  # show dis/enabled inetd service
+  echo "+ grep light /tmp/inetd.conf"
+  grep -o '.*light[^ ]*' /tmp/inetd.conf \
+    || echo \ \ ...
+  echo
+
+  # find lighty's config
   eval $( ps axopid,args \
     |sed -n '/[^S0-9]*lighttp[d]/s/ *\([^ ]*\) .*-f *\([^ ]*\)/pid=\1 cf=\2/p' )
-  #
+
   # get service ports configured for lighttpd
   test -n "$cf" \
     && ports=$( sed -e '/server\.port/s/^[^#].* = \([0-9]\+\)/ -e \":\1\"/p' \
                     -e '/socket/s/^[^#].*\(:[0-9]\+\).*/ -e \"\1\"/p' \
                     -n $cf |tr -d '\n' )
-  #
+
   # get service port configured for inetd
   service=$( sed -n '/^[^#].*lighty/s/^\([^#][^ ]\+\) .*/\1/p' /etc/inetd.conf )
-  test -n "$service" \
-    && ports=$ports\ $( sed -e "s/^$service[ \t]\+\([0-9]\+\)\/tcp.*/:\1/p" \
-                            -n /etc/services )
-  #
+  for name in $service
+  do
+    ports=$ports\ $( sed -e "/$name/s/^.*[ \t]\+\([0-9]\+\)\/tcp.*/-e :\1/p" \
+                         -n /etc/services )
+  done
+
   # report relative service PIDs
   echo "+ ps ax -opid,args"
-  ps ax -opid,args |grep -e"[^0-9]ligh[t]" -e"php[-]"
+  ps ax -opid,args \
+  |sed -n '/status/d;/[^0-9]ligh[t]/p;/php[-]/p;$a'
   echo
-  #
+
   # report relative socket-statistics
-  echo "+ ss -tna"
-  eval "ss -tna |grep -e State${ports}"
+  echo "+ ss -4tunpla"
+  f1='\(.*[A-Z]\+\)'
+  f2='\(.*:[^ ]* *[^ ]*:[^ ]* *\)'
+  f3='u[^ ]\+\(\".*\",[0-9]*\),.*'
+  ports="grep -e State $ports"
+
+  ss -4tunpla \
+  |sed -e '1s/ Recv.*Q *//' \
+       -e '/WAIT/d;s/ESTAB/&L/' \
+       -e 's/^'$f1' .*[0-9]      '"$f2$f3"'/\r\1\2\3/' \
+       |$ports
 }
 
 status
