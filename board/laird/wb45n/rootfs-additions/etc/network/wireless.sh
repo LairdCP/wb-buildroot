@@ -12,7 +12,8 @@ WIFI_KMPATH=/lib/modules/`uname -r`           ## kernel modules path
 WIFI_PROFILES=/etc/summit/profiles.conf       ## sdc_cli profiles.conf
 WIFI_MACADDR=/etc/summit/wifi_interface       ## persistent mac-address file
 
-## supplicant and cli - comment out to disable . . .
+## monitor, supplicant and cli - comment out to disable . . .
+EVENT_MON=/usr/bin/event_mon
 SDC_SUPP=/usr/bin/sdcsupp
 SDC_CLI=/usr/bin/sdc_cli
 
@@ -54,11 +55,11 @@ wifi_status() {
   || echo "  ..."
 
   echo -e \
-  "\nProcesses related for ${WIFI_DRIVER}${WIFI_FIPS:+, fips}, apd, supp:"
+  "\nProcesses related for ${WIFI_DRIVER}${WIFI_FIPS:+, w/fips}:\n  ...\r\c"
   top -bn1 \
-  |sed 's/\(^....[^ ]\ \+[^ ]\+\ \)\+[^ ]\+\ \+\(.*\)/\1\2/' \
-  |sed -n '/sed/d;4H;/hostapd/H;/.[dp].supp/H;/sdcu/H;/'"${module%%_*}"'/{H;x;p;}' \
-  |uniq |grep . || echo "  ..."
+  |sed -e '/sed/d;s/\(^....[^ ]\)\ \+[^ ]\+\ \+[^ ]\+\ \+\(.*\)/\1 \2/' \
+       -e '4h;/hostapd/H;/.[dp].supp/H;/event_m/H;/sdcu/H' \
+       -e "/${module%%_*}"'/{H;x;p;}' -n
 
   if wifi_queryinterface
   then
@@ -67,6 +68,8 @@ wifi_status() {
 
     iw dev $WIFI_DEV link \
       |sed 's/onnec/ssocia/;s/cs/as/;s/Cs/As/;s/(.*)//;/[RT]X:/d;/^$/,$d'
+  else
+    echo
   fi
   echo
 }
@@ -225,9 +228,10 @@ wifi_start() {
       || { msg ..error; return 2; }
       msg .ok
     fi
-    if ! pidof event_mon >/dev/null
+    if [ -e "$EVENT_MON" ] \
+    && ! pidof event_mon >/dev/null
     then
-      event_mon --output logging --bitmask 0x0000001FA3008000 &
+      $EVENT_MON -ologging -b0x0000001FA3008000 &
       msg "  started: event_mon[$!]"
     fi
   fi
