@@ -176,7 +176,8 @@ wifi_start() {
   # see if enabled in /e/n/i stanza for wl* -or- requested via cmdline
   hostapd=$( sed -n "/$stanza/"',/^[ \t]\+.*hostapd/h;$x;$s/[ \t]*//p' $eni )
   if [ -n "$hostapd" -a "${hostapd/*#*/X}" != "X" ] \
-  || [ "${1/*apd*/X}" == "X" ]
+  && [ "${1/*apd*/X}" != "X" ] \
+  && [ ! -f "$supp_sd/pid" ]
   then
     if ! pidof hostapd >/dev/null \
     && ! pidof sdcsupp >/dev/null
@@ -190,17 +191,17 @@ wifi_start() {
       grep -q "^ssid=wb..n_${wl_vei}" $cf \
         || sed "/^ssid=wb..n/s/\(=wb..n\).*/\1_${wl_vei}/" -i $cf
 
-      # construct the hostapd invocation and execute
-      #debug=-d
-      #pf=-P/var/run/hostapd/pid
-      hostapd=${hostapd/apd/apd $debug $pf}                ## insert options
-      hostapd=${hostapd/-B}                       ## allow debug/err capture
+      # construct the hostapd invocation and execute (flags can be in /e/n/i)
+      #debug=-d                                   ## allow debug/err capture
+      #pf=-P$apd_sd/pid                            ## pid only if daemonized
+      hostapd=${hostapd/apd/apd $debug $pf}          ## insert extra options
+      hostapd=${hostapd/-B}                        ## do not allow daemonize
       msg -n executing: $hostapd'  '
       $hostapd 2>&1 &
       #
       await $apd_sd/$WIFI_DEV 200000; msg .ok
       # check and store the process id
-      pidof hostapd >/tmp/hostapd/pid \
+      pidof hostapd >$apd_sd/pid \
         && hostapd=started \
         || return 2
     fi
@@ -209,13 +210,14 @@ wifi_start() {
   # see if enabled in /e/n/i stanza for wl* -or- requested via cmdline
   sdcsupp=$( sed -n "/$stanza/"',/^[ \t]\+.*.[dp].supp/h;$x;$s/[ \t]*//p' $eni )
   if [ -n "$sdcsupp" -o "${hostapd:-not}" != "started" ] \
-  && [ "${1/*host*/X}" != "X" ]
+  && [ "${1/*host*/X}" != "X" ] \
+  && [ ! -f $apd_sd/pid ]
   then
     # launch supplicant if exists and not already running
     if test -e "$SDC_SUPP" && ! ps |grep -q "[ ]$SDC_SUPP" && let n=17
     then
-      [ -f $supp_sd/*.pid ] \
-      && { msg "$supp_sd/*.pid exists"; return 1; }
+      [ -f $supp_sd/pid ] \
+      && { msg "$supp_sd/pid exists"; return 1; }
 
       supp_opt=$WIFI_80211\ $WIFI_DEBUG\ $WIFI_FIPS
       msg -n executing: $SDC_SUPP -i$WIFI_DEV $supp_opt -s'  '
@@ -224,7 +226,7 @@ wifi_start() {
       #
       await $supp_sd/$WIFI_DEV 500000
       # check and store the process id
-      pidof sdcsupp 2>/dev/null >$supp_sd/sdcsupp.pid \
+      pidof sdcsupp 2>/dev/null >$supp_sd/pid \
       || { msg ..error; return 2; }
       msg .ok
     fi
@@ -250,9 +252,9 @@ wifi_stop() {
 
     ## terminate the supplicant by looking up its process id
     if [ "$1/*host*/X}" != "X" ] \
-    && let pid=$( grep -s ^ $supp_sd/*.pid )+0
+    && let pid=$( grep -s ^ $supp_sd/pid )+0
     then
-      rm -f $supp_sd/*.pid
+      rm -f $supp_sd/pid
       # and terminate event_mon too
       killall event_mon 2>/dev/null && msg "event_mon stopped"
       kill $pid && { let n=27; msg -n "supplicant terminating."; }
@@ -262,7 +264,7 @@ wifi_stop() {
     ## terminate hostap daemon if running
     if [ "$1/*supp*/X}" != "X" ]
     then
-      rm -f /tmp/hostapd/pid
+      rm -f $apd_sd/pid
       killall hostapd 2>/dev/null
     fi
 
@@ -309,6 +311,8 @@ case $1 in
 esac
 
 eni=/etc/network/interfaces
+
+# socket directories
 supp_sd=/tmp/wpa_supplicant
 apd_sd=/tmp/hostapd
 
