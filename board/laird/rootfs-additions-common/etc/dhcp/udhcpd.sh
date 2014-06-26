@@ -47,21 +47,22 @@ do
   shift
 done
 
-tmp=/var/lib/dhcp
-
 test -n "$dev" \
   || msg "error: -i<iface> is required"
 
+test -d /var/lib/dhcp \
+  || ln -s /tmp /var/lib/dhcp
+
 case $act in
   stop)
-    if { read -rst1 pid < $tmp/udhcpd.$dev.pid; } 2>/dev/null
+    if { read -rst1 pid < /var/lib/dhcp/udhcpd.$dev.pid; } 2>/dev/null
     then
       if [ -d /proc/$pid ]
       then
         msg -n "stopping udhcpd on $dev ..."
         echo `kill $pid`
       fi
-      rm $tmp/udhcpd.$dev.pid
+      rm /var/lib/dhcp/udhcpd.$dev.pid
     fi
     ;;
 
@@ -97,10 +98,10 @@ case $act in
     ;;
 
   status|'') ## show if running and dumpleases
-    if [ -f $tmp/udhcpd.$dev.leases ]
+    if [ -f /var/lib/dhcp/udhcpd.$dev.leases ]
     then
       set -x
-      dumpleases -f $tmp/udhcpd.$dev.leases
+      dumpleases -f /var/lib/dhcp/udhcpd.$dev.leases
     { set +x; echo; } 2>/dev/null
     fi
     msg "+ ps ax -opid,stat,args"
