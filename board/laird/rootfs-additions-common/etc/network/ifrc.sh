@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140612
+ifrc_Version=20140616
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -236,14 +236,20 @@ summarize_interface_status() {
 }
 
 show_interface_config_and_status() {
-  # find available iface's not configured
-  # these will exist, and be in down state
-  ida=$( grep -s down /sys/class/net/*/operstate \
-        |sed 's/.*net\/\(.*[^/]\)\/.*/ \1/' \
-        |tr -d '\n' )
-
+  # report available iface's not configured
+  for i in /sys/class/net/*
+  do
+    i=${i##*/}
+    if { read -rs mp < /tmp/ifrc/$i; } 2>/dev/null
+    then
+      mp=${mp%% *}
+      test -n "${mp#*:}" \
+        && continue
+    fi
+    ida=$ida\ $i
+  done
   [ -z "$dev" -a -n "$ida" ] \
-  && echo "       Available, but not configured: $ida"
+  && echo -e "\tAvailable, but not configured: $ida"
 
   [ -n "${vm:1:1}" ] \
   && filter=';s/ mtu/\n\t&/;s/\( state [^ ]*\)\(.*\)/\2\1/' \
@@ -753,7 +759,7 @@ case $IFRC_ACTION in
     ;;
 
   eni) ## report interface stanza
-    sed '/./{H;$!d;};x;/[#]*iface '$devalias' inet/!d;n' $eni
+    sed '/./{H;$!d;};x;/[#]*iface '$devalias' inet/!d;a' $eni
     exit 0
     ;;
 
