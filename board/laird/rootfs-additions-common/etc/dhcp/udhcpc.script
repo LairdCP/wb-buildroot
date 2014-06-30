@@ -1,7 +1,7 @@
 #!/usr/bin/env ash
 # /etc/dhcp/udhcpc.script
 # An event action script for udhcpc.
-# jon.hefling@lairdtech.com,20120521,20130113,20131217
+# jon.hefling@lairdtech.com, 20120521..20140618
 
 eval $udhcpc_Settings 2>/dev/null
 test -f /etc/dhcp/udhcpc.conf && . /etc/dhcp/udhcpc.conf
@@ -45,6 +45,20 @@ write_lease_info() {
   # default DHCPACK and trim leading zero
   opt53=${opt53:-5} && opt53=${opt53##*0}
 
+  # for wireless, store ap_indentifier MAC SSID
+  if [ -d /sys/class/net/$interface/wireless ]
+  then
+    apid=$( iw dev $interface link \
+          |sed -n 's/.* \(..:..:..:..:..:..\) .*/\1/p;s/.*SSID:\( .*\)/\1/p' \
+          |tr -d '\n' )
+  fi
+
+  # add options
+  extra_options=''
+  # formated with: '\n  <content>;'
+  extra_options=$extra_options"${apid:+
+  option ap-identifier $apid;}"
+
   # make new copy of leases file, while retaining other non-lease info,
   # get just the previous lease-entry and then append current lease-entry
   sed '/^leas/,$!p;/^leas/h;/^leas/!H;$!b;x;/^leas/,$p' -n $1 >$1~
@@ -52,7 +66,7 @@ write_lease_info() {
   cat >>$1~<<-	\
 	lease-entry
 	lease {
-	  interface "$interface";
+	  interface "$interface";${extra_options}
 	  option fixed-address $ip;
 	  option broadcast-address $broadcast;
 	  option subnet-mask $subnet;
@@ -126,7 +140,7 @@ case $action in
     while ip rule del not table $tn 2>/dev/null; do :;done
     ;;
 
-  renew|bound)
+  renew|bound|refresh)
     # Must have the ip-address.
     [ -n "$ip" ] || exit_err "address unset"
 
@@ -224,8 +238,13 @@ case $action in
       fi
     fi
 
-    # Update the leases file.
-    write_lease_info $LEASES_FILE
+    if [ "$action" != refresh ]
+    then
+      # Update the leases file.
+      write_lease_info $LEASES_FILE
+    else
+      vecho "^-lease re-applied: ${apid:-?}"
+    fi
     ;;
 
   leasefail)
