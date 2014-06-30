@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140616
+ifrc_Version=20140617
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -611,7 +611,7 @@ eval $IFRC_SCRIPT \
 # The action may be overridden depending on the following event rules.
 if [ -n "$ifnl_s" ]
 then
-  ## run via nl daemon, consume extra args
+  ## run via nl daemon, consume args
   shift $#
 
   ## nl event rules for status '  ->dn'
@@ -662,7 +662,19 @@ then
     then
       if [ ! -d ${ifrc_Lfp}/$dev.dhcp ]
       then
+        if $phy80211 \
+        && [ -x /etc/dhcp/autoip.sh ]
+        then
+          # this is likely a 'reconnect' or 'roam' related event
+          # if for AP with same SSID, then try dhcp-esa: refresh
+          apid=$( iw dev $dev link \
+            |sed -n 's/.* \(..:..:..:..:..:..\) .*/\1/p;s/.*SSID:\( .*\)/\1/p' \
+            |tr -d '\n' )
+          test -n "$apid" \
+            && /etc/dhcp/autoip.sh $dev $apid
+        fi
         : signal_dhcp_client RENEW
+        # renewal is handled via re-up config...
       else
         : msg1 "dhcp client lock exists, no act"
         : IFRC_ACTION=xx
@@ -835,6 +847,7 @@ case $IFRC_ACTION in
     fi
     rmdir ${ifrc_Lfp}/$dev.nis 2>/dev/null
 
+    # affirm if this is a re-up . . .
     test "${methvia/*cfg*/cfg}" == "cfg" && re=re- || re=
     msg1 "${re}configuring $dev using ${IFRC_METHOD%% *} method ${methvia:-(?)}"
     mkdir ${ifrc_Lfp}/$dev.cfg 2>/dev/null \
