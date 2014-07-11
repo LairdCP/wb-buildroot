@@ -25,6 +25,8 @@
 #  post-dcfg-do <shell command or script and args to do after deconfiguration>
 #
 
+# policy routing
+#allow-multipath
 
 #
 # Localhost

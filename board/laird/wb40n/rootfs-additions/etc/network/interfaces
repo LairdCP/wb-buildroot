@@ -26,6 +26,9 @@
 #  ...see example *.conf filess in /etc/network
 #
 
+# policy routing
+allow-multipath
+
 
 ## Localhost
 auto lo
