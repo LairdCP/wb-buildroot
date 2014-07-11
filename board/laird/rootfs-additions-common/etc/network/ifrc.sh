@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140620
+ifrc_Version=20140621
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -446,7 +446,7 @@ if ! read_ifrc_info $dev \
 then
   # Generally, operations are on a specific interface.
   # It is possible that the $dev may initially be unknown.
-  # So, for /e/n/i file lookups, we assume the use of $devalias.
+  # For /e/n/i stanza lookups, we assume the use of $devalias.
   #
   # Find iface stanza using '$dev' as a dev*alias or as dev*iface name.
   # Then extract any general settings for it.
@@ -475,6 +475,9 @@ then
   msg3 "  iface stanza: ${ifacemsg:-?}"
   test -n "$devalias" \
     || exit 1
+
+  # check if multipath polcy routing is enabled
+  grep -q "^allow-multipath" $eni && mpr=yes || mpr=
 
   # re-attempt lookup
   read_ifrc_info $dev
@@ -521,7 +524,7 @@ make_() { ( eval $1; x=$?; [ ${1:0:1} == / ] && echo \ \ ${1##*/}: $x ); }
 
 fn() { { msg2 "+ $*"; } 2>/dev/null; eval "$*" 2>&1 || { msg "? $*"; false; }; }
 
-export ifrc_Settings=fls=\"$fls\"\ mm=$mm\ vm=$vm\ qm=$qm
+export ifrc_Settings=fls=\"$fls\"\ mm=$mm\ vm=$vm\ qm=$qm\ mpr=$mpr
 
 # external globals - carried per instance and can be used by *-do scripts
 export IFRC_STATUS="${ifnl_s:-  ->  }"
@@ -688,7 +691,8 @@ then
                        ${IFRC_METHOD%% *} #cdt"${IFRC_SCRIPT:-{\}}"
 else
   # rt_tables support...
-  if ip rule >/dev/null 2>&1 \
+  if [ "$mpr" == "yes" ] \
+  && { ip rule >/dev/null 2>&1; } \
   && [ -f /etc/iproute2/rt_tables ] \
   && { read i < /sys/class/net/$dev/ifindex; } 2>/dev/null
   then
@@ -1181,7 +1185,7 @@ run_udhcpc() {
 
   # The run-script handles client states and writes to a leases file.
   # Some parameters need to be shared.
-  export udhcpc_Settings="vb=$vb log=$ifrc_Log metric=$metric weight=$weight"
+  export udhcpc_Settings="vb=$vb log=$ifrc_Log mpr=$mpr metric=$metric weight=$weight"
 
   # Client normally continues running in background, and upon obtaining a lease.
   # May be signalled or spawned again depending on events/conditions. Flags are: 
