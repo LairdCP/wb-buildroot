@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140617
+ifrc_Version=20140620
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -1180,8 +1180,8 @@ run_udhcpc() {
   pf='-p/var/run/dhclient.$dev.pid'
 
   # The run-script handles client states and writes to a leases file.
-  # options: vb, log_file, leases_file, resolv_conf
-  export udhcpc_Settings="vb=$vb log_file=$ifrc_Log metric=$metric"
+  # Some parameters need to be shared.
+  export udhcpc_Settings="vb=$vb log=$ifrc_Log metric=$metric weight=$weight"
 
   # Client normally continues running in background, and upon obtaining a lease.
   # May be signalled or spawned again depending on events/conditions. Flags are: 

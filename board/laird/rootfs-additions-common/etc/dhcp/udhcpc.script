@@ -11,7 +11,7 @@ test -f /etc/dhcp/udhcpc.$interface.conf && . /etc/dhcp/udhcpc.$interface.conf
 # values (below) will be used from the expanded right-most string.
 
 # Debug support.
-LOG_FILE=${log_file:-${LOG_FILE:-'/dev/null'}}
+LOG_FILE=${log:-${LOG_FILE:-'/dev/null'}}
 VERBOSE=${vb:-${VERBOSE:-''}}
 test -n "$VERBOSE" \
   && vecho=echo \
