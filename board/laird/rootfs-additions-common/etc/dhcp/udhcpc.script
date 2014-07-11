@@ -1,14 +1,14 @@
 #!/usr/bin/env ash
 # /etc/dhcp/udhcpc.script
 # An event action script for udhcpc.
-# jon.hefling@lairdtech.com, 20120521..20140618
+# jon.hefling@lairdtech.com, 20120521..20140620
 
 eval $udhcpc_Settings 2>/dev/null
 test -f /etc/dhcp/udhcpc.conf && . /etc/dhcp/udhcpc.conf
 test -f /etc/dhcp/udhcpc.$interface.conf && . /etc/dhcp/udhcpc.$interface.conf
 # For the global variables below, values from the exported udhcpc_settings will
 # overwrite those from the udhcpc[.<iface>].conf files.  Otherwise, the default
-# values will be used from the expanded right-most string.
+# values (below) will be used from the expanded right-most string.
 
 # Debug support.
 LOG_FILE=${log_file:-${LOG_FILE:-'/dev/null'}}
@@ -16,6 +16,9 @@ VERBOSE=${vb:-${VERBOSE:-''}}
 test -n "$VERBOSE" \
   && vecho=echo \
   || vecho=:
+
+# Support multipath policy routing.
+MULTIPATH_POLICY_ROUTING=${mpr:-${MULTIPATH_POLICY_ROUTING:-''}}
 
 # Extensions.
 VENDORINFO_HOOK=${vendorinfo_hook:-${VENDORINFO_HOOK:-''}}
@@ -110,6 +113,7 @@ sed "/^${esa:0:17}/d;/^#/h;/^ *$/{s,^,${esa}\n,}" -i $LEASES_FILE
 
 # rt_tables support...
 if ip rule >/dev/null 2>&1 \
+&& [ "$MULTIPATH_POLICY_ROUTING" == "yes" ] \
 && grep -qs "t.$interface" /etc/iproute2/rt_tables
 then
   tn=t.$interface
