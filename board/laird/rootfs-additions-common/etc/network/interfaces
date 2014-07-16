@@ -59,8 +59,8 @@ iface ppp0 inet manual
 
 #
 # Wireless
-auto wl
-iface wl inet manual
+auto wlan0
+iface wlan0 inet manual
   alias wl is wlan0
   #timeout 60
   #pre-cfg-do echo -e "\a\t[ ...associated! ...applying settings ]"

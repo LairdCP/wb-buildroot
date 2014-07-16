@@ -58,8 +58,8 @@ iface ppp0 inet manual
 
 
 ## Wireless - setup handled by /etc/network/wireless.sh
-auto wl
-iface wl inet dhcp
+auto wlan0
+iface wlan0 inet dhcp
   alias wl is wlan0
   #timeout 60
 

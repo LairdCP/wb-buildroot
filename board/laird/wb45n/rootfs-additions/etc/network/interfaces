@@ -57,8 +57,8 @@ iface ppp0 inet manual
 
 
 ## Wireless - setup handled by /etc/network/wireless.sh
-auto wl
-iface wl inet static
+auto wlan0
+iface wlan0 inet static
   alias wl is wlan0
   #timeout 60
   address 192.168.1.1
