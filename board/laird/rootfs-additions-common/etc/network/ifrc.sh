@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140621
+ifrc_Version=20140714
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -471,6 +471,7 @@ then
     ifacemsg="$dev"
     devalias=$dev
   fi
+
   # dev*alias is used to further process settings for dev*iface in /e/n/i
   msg3 "  iface stanza: ${ifacemsg:-?}"
   test -n "$devalias" \
@@ -487,7 +488,7 @@ then
     && fls=${fls//-v/} \
     && flags_eni=$( sed -n "/^iface $devalias/,/^$/\
                       s/^[ \t]\+[^#]ifrc-flags \(.*\)/\1/p" $eni )
-
+  #
   # apply flags from iface stanza in /e/n/i
   for af in $flags_eni; do parse_flag $af || break; done
 fi
@@ -718,14 +719,14 @@ case $IFRC_ACTION in
 
   status) ## call on phy-init for status, no return
     [ -n "${vm:0:1}" ] && set -x
-    exec $nis $devalias $IFRC_ACTION ${IFRC_METHOD%% *}
+    exec $nis $dev $IFRC_ACTION ${IFRC_METHOD%% *}
     ;;
 
   show) ## show info/status for an iface
     test -f /sys/class/net/$dev/uevent \
     || { echo \ \ ...not available, not a kernel-resident interface; exit 1; }
     summarize_interface_status
-    echo Configuration for interface: $ifacemsg $is
+    echo Configuration for interface: ${ifacemsg:-$dev} $is
     if grep -qs Generic /sys/class/net/$dev/*/uevent
     then
       echo Warning: using 'Generic PHY' driver
@@ -802,7 +803,7 @@ case $IFRC_ACTION in
   stop|start|restart) ## act on phy-init/driver, does not return
     ifrc_stop_netlink_daemon
     [ -n "${vm:0:1}" ] && set -x
-    exec $nis $devalias $IFRC_ACTION ${IFRC_METHOD%% *}
+    exec $nis $dev $IFRC_ACTION ${IFRC_METHOD%% *}
     ;;
 
   dn|down) ## assume down action ->deconfigure
@@ -843,7 +844,7 @@ case $IFRC_ACTION in
         unset IFRC_SCRIPT IFRC_STATUS
         msg "interface is not kernel-resident, trying to start ..."
         [ -n "${vm:0:1}" ] && set -x
-        exec $nis $devalias start ${IFRC_METHOD%% *}
+        exec $nis $dev start ${IFRC_METHOD%% *}
       else
         msg "interface is not kernel-resident, try:  ifrc $dev start"
         exit 1
