@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140714
+ifrc_Version=20140716
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -320,9 +320,9 @@ make_dhcp_renew_request() {
     { read -r txp_a </sys/class/net/$dev/statistics/tx_packets; } 2>/dev/null
 
     msg2 "    tx_packets: $txp_b -> $txp_a"
-    let txp_b=$txp_a-$txp_b && return 0
+    { let txp_b=$txp_a-$txp_b && signal_dhcp_client CHECK; } && return 0
   done
-  msg1 "    failed $x attempts"
+  msg1 "    renew failure [$x]"
   return 1
 }
 
@@ -1276,8 +1276,7 @@ case ${IFRC_METHOD%% *} in
     ifrc_validate_dhcp_method_params
 
     ## try dhcp renewal first, (re)start client if necessary
-    signal_dhcp_client CHECK \
-      && make_dhcp_renew_request \
+    make_dhcp_renew_request \
       && rc_exit 0
 
     check_link
