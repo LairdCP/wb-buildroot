@@ -143,6 +143,8 @@ wifi_start() {
     grep -o 'slot_b=.' /proc/cmdline \
     && msg "warning: \"slot_b\" setting in bootargs"
 
+    modprobe cfg80211
+
     ## fips-mode support
     [ -n "$WIFI_FIPS" ] \
     && { wifi_fips_mode || { msg " ...fips-mode error"; return 1; }; }
