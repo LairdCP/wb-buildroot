@@ -83,7 +83,7 @@ wifi_awaitinterface() {
     $usleep 10000 && { let x+=1; msg -n .; }
   done
   [ $x -lt $1 ] && return 0 || return 1
-}
+} 2>/dev/null
 
 wifi_queryinterface() {
   # determine iface via path with matching device/uevent (do not quote token)
@@ -244,48 +244,47 @@ wifi_start() {
 
 wifi_stop() {
   mkdir -p /tmp/wifi^
-  if [ -n "$WIFI_DEV" ] \
-  && grep -q "$WIFI_DEV" /proc/net/dev
+  if [ -f /sys/class/net/$WIFI_DEV/address ]
   then
+    { read -r ifs < /sys/class/net/$WIFI_DEV/operstate; } 2>/dev/null
+
     ## de-configure the interface
     # This step allows for a cleaner shutdown by flushing settings,
     # so packets don't use it.  Otherwise stale settings can remain.
     ip addr flush dev $WIFI_DEV && msg "  ...de-configured"
 
     ## terminate the supplicant by looking up its process id
-    if [ "$1/*host*/X}" != "X" ] \
-    && let pid=$( grep -s ^ $supp_sd/pid )+0
+    if { read -r pid < $supp_sd/pid; } 2>/dev/null && let pid+0
     then
-      rm -f $supp_sd/pid
       # and terminate event_mon too
-      killall event_mon 2>/dev/null && msg "event_mon stopped"
-      kill $pid && { let n=27; msg -n "supplicant terminating."; }
-      while let n-- && [ -d /proc/$pid ]; do $usleep 50000; msg -n .; done; msg
+      killall event_mon 2>/dev/null \
+           && msg "event_mon stopped"
+
+      rm -f $supp_sd/pid
+      wifi_kill_pid_of_service $pid sdcsupp
+      let rv+=$?
     fi
 
-    ## terminate hostap daemon if running
-    if [ "$1/*supp*/X}" != "X" ]
+    ## terminate the hostap daemon by looking up its process id
+    if { read -r pid < $apd_sd/pid; } 2>/dev/null && let pid+0
     then
       rm -f $apd_sd/pid
-      killall hostapd 2>/dev/null
+      wifi_kill_pid_of_service $pid hostapd
+      let rv+=$?
     fi
 
     ## return if only stopping sdcsupp or hostapd
-    test "${1/*supp*/X}" == "X" -o "${1/*host*/X}" == "X" && return $?
+    test "${1/*supp*/X}" == "X" -o "${1/*host*/X}" == "X" \
+      && { wifi_set_dev ${ifs/dormant/up}; return $rv; }
 
-    ## down the interface
+    ## disable the interface
     # This step avoids occasional problems when the driver is unloaded
-    # while the iface is still being used.
-    msg -n "disabling interface  "
-    wifi_set_dev down && { $usleep 500000; msg ...down; } || msg
+    # while the iface is still being used.  The supp may do this also.
+    wifi_set_dev down && msg "  ...iface disabled"
   fi
 
   ## unload fips related modules
-  if let pid=$( pidof sdcu )+0 && kill $pid && n=27
-  then
-    msg -n "sdcu terminating"
-    while [ -d /proc/$pid ] && let n--; do $usleep 50000; msg -n .; done; msg
-  fi
+  let pid=$( pidof sdcu )+0 && wifi_kill_pid_of_service $pid sdcu
   if mls=$( grep -os -e "^sdc2u" -e "^ath6kl_laird" /proc/modules )
   then
     msg unloading: $mls
@@ -298,8 +297,17 @@ wifi_stop() {
     msg unloading: $mls
     rmmod $mls
   fi
+
   [ $? -eq 0 ] && { msg "  ...ok"; return 0; } || return 1
 }
+
+wifi_kill_pid_of_service() {
+  if kill $1 && n=27
+  then
+    msg -n $2 terminating.
+    while [ -d /proc/$1 ] && let n--; do $usleep 50000; msg -n .; done; msg
+  fi
+} 2>/dev/null
 
 
 # ensure this script is available as system command
