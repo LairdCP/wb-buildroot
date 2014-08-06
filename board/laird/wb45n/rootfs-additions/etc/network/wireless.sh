@@ -2,11 +2,11 @@
 # /etc/network/wireless.sh - driver-&-firmware configuration for the wb45n
 # jon.hefling@lairdtech.com 20120520
 
-WIFI_PREFIX=wlan                              ## iface prefix to be enumerated
+WIFI_PREFIX=wlan                              ## iface to be enumerated
 WIFI_DRIVER=ath6kl_sdio                       ## device driver "name"
-WIFI_MODULE=kernel/drivers/net/wireless/ath/ath6kl/ath6kl_sdio.ko
-WIFI_KMPATH=/lib/modules/`uname -r`           ## kernel modules path
-#WIFI_FWPATH=/lib/firmware                     ## location of 'fw' symlink
+WIFI_MODULE=ath/ath6kl/ath6kl_sdio.ko         ## kernel module path
+WIFI_KMPATH=/lib/modules/`uname -r`/kernel/drivers/net/wireless
+#WIFI_FWPATH=/lib/firmware/ath6k/AR6003/hw2.1.1
 #WIFI_NVRAM=/lib/nvram/nv
 
 WIFI_PROFILES=/etc/summit/profiles.conf       ## sdc_cli profiles.conf
@@ -101,15 +101,16 @@ wifi_queryinterface() {
 }
 
 wifi_fips_mode() {
-  if [ -f "$WIFI_KMPATH/kernel/drivers/net/wireless/laird_fips/ath6kl_laird.ko" ] \
-  && [ -f "$WIFI_KMPATH/kernel/drivers/net/wireless/laird_fips/sdc2u.ko" ] \
+  if [ -f "$WIFI_KMPATH/laird_fips/ath6kl_laird.ko" ] \
+  && [ -f "$WIFI_KMPATH/laird_fips/sdc2u.ko" ] \
   && : #[ -x "/usr/bin/sdcu" ]
   then
     msg "configuring for FIPS mode"
     # note - only 'WPA2 EAP-TLS' is supported
-    insmod ${WIFI_KMPATH}/${WIFI_MODULE%/*}/ath6kl_core.ko fips_mode=y || return 1
-    insmod ${WIFI_KMPATH}/kernel/drivers/net/wireless/laird_fips/sdc2u.ko || return 1
-    insmod ${WIFI_KMPATH}/kernel/drivers/net/wireless/laird_fips/ath6kl_laird.ko || return 1
+    ath6kl_params=$ath6kl_params\ fips_mode=y
+    insmod $WIFI_KMPATH/ath/ath6kl/ath6kl_core.ko $ath6kl_params || return 1
+    insmod $WIFI_KMPATH/laird_fips/sdc2u.ko || return 1
+    insmod $WIFI_KMPATH/laird_fips/ath6kl_laird.ko || return 1
 
     # create device node for user space daemon 
     major=$( sed -n '/sdc2u/s/^[ ]*\([0-9]*\).*/\1/p' /proc/devices )
@@ -145,18 +146,23 @@ wifi_start() {
 
     modprobe cfg80211
 
-    ## fips-mode support
-    [ -n "$WIFI_FIPS" ] \
-    && { wifi_fips_mode || { msg " ...fips-mode error"; return 1; }; }
-    
-    ## load the atheros driver
+    ## set atheros driver core options
+    ath6kl_params="recovery_enable=1 heart_beat_poll=200"
+
+    ## check fips-mode support
+    if [ -n "$WIFI_FIPS" ]
+    then
+      wifi_fips_mode || { msg " ...fips-mode error"; return 1; }
+    else
+      insmod $WIFI_KMPATH/ath/ath6kl/ath6kl_core.ko $ath6kl_params
+    fi
+
     modprobe $WIFI_DRIVER \
     || { msg "  ...driver failed to load"; return 1; }
 
     ## await enumerated interface
     wifi_queryinterface 67 \
-    || { msg "  ...driver init failure, iface not available: ${WIFI_DEV:-?}"; return 1; }
-    #&& { msg "  ...success"; } \
+    || { msg "  ...driver init failure, iface n/a: ${WIFI_DEV:-?}"; return 1; }
   fi
 
   # enable interface  
@@ -360,7 +366,7 @@ case $1 in
   -h|--help)
     echo "$0"
     echo "  ...stop/start/restart the '$WIFI_PREFIX#' interface"
-    echo "Manages the '$WIFI_DRIVER' wireless device driver: $module"
+    echo "Manages the '$WIFI_DRIVER' wireless device driver: $WIFI_MODULE"
     echo
     echo "AP association is governed by the 'sdc_cli' and an active profile."
     echo
