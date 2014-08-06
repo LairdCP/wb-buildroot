@@ -241,7 +241,7 @@ wifi_start() {
     if [ -e "$EVENT_MON" ] \
     && ! pidof event_mon >/dev/null
     then
-      $EVENT_MON -ologging -b0x0000001FA3008000 &
+      $EVENT_MON -ologging -b0x0000003FA3008000 &
       msg "  started: event_mon[$!]"
     fi
   fi
