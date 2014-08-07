@@ -1,0 +1,142 @@
+From ca08316f447169a5b47c742c9157037dcd32f9f0 Mon Sep 17 00:00:00 2001
+From: Dan Kephart <dan.kephart@lairdtech.com>
+Date: Wed, 6 Aug 2014 16:15:42 -0400
+Subject: [PATCH] ath6kl: Adding ATHEROS_CMD_FW_ERROR multicast message
+
+When firmware recovery is enabled, this will sent a message that the
+firmware has crashed to userspace.
+
+BUG: 5157
+RN: Driver now supports SDC_E_FW_ERROR event for SDK Events
+---
+ drivers/net/wireless/ath/ath6kl/core.h     |   14 ++++++++
+ drivers/net/wireless/ath/ath6kl/recovery.c |    2 ++
+ drivers/net/wireless/ath/ath6kl/wmi.c      |   48 +++++++++++++---------------
+ 3 files changed, 39 insertions(+), 25 deletions(-)
+
+diff --git a/drivers/net/wireless/ath/ath6kl/core.h b/drivers/net/wireless/ath/ath6kl/core.h
+index d6b1025..9774fba 100644
+--- a/drivers/net/wireless/ath/ath6kl/core.h
++++ b/drivers/net/wireless/ath/ath6kl/core.h
+@@ -874,6 +874,19 @@ static inline u32 ath6kl_get_hi_item_addr(struct ath6kl *ar,
+ 	return addr;
+ }
+ 
++enum atheros_cmd_id {
++	ATHEROS_CMD_UNSPEC,
++	ATHEROS_CMD_RESPONSE,
++	ATHEROS_CMD_EVENT,
++	ATHEROS_CMD_GET_VALUE,
++	ATHEROS_CMD_SET_PHY_MODE,
++	ATHEROS_CMD_SEND_WMI,
++	ATHEROS_CMD_QUITTING,
++	ATHEROS_CMD_FW_ERROR,
++	__ATHEROS_CMD_MAX,
++};
++#define ATHEROS_CMD_MAX (__ATHEROS_CMD_MAX - 1)
++
+ int ath6kl_configure_target(struct ath6kl *ar);
+ void ath6kl_detect_error(unsigned long ptr);
+ void disconnect_timer_handler(unsigned long ptr);
+@@ -914,6 +927,7 @@ void aggr_reset_state(struct aggr_info_conn *aggr_conn);
+ struct ath6kl_sta *ath6kl_find_sta(struct ath6kl_vif *vif, u8 *node_addr);
+ struct ath6kl_sta *ath6kl_find_sta_by_aid(struct ath6kl *ar, u8 aid);
+ 
++void ath6kl_drv_event_multicast(enum atheros_cmd_id cmd_id, unsigned int reason);
+ void ath6kl_ready_event(void *devt, u8 *datap, u32 sw_ver, u32 abi_ver,
+ 			enum wmi_phy_cap cap);
+ int ath6kl_control_tx(void *devt, struct sk_buff *skb,
+diff --git a/drivers/net/wireless/ath/ath6kl/recovery.c b/drivers/net/wireless/ath/ath6kl/recovery.c
+index 3a8d5e9..e9ad462 100644
+--- a/drivers/net/wireless/ath/ath6kl/recovery.c
++++ b/drivers/net/wireless/ath/ath6kl/recovery.c
+@@ -41,6 +41,8 @@ static void ath6kl_recovery_work(struct work_struct *work)
+ 
+ void ath6kl_recovery_err_notify(struct ath6kl *ar, enum ath6kl_fw_err reason)
+ {
++	ath6kl_drv_event_multicast(ATHEROS_CMD_FW_ERROR, reason);
++
+ 	if (!ar->fw_recovery.enable)
+ 		return;
+ 
+diff --git a/drivers/net/wireless/ath/ath6kl/wmi.c b/drivers/net/wireless/ath/ath6kl/wmi.c
+index 475cc7d..7a73765 100644
+--- a/drivers/net/wireless/ath/ath6kl/wmi.c
++++ b/drivers/net/wireless/ath/ath6kl/wmi.c
+@@ -4319,18 +4319,6 @@ static struct genl_family atheros_fam = {
+ 	.maxattr = ATHEROS_ATTR_MAX,
+ };
+ 
+-enum {
+-	ATHEROS_CMD_UNSPEC,
+-	ATHEROS_CMD_RESPONSE,
+-	ATHEROS_CMD_EVENT,
+-	ATHEROS_CMD_GET_VALUE,
+-	ATHEROS_CMD_SET_PHY_MODE,
+-	ATHEROS_CMD_SEND_WMI,
+-	ATHEROS_CMD_QUITTING,
+-	__ATHEROS_CMD_MAX,
+-};
+-#define ATHEROS_CMD_MAX (__ATHEROS_CMD_MAX - 1)
+-
+ static struct genl_multicast_group atheros_events_mcgrp = {
+ 	.name = "events",
+ };
+@@ -4568,6 +4556,28 @@ nla_put_failure:
+ 	nlmsg_free(msg);
+ }
+ 
++void ath6kl_drv_event_multicast(enum atheros_cmd_id cmd_id, unsigned int reason)
++{
++	struct sk_buff *msg;
++	void *hdr;
++
++	msg = genlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
++	if (msg)
++		hdr = genlmsg_put(msg, 0, 0, &atheros_fam, 0, cmd_id);
++	if (!hdr)
++		nlmsg_free(msg);
++	else {
++		nla_put_u32(msg, ATHEROS_ATTR_MSG, reason);
++		genlmsg_end(msg, hdr);
++		genlmsg_multicast(msg, 0, atheros_events_mcgrp.id, GFP_KERNEL);
++	}
++
++	return;
++
++nla_put_failure:
++	genlmsg_cancel(msg, hdr);
++	nlmsg_free(msg);
++}
+ 
+ /* commands: mapping between the command enumeration and the actual function*/
+ struct genl_ops atheros_ops[] = {
+@@ -4646,24 +4656,12 @@ void *ath6kl_wmi_init(struct ath6kl *dev)
+ 
+ void ath6kl_wmi_shutdown(struct wmi *wmi)
+ {
+-	struct sk_buff *msg;
+-	void *hdr;
+-
+ 	if (!wmi)
+ 		return;
+  	
+ 	gwmi = NULL;
+ 
+-	/* Announce our shutdown */
+-	msg = genlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
+-	if (msg)
+-		hdr = genlmsg_put(msg, 0, 0, &atheros_fam, 0, ATHEROS_CMD_QUITTING);
+-	if (!hdr)
+-		nlmsg_free(msg);
+-	else {
+-		genlmsg_end(msg, hdr);
+-		genlmsg_multicast(msg, 0, atheros_events_mcgrp.id, GFP_KERNEL);
+-	}
++	ath6kl_drv_event_multicast(ATHEROS_CMD_QUITTING, 0);
+ 
+  	/* unregister the atheros family*/
+  	if (genl_unregister_family(&atheros_fam) != 0) 
+-- 
+1.7.9.5
+
