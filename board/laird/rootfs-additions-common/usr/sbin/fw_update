@@ -2,7 +2,7 @@
 # Firmware Update Utility for WB40n/WB45n
 # jon.hefling@lairdtech.com, 29-Jun'12 - 02-Jun'14
 #
-VERSION=20131217h
+VERSION=20131217h+
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
@@ -154,13 +154,20 @@ __END-OF-JSON-NOTIFICATION-BLOCK
 }
 
 ask() {
+  # preset last param for optional expected reply and flush input
   [ "${1:0:2}" == "-e" ] && { e=${1:2}; shift; } || e=
   IFS= read -rst1 -n11
-  eval ${@##* }=
+  eval ${@##* }=$e
+
+  # prompt
   read "$@"
   p=${1/*\[/[}
   test -n "$e" \
     && echo -e "${p//?/\b}[${a:-$e}]\033[K"
+
+  # test if reply is/was expected
+  eval ans=\$${@##* }
+  test "$ans" == "$e"
 }
 
 exit_error() {
