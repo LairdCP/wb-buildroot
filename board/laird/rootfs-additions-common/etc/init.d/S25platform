@@ -87,8 +87,8 @@ case $1 in
         |/usr/bin/od -t x1 -N 3 \
         |/bin/sed -n '1s/^....... \(..\) \(..\) \(..\)/00:17:23:\1:\2:\3/p'`
 
-      echo "    storing temporary (randomized) mac address: $random_mac"
-      ifconfig eth0 hw ether $random_mac
+      echo "    setting temporary (randomized) mac address: $random_mac"
+      ip link set address $random_mac dev eth0
       #fw_setenv ethaddr $random_mac
       touch /tmp/eth0_has_random_mac
       touch /tmp/platform_update_request
