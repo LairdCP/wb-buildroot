@@ -1,8 +1,8 @@
 #!/bin/ash
 # Firmware Select Utility for WB40n/WB45n
-# jon.hefling@lairdtech.com, 29-Jun'12
+# jon.hefling@lairdtech.com, 29-Jun'12 - 15-Aug'14
 #
-VERSION=20131217g
+VERSION=20131217h
 SELF=${0##*/}
 X=/dev/null
 
@@ -48,7 +48,7 @@ d.) Set kernel loglevel value in bootargs, or restore it.
   Example:
     fw_select --loglevel                   (..set default loglevel)
 
-e.) Show details of flash memory layout and images.
+e.) Show details of flash memory layout and versions of all detected images.
   Usage: --show
 
 --Usage-Info--
@@ -425,7 +425,7 @@ case $1 in
     exec $0 -h
     ;;
 
-  --show) ## flash memory layout and images info
+  --show) ## flash memory layout and images detected
     let kip=0+`kernel_x` rip=0+`rootfs_x` addr=0
     echo $wb - flash memory
     echo "  mtd     address     size      description"
@@ -444,7 +444,9 @@ case $1 in
         at91bs ) vers=`strings $mtd |sed -n 's/\(^[0-9]\..\..-.*\) (.*)/\1/p'`;;
         u-boot ) vers=`strings $mtd |sed -n 's/^U-Boot \(20...*\) (.*)/\1/p'`;;
         kernel*) vers=`strings $mtd |sed '/^Linux-.*/!d;q'`;;
-        rootfs*) vers=`strings $mtd |sed -n '/Laird Linux/{s/.* //p;q}'`;;
+        rootfs*) vers=`strings $mtd |sed -n \
+                                         -e '/Laird Linux/{s/.* //p;q}' \
+                                         -e '/SDC Linux Release/{s/.* //p;q}'`;;
       esac
       echo "$vers"
       let addr+=$size
