@@ -1,0 +1,57 @@
+#!/usr/bin/env ash
+
+# /usr/bin/log_dump Support utility to gather logs for support to assist
+# with issue debugging
+
+# MSD customers may wish to use a different location
+LOGLOCALE=/tmp
+
+LOGFILE=${LOGLOCALE}/log_dump.txt
+
+LOG_DUMP_VERSION=20140825
+
+echo "= = = = = = = = = = = = = = = = = = = =" >> $LOGFILE
+echo "log_dump file create with version " $LOG_DUMP_VERSION >> $LOGFILE
+date >> $LOGFILE
+echo "-----uptime-----" >> $LOGFILE
+uptime >> $LOGFILE
+cat /etc/summit-release >> $LOGFILE
+uname -a >> $LOGFILE
+echo "-----kernel cmd line-----" >> $LOGFILE
+cat /proc/cmdline >> $LOGFILE
+echo "-----uboot env-----" >> $LOGFILE
+fw_printenv >> $LOGFILE
+sdc_cli <<EOF >> $LOGFILE
+!echo "-----sdc_cli version-----" >> $LOGFILE
+version
+!echo "-----sdc_cli status-----" >> $LOGFILE
+status
+!echo "-----sdc_cli profile list-----" >> $LOGFILE
+profile list
+profile dumpall
+EOF
+echo "-----ifrc -v wlan0-----" >> $LOGFILE
+ifrc -v wlan0 >> $LOGFILE
+echo "-----ifrc -v-----" >> $LOGFILE
+ifrc -v >> $LOGFILE
+echo "-----bridge staus------" >> $LOGFILE
+ifrc br0 >> $LOGFILE
+echo "-----route info-----" >> $LOGFILE
+ip route show >> $LOGFILE
+echo "-----ifrc log-----" >> $LOGFILE
+cat /var/log/ifrc/wlan0 >> $LOGFILE
+echo "-----top-----" >> $LOGFILE
+top -b -n 1 >> $LOGFILE
+echo "-----df-----" >> $LOGFILE
+df >> $LOGFILE
+echo "-----logread-----" >> $LOGFILE
+logread >> $LOGFILE
+echo "-----processes-----" >> $LOGFILE
+ps >> $LOGFILE
+echo "- - - - - - - - - - DMESG - - - - - - - - - - " >> $LOGFILE
+dmesg >> $LOGFILE
+
+echo "The file" $LOGFILE "was created.  Please provide this file to"
+echo "your support contact."
+
+exit 0
