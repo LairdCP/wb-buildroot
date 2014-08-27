@@ -27,8 +27,10 @@ set -x -e
 # real version is in init.d/opt and works w/ inetd or standalone
 rm -f $TARGETDIR/etc/init.d/S50sshd
 
-# remove default lighttpd init
+# remove default init's, they are replaced
 rm -f $TARGETDIR/etc/init.d/S50lighttpd
+rm -f $TARGETDIR/etc/init.d/S01logging
+rm -f $TARGETDIR/etc/init.d/S20urandom
 
 # remove bash cruft
 rm -fr $TARGETDIR/etc/bash*
