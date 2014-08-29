@@ -1,8 +1,8 @@
 #!/bin/ash
 # Firmware Update Utility for WB40n/WB45n
-# jon.hefling@lairdtech.com, 29-Jun'12 - 02-Jun'14
+# jon.hefling@lairdtech.com, 29-Jun'12 - 15-Aug'14
 #
-VERSION=20131217h+
+VERSION=20131217i
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
@@ -37,7 +37,7 @@ Optionally, the 'fw_select' utility can be used to:
   c) transfer files from or to the alternate rootfs
   d) restore/recover u-boot_env defaults
 
-Using 'fw_update':                                (or try '--usage ${FWUL##*/}')
+Using 'fw_update':
   A firmware-update-list file is used, containing each image md5, name, size.
 
   Each image source is evaluated to ensure it exists and is of non-zero length.
@@ -51,13 +51,15 @@ Using 'fw_update':                                (or try '--usage ${FWUL##*/}')
   be able to re-attempt the update again.  (use 'fw_select' for more options)
   Note: the at91bs and u-boot images should only be updated if very necessary.
 
+  Use the '-c' flag, to also check each flashed image update, for matched md5.
+
+  Using '-d', allows just downloading the update-list, for optional editing.
+
   The update procedure may be controlled via the firmware-update-list, by also
-  including lines with any flag options and an optional shell script+args.
-
-  Flashed image updates will also be checked with the '-c' flag.
-
+  including lines with any flag options and an optional shell script-&-args.
+                                      (for more info, try '--usage ${FWUL##*/}')
 Extended operations:
-  Automatic after an updating:  notify, transfer, and reboot
+  Automatic after updating:  notify, transfer, and reboot
 
   Disable extended operations with the '-x' flag.  For control of a specific
   operation, append first-letter like: '-x[ntr]'.
@@ -70,7 +72,7 @@ Extended operations:
   The status word is one of: update_(failure|pending|success)
 
 Example usage:                                   (to see options, try '-h')
-  fw_update /media/usb0/path/to/${FWUL##*/}
+  fw_update /media/usb0/<path/to>/${FWUL##*/}
            (..use local method)
 
   fw_update ftp://<server/path/to/>/${FWUL##*/}
@@ -82,15 +84,20 @@ Example usage:                                   (to see options, try '-h')
   fw_update -xr --url http://<server/path> /root/fw.txt
            (..use local list w/remote http method, no reboot)
 
-  fw_update -f -c -xnr path/to/${FWUL##*/}
+  fw_update -f -c -xnr <path/to>/${FWUL##*/}
            (..force, check, transfer, but dont notify or reboot)
 
+  fw_update -d http://<server/path/to/>/${FWUL##*/}
+           (..download the update-list, then can edit $FWUL and re-run )
+
+  fw_update --url http://http://<server/path>
+           (..re-run using $FWUL and with applied images server link )
 End
 --Usage-Info--
 
   [ -n "$1" ] && cat << --Usage-Info--
-The firmware-update-list file is required, always,
-  And can also be used to control the updating options.
+A firmware-update-list file '${FWUL##*/}' is always required for operation.
+  It may be any name with a '.txt' extension, and is processed as $FWUL.
 
   The first line of a firmware-update-list may have '# <wb-target-version>'
   and a check is then made to match the WB platform for the firmware-update.
@@ -174,6 +181,7 @@ exit_error() {
   let error && $x_notify && $0 --n $nsap update_failure
   echo -e "${1:+  ...$@}"
   grep -s . /tmp/fwu.error
+  mv $FWUL $FWUL~ 2>$X
   rm -f /tmp/fwu.*
   exit 1
 } >&2
@@ -249,6 +257,9 @@ parse_flags() {
   -c) ## check md5's of the updated images
     o_check=true
     ;;
+  -d) ## don't update, just download the update-list
+    o_dnload=true
+    ;;
   -x*) ## exit after update, disable notify|transfer|reboot '-x[ntr]*'
     [ -z ${1/-x} ] || [ x == ${1/*n*/x} ] && x_notify=false
     [ -z ${1/-x} ] || [ x == ${1/*t*/x} ] && x_transfer=false
@@ -282,7 +293,8 @@ do
     ;;
 
   --url) ## specify images server link for a local update-list
-    [ $# -gt 2 ] && isl=${2%/*}
+    test -n ${isl:=${2%/}}"" && shift \
+      || exit_error "specify images server link for a local update-list"
     ;;
 
   --tm*) ## enable persistent testmode, or disable with '--tm off'
@@ -313,7 +325,7 @@ do
     exit 0
     ;;
 
-  -nv|-[qfc]|-x*) # stow optional flags
+  -nv|-[qfcd]|-x*) # stow optional flags
     [ "-q" == "$1" ] && o_verbose=false
     fls=${fls:+$fls }${1}
     ;;
@@ -359,7 +371,12 @@ ping_server() {
   ping -W2 -c1 $host >$X
 }
 
-# prep update
+# assume remote
+test -z "$url" \
+  && { [ fwul == "${isl/*.txt/fwul}" ] && url=$isl; }
+  ## use the images-server-link as url if contains fwul
+
+# assume local
 test -z "$url" \
   && { url=`pwd`/${FWUL##*/}; [ -f $url ] || url=${FWUL}; }
   ## attempt to guess local path for the fwul when not given
@@ -374,21 +391,24 @@ then
   # may be appended to the url as: ?nsap=<host>:<port>
   nsap=${url#*\?nsap=}; nsap=${nsap##*$host*}; nsap=${nsap:-$host:$NS_PORT}
   url=${url%%\?*}
-  test -z "${url/*${FWUL##*/}}" \
-    || url=${url%/}/${FWUL##*/}
 
-  verbose "Downloading from $host to $FWUL"
+  test fwul == "${url/*.txt/fwul}" \
+    || exit_error "firmware-update-list required, try '--usage'"
+  verbose "Downloading '${url##*/}' from $host to $FWUL"
   rm -f $FWUL
   wget $wget_opt $url -O $FWUL 2>$X \
-    || exit_error "could not retrieve \"${FWUL##*/}\""
+    || exit_error "could not retrieve \"${url##*/}\""
 
 else
   # assuming fwul path to be of a mounted filesystem
   # look for and copy the fwul to /tmp
   [ -d $url ] && url=${url%/}/${FWUL##*/}
-  [ -f $url ] || exit_error "firmware-update-list? ${url##$FWUL}"
-  verbose "Copying from ${url%/*} to $FWUL"
-  copy $url -O $FWUL 2>$X
+  [ -f $url ] || exit_error "firmware-update-list? ${url##*/}"
+  if [ "$url" != "$FWUL" ]
+  then
+    verbose "Copying '${url##*/}' from ${url%/*}/ to $FWUL"
+    copy $url -O $FWUL 2>$X
+  fi
 fi
 
 # parse firmware-update-list
@@ -401,7 +421,6 @@ else
   ## convert from older format if necessary
   if grep -q ".*\.bin\ \+[0-9a-f]\{32\}" $FWUL
   then
-    cp -f $FWUL $FWUL~
     sed -e '/[0-9a-f]\{32\}/{s/ *\([^ #]\+\)\///}' \
         -e '/[0-9a-f]\{32\}/{s/ *\([^ #]\+\) *\([0-9a-f]\{32\}\)/\2  \1/}' \
         -e 's/#\+ */# /;s/^[^ #] */  &/' \
@@ -450,6 +469,12 @@ o_verbose=
 
 # process any flags, cmdline preferred over fwul
 for f in ${fls:-$flags}; do parse_flags $f; done
+
+# bail if set option download for remote fwul
+test remote == "${url/*:*/remote}" \
+  && ${o_dnload:-false} && exit 0
+
+mv $FWUL $FWUL~ 2>$X
 
 # foreach set default if unset
 o_verbose=${o_verbose:-true}
