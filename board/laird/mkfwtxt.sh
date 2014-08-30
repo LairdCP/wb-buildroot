@@ -46,7 +46,18 @@ echo >>$fwul
 
 # apply optional flags or shell lines
 #echo "  flags -c" >>$fwul
-#
+
+# add transfer-list section
+cat >>$fwul<<\
+--transfer-list--
+# transfer-list
+  /etc/summit/profiles.conf
+  /etc/network/interfaces
+  /etc/ssl/certs
+  /root/.ssh
+
+--transfer-list--
+
 # display file
 echo $fwul:
 cat $fwul
