@@ -2,7 +2,7 @@
 # Firmware Update Utility for WB40n/WB45n
 # jon.hefling@lairdtech.com, 29-Jun'12 - 15-Aug'14
 #
-VERSION=20131217i+
+VERSION=20131217j
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
@@ -105,6 +105,9 @@ A firmware-update-list file '${FWUL##*/}' is always required for operation.
   Each listed image may include the absolute, or a relative, url/path/name.
   Specific images or lines may be commented-out w/'#', and thus skipped over.
 
+  A section for a 'transfer-list' is defined with a comment using this word,
+  and ending with a blank line. See 'fw_select --transfer help' for details.
+
   Flags in the firmware-update-list are used in lieu of any on the cmdline.
   After updating the images, an optional shell invocation plus args, is run.
 
@@ -115,7 +118,7 @@ Format of ${FWUL##*/}:
     shell <invocation and args to run>
     flags <cmdline flags to apply>
 
-Example ${FWUL##*/}:  (new)
+Example ${FWUL##*/}:
   # wb45n-laird_fips-3.4.1.105
   # example of a wb45n update with bootstrap disabled
   # ab8d615dac1be37e71b42d1c29f10a9d  at91bs.bin  11444
@@ -128,6 +131,12 @@ Example ${FWUL##*/}:  (new)
 
   # run a user script on the WB as part of the post-update step
     shell /root/my_script -a -b -c
+
+  # transfer-list
+    /etc/summit/profiles.conf
+    /etc/network/interfaces
+    /root/my_file
+    /usr/local/bin/my_app
 
 End
 --Usage-Info--
@@ -452,10 +461,6 @@ else
   test -n "${2}" && [ "${2:0:1}" != "/" -a "${2/*:*/:}" != ":" ] \
     && ROOTFS_URL=${isl:-${url%/*}}/${2/^.\/}
 
-  ## parse other options
-  flags=$( sed -n '/^ *fl[ags]* /{s/.*fl[ags]* //p;q}' $FWUL )
-  shell=$( sed -n '/^ *sh[ell]* /{s/.*sh[ell]* //p;q}' $FWUL )
-
   ## confirm matching target wb??n update if version-tag found
   vt=$( sed -n '1s/^[# ]*\([^ ]*wb[45][05][^ ]\+\)/\1/p' $FWUL )
   if [ -n "$vt" ]
@@ -464,6 +469,13 @@ else
     || exit_error "aborted, $wb update mismatch: $vt"
     verbose "  ...updating to $vt"
   fi
+
+  ## parse other options
+  flags=$( sed -n '/^ *fl[ags]* /{s/.*fl[ags]* //p;q}' $FWUL )
+  shell=$( sed -n '/^ *sh[ell]* /{s/.*sh[ell]* //p;q}' $FWUL )
+
+  ## parse/copy transfer-list items to file
+  sed -n '/transfer-list/,/^$/p' $FWUL >>/tmp/alt_rootfs.transfer-list
 fi
 o_verbose=
 
