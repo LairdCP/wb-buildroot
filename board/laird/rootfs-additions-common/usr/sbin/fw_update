@@ -2,7 +2,7 @@
 # Firmware Update Utility for WB40n/WB45n
 # jon.hefling@lairdtech.com, 29-Jun'12 - 15-Aug'14
 #
-VERSION=20131217i
+VERSION=20131217i+
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
@@ -373,8 +373,8 @@ ping_server() {
 
 # assume remote
 test -z "$url" \
-  && { [ fwul == "${isl/*.txt/fwul}" ] && url=$isl; }
-  ## use the images-server-link as url if contains fwul
+  && { [ fwul == "${isl/*.txt/fwul}" ] && url=$isl; isl=${isl/*.txt}; }
+  ## use the images-server-link as url if contains the fwul, then trim
 
 # assume local
 test -z "$url" \
