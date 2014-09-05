@@ -186,10 +186,10 @@ case $action in
     # Re-write entries in routing table, only for this interface, if set.
     if [ -n "$router" ]
     then
+      { read -rs ifindex < /sys/class/net/$interface/ifindex; } 2>/dev/null
+
       # preserve other-default-routes excluding this interface
       odr=$( ip route |sed -n "/via /{/$interface/d;s/^[ \t]*//p}" )
-
-      { read -rs ifindex < /sys/class/net/$interface/ifindex; } 2>/dev/null
 
       # for rt_tables
       if [ -n "$tn" ]
@@ -198,6 +198,7 @@ case $action in
         weight=weight\ ${weight:-${ifindex:-1}}
         nexthop=nexthop
       else
+        weight=
         nexthop=
         odr=
       fi

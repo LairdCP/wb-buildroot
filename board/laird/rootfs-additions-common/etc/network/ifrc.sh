@@ -65,7 +65,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140716
+ifrc_Version=20140828
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -1352,18 +1352,19 @@ case ${IFRC_METHOD%% *} in
     # add default route
     if [ -n "$gw" ]
     then
+      { read -r ifindex < /sys/class/net/$dev/ifindex; } 2>/dev/null
+
       # preserve other-default-routes excluding this interface
       odr=$( ip route |sed -n "/via /{/$dev/d;s/^[ \t]*//p}" )
-
-      { read -r ifindex < /sys/class/net/$dev/ifindex; } 2>/dev/null
 
       # for rt_tables
       if [ -n "$tn" ]
       then
-        # determine a weight for the interface
+        # determine a weight for this interface
         weight=weight\ ${weight:-${ifindex:-1}}
         nexthop=nexthop
       else
+        weight=
         nexthop=
         odr=
       fi
