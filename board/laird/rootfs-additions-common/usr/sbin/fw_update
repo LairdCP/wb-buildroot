@@ -1,8 +1,8 @@
 #!/bin/ash
 # Firmware Update Utility for WB40n/WB45n
-# jon.hefling@lairdtech.com, 29-Jun'12 - 15-Aug'14
+# jon.hefling@lairdtech.com, 29-Jun'12 - 04-Sep'14
 #
-VERSION=20131217j
+VERSION=20131217k
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
@@ -685,10 +685,11 @@ test_image() {
   if $o_check
   then
     verbose "_reading\c"
-    md5sum /tmp/fwu.fifo >/tmp/fwu.md5 &
+    head -c $sz /tmp/fwu.fifo |md5sum >/tmp/fwu.md5 &
     await $! $et _
-    mtd_debug read /dev/$tp 0 $sz /tmp/fwu.fifo >$X 2>&1
-    error=$?
+    nanddump -qf /tmp/fwu.fifo --omitoob --bb=skipbad /dev/$tp 2>/tmp/fwu.error
+    # legitimate exit is zero or sigpipe
+    [ 0 -eq $? -o $? -eq 141 ]; error=$?
     echo -e `grep -qso "^[0-9a-f]\{32\}" /tmp/fwu.md5 || echo ^ERROR`' \c'
     read md5 in_flash < /tmp/fwu.md5
     test "$md5" == "$1"
@@ -698,12 +699,14 @@ test_image() {
     echo ^OK${tm:+...testmode}
   else
     echo ^FAIL${tm:+...testmode}
+    grep -s . /tmp/fwu.error
     if $o_check
     then
       echo "  $md5  $image"
       echo "  $1  expected"
     fi
   fi
+  let errors+=error
   eval ${tm:+error=0}
   unset md5
   return $error
