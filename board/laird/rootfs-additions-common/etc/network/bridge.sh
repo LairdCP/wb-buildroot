@@ -14,7 +14,8 @@ bridge_method="manual"          ## config method is manual/static/dhcp/...
 bridge_ports="eth0 wlan0"       ## iface ports to be bridged
 bridge_fd="0"                   ## set forwarding delay in seconds
 bridge_stp="off"                ## spanning tree protocol is off/on
-bridge_setup="auto"             ## setup is auto/manual, and any flags [-v]
+bridge_setup="auto"             ## setup is auto/manual, and any flags:
+  ##                            --verbose or -v
   ##
   ## defaults in lieu of bridge_* settings from cli or from the /e/n/i file
 
@@ -58,14 +59,22 @@ br_start() {
   # read mac of the virtual bridge interface
   read braddr < /sys/class/net/$bridge_iface/address
 
+  # wait n deciseconds for wireless setup to complete
+  n=27 && while [ -d /tmp/wifi^ ] && let n--; do usleep 98765; done
+
   echo Installing L2 bridging rules.
-  # prevent bridge ARP packets from interfering w/DHCP
+
+  if [ -S /tmp/wpa_supplicant/wlan0 ]
+  then
+    # apply ARP NAT for wireless
+    $ebtables -t nat -A POSTROUTING -o wlan0 -j arpnat --arpnat-target ACCEPT
+    $ebtables -t nat -A PREROUTING -i wlan0 -j arpnat --arpnat-target ACCEPT
+    # route EAPoL for wireless
+    $ebtables -t broute -A BROUTING -i wlan0 --protocol 0x888e -j DROP
+  fi
+
+  # prevent bridge ARP packets from interfering with DHCP
   $ebtables -A FORWARD -i wlan0 --protocol 0x0806 --arp-mac-src $braddr -j DROP
-  # apply arp nat for wireless
-  $ebtables -t nat -A POSTROUTING -o wlan0 -j arpnat --arpnat-target ACCEPT
-  $ebtables -t nat -A PREROUTING -i wlan0 -j arpnat --arpnat-target ACCEPT
-  # route EAPoL for wireless
-  $ebtables -t broute -A BROUTING -i wlan0 --protocol 0x888e -j DROP
 }
 
 br_stop() {
