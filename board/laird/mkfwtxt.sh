@@ -45,7 +45,8 @@ done
 echo >>$fwul
 
 # apply optional flags or shell lines
-#echo "  flags -c" >>$fwul
+echo "  flags -c" >>$fwul
+echo >>$fwul
 
 # add transfer-list section
 cat >>$fwul<<\
