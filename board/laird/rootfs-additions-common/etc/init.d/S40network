@@ -214,8 +214,10 @@ case $act in
     ;;
 
   restart)
+    $msg -n Restarting network interface... $devls
     $0 $devls stop $@
     $0 $devls start $@
+    $msg ${alert:+\\\n \ $alert}
     ;;
 
   status)
