@@ -190,14 +190,15 @@ wifi_start() {
     if ! pidof hostapd >/dev/null \
     && ! pidof sdcsupp >/dev/null
     then
-      cf=${hostapd##* }                             ## must have config file
-      test -s "$cf" \
-        || { msg "hostapd.conf error"; return 1; }
+      test -s "${cf:=${hostapd##* }}" \
+        || { msg "hostapd config file error"; return 1; }
 
-      # ensure the ssid has wl_vei suffix
-      wl_vei=${wl_mac#??:??:??} wl_vei=${wl_vei//:}
-      grep -q "^ssid=wb..n_${wl_vei}" $cf \
-        || sed "/^ssid=wb..n/s/\(=wb..n\).*/\1_${wl_vei}/" -i $cf
+      if grep -q "^ssid=wb..n_id-not-set" $cf
+      then
+        wl_vei=${wl_mac#??:??:??}
+        msg "setting the hostapd ssid in $cf"
+        sed "/^ssid=wb..n/s/_.*/_${wl_vei//:}/" -i $cf && fsync $cf
+      fi
 
       # construct the hostapd invocation and execute (flags can be in /e/n/i)
       #debug=-d                                   ## allow debug/err capture
