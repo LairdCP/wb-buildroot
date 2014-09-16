@@ -22,12 +22,13 @@ usage() {
 	  -v   be more verbose...
 	  -n   no logging to files
 	  -m   monitor ifrc events
+	  -#   inet family protocol
 	  -x   run w/o netlink daemon
 	     ( Note:  ifrc may be disabled with:  /etc/default/ifrc.disable )
 	  
 	Interface:
 	  name must be kernel-resident, or will try to start
-	  can be an alias (such as 'wl' for wireless, see /e/n/i file)
+	  can be an alias defined in /e/n/i file
 	
 	Action:
 	  stop|start|restart   - act on phy-init/driver (up or down the hw-phy)
@@ -65,7 +66,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140828
+ifrc_Version=20140902
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -150,6 +151,9 @@ parse_flag() {
     -m*) ## monitor nl/ifrc events for iface
       test -z "${mm:=${1:2}}" && { mm=`tty` || mm=/dev/console; }; true
       ;;
+    -[046]) ## intend link/inet4/inet6 protocol family
+      alias ip=ip\ ${ipf:=$1}
+      ;;
     -x) ## do not run netlink daemon
       ifnl_disable=.
       ;;
@@ -188,6 +192,14 @@ ifnl_s=${ifnl_s//dormant/dt}
 
 [ "$vm" == "....." ] && set -x
 
+# set family
+case $ipf in
+  '') inet='inet[ 46]*' ;;
+  -4) inet='inet[^6]*' ;;
+  -6) inet='inet[6]' ;;
+  -0) inet='link' ;;
+esac
+
 pause() { 
   # n[.nnn] sec -- a zero value means indefinite
   test -p ${ifrc_Lfp}/- || mkfifo ${ifrc_Lfp}/- 2>/dev/null
@@ -219,9 +231,9 @@ sleuth_wl() {
 summarize_interface_status() {
   if ! grep -qs 'u[pn]' /sys/class/net/$dev/operstate
   then
-    is=inactive
+    is=${mp_cdt%% *},\ inactive
   else
-    is=active
+    is=${mp_cdt%% *},\ active
     { read -r x </sys/class/net/$dev/carrier; } 2>/dev/null
     if ! let x+0
     then
@@ -253,11 +265,11 @@ show_interface_config_and_status() {
 
   [ -n "${vm:1:1}" ] \
   && filter=';s/ mtu/\n\t&/;s/\( state [^ ]*\)\(.*\)/\2\1/' \
-  || filter=';s/ qdisc//;s/ pfi[^ ]*//;s/ qlen [0-9]\+//'
+  || filter=';s/ qdisc//;s/ pfi[^ ]*//;s/ master [^ ]\+//;s/ qlen [0-9]\+//'
 
   ip addr show ${dev:+dev $dev} \
     |sed -e 's/^[0-9]\+: //;s/\([a-z].*:\) /\n\1\t/'"$filter"';s/    /\t/' \
-         -e '/inet6/d;/valid_lft/d'
+         -e '/_lft/d'
 
   : ${dev:=$( sleuth_wl )}
   # include association info for wireless dev
@@ -361,10 +373,14 @@ case $1 in
     then
       echo
       /etc/network/bridge.sh 2>/dev/null && echo
-      echo Routing:
-      ip route show
-      echo -e "\nDNS:\r\tresolv.conf"
-      sed '/^#/d;/^$/d' /etc/resolv.conf 2>/dev/null
+      # inet protocol family
+      if [ "$ipf" != "-0" ]
+      then
+        echo Routing:
+        ip route show
+        echo -e "\nDNS:\r\tresolv.conf"
+        sed '/^#/d;/^$/d' /etc/resolv.conf 2>/dev/null
+      fi
     fi
     exit 0
     ;;
@@ -435,7 +451,8 @@ read_ifrc_info() {
     if [ -n "$devalias" ]\
     && [ -n "$dev" ]
     then
-      return 0
+      eval ${ifrc_Settings##*;}
+      return $?
     fi
   fi
   return 1
@@ -446,10 +463,8 @@ if ! read_ifrc_info $dev \
 then
   # Generally, operations are on a specific interface.
   # It is possible that the $dev may initially be unknown.
+  # A stanza uses '$dev' as a dev*alias or as dev*iface name.
   # For /e/n/i stanza lookups, we assume the use of $devalias.
-  #
-  # Find iface stanza using '$dev' as a dev*alias or as dev*iface name.
-  # Then extract any general settings for it.
   msg3 "  checking /e/n/i file..."
   D='[a-z][a-z][a-z0-9]*'
   devalias=$( sed -n "/$dev/s/^[ \t]*alias \($D\)[ is]* \($D\)/\1 \2/p" $eni )
@@ -525,7 +540,7 @@ make_() { ( eval $1; x=$?; [ ${1:0:1} == / ] && echo \ \ ${1##*/}: $x ); }
 
 fn() { { msg2 "+ $*"; } 2>/dev/null; eval "$*" 2>&1 || { msg "? $*"; false; }; }
 
-export ifrc_Settings=fls=\"$fls\"\ mm=$mm\ vm=$vm\ qm=$qm\ mpr=$mpr
+export ifrc_Settings=fls=\"$fls\"\ mm=$mm\ vm=$vm\ qm=$qm\;\ mpr=$mpr
 
 # external globals - carried per instance and can be used by *-do scripts
 export IFRC_STATUS="${ifnl_s:-  ->  }"
@@ -543,7 +558,7 @@ test -n "$1" \
 if [ "$IFRC_ACTION" == "up" ]
 then
   # get current iface stanza crc from /e/n/i
-  eni_sc=$( sed '/./{H;$!d;};x;/[#]*iface '$devalias' inet/!d;n' $eni |cksum )
+  eni_sc=$( sed "/./{H;$!d;};x;/[#]*iface $devalias inet/!d;a\\" $eni |cksum )
 
   if [ -n "$ifnl_s" ]
   then
@@ -569,22 +584,25 @@ then
       else
         # use eni settings
         methvia="(via /e/n/i)"
-        IFRC_METHOD=$( sed -n "/^iface $devalias inet /\
-                              {s/.* inet \([a-z]*\)/\1/p;q;}" $eni )
+        # use first iface inet and its trailing options
+        IFRC_METHOD=$( sed -n "/^iface $devalias $inet/\
+                              {s/.* $inet \([a-z]*\)/\1/p;q;}" $eni )
         set -- $IFRC_METHOD \
-               $( sed -n "/^iface $devalias inet $IFRC_METHOD/,/^if/!d;/^$/q;\
-                              s/^[ \t]\+\([^#][a-z]*\)[ ]\(.*\)/\1=\2/p" $eni )
+             $( sed "/^iface $devalias $inet $IFRC_METHOD/,/^if/!d;/^$/q;\
+                       /ifrc-/d;/alias/d;\
+                            s/^[ \t]\+\([^#][a-z]*\)[ ]\(.*\)/\1=\2/p" -n $eni )
         IFRC_METHOD=$@
       fi
     fi
 
-    # check /e/n/i for ifrc-pre/post-d/cfg-do tasks
-    # only do this if not already set and not via nld
+    # check /e/n/i stanza for ifrc-pre/post-d/cfg-do tasks
+    # and only if not already set and not via nld
+    # use tasks following matching iface inet
     if [ -z "$IFRC_SCRIPT" -a -z "$ifnl_s" ]
     then
       msg3 "parsing /e/n/i for pre/post conf directives, intended for $dev..."
 
-      set -- "$( sed -n "/^iface $devalias/,/^if/!d;/^$/q;\
+      set -- "$( sed -n "/^iface $devalias $inet /,/^if/!d;/^$/q;\
          s/^[ \t]\+\([^#]p[or][se][t]*\)-\([d]*cfg\)-do \(.*\)/\1_\2_do='\3'/p"\
                        $eni 2>/dev/null )"
       IFRC_SCRIPT=$@
@@ -697,9 +715,9 @@ else
   && [ -f /etc/iproute2/rt_tables ] \
   && { read i < /sys/class/net/$dev/ifindex; } 2>/dev/null
   then
-    let i+=100; tn=t.$dev
+    tn=t.$dev
     grep -q "$tn" /etc/iproute2/rt_tables \
-      || printf "$i\t$tn\n" >>/etc/iproute2/rt_tables
+      || { let i+=100; printf "$i\t$tn\n" >>/etc/iproute2/rt_tables; }
   fi
 fi
 
@@ -745,7 +763,8 @@ case $IFRC_ACTION in
         |sed 's/^/  /;s/broad/b/;s/  pr/\t pr/'
       else
         echo -e "\nRouting: "
-        ip route show dev $dev
+        ip route show ${tn:+table t.$dev} dev $dev 2>/dev/null \
+        || { msg "  note - $tn not in rt_tables"; ip route show dev $dev; }
         echo -e "\nARP:     \n  ...\c"
         ip neigh show dev $dev \
           |sed '1s/^./\r&/;s/lladdr/at/'
@@ -757,7 +776,7 @@ case $IFRC_ACTION in
       f2='\(:[^ ]* *[^ ]*:[^ ]* *\)'
       f3='\(\".*\",[0-9]*\)'
       echo -e "\nConnections:\n  ...\c"
-      ss -4ntuwp \
+      ss $ipf -ntuwp \
         |sed -e '1{s/.*//;N;s/\n//};/user/!d' \
              -e 's/^'"$f1"'.*'"$f2"'u[^ ]\+'"$f3"',.*/\r\1   \2   \3/'
     fi
@@ -776,7 +795,7 @@ case $IFRC_ACTION in
     ;;
 
   eni) ## report interface stanza
-    sed '/./{H;$!d;};x;/[#]*iface '$devalias' inet/!d;a' $eni
+    sed '/./{H;$!d;};x;/[#]*iface '"$devalias inet"'/!d;a\\' $eni
     exit 0
     ;;
 
@@ -891,7 +910,7 @@ case $IFRC_ACTION in
     ;;
 
   \.\.) ## refresh cached configuration
-    eni_sc=$( sed '/./{H;$!d;};x;/[#]*iface '$devalias' inet/!d;n' $eni |cksum )
+    eni_sc=$( sed "/./{H;$!d;};x;/[#]*iface $devalias inet/!d;a\\" $eni |cksum )
     if [ -d ${ifrc_Lfp}/$dev.cfg ]
     then
       msg1 \ \ ...$dev.cfg exists, no refresh
@@ -1338,7 +1357,7 @@ case ${IFRC_METHOD%% *} in
       rc_exit 1
     else
     # ip-addr-modify NIP/NM and BRD
-      xip=$( ip addr show dev $dev |sed -n '/inet/{s/.*t \([^ ]*\).*/\1/p;q}' )
+      xip=$( ip addr show dev $dev |sed -n "/$inet/{s/.*t \([^ ]*\).*/\1/p;q}" )
       if [ -n "$xip" ]
       then
         fn ip addr add $ip/32 dev $dev
