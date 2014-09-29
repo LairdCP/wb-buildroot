@@ -19,7 +19,7 @@ case $1 in
   start)
     echo -n "Starting logging services:"
     
-    /sbin/syslogd -D -C32 -m0 \
+    /sbin/syslogd -D -C512 -m0 \
     && echo -n " syslogd"
     
     /sbin/klogd \
