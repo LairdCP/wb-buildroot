@@ -34,17 +34,21 @@ onexit() {
 trap onexit 0 1 15
 
 snooze() {
-  test -p $wdP || return 1
+  test -p "$wdP" || return 1
   read -rst${1:-1} <>$wdP
   return 0
+} 2>/dev/null
+
+check_pid_of_lighttpd() {
+  read -r pid < /var/run/lighttpd.pid \
+  && test -f /proc/$pid/comm
 } 2>/dev/null
 
 while snooze 1
 do
   : ${lighttpd_state_ref:=0}
 
-  if { read -rst1 pid < /var/run/lighttpd.pid; } 2>/dev/null \
-  && [ -f /proc/$pid/com ]
+  if check_pid_of_lighttpd
   then
     lighttpd_state=1
     if [ $lighttpd_state -ne $lighttpd_state_ref ]
