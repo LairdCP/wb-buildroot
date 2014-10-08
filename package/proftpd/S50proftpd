@@ -1,43 +1,50 @@
-#!/bin/sh 
+#!/bin/sh
 # proftpd - ftp daemon init-script
 # supports inetd and pre-checking configuration
 
-trap "" 1
-trap "" 15
 [ ! -d /var/run/proftpd ] && mkdir /var/run/proftpd
 [ ! -f /var/log/wtmp ] && touch /var/log/wtmp
 
+
 pre_check() {
-  [ -s /etc/proftpd.conf ] \
-  || { on_error="config missing"; return 1; }
-  
-  if [ -z "$inetd_" ]
+  test -s /etc/proftpd.conf \
+    || { on_error="-- proftpd.conf file n/a"; return 1; }
+
+  # run via inetd
+  if [ -n "$inetd_" ]
   then
-    # set ServerType to "standalone" if necessary
-    sed '/^ServerType[\t ]*inetd/s/inetd/standalone/' -i /etc/proftpd.conf
-  else
     # set ServerType to "inetd" if necessary
-    sed '/^ServerType[\t ]*standalone/s/standalone/inetd/' -i /etc/proftpd.conf
+    grep -q '^ServerType[[:space:]]\+standalone' /etc/proftpd.conf \
+    && sed '/^ServerType/s/standalone/inetd/' -i /etc/proftpd.conf \
+    && fsync /etc/proftpd.conf
+  else
+    # set ServerType to "standalone" if necessary
+    grep -q '^ServerType[[:space:]]\+inetd' /etc/proftpd.conf \
+    && sed '/^ServerType/s/inetd/standalone/' -i /etc/proftpd.conf \
+    && fsync /etc/proftpd.conf
   fi
+  return 0
 }
 
 case "$1" in
   stop)
-    echo -n "Stopping ProFTPD: "
+    echo -n "Stopping ProFTPd "
     killall proftpd 2>/dev/null
-    echo "OK"
+    echo "-OK"
     ;;
 
   start)
-    echo -n "Starting ProFTPD: "
-    [ -z "$rcS_" ] && pre_check
-    /usr/sbin/proftpd
-    if [ $? != 0 ]
+    echo -n "Starting ProFTPd "
+    test -z "$rcS_" \
+      && pre_check
+
+    if [ $? -eq 0 ] \
+    && /usr/sbin/proftpd
     then
-      echo "FAILED ${on_error:+- $on_error}"
-      false
+      echo "-OK"
     else
-      echo "OK"
+      echo "-FAILED ${on_error}"
+      false
     fi
     ;;
 
@@ -47,13 +54,12 @@ case "$1" in
     ;;
 
   check)
-    pre_check
+    pre_check || { echo "${0##*/} $1 ${on_error}"; false; }
     ;;
-  
-  *)
-    echo "Usage: $0 {stop|start|restart}"
-    false
-	;;
-esac
 
-exit 0
+  *)
+    echo "Usage: $0 {stop|start|restart|check}"
+    false
+	 ;;
+esac
+exit $?
