@@ -49,6 +49,7 @@ inet_service() {
         sed "s/^#$1/$1/" -i /tmp/inetd.conf
         ;;
     esac
+    fsync /tmp/inetd.conf
     kill -s HUP $inetd_pid \
       || echo $0 $* - failed >/dev/console
   fi
@@ -101,7 +102,7 @@ case $1 in
     ;;
 
   *service) ## un/set inet service
-    inet_service https $1
+    inet_service https $2
     exit $?
     ;;
 
