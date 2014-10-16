@@ -126,7 +126,7 @@ then
   if [ $sz -le 102400 ]
   then
     read -rs us is </proc/uptime
-    printf "% 13.2f __$0 $@\n" $us >>$LOG_FILE
+  printf "% 13.2f __$0 $@ ${ip:+ IP:$ip}\n" $us >>$LOG_FILE
   else
     LOG_FILE=/dev/null
   fi
