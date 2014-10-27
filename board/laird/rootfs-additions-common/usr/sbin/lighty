@@ -21,8 +21,10 @@ lighttpd_initscript=/etc/init.d/S??lighttpd
 
 # option verbose
 test "$1" == "-v" \
-  && { verbose() { printf "$@" >>$console; }; shift; } \
+  && { verbose() { printf -- "%b" "$*" >>$console; } 2>/dev/null; shift; } \
   || { verbose() { : ; }; console=/dev/null; }
+
+exec 2>$console
 
 redirect() {
   # redirect the host and close
@@ -119,13 +121,11 @@ while read -rt1 stream
 do
   verbose "$stream\n"
   case $stream in
-    GET\ *)
-      req=${stream#*/}
-      req=${req%% *}
+    GET\ /*)
+      req=${stream#* /} req=${req%%[$'\r'$'\n';\ \\\`]*}
       ;;
     Host:\ *)
-      host=${stream#*: }
-      host=${host%$'\r'*}
+      host=${stream#*: } host=${host%%[$'\r'$'\n';\ \\\`]*}
       ;;
   esac
 done
