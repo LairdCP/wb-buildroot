@@ -66,7 +66,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140902
+ifrc_Version=20140908
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -708,17 +708,17 @@ then
 
   msg @. ifrc_s/d/a/m: "$IFRC_STATUS" $IFRC_DEVICE ${IFRC_ACTION:---} \
                        ${IFRC_METHOD%% *} #cdt"${IFRC_SCRIPT:-{\}}"
-else
-  # rt_tables support...
-  if [ "$mpr" == "yes" ] \
-  && { ip rule >/dev/null 2>&1; } \
-  && [ -f /etc/iproute2/rt_tables ] \
-  && { read i < /sys/class/net/$dev/ifindex; } 2>/dev/null
-  then
-    tn=t.$dev
-    grep -q "$tn" /etc/iproute2/rt_tables \
-      || { let i+=100; printf "$i\t$tn\n" >>/etc/iproute2/rt_tables; }
-  fi
+fi
+
+# rt_tables support...
+if [ "$mpr" == "yes" ] \
+&& { ip rule >/dev/null 2>&1; } \
+&& [ -f /etc/iproute2/rt_tables ] \
+&& { read i < /sys/class/net/$dev/ifindex; } 2>/dev/null
+then
+  tn=t.$dev
+  grep -q "$tn" /etc/iproute2/rt_tables \
+    || { let i+=100; printf "$i\t$tn\n" >>/etc/iproute2/rt_tables; }
 fi
 
 #
@@ -843,6 +843,7 @@ case $IFRC_ACTION in
     fn ip addr flush dev $dev
     # also remove any applicable policy rules for the iface
     while ip rule del not table $tn 2>/dev/null; do :;done
+    fn ip route flush cache
     ##
     if [ -n "$post_dcfg_do" ]
     then
@@ -994,12 +995,15 @@ show_filtered_method_params() {
   then
     if [ -n "$vm" ]
     then
-      if [ -n "$ip$nm$gw$bc$ns" ]
+      if [ -n "$ip$nm$nw$wc$bc$gw$ns" ]
       then
+        echo \ \ params:
         echo \ \ ip: $ip
         echo \ \ nm: $nm
-        echo \ \ gw: $gw
+        echo \ \ nw: $nw
+        echo \ \ wc: $wc
         echo \ \ bc: $bc
+        echo \ \ gw: $gw
         echo \ \ ns: $ns
       fi
       [ -n "$rip" ] && msg request-ip-address: $rip
@@ -1020,6 +1024,35 @@ show_filtered_method_params() {
   fi
 }
 
+mp_calc_nw_wc_bc() {
+  if [ "${ip/[0-9]*.[0-9]*.[0-9]*.[0-9]*/dqa}" == "dqa" ] \
+  && [ "${nm/[0-9]*.[0-9]*.[0-9]*.[0-9]*/dqa}" == "dqa" ]
+  then
+    local n x x1 x2 x3 x4 o1 o2 o3 o4 m1 m2 m3 m4
+    n=0; for x in ${1//./ }; do let n++; eval o$n=$x; done
+    n=0; for x in ${2//./ }; do let n++; eval m$n=$x; done
+    let x1="$o1 & $m1"
+    let x2="$o2 & $m2"
+    let x3="$o3 & $m3"
+    let x4="$o4 & $m4"
+  : ${nw:=$x1.$x2.$x3.$x4}
+    let x1="255 -($x1 | $m1)"
+    let x2="255 -($x2 | $m2)"
+    let x3="255 -($x3 | $m3)"
+    let x4="255 -($x4 | $m4)"
+  : ${wc:=$x1.$x2.$x3.$x4}
+    let x1="$x1 +($o1 & $m1)"
+    let x2="$x2 +($o2 & $m2)"
+    let x3="$x3 +($o3 & $m3)"
+    let x4="$x4 +($o4 & $m4)"
+  : ${bc:=$x1.$x2.$x3.$x4}
+    unset n x x1 x2 x3 x4 o1 o2 o3 o4 m1 m2 m3 m4
+  else
+    msg "Error: invalid address (ip) and/or netmask (nm) specified."
+    return 1
+  fi
+} 2>/dev/null
+
 cidr_to_ip_nm() {
   if ip=${1%/*} && [ ${1%/[0-9]*} != ${1} ]
   then
@@ -1027,7 +1060,7 @@ cidr_to_ip_nm() {
     local mx maskdgt=254\ 252\ 248\ 240\ 224\ 192\ 128
     let px=${1#*/}/8 px*=4 mx=7-${1#*/}%8 mx*=4
     set -- ${maskpat:0:$px}${maskdgt:$mx:3}
-    nm=${1:-0}.${2:-0}.${3:-0}.${4:-0}
+  : ${nm:=${1:-0}.${2:-0}.${3:-0}.${4:-0}}
     unset px maskpat mx maskdgt
   fi
 }
@@ -1086,6 +1119,7 @@ ifrc_validate_static_method_params() {
     esac
     mp_cdt=${mp_cdt:+$mp_cdt }$x
   done
+  mp_calc_nw_wc_bc ${ip:=0.0.0.0} ${nm:=255.255.255.255} || :
   show_filtered_method_params
 }
 
@@ -1348,25 +1382,17 @@ case ${IFRC_METHOD%% *} in
 
   static) ## method + optional params
     ifrc_validate_static_method_params
-    ## configure interface <ip [+nm] [+gw] [+ns]..>
-    #
-    if [ -z "$ip" ]
-    then
-      msg "configuration in-complete, need at least an address: ip=x.x.x.x[/b]"
-      ifrc_stop_netlink_daemon
-      rc_exit 1
-    else
-    # ip-addr-modify NIP/NM and BRD
-      xip=$( ip addr show dev $dev |sed -n "/$inet/{s/.*t \([^ ]*\).*/\1/p;q}" )
-      if [ -n "$xip" ]
-      then
-        fn ip addr add $ip/32 dev $dev
-        fn ip addr del $xip dev $dev
-      fi
-      fn ip addr add $ip${nm:+/$nm} ${bc:+broadcast $bc} dev $dev
-      test -n "$xip" \
-        && fn ip addr del $ip/32 dev $dev
-    fi
+
+    # ip-addr-modify IP/NM and BC
+    xip=$( ip -4 -o addr show dev $dev primary \
+         |grep -o '[0-9]*\.[0-9]*\.[0-9]*\.[0-9/]*/[0-9]*' )
+
+    test -n "$xip" \
+      && fn ip addr add $ip/32 ${bc:+broadcast $bc} dev $dev \
+      && fn ip addr del $xip dev $dev
+    : && fn ip addr add $ip${nm:+/$nm} ${bc:+broadcast $bc} dev $dev
+    test -n "$xip" \
+      && fn ip addr del $ip/32 dev $dev
 
     # add default route
     if [ -n "$gw" ]
@@ -1388,6 +1414,7 @@ case ${IFRC_METHOD%% *} in
         odr=
       fi
       default=default
+      metric=${metric:+metric\ $metric}
 
       for ra in $gw
       do
@@ -1403,8 +1430,8 @@ case ${IFRC_METHOD%% *} in
       if [ -n "$tn" ]
       then
         # add network and gateway routes to table
-        fn ip route add $network/$subnet dev $dev src $ip table $tn
-        fn ip route add default via $ra dev $dev table $tn
+        fn ip route add $nw/$nm src $ip dev $dev $metric table $tn
+        fn ip route add default via $ra dev $dev $metric table $tn
         # rewrite policy rules in the lookup table
         while ip rule del not table $tn 2>/dev/null; do :;done
         fn ip rule add from ${ip}/32 lookup $tn  ### outgoing ##
