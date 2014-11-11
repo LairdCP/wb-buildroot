@@ -1,7 +1,7 @@
 #!/usr/bin/env ash
 # /etc/dhcp/udhcpc.script
 # An event action script for udhcpc.
-# jon.hefling@lairdtech.com, 20120521..20140620
+# jon.hefling@lairdtech.com, 20120521..20141028
 
 eval $udhcpc_Settings 2>/dev/null
 test -f /etc/dhcp/udhcpc.conf && . /etc/dhcp/udhcpc.conf
@@ -138,7 +138,7 @@ case $action in
   deconfig)
     # Remove relative entries from the routing table.
     # The iface is still up and accessible.
-    fn ip addr flush dev $interface
+    fn ip -4 addr flush dev $interface
 
     # Remove any applicable policy rules.
     while ip rule del not table $tn 2>/dev/null; do :;done
