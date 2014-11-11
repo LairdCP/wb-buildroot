@@ -66,7 +66,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140908
+ifrc_Version=20140909
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -229,22 +229,18 @@ sleuth_wl() {
 }
 
 summarize_interface_status() {
-  if ! grep -qs 'u[pn]' /sys/class/net/$dev/operstate
+  if is=inactive && grep -qs 'u[pn]' /sys/class/net/$dev/operstate
   then
-    is=${mp_cdt%% *},\ inactive
-  else
-    is=${mp_cdt%% *},\ active
-    { read -r x </sys/class/net/$dev/carrier; } 2>/dev/null
-    if ! let x+0
+    if is=active && read -r x </sys/class/net/$dev/carrier && ! let x+0
     then
       is="$is, no_carrier/cable/link"
     else
       [ ! -d /sys/class/net/$dev/phy80211 ] \
       && is="$is, linked" \
-      || { iw dev $dev link |grep -q Connected && is="$is, associated"; } \
-    fi
+      || { iw dev $dev link |grep -q Connected && is="$is, associated"; }
+    fi 2>/dev/null
   fi
-  ps ax |grep -q "ifplug[d].*${dev}" && is="...managed, $is" || is="...$is" 
+  ps ax |grep -q "ifplug[d].*${dev}" && is="- managed, $is" || is="- $is"
 }
 
 show_interface_config_and_status() {
@@ -269,7 +265,7 @@ show_interface_config_and_status() {
 
   ip addr show ${dev:+dev $dev} \
     |sed -e 's/^[0-9]\+: //;s/\([a-z].*:\) /\n\1\t/'"$filter"';s/    /\t/' \
-         -e '/_lft/d'
+         -e 's/\(scope [^ ]\+\)[ ][^ ]\+/\1/;/_lft/d'
 
   : ${dev:=$( sleuth_wl )}
   # include association info for wireless dev
@@ -409,7 +405,7 @@ case $1 in
     exit 0
     ;;
 
-  flags|address|status|down|dn|up) ## require iface
+  flags|addr*|stat*|down|dn|up) ## require iface
     usage error: "...must specify an interface" "ifrc <iface> $1" 
     ;;
 
@@ -451,6 +447,7 @@ read_ifrc_info() {
     if [ -n "$devalias" ]\
     && [ -n "$dev" ]
     then
+      # re-eval appended settings
       eval ${ifrc_Settings##*;}
       return $?
     fi
@@ -490,7 +487,7 @@ then
   # dev*alias is used to further process settings for dev*iface in /e/n/i
   msg3 "  iface stanza: ${ifacemsg:-?}"
   test -n "$devalias" \
-    || exit 1
+    || { msg "  unknown iface/alias: ${ifacemsg:-?}"; exit 1; }
 
   # check if multipath polcy routing is enabled
   grep -q "^allow-multipath" $eni && mpr=yes || mpr=
@@ -574,7 +571,7 @@ then
       IFRC_METHOD=${@%% cdt{*}
       IFRC_SCRIPT=${@##* cdt{}
     else
-      # a re-'up' when iface stanza not changed in eni
+      # re-'up' when iface stanza not changed in eni
       if [ -n "$mp_cdt" -a -z "${eni_sc/$eni_sk}" ]
       then
         # use cfg in lieu of change
@@ -616,7 +613,7 @@ then
     methvia="(assumed)"
     IFRC_METHOD="dhcp"
   fi
-  IFRC_SCRIPT=${IFRC_SCRIPT/$IFRC_METHOD}
+  IFRC_SCRIPT=${IFRC_SCRIPT#$IFRC_METHOD}
 elif \
    [ "$IFRC_ACTION" == "dn" ] \
 || [ "$IFRC_ACTION" == "down" ]
@@ -726,7 +723,7 @@ fi
 # This script uses down/up with respect to interface (de)configuration only!
 #
 case $IFRC_ACTION in
-  address) ## check if iface is configured and show its ip-address
+  address|addr) ## check if iface is configured and show its ip-address
     # affirm configured <iface>: ip-address [...status]:0/1
     # returns true if the iface is configured with an ip-address
     is=; ip=$( gipa $dev ); rv=$?
@@ -825,7 +822,7 @@ case $IFRC_ACTION in
     exec $nis $dev $IFRC_ACTION ${IFRC_METHOD%% *}
     ;;
 
-  dn|down) ## assume down action ->deconfigure
+  down|dn) ## assume down action ->deconfigure
     ##
     if [ -n "$pre_dcfg_do" ]
     then
