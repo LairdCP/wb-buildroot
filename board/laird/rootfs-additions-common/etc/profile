@@ -37,6 +37,9 @@ then
 
   # find executable
   alias which='fe'
+
+  # shutdown
+  alias shutdown='poweroff'
 fi
 
 # source any configuration files from /etc/profile.d
