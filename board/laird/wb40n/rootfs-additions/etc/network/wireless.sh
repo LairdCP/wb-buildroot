@@ -34,8 +34,8 @@ wifi_config()
   # determine firmware to use; assume (off) non-ccx
   ccx=$( ${SDC_CLI:-:} global show ccx-features )
   case ${ccx##*: } in
-    optimized|full|on) WIFI_FW=$WIFI_FWPATH/fw-ccx ;;
-    off|*) WIFI_FW=$WIFI_FWPATH/fw ;;
+    [Oo]ptimized*|[Ff]ull*|[Oo]n*) WIFI_FW=$WIFI_FWPATH/fw-ccx ;;
+    [Oo]ff*|*) WIFI_FW=$WIFI_FWPATH/fw ;;
   esac
 
   # set method of loading firmware and nvram
