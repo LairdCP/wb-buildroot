@@ -2,7 +2,7 @@
 # Firmware Update Utility for WB40n/WB45n
 # jon.hefling@lairdtech.com, 29-Jun'12 - 04-Sep'14
 #
-VERSION=20131217k
+VERSION=20131217k+ubi
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
@@ -236,7 +236,6 @@ case $wb in
     KIA=0x000a0000
     KIP=3
     RIP=5
-    RIP_opt=
     NWBPS=1250000
     ;;
   wb45n*) ### settings for imageset a/a, add to get b/b
@@ -245,7 +244,6 @@ case $wb in
     KIA=0x000e0000
     KIP=4
     RIP=6
-    RIP_opt=-n
     NWBPS=2000000
     ;;
 esac
@@ -645,19 +643,27 @@ assert_image() {
 }
 
 flash_image() {
-  # args: <image_url> [<nw_opt>]
+  # args: <image_url>
   #
   echo -e "Updating $image \c"
-  verbose
-  ${tm:-:} flash_erase -q /dev/$tp 0 0
-  ${tm:-:} nandwrite -mpq $2 /dev/$tp
-  ${tm:-:} \ \ ^--- $1
-
-  verbose "  (${et}s) erasing\c"
-  ${tm:+:} flash_erase -q /dev/$tp 0 0 || { echo -e "  ...skip\n"; return 1; }
-
-  verbose "_writing\c"
-  ${tm:+:} nandwrite -mpq $2 /dev/$tp < /tmp/fwu.fifo &
+  mtdinfo /dev/$tp |grep -q 'writabl.*tru' \
+    || { echo -e "(protected)\n"; return 1; }
+  verbose ""
+  if ${ubifs:=false}
+  then
+    ${tm:-:} ubiformat /dev/$tp -q -S $sz -f -
+    ${tm:-:} \ \ ^--- $1
+    verbose "  (${et}s) erasing/writing\c"
+    ${tm:+:} ubiformat /dev/$tp -S $sz -f - < /tmp/fwu.fifo >>/tmp/fwu.ubifs &
+  else
+    ${tm:-:} flash_erase -q /dev/$tp 0 0
+    ${tm:-:} nandwrite -mpq /dev/$tp
+    ${tm:-:} \ \ ^--- $1
+    verbose "  (${et}s) erasing\c"
+    ${tm:+:} flash_erase -q /dev/$tp 0 0
+    verbose "/writing\c"
+    ${tm:+:} nandwrite -mpq /dev/$tp < /tmp/fwu.fifo &
+  fi
   ${tm:+eval sleep 0${et} & }
   await $! $et _
 
@@ -685,14 +691,35 @@ test_image() {
   if $o_check
   then
     verbose "_reading\c"
-    head -c $sz /tmp/fwu.fifo |md5sum >/tmp/fwu.md5 &
-    await $! $et _
-    nanddump -qf /tmp/fwu.fifo --omitoob --bb=skipbad /dev/$tp 2>/tmp/fwu.error
-    # legitimate exit is zero or sigpipe
-    [ 0 -eq $? -o $? -eq 141 ]; error=$?
-    echo -e `grep -qso "^[0-9a-f]\{32\}" /tmp/fwu.md5 || echo ^ERROR`' \c'
-    read md5 in_flash < /tmp/fwu.md5
-    test "$md5" == "$1"
+    if $ubifs
+    then
+      { mkdir -p /mnt/$tp
+        ts=$( date +"%b %e %H:%M:%S" )
+      { dmesg -D; set -x; echo; } 2>$X
+      : --- triggered ubifs scan and report ---
+        ubiattach -p /dev/$tp
+      { ubi=$( ubinfo |sed -n '/Present/s/.* \(ubi.\)/\1/p' ); } 2>$X
+      { logread |sed -n "/$ts/"',${s/^.*kernel: //p}'; } 2>$X
+        ubinfo /dev/${ubi}_0 |{ sed '/^[TS]/!d'; } 2>$X
+      { dmesg -E; echo; } 2>$X
+      : --- integrity check using mount ro and crc32 ---
+        mount -t ubifs /dev/${ubi}_0 -r /mnt/$tp \
+          && ubicrc32 /dev/${ubi}_0
+        umount /mnt/$tp
+        ubidetach -p /dev/$tp
+      } >>/tmp/fwu.ubifs 2>&1 &
+      await $! $et _ && wait
+      test -n "`sed -n '/^State:.*OK/,${/^0x......../p}' /tmp/fwu.ubifs`"
+    else
+      head -c $sz /tmp/fwu.fifo |md5sum >/tmp/fwu.md5 &
+      await $! $et _
+      nanddump -qf /tmp/fwu.fifo --bb=skipbad /dev/$tp 2>/tmp/fwu.error
+      # legitimate exit is zero or sigpipe
+      [ 0 -eq $? -o $? -eq 141 ]; error=$?
+      echo -e `grep -qso "^[0-9a-f]\{32\}" /tmp/fwu.md5 || echo ^ERROR`' \c'
+      read md5 in_flash < /tmp/fwu.md5 && rm /tmp/fwu.md5
+      test "$md5" == "$1"
+    fi
   fi
   if ! let error+=$?
   then
@@ -790,17 +817,16 @@ case `rootfs_x` in
   $rip_a) tp=mtd${rip_b}; ab=b;;
   $rip_b) tp=mtd${rip_a}; ab=a;;
 esac
-image=${ROOTFS_IMG%%.*}-$ab
+image=${ROOTFS_IMG%%.*}-$ab ubifs=true
 if assert_image ROOTFS "Root Filesystem"
 then
-  if flash_image $ROOTFS_URL $RIP_opt
+  if flash_image $ROOTFS_URL
   then
     if test_image $ROOTFS_MD5
     then
       if $fw_setenv md5_$image $ROOTFS_MD5
       then
         rootfs=$ab
-        rootfs_tp=$tp
         bootargs=$( $fw_printenv -n bootargs \
                   |sed "s/ubi.mtd=./ubi.mtd=${tp##*mtd}/" )
       fi
@@ -842,17 +868,7 @@ test -n "$kernel" -a -n "$bootcmd" \
 test -n "$rum" \
   && $fw_setenv _ucs $rum
 
-if [ -n "$rootfs_tp" ]
-then
-  read kl < /proc/sys/kernel/printk
-  echo 1 > /proc/sys/kernel/printk
-  ubiattach -p /dev/$rootfs_tp >$X 2>&1
-  usleep 333333
-  ubidetach -p /dev/$rootfs_tp >$X 2>&1
-  echo $kl > /proc/sys/kernel/printk
-fi
-
-rm -f /tmp/fwu.* 2>$X
+rm -f /tmp/fwu.fifo 2>$X
 sync
 
 if $x_transfer
