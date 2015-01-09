@@ -1,8 +1,8 @@
 #!/bin/ash
 # Firmware Update Utility for WB40n/WB45n
-# jon.hefling@lairdtech.com, 29-Jun'12 - 04-Sep'14
+# jon.hefling@lairdtech.com, 29-Jun'12 - 07-Jan'15
 #
-VERSION=20131217k+ubi
+VERSION=20131217k+ubi_e
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
@@ -191,7 +191,7 @@ exit_error() {
   echo -e "${1:+  ...$@}"
   grep -s . /tmp/fwu.error
   mv $FWUL $FWUL~ 2>$X
-  rm -f /tmp/fwu.*
+  rm -f /tmp/fwu.[f]*
   exit 1
 } >&2
 
@@ -485,6 +485,7 @@ test remote == "${url/*:*/remote}" \
   && ${o_dnload:-false} && exit 0
 
 mv $FWUL $FWUL~ 2>$X
+rm -f /tmp/fwu.*
 
 # foreach set default if unset
 o_verbose=${o_verbose:-true}
@@ -588,7 +589,7 @@ assert_image() {
   if [ remote == "${src/*:*/remote}" ]
   then
     ping_server $src \
-      || { echo - server n/a; return 2; }
+      || { echo - server n/a; let errors++; return 2; }
 
     # check image file is really available
     # firstly try to get file info via spider
@@ -615,11 +616,12 @@ assert_image() {
     fi
   fi
   let sz+=0 \
-    || { echo -e - file n/a\\\n\\\t\ $src; grep -s . /tmp/fwu.error; return 3; }
+    || { echo -e - file n/a\\\n\\\t\ $src;
+         grep -s . /tmp/fwu.error; let errors++; return 3; }
 
   eval md5=\$${1}_MD5
   test -n "$md5" \
-    || { echo - md5sum n/a; return 3; }
+    || { echo - md5sum n/a; let errors++; return 3; }
 
   # compare the md5_of_image with the md5_in_flash
   if [ "$md5" == "`$fw_printenv -n md5_$image 2>$X`" ]
@@ -665,9 +667,8 @@ flash_image() {
     ${tm:+:} nandwrite -mpq /dev/$tp < /tmp/fwu.fifo &
   fi
   ${tm:+eval sleep 0${et} & }
-  await $! $et _
-
   rm -f /tmp/fwu.error
+  await $! $et _
   case $1 in
     *://*) ## use a transfer protocol
     txt="image download interrupted"
@@ -697,7 +698,7 @@ test_image() {
         ts=$( date +"%b %e %H:%M:%S" )
       { dmesg -D; set -x; echo; } 2>$X
       : --- triggered ubifs scan and report ---
-        ubiattach -p /dev/$tp
+        ubiattach -p /dev/$tp >$X
       { ubi=$( ubinfo |sed -n '/Present/s/.* \(ubi.\)/\1/p' ); } 2>$X
       { logread |sed -n "/$ts/"',${s/^.*kernel: //p}'; } 2>$X
         ubinfo /dev/${ubi}_0 |{ sed '/^[TS]/!d'; } 2>$X
@@ -723,14 +724,15 @@ test_image() {
   fi
   if ! let error+=$?
   then
-    echo ^OK${tm:+...testmode}
+    echo ^OK
   else
-    echo ^FAIL${tm:+...testmode}
+    echo ^FAIL
     grep -s . /tmp/fwu.error
     if $o_check
     then
       echo "  $md5  $image"
       echo "  $1  expected"
+      x_reboot=false
     fi
   fi
   let errors+=error
@@ -834,7 +836,7 @@ then
   fi
 fi
 
-$tm
+${tm:-:}
 test -n "$shell" \
   && echo shell: \[$shell\] \
   && { test -f "${shell%% *}" && sh - ${shell} || exit_error "failure"; }
@@ -850,6 +852,7 @@ then
 else
   nsap=
 fi
+rm -f /tmp/fwu.[fe]*
 
 echo -e Sync\\\047ing
 $fw_setenv updated_% \
@@ -868,7 +871,6 @@ test -n "$kernel" -a -n "$bootcmd" \
 test -n "$rum" \
   && $fw_setenv _ucs $rum
 
-rm -f /tmp/fwu.fifo 2>$X
 sync
 
 if $x_transfer
@@ -911,4 +913,7 @@ then
     && { echo -e \ \ reboot >&2; ${tm:+:} reboot; exit; }
 fi
 
+${tm:-:} \\\n$SELF v$VERSION \[testmode\]
+
 echo "Done."
+exit $errors
