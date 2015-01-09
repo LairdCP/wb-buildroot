@@ -1,8 +1,8 @@
 #!/bin/ash
 # Firmware Update Utility for WB40n/WB45n
-# jon.hefling@lairdtech.com, 29-Jun'12 - 02-Jun'14
+# jon.hefling@lairdtech.com, 29-Jun'12 - 04-Sep'14
 #
-VERSION=20131217h
+VERSION=20131217k+ubi
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
@@ -37,7 +37,7 @@ Optionally, the 'fw_select' utility can be used to:
   c) transfer files from or to the alternate rootfs
   d) restore/recover u-boot_env defaults
 
-Using 'fw_update':                                (or try '--usage ${FWUL##*/}')
+Using 'fw_update':
   A firmware-update-list file is used, containing each image md5, name, size.
 
   Each image source is evaluated to ensure it exists and is of non-zero length.
@@ -51,13 +51,15 @@ Using 'fw_update':                                (or try '--usage ${FWUL##*/}')
   be able to re-attempt the update again.  (use 'fw_select' for more options)
   Note: the at91bs and u-boot images should only be updated if very necessary.
 
+  Use the '-c' flag, to also check each flashed image update, for matched md5.
+
+  Using '-d', allows just downloading the update-list, for optional editing.
+
   The update procedure may be controlled via the firmware-update-list, by also
-  including lines with any flag options and an optional shell script+args.
-
-  Flashed image updates will also be checked with the '-c' flag.
-
+  including lines with any flag options and an optional shell script-&-args.
+                                      (for more info, try '--usage ${FWUL##*/}')
 Extended operations:
-  Automatic after an updating:  notify, transfer, and reboot
+  Automatic after updating:  notify, transfer, and reboot
 
   Disable extended operations with the '-x' flag.  For control of a specific
   operation, append first-letter like: '-x[ntr]'.
@@ -70,7 +72,7 @@ Extended operations:
   The status word is one of: update_(failure|pending|success)
 
 Example usage:                                   (to see options, try '-h')
-  fw_update /media/usb0/path/to/${FWUL##*/}
+  fw_update /media/usb0/<path/to>/${FWUL##*/}
            (..use local method)
 
   fw_update ftp://<server/path/to/>/${FWUL##*/}
@@ -82,21 +84,29 @@ Example usage:                                   (to see options, try '-h')
   fw_update -xr --url http://<server/path> /root/fw.txt
            (..use local list w/remote http method, no reboot)
 
-  fw_update -f -c -xnr path/to/${FWUL##*/}
+  fw_update -f -c -xnr <path/to>/${FWUL##*/}
            (..force, check, transfer, but dont notify or reboot)
 
+  fw_update -d http://<server/path/to/>/${FWUL##*/}
+           (..download the update-list, then can edit $FWUL and re-run )
+
+  fw_update --url http://http://<server/path>
+           (..re-run using $FWUL and with applied images server link )
 End
 --Usage-Info--
 
   [ -n "$1" ] && cat << --Usage-Info--
-The firmware-update-list file is required, always,
-  And can also be used to control the updating options.
+A firmware-update-list file '${FWUL##*/}' is always required for operation.
+  It may be any name with a '.txt' extension, and is processed as $FWUL.
 
   The first line of a firmware-update-list may have '# <wb-target-version>'
   and a check is then made to match the WB platform for the firmware-update.
 
   Each listed image may include the absolute, or a relative, url/path/name.
   Specific images or lines may be commented-out w/'#', and thus skipped over.
+
+  A section for a 'transfer-list' is defined with a comment using this word,
+  and ending with a blank line. See 'fw_select --transfer help' for details.
 
   Flags in the firmware-update-list are used in lieu of any on the cmdline.
   After updating the images, an optional shell invocation plus args, is run.
@@ -108,7 +118,7 @@ Format of ${FWUL##*/}:
     shell <invocation and args to run>
     flags <cmdline flags to apply>
 
-Example ${FWUL##*/}:  (new)
+Example ${FWUL##*/}:
   # wb45n-laird_fips-3.4.1.105
   # example of a wb45n update with bootstrap disabled
   # ab8d615dac1be37e71b42d1c29f10a9d  at91bs.bin  11444
@@ -121,6 +131,12 @@ Example ${FWUL##*/}:  (new)
 
   # run a user script on the WB as part of the post-update step
     shell /root/my_script -a -b -c
+
+  # transfer-list
+    /etc/summit/profiles.conf
+    /etc/network/interfaces
+    /root/my_file
+    /usr/local/bin/my_app
 
 End
 --Usage-Info--
@@ -154,19 +170,27 @@ __END-OF-JSON-NOTIFICATION-BLOCK
 }
 
 ask() {
+  # preset last param for optional expected reply and flush input
   [ "${1:0:2}" == "-e" ] && { e=${1:2}; shift; } || e=
   IFS= read -rst1 -n11
-  eval ${@##* }=
+  eval ${@##* }=$e
+
+  # prompt
   read "$@"
   p=${1/*\[/[}
   test -n "$e" \
     && echo -e "${p//?/\b}[${a:-$e}]\033[K"
+
+  # test if reply is/was expected
+  eval ans=\$${@##* }
+  test "$ans" == "$e"
 }
 
 exit_error() {
   let error && $x_notify && $0 --n $nsap update_failure
   echo -e "${1:+  ...$@}"
   grep -s . /tmp/fwu.error
+  mv $FWUL $FWUL~ 2>$X
   rm -f /tmp/fwu.*
   exit 1
 } >&2
@@ -212,7 +236,6 @@ case $wb in
     KIA=0x000a0000
     KIP=3
     RIP=5
-    RIP_opt=
     NWBPS=1250000
     ;;
   wb45n*) ### settings for imageset a/a, add to get b/b
@@ -221,7 +244,6 @@ case $wb in
     KIA=0x000e0000
     KIP=4
     RIP=6
-    RIP_opt=-n
     NWBPS=2000000
     ;;
 esac
@@ -241,6 +263,9 @@ parse_flags() {
     ;;
   -c) ## check md5's of the updated images
     o_check=true
+    ;;
+  -d) ## don't update, just download the update-list
+    o_dnload=true
     ;;
   -x*) ## exit after update, disable notify|transfer|reboot '-x[ntr]*'
     [ -z ${1/-x} ] || [ x == ${1/*n*/x} ] && x_notify=false
@@ -275,7 +300,8 @@ do
     ;;
 
   --url) ## specify images server link for a local update-list
-    [ $# -gt 2 ] && isl=${2%/*}
+    test -n ${isl:=${2%/}}"" && shift \
+      || exit_error "specify images server link for a local update-list"
     ;;
 
   --tm*) ## enable persistent testmode, or disable with '--tm off'
@@ -306,7 +332,7 @@ do
     exit 0
     ;;
 
-  -nv|-[qfc]|-x*) # stow optional flags
+  -nv|-[qfcd]|-x*) # stow optional flags
     [ "-q" == "$1" ] && o_verbose=false
     fls=${fls:+$fls }${1}
     ;;
@@ -352,7 +378,12 @@ ping_server() {
   ping -W2 -c1 $host >$X
 }
 
-# prep update
+# assume remote
+test -z "$url" \
+  && { [ fwul == "${isl/*.txt/fwul}" ] && url=$isl; isl=${isl/*.txt}; }
+  ## use the images-server-link as url if contains the fwul, then trim
+
+# assume local
 test -z "$url" \
   && { url=`pwd`/${FWUL##*/}; [ -f $url ] || url=${FWUL}; }
   ## attempt to guess local path for the fwul when not given
@@ -367,21 +398,24 @@ then
   # may be appended to the url as: ?nsap=<host>:<port>
   nsap=${url#*\?nsap=}; nsap=${nsap##*$host*}; nsap=${nsap:-$host:$NS_PORT}
   url=${url%%\?*}
-  test -z "${url/*${FWUL##*/}}" \
-    || url=${url%/}/${FWUL##*/}
 
-  verbose "Downloading from $host to $FWUL"
+  test fwul == "${url/*.txt/fwul}" \
+    || exit_error "firmware-update-list required, try '--usage'"
+  verbose "Downloading '${url##*/}' from $host to $FWUL"
   rm -f $FWUL
   wget $wget_opt $url -O $FWUL 2>$X \
-    || exit_error "could not retrieve \"${FWUL##*/}\""
+    || exit_error "could not retrieve \"${url##*/}\""
 
 else
   # assuming fwul path to be of a mounted filesystem
   # look for and copy the fwul to /tmp
   [ -d $url ] && url=${url%/}/${FWUL##*/}
-  [ -f $url ] || exit_error "firmware-update-list? ${url##$FWUL}"
-  verbose "Copying from ${url%/*} to $FWUL"
-  copy $url -O $FWUL 2>$X
+  [ -f $url ] || exit_error "firmware-update-list? ${url##*/}"
+  if [ "$url" != "$FWUL" ]
+  then
+    verbose "Copying '${url##*/}' from ${url%/*}/ to $FWUL"
+    copy $url -O $FWUL 2>$X
+  fi
 fi
 
 # parse firmware-update-list
@@ -394,7 +428,6 @@ else
   ## convert from older format if necessary
   if grep -q ".*\.bin\ \+[0-9a-f]\{32\}" $FWUL
   then
-    cp -f $FWUL $FWUL~
     sed -e '/[0-9a-f]\{32\}/{s/ *\([^ #]\+\)\///}' \
         -e '/[0-9a-f]\{32\}/{s/ *\([^ #]\+\) *\([0-9a-f]\{32\}\)/\2  \1/}' \
         -e 's/#\+ */# /;s/^[^ #] */  &/' \
@@ -426,10 +459,6 @@ else
   test -n "${2}" && [ "${2:0:1}" != "/" -a "${2/*:*/:}" != ":" ] \
     && ROOTFS_URL=${isl:-${url%/*}}/${2/^.\/}
 
-  ## parse other options
-  flags=$( sed -n '/^ *fl[ags]* /{s/.*fl[ags]* //p;q}' $FWUL )
-  shell=$( sed -n '/^ *sh[ell]* /{s/.*sh[ell]* //p;q}' $FWUL )
-
   ## confirm matching target wb??n update if version-tag found
   vt=$( sed -n '1s/^[# ]*\([^ ]*wb[45][05][^ ]\+\)/\1/p' $FWUL )
   if [ -n "$vt" ]
@@ -438,11 +467,24 @@ else
     || exit_error "aborted, $wb update mismatch: $vt"
     verbose "  ...updating to $vt"
   fi
+
+  ## parse other options
+  flags=$( sed -n '/^ *fl[ags]* /{s/.*fl[ags]* //p;q}' $FWUL )
+  shell=$( sed -n '/^ *sh[ell]* /{s/.*sh[ell]* //p;q}' $FWUL )
+
+  ## parse/copy transfer-list items to file
+  sed -n '/transfer-list/,/^$/p' $FWUL >>/tmp/alt_rootfs.transfer-list
 fi
 o_verbose=
 
 # process any flags, cmdline preferred over fwul
 for f in ${fls:-$flags}; do parse_flags $f; done
+
+# bail if set option download for remote fwul
+test remote == "${url/*:*/remote}" \
+  && ${o_dnload:-false} && exit 0
+
+mv $FWUL $FWUL~ 2>$X
 
 # foreach set default if unset
 o_verbose=${o_verbose:-true}
@@ -601,19 +643,27 @@ assert_image() {
 }
 
 flash_image() {
-  # args: <image_url> [<nw_opt>]
+  # args: <image_url>
   #
   echo -e "Updating $image \c"
-  verbose
-  ${tm:-:} flash_erase -q /dev/$tp 0 0
-  ${tm:-:} nandwrite -mpq $2 /dev/$tp
-  ${tm:-:} \ \ ^--- $1
-
-  verbose "  (${et}s) erasing\c"
-  ${tm:+:} flash_erase -q /dev/$tp 0 0 || { echo -e "  ...skip\n"; return 1; }
-
-  verbose "_writing\c"
-  ${tm:+:} nandwrite -mpq $2 /dev/$tp < /tmp/fwu.fifo &
+  mtdinfo /dev/$tp |grep -q 'writabl.*tru' \
+    || { echo -e "(protected)\n"; return 1; }
+  verbose ""
+  if ${ubifs:=false}
+  then
+    ${tm:-:} ubiformat /dev/$tp -q -S $sz -f -
+    ${tm:-:} \ \ ^--- $1
+    verbose "  (${et}s) erasing/writing\c"
+    ${tm:+:} ubiformat /dev/$tp -S $sz -f - < /tmp/fwu.fifo >>/tmp/fwu.ubifs &
+  else
+    ${tm:-:} flash_erase -q /dev/$tp 0 0
+    ${tm:-:} nandwrite -mpq /dev/$tp
+    ${tm:-:} \ \ ^--- $1
+    verbose "  (${et}s) erasing\c"
+    ${tm:+:} flash_erase -q /dev/$tp 0 0
+    verbose "/writing\c"
+    ${tm:+:} nandwrite -mpq /dev/$tp < /tmp/fwu.fifo &
+  fi
   ${tm:+eval sleep 0${et} & }
   await $! $et _
 
@@ -641,25 +691,49 @@ test_image() {
   if $o_check
   then
     verbose "_reading\c"
-    md5sum /tmp/fwu.fifo >/tmp/fwu.md5 &
-    await $! $et _
-    mtd_debug read /dev/$tp 0 $sz /tmp/fwu.fifo >$X 2>&1
-    error=$?
-    echo -e `grep -qso "^[0-9a-f]\{32\}" /tmp/fwu.md5 || echo ^ERROR`' \c'
-    read md5 in_flash < /tmp/fwu.md5
-    test "$md5" == "$1"
+    if $ubifs
+    then
+      { mkdir -p /mnt/$tp
+        ts=$( date +"%b %e %H:%M:%S" )
+      { dmesg -D; set -x; echo; } 2>$X
+      : --- triggered ubifs scan and report ---
+        ubiattach -p /dev/$tp
+      { ubi=$( ubinfo |sed -n '/Present/s/.* \(ubi.\)/\1/p' ); } 2>$X
+      { logread |sed -n "/$ts/"',${s/^.*kernel: //p}'; } 2>$X
+        ubinfo /dev/${ubi}_0 |{ sed '/^[TS]/!d'; } 2>$X
+      { dmesg -E; echo; } 2>$X
+      : --- integrity check using mount ro and crc32 ---
+        mount -t ubifs /dev/${ubi}_0 -r /mnt/$tp \
+          && ubicrc32 /dev/${ubi}_0
+        umount /mnt/$tp
+        ubidetach -p /dev/$tp
+      } >>/tmp/fwu.ubifs 2>&1 &
+      await $! $et _ && wait
+      test -n "`sed -n '/^State:.*OK/,${/^0x......../p}' /tmp/fwu.ubifs`"
+    else
+      head -c $sz /tmp/fwu.fifo |md5sum >/tmp/fwu.md5 &
+      await $! $et _
+      nanddump -qf /tmp/fwu.fifo --bb=skipbad /dev/$tp 2>/tmp/fwu.error
+      # legitimate exit is zero or sigpipe
+      [ 0 -eq $? -o $? -eq 141 ]; error=$?
+      echo -e `grep -qso "^[0-9a-f]\{32\}" /tmp/fwu.md5 || echo ^ERROR`' \c'
+      read md5 in_flash < /tmp/fwu.md5 && rm /tmp/fwu.md5
+      test "$md5" == "$1"
+    fi
   fi
   if ! let error+=$?
   then
     echo ^OK${tm:+...testmode}
   else
     echo ^FAIL${tm:+...testmode}
+    grep -s . /tmp/fwu.error
     if $o_check
     then
       echo "  $md5  $image"
       echo "  $1  expected"
     fi
   fi
+  let errors+=error
   eval ${tm:+error=0}
   unset md5
   return $error
@@ -743,17 +817,16 @@ case `rootfs_x` in
   $rip_a) tp=mtd${rip_b}; ab=b;;
   $rip_b) tp=mtd${rip_a}; ab=a;;
 esac
-image=${ROOTFS_IMG%%.*}-$ab
+image=${ROOTFS_IMG%%.*}-$ab ubifs=true
 if assert_image ROOTFS "Root Filesystem"
 then
-  if flash_image $ROOTFS_URL $RIP_opt
+  if flash_image $ROOTFS_URL
   then
     if test_image $ROOTFS_MD5
     then
       if $fw_setenv md5_$image $ROOTFS_MD5
       then
         rootfs=$ab
-        rootfs_tp=$tp
         bootargs=$( $fw_printenv -n bootargs \
                   |sed "s/ubi.mtd=./ubi.mtd=${tp##*mtd}/" )
       fi
@@ -795,17 +868,7 @@ test -n "$kernel" -a -n "$bootcmd" \
 test -n "$rum" \
   && $fw_setenv _ucs $rum
 
-if [ -n "$rootfs_tp" ]
-then
-  read kl < /proc/sys/kernel/printk
-  echo 1 > /proc/sys/kernel/printk
-  ubiattach -p /dev/$rootfs_tp >$X 2>&1
-  usleep 333333
-  ubidetach -p /dev/$rootfs_tp >$X 2>&1
-  echo $kl > /proc/sys/kernel/printk
-fi
-
-rm -f /tmp/fwu.* 2>$X
+rm -f /tmp/fwu.fifo 2>$X
 sync
 
 if $x_transfer

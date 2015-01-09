@@ -1,8 +1,8 @@
 #!/bin/ash
 # Firmware Select Utility for WB40n/WB45n
-# jon.hefling@lairdtech.com, 29-Jun'12
+# jon.hefling@lairdtech.com, 29-Jun'12 - 15-Aug'14
 #
-VERSION=20131217g
+VERSION=20131217j
 SELF=${0##*/}
 X=/dev/null
 
@@ -12,6 +12,13 @@ TMF=/etc/default/$SELF.test
 # alternate rootfs
 ALT_ROOTFS_MOUNT=/mnt/alt_rootfs
 ALT_ROOTFS_LOCK=/tmp/alt_rootfs.lock
+
+# default transfer-list
+TRANSFER_LIST_INCLUDE='
+  /etc/random-seed
+  /etc/ssh/moduli
+  /etc/ssh/ssh_host_*key*
+' #^transfer-list
 
 
 show_usage_info() {
@@ -24,15 +31,18 @@ a.) Switch the kernel-a/b and/or rootfs-a/b images to use upon boot.
     fw_select -a                 (..set both kernel-a and rootfs-a)
     fw_select rootfs-b                        (..set just rootfs-b)
 
-b.) Copy select files between the alternate rootfs and the current rootfs-a/b.
-  (For more details and for using a list-file, do: --transfer help)
-  Use 'import' to pull from alternate to the current rootfs.
+b.) Copy select files between the alternate rootfs and a current rootfs-a/b.
+  Files or paths may be read from a list-file or via the command-line.
   Use 'export' to push from the current to the alternate rootfs.
+  Use 'import' to pull from alternate to the current rootfs.
   Use 'access [off]' to just mount or unmount the alternate rootfs.
-  Usage: --transfer {import|export [<path/to/list-file>]}
-         --transfer {access [off]}
-  Example:
-    fw_select --transfer access       (..mount the $ALT_ROOTFS_MOUNT)
+  (For more details and for using a list-file, do: --transfer help)
+  Usage: --transfer {access [off]}
+         --transfer {import|export [<path/to/list-file> | -- <files..>]}
+  Examples:
+    fw_select --transfer access off (..unmount the $ALT_ROOTFS_MOUNT)
+    fw_select --transfer export -- path/file1 path/file2
+             (..push the two path/files to $ALT_ROOTFS_MOUNT)
 
 c.) Restore default bootcmd and bootargs from the u-boot image.
   Without given arg, just restore bootcmd, bootargs and dependent variables.
@@ -48,7 +58,7 @@ d.) Set kernel loglevel value in bootargs, or restore it.
   Example:
     fw_select --loglevel                   (..set default loglevel)
 
-e.) Show details of flash memory layout and images.
+e.) Show details of flash memory layout and versions of all detected images.
   Usage: --show
 
 --Usage-Info--
@@ -57,23 +67,26 @@ e.) Show details of flash memory layout and images.
 This option allows copying select files between the two root-filesystems.
   (such as settings, profiles, certs, keys, etc...)
 
+Note, paths/files included by default: $TRANSFER_LIST_INCLUDE
 Use 'import' to copy from the other filesystem to the current filesystem.
 Use 'export' to copy from the current filesystem to the other filesystem.
   Additional folders/files may be copied (to mirrored locations) by using a
   specified 'transfer-list' file, or if '/tmp/alt_rootfs.transfer-list' file
-  exists. Format is simply a list of paths, and '#' comment lines are ignored.
+  exists. Format is simply a list of paths ('#' comment lines are ignored).
 
-  Items automatically transferred:
+  Sample listing of paths or files:
     /etc/summit/profiles.conf
-    /etc/random-seed
+    /etc/network/interfaces
     /etc/ssl/certs
-    /etc/ssh
     /root/.ssh
 
-  Usage: --transfer import|export [<path/to/list-file>]
-  Example:
+  Usage: --transfer import|export [<path/to/list-file> | -- <files..>]
+  Examples:
     fw_select --transfer import /root/mylist.txt
              (..pull-in default items and also items in mylist.txt)
+
+    fw_select --transfer export -- /path/file1 /path/file2
+             (..push default items and also file1 and file2)
 
 Use 'access' to just mount the other filesystem at $ALT_ROOTFS_MOUNT.
 Use 'access off' to umount the other filesystem at $ALT_ROOTFS_MOUNT.
@@ -294,7 +307,7 @@ alt_rootfs() {
         if mount -t ubifs /dev/ubi${n}_0 $ALT_ROOTFS_MOUNT
         then
           echo mounted /dev/mtd${rip} at $ALT_ROOTFS_MOUNT
-          echo \ \ \ alt_rootfs-`alt_rootfs`: \
+          echo \ \ rootfs-`alt_rootfs`: \
                `grep -so -m1 '[^ ]*$' $ALT_ROOTFS_MOUNT/etc/*-release`
           echo ubi${n} >$ALT_ROOTFS_LOCK
           return 0
@@ -310,27 +323,45 @@ alt_rootfs() {
 
 transfer_system_files() {
   alt_rootfs m || return 1
-  test $1 == -v && { shift; echo transferring system settings; }
-  test $1 != / && echo copying from $1 || echo copying to $2
-  #
-  # args: <source> <target> <path/file>
-  cp_dprf() \
-    { test -e $1$3 && tar -c -C $1 ${3#/} |tar -xv -C $2 |sed 's/^/ _\//'; }
-  #
-  cp_dprf $1 $2 /etc/summit/profiles.conf
-  cp_dprf $1 $2 /etc/random-seed
-  cp_dprf $1 $2 /etc/ssl/certs
-  cp_dprf $1 $2 /etc/ssh
-  cp_dprf $1 $2 /root/.ssh
 
-  # check for additional targets in a list-file
-  # spaces in the path or file name are not handled
-  tls=${3:-/tmp/alt_rootfs.transfer-list}
-  test -f "$tls" \
-  && for i in `sed '/^[ \t]*#/d' $tls`; do cp_dprf $1 $2 $i; done
+  test $1 == -v && { shift; echo "transferring system settings"; }
+  test $1 != / && i=from || i=to
+  echo -e "\ncopying $i alt_rootfs-`alt_rootfs`"
+  #
+  # note: whitespace in the path/file name is not handled
+  # args: <source> <target> <item-path/file>
+  cp_dprf() {
+    if [ -e "$1${3#/}" ]
+    then
+      ${tm:-:} \ \ $3 && ${tm:+return}
+      tar -cC $1 ${3#/} |tar -xvC $2 |sed 's/^/  \//'
+    fi
+  }
 
+  tls=/tmp/transfer-list~
+  s=$1 t=$2 shift 2
+  f=${1/--} shift 1
+  test -n "$f" -a ! -f "$f" \
+    && echo "warning transfer-list file does not exist: $f"
+
+  # check items from a transfer-list file and/or from the command-line
+  # if file exists then include defaults and command-line items
+  # if no transfer-list then only use command-line items
+  f=${f:-/tmp/alt_rootfs.transfer-list}
+  test -s "$f" \
+    && cp $f $tls \
+    || TRANSFER_LIST_INCLUDE=
+
+  for i in $TRANSFER_LIST_INCLUDE $@
+  do
+    grep -qsF "$i" $tls || echo "$i" >>$tls
+  done
+
+  test -s "$tls" \
+    && for i in `sed '/^[ \t]*#/d;s/[ \t]*//' $tls`; do cp_dprf $s $t $i; done
+  echo
+  rm -f $tls
   alt_rootfs u
-  return 0
 }
 
 
@@ -344,10 +375,10 @@ case $1 in
           [ "off" != "$3" ] && alt_rootfs m || alt_rootfs u
           ;;
         export|push) # push select files to alternate rootfs
-          transfer_system_files / $ALT_ROOTFS_MOUNT/ $3
+          shift 2 && transfer_system_files / $ALT_ROOTFS_MOUNT/ $@
           ;;
         import|pull) # pull select files to current rootfs
-          transfer_system_files $ALT_ROOTFS_MOUNT/ / $3
+          shift 2 && transfer_system_files $ALT_ROOTFS_MOUNT/ / $@
           ;;
         '') # assume 'push/pull' based on rule
           [ -n "$rcS_" ] && transfer_system_files -v $ALT_ROOTFS_MOUNT/ /
@@ -425,7 +456,7 @@ case $1 in
     exec $0 -h
     ;;
 
-  --show) ## flash memory layout and images info
+  --show) ## flash memory layout and images detected
     let kip=0+`kernel_x` rip=0+`rootfs_x` addr=0
     echo $wb - flash memory
     echo "  mtd     address     size      description"
@@ -444,7 +475,9 @@ case $1 in
         at91bs ) vers=`strings $mtd |sed -n 's/\(^[0-9]\..\..-.*\) (.*)/\1/p'`;;
         u-boot ) vers=`strings $mtd |sed -n 's/^U-Boot \(20...*\) (.*)/\1/p'`;;
         kernel*) vers=`strings $mtd |sed '/^Linux-.*/!d;q'`;;
-        rootfs*) vers=`strings $mtd |sed -n '/Laird Linux/{s/.* //p;q}'`;;
+        rootfs*) vers=`strings $mtd |sed -n \
+                                         -e '/Laird Linux/{s/.* //p;q}' \
+                                         -e '/SDC Linux Release/{s/.* //p;q}'`;;
       esac
       echo "$vers"
       let addr+=$size
