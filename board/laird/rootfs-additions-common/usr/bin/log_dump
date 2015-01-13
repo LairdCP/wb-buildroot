@@ -55,6 +55,6 @@ echo "- - - - - - - - - - DMESG - - - - - - - - - - " >> $LOGFILE
 dmesg >> $LOGFILE
 
 echo "The file" $LOGFILE "was created.  Please provide this file to"
-echo "your support contact."
+echo "your support contact at ews-support@lairdtech.com"
 
 exit 0
