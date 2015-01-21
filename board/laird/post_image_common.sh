@@ -14,9 +14,12 @@ cp board/laird/rootfs-additions-common/usr/sbin/fw_select "$IMAGESDIR/"
 cp board/laird/rootfs-additions-common/usr/sbin/fw_update "$IMAGESDIR/"
 
 if [ -z "$LAIRD_FW_TXT_URL" ]; then
-    LAIRD_FW_TXT_URL="http://`hostname`/$BR2_LRD_PRODUCT"
+  LAIRD_FW_TXT_URL="http://`hostname`/$BR2_LRD_PRODUCT"
 fi
 
-cd "$IMAGESDIR" && "$TOPDIR/board/laird/mkfwtxt.sh" "$LAIRD_FW_TXT_URL"
-
+if cd "$IMAGESDIR"; then
+  $TOPDIR/board/laird/mkfwtxt.sh "$LAIRD_FW_TXT_URL"
+  $TOPDIR/board/laird/mkfwusi.sh
+  cd - >/dev/null
+fi
 echo "COMMON POST IMAGE script: done."
