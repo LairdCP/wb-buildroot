@@ -12,7 +12,7 @@ tar() {
   tar -b 8 -cvf $1 \#\ ${1##*/} \
     -C $TARGETDIR \
     usr/sbin/fw_update \
-    usr/sbin/fw_select
+    usr/sbin/fw_select \
 
   rm -f \#\ ${1##*/}
 }
