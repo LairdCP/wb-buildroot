@@ -16,7 +16,7 @@
 
 # Firmware Select Utility for WB40n/WB45n
 #
-VERSION=20131217j
+VERSION=20131217j+ubi
 SELF=${0##*/}
 X=/dev/null
 
@@ -25,7 +25,6 @@ TMF=/etc/default/$SELF.test
 
 # alternate rootfs
 ALT_ROOTFS_MOUNT=/mnt/alt_rootfs
-ALT_ROOTFS_LOCK=/tmp/alt_rootfs.lock
 
 # default transfer-list
 TRANSFER_LIST_INCLUDE='
@@ -265,7 +264,7 @@ current_configuration() {
   echo
   grep -qs $ALT_ROOTFS_MOUNT /proc/mounts \
   && echo -e "$ALT_ROOTFS_MOUNT is accessible:" \
-  && echo \ \ \ alt_rootfs-`alt_rootfs`: \
+  && echo -e \ \ rootfs-`alt_rootfs`: \
           `grep -so -m1 '[^ ]*$' $ALT_ROOTFS_MOUNT/etc/*-release`\\\n
 
   if [ -n "$at91bs$u_boot$rootfs$kernel" ]
@@ -292,45 +291,47 @@ alt_rootfs() {
       ;;
 
     u*) # try to unmount
-      if [ -f $ALT_ROOTFS_LOCK ]
-      then
-        umount $ALT_ROOTFS_MOUNT 2>$X
-        ubidetach -p /dev/mtd${rip}
-        rmdir $ALT_ROOTFS_MOUNT
-        rm -f $ALT_ROOTFS_LOCK
-        echo unmounted $ALT_ROOTFS_MOUNT
-      fi
-      return 0
+      unset rv x
+
+      grep -q $ALT_ROOTFS_MOUNT /proc/mounts \
+      && { umount $ALT_ROOTFS_MOUNT && x="unmounted" || rv=1; }
+
+      test -e /dev/ubi[1]_0 \
+      && { ubidetach -p /dev/mtd${rip} && x="$x (ubi1 detached)" || rv=1; }
+
+      test -d $ALT_ROOTFS_MOUNT \
+      && { rmdir $ALT_ROOTFS_MOUNT && x="$x $ALT_ROOTFS_MOUNT" || rv=1; }
+
+      echo -en ${x:+$x\\\n}
+      return $rv
       ;;
 
     m*) # try to mount
-      if [ -f $ALT_ROOTFS_LOCK ]
+      if mkdir $ALT_ROOTFS_MOUNT 2>$X
       then
-        mount |grep `cat $ALT_ROOTFS_LOCK` 2>$X
-        #ubinfo /dev/`cat $ALT_ROOTFS_LOCK`
-        echo "  ...already attached/mounted  (try: '--transfer access off')"
-        echo \ \ \ alt_rootfs-`alt_rootfs`: \
-             `grep -so -m1 '[^ ]*$' $ALT_ROOTFS_MOUNT/etc/*-release`
-        return 0
-      fi
-      mkdir -p $ALT_ROOTFS_MOUNT
-      n=$( ubiattach -p /dev/mtd${rip} |sed 's/.*ice number \([123]\).*/\1/' )
-      if ubinfo /dev/ubi${n} |grep -q "^Present"
-      then
-        # expecting to mount volume_0 of newly attached ubi device n
-        if mount -t ubifs /dev/ubi${n}_0 $ALT_ROOTFS_MOUNT
+        n=$( ubiattach -p /dev/mtd${rip} |sed 's/.*ice number \([123]\).*/\1/' )
+        usleep 200000
+        if [ -n "$n" ] \
+        && ubinfo /dev/ubi${n} |grep -q "^Present volumes: *0" \
+        && mount -t ubifs /dev/ubi${n}_0 $ALT_ROOTFS_MOUNT
         then
-          echo mounted /dev/mtd${rip} at $ALT_ROOTFS_MOUNT
-          echo \ \ rootfs-`alt_rootfs`: \
-               `grep -so -m1 '[^ ]*$' $ALT_ROOTFS_MOUNT/etc/*-release`
-          echo ubi${n} >$ALT_ROOTFS_LOCK
-          return 0
+          echo "mounted /dev/mtd${rip} at $ALT_ROOTFS_MOUNT"
+        else
+          [ -n "$n" ] && ubidetach -p /dev/mtd${rip}
+          echo "  ...unable to mount /dev/mtd${rip}"
+          echo " (try: '--transfer access off')"
+          rmdir $ALT_ROOTFS_MOUNT
+          return 1
         fi
+      else
+        mount |grep $ALT_ROOTFS_MOUNT \
+        && echo -e "  ...already attached-&-mounted \c" \
+        || echo -e "  $ALT_ROOTFS_MOUNT is n/a \c"
+        echo " (try: '--transfer access off')"
       fi
-      echo unable to mount /dev/mtd${rip}
-      ubidetach -p /dev/mtd${rip}
-      rmdir $ALT_ROOTFS_MOUNT
-      return 1
+      echo -e "  rootfs-`alt_rootfs`: \c"
+      grep -so -m1 '[^ ]*$' $ALT_ROOTFS_MOUNT/etc/*-release \
+      || { echo \?; false; }
       ;;
   esac
 }
@@ -386,7 +387,7 @@ case $1 in
     then
       case $2 in
         access) # make the alternate rootfs accessible or not [<off>]
-          [ "off" != "$3" ] && alt_rootfs m || alt_rootfs u
+          if [ "off" != "$3" ]; then alt_rootfs m; else alt_rootfs u; fi
           ;;
         export|push) # push select files to alternate rootfs
           shift 2 && transfer_system_files / $ALT_ROOTFS_MOUNT/ $@
@@ -497,11 +498,6 @@ case $1 in
       let addr+=$size
     done
     echo
-    if [ -f $ALT_ROOTFS_LOCK ]
-    then
-      echo access to alt_rootfs-`alt_rootfs`:
-      mount |grep `cat $ALT_ROOTFS_LOCK` 2>$X || echo not mounted; echo
-    fi
     current_configuration
     ;;
 
@@ -565,6 +561,7 @@ case $1 in
     exit_error "unknown option specified"
     ;;
 esac
+let rv+=$?
 
 if [ -f /tmp/incompatible_u-boot_env ]
 then
@@ -578,3 +575,4 @@ then
 fi
 
 ${tm:-:} "\n  testmode active\n  ...remove '$TMF'\n     or try: '--tm off'" >&2
+exit $rv
