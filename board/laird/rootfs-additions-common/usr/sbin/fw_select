@@ -16,7 +16,7 @@
 
 # Firmware Select Utility for WB40n/WB45n
 #
-VERSION=20131217j+ubi
+VERSION=20131217k+ubi
 SELF=${0##*/}
 X=/dev/null
 
@@ -27,6 +27,7 @@ TMF=/etc/default/$SELF.test
 ALT_ROOTFS_MOUNT=/mnt/alt_rootfs
 
 # default transfer-list
+TRANSFER_LIST_DEFAULT=/tmp/alt_rootfs.transfer-list
 TRANSFER_LIST_INCLUDE='
   /etc/random-seed
   /etc/ssh/moduli
@@ -337,45 +338,56 @@ alt_rootfs() {
 }
 
 transfer_system_files() {
+  test $1 == -v && { shift; echo "transferring system settings"; }
+
   alt_rootfs m || return 1
 
-  test $1 == -v && { shift; echo "transferring system settings"; }
-  test $1 != / && i=from || i=to
-  echo -e "\ncopying $i alt_rootfs-`alt_rootfs`"
+  test $1 != / && st=from || st=to
+  s=$1 t=$2 shift 2
+  echo
   #
   # note: whitespace in the path/file name is not handled
   # args: <source> <target> <item-path/file>
   cp_dprf() {
     if [ -e "$1${3#/}" ]
     then
-      ${tm:-:} \ \ $3 && ${tm:+return}
+      ${tm:-:} \ \ $1${3#/} && ${tm:+return}
       tar -cC $1 ${3#/} |tar -xvC $2 |sed 's/^/  \//'
+    else
+      echo \?\ $1${3#/}
     fi
   }
 
-  tls=/tmp/transfer-list~
-  s=$1 t=$2 shift 2
-  f=${1/--} shift 1
-  test -n "$f" -a ! -f "$f" \
-    && echo "warning transfer-list file does not exist: $f"
+  # combine items from a transfer-list file and/or any given via command-line
+  # if assumed file 'alt_rootfs.transfer-list' exists then include defaults
+  # note - fw_update may create/append to this file; it can also be empty
+  f=${1:-$TRANSFER_LIST_DEFAULT}
+  test "$f" != $TRANSFER_LIST_DEFAULT \
+    && TRANSFER_LIST_INCLUDE=
+  test "$f" != -- || f=
 
-  # check items from a transfer-list file and/or from the command-line
-  # if file exists then include defaults and command-line items
-  # if no transfer-list then only use command-line items
-  f=${f:-/tmp/alt_rootfs.transfer-list}
+  # only accept given items after a double dash
+  while [ -n "$1" -a "$1" != -- ]; do shift; done
+
+  # read file
   test -s "$f" \
-    && cp $f $tls \
-    || TRANSFER_LIST_INCLUDE=
+    && rf=$( sed '/^[ \t]*#/d;s/[ \t]*//' $f ) \
+    || { [ -n "$f" ] && echo "warning - transfer-list file n/a: $f"; }
 
-  for i in $TRANSFER_LIST_INCLUDE $@
+  # compile transfer-list w/o duplicates
+  # then iterate over items for transfer
+  tls=' '
+  for i in $TRANSFER_LIST_INCLUDE $rf $@
   do
-    grep -qsF "$i" $tls || echo "$i" >>$tls
+    [ "$i" != -- -a "${tls#* $i }" == "${tls% $i *}" ] && tls=$tls$i' '
   done
+  unset i
+  test -n "${tls# *}" \
+    && echo "copying ${st} rootfs-`alt_rootfs`" \
+    && for i in $tls; do cp_dprf $s $t $i; i='  '; done \
+    || i=.....
+  echo \ \ ${i:-...}
 
-  test -s "$tls" \
-    && for i in `sed '/^[ \t]*#/d;s/[ \t]*//' $tls`; do cp_dprf $s $t $i; done
-  echo
-  rm -f $tls
   alt_rootfs u
 }
 
