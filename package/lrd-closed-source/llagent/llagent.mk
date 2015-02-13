@@ -17,7 +17,7 @@ endef
 define LLAGENT_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/src/agent/llagent $(TARGET_DIR)/usr/bin/llagent
 	mkdir -p $(TARGET_DIR)/usr/bin/integration-tests/
-	$(INSTALL) -D -m 755 $(@D)/src/platform/wb/test_radio $(TARGET_DIR)/usr/bin/integration-tests/
+	$(INSTALL) -D -m 755 $(@D)/src/platform/laird-sdk/test_radio $(TARGET_DIR)/usr/bin/integration-tests/
 endef
 
 define LLAGENT_UNINSTALL_TARGET_CMDS
