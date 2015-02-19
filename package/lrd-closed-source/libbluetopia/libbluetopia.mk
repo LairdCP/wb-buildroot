@@ -1,7 +1,7 @@
 ###############################################################
 #
 #libbluetopia
-#	
+#
 ##############################################################
 
 
@@ -17,7 +17,7 @@ MAKE_ENV = \
         CROSS_COMPILE=$(TARGET_CROSS) \
         KERNELDIR=$(LINUX_DIR)
 
-define LIBBLUETOPIA_BUILD_CMDS	
+define LIBBLUETOPIA_BUILD_CMDS
 	$(MAKE) $(LINUX_MAKE_FLAGS) -C $(LINUX_DIR) M=$(@D)/USBDriver/driver/source modules
 	$(MAKE) $(LINUX_MAKE_FLAGS) -C $(LINUX_DIR) M=$(@D)/VSER/driver/source modules
 endef
@@ -38,7 +38,7 @@ define LIBBLUETOPIA_INSTALL_TARGET_CMDS
 endef
 
 define LIBBLUETOPIA_INSTALL_INITSCRIPT
-	$(INSTALL) -m 0755 $(@D)/USBDriver/driver/install/S95bluetooth $(TARGET_DIR)/etc/init.d/opt
+	$(INSTALL) -m 0755 $(@D)/USBDriver/driver/install/S95bluetooth $(TARGET_DIR)/etc/init.d
 endef
 
 LIBBLUETOPIA_POST_INSTALL_TARGET_HOOKS += LIBBLUETOPIA_INSTALL_INITSCRIPT
