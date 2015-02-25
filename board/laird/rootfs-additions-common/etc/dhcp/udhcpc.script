@@ -163,6 +163,15 @@ case $action in
     # Must have the ip-address.
     [ -n "$ip" ] || exit_err "address unset"
 
+    # Determine netmask bits.
+    for octet in ${subnet//./ }
+    do
+      for bits in 255:8 254:7 252:6 248:5 240:4 224:3 192:2 128:1 0:0
+      do
+        [ $octet -eq ${bits%:*} ] && { let nm+=${bits#*:}; break; }
+      done
+    done
+
     # Determine broadcast if not given.
     [ -n "$broadcast" ] || broadcast=${ip%.[0-9]*}.255
 
@@ -189,14 +198,20 @@ case $action in
     # Configure the interface -> ip-addr-modify NIP/NM and BRD.
     xip=$( ip addr show dev $interface \
                        |sed -n '/inet/{s/.*t \([^ ]*\).*/\1/p;q}' )
-    if [ -n "$xip" ]
+
+    if [ "$xip" != "$ip/$nm" ]
     then
-      fn ip addr add $ip/32 dev $interface
-      fn ip addr del $xip dev $interface
+      if [ -n "$xip" ]
+      then
+        fn ip addr add $ip/32 dev $interface
+        fn ip addr del $xip dev $interface
+      fi
+      fn ip addr add $ip${subnet:+/$subnet} $broadcast_sv dev $interface
+      test -n "$xip" \
+        && fn ip addr del $ip/32 dev $interface
+    else
+      $vecho "lease address not changed: $ip/$nm" >>$LOG_FILE
     fi
-    fn ip addr add $ip${subnet:+/$subnet} $broadcast_sv dev $interface
-    test -n "$xip" \
-      && fn ip addr del $ip/32 dev $interface
 
     # Re-write entries in routing table, only for this interface, if set.
     if [ -n "$router" ]
