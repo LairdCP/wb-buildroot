@@ -1,0 +1,22 @@
+config BR2_PACKAGE_BTSDK
+	bool "LRD BT"
+	help
+	  Laird BT SDK
+
+if BR2_PACKAGE_BTSDK
+
+config BR2_PACKAGE_BTSDK_PULL_FROM_SVN
+	bool "Pull source code from subversion"
+	help
+	  Pull source code from subversion
+
+if BR2_PACKAGE_BTSDK_PULL_FROM_SVN
+
+config BR2_PACKAGE_BTSDK_SVN_VERSION
+	string "Svn revision/label to pull"
+	help
+	  Svn revision/label to pull
+
+endif
+
+endif
