@@ -38,7 +38,8 @@ define LIBBLUETOPIA_INSTALL_TARGET_CMDS
 endef
 
 define LIBBLUETOPIA_INSTALL_INITSCRIPT
-	$(INSTALL) -m 0755 $(@D)/USBDriver/driver/install/S95bluetooth $(TARGET_DIR)/etc/init.d
+	mkdir -p $(TARGET_DIR)/etc/init.d/
+	$(INSTALL) -m 0755 $(@D)/USBDriver/driver/install/S95bluetooth $(TARGET_DIR)/etc/init.d/S95bluetooth
 endef
 
 LIBBLUETOPIA_POST_INSTALL_TARGET_HOOKS += LIBBLUETOPIA_INSTALL_INITSCRIPT
