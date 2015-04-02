@@ -25,13 +25,6 @@ define MSD45N_BINARIES_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/usr/bin/Flash0_2000_1.bin $(TARGET_DIR)/usr/bin/Flash0_2000_1.bin
     $(INSTALL) -D -m 755 $(@D)/usr/bin/Flash1_2000_1.bin $(TARGET_DIR)/usr/bin/Flash1_2000_1.bin
 	$(INSTALL) -D -m 755 $(@D)/usr/bin/Flash2_C000_1.bin $(TARGET_DIR)/usr/bin/Flash2_C000_1.bin
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/Flash3_2000_1.bin $(TARGET_DIR)/usr/bin/Flash3_2000_1.bin
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/Flash4_2000_1.bin $(TARGET_DIR)/usr/bin/Flash4_2000_1.bin
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/Flash5_2000_1.bin $(TARGET_DIR)/usr/bin/Flash5_2000_1.bin
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/Flash6_1000_2.bin $(TARGET_DIR)/usr/bin/Flash6_1000_2.bin
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/Flash7_1000_2.bin $(TARGET_DIR)/usr/bin/Flash7_1000_2.bin
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/Flash8_1000_2.bin $(TARGET_DIR)/usr/bin/Flash8_1000_2.bin
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/Flash9_1000_2.bin $(TARGET_DIR)/usr/bin/Flash9_1000_2.bin
 	mkdir -p $(TARGET_DIR)/usr/lib
     $(INSTALL) -m 755 $(@D)/usr/lib/libsdc_sdk.so* $(TARGET_DIR)/usr/lib/
 	$(INSTALL) -m 755 $(@D)/usr/lib/liblrd_btsdk.so* $(TARGET_DIR)/usr/lib/
