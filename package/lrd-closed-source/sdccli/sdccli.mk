@@ -14,7 +14,7 @@ SDCCLI_SITE = package/lrd-closed-source/externals/sdc_cli
 SDCCLI_SITE_METHOD = local
 endif
 
-SDCCLI_DEPENDENCIES = libnl sdcsdk libedit
+SDCCLI_DEPENDENCIES = libnl sdcsdk libedit btsdk
 SDCCLI_MAKE_ENV = CC="$(TARGET_CC)" \
                   CXX="$(TARGET_CXX)" \
                   ARCH="$(KERNEL_ARCH)" \
