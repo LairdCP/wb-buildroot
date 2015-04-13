@@ -4,9 +4,9 @@
 #
 #############################################################
 
-EVENTMON_VERSION = 1.1.2
-EVENTMON_SITE = $(DL_DIR)/
-EVENTMON_METHOD = file
+EVENTMON_VERSION = local
+EVENTMON_SITE = package/lrd/externals/eventmon
+EVENTMON_SITE_METHOD = local
 
 ifeq ($(BR2_PACKAGE_MSD45N_BINARIES),y)
 	EVENTMON_DEPENDENCIES = msd45n-binaries
