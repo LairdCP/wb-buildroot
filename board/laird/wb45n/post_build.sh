@@ -21,4 +21,7 @@ gzip -c $TARGETDIR/etc/network/interfaces >$TARGETDIR/etc/network/interfaces~.gz
 # Services to enable or disable by default
 chmod a+x $TARGETDIR/etc/init.d/S??lighttpd
 
+# Fixup and add debugfs to fstab
+echo 'nodev /sys/kernel/debug   debugfs   defaults   0  0' >> $TARGETDIR/etc/fstab
+
 echo "WB45n POST BUILD script: done."
