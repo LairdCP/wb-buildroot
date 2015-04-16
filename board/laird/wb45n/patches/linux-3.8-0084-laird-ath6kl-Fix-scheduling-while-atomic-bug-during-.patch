@@ -1,0 +1,59 @@
+From 547204c51ed18d71bd1cf02ae52e96141acdae01 Mon Sep 17 00:00:00 2001
+From: Dan Kephart <dan.kephart@lairdtech.com>
+Date: Thu, 16 Apr 2015 10:58:09 -0400
+Subject: [PATCH] laird: ath6kl: Fix scheduling while atomic bug during
+ firmware recovery
+
+During firmware recovery, which is done in an interrupt context, some
+atheros driver events are sent via netlink which use GFP_KERNEL.
+Memory allocations using GFP_KERNEL allow for sleeping which is not
+allowed in an interrupt.  Replacing those with GFP_ATOMIC which is safe.
+
+Bug: 6950
+---
+ drivers/net/wireless/ath/ath6kl/wmi.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/wireless/ath/ath6kl/wmi.c b/drivers/net/wireless/ath/ath6kl/wmi.c
+index 7a73765..d37e899 100644
+--- a/drivers/net/wireless/ath/ath6kl/wmi.c
++++ b/drivers/net/wireless/ath/ath6kl/wmi.c
+@@ -4522,7 +4522,7 @@ static void ath6kl_wmi_event_multicast(enum wmi_cmd_id cmd_id, u8 *datap, int le
+ 	void *hdr;
+ 
+ 	//allocate the memory
+-    msg = genlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
++    msg = genlmsg_new(NLMSG_DEFAULT_SIZE, GFP_ATOMIC);
+ 	if (!msg) 
+ 		return;
+ 		
+@@ -4547,7 +4547,7 @@ static void ath6kl_wmi_event_multicast(enum wmi_cmd_id cmd_id, u8 *datap, int le
+ 	genlmsg_end(msg, hdr);
+ 
+    	//send the message */
+-	genlmsg_multicast(msg, 0, atheros_events_mcgrp.id, GFP_KERNEL);
++	genlmsg_multicast(msg, 0, atheros_events_mcgrp.id, GFP_ATOMIC);
+ 		
+ 	return;
+ 
+@@ -4561,7 +4561,7 @@ void ath6kl_drv_event_multicast(enum atheros_cmd_id cmd_id, unsigned int reason)
+ 	struct sk_buff *msg;
+ 	void *hdr;
+ 
+-	msg = genlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
++	msg = genlmsg_new(NLMSG_DEFAULT_SIZE, GFP_ATOMIC);
+ 	if (msg)
+ 		hdr = genlmsg_put(msg, 0, 0, &atheros_fam, 0, cmd_id);
+ 	if (!hdr)
+@@ -4569,7 +4569,7 @@ void ath6kl_drv_event_multicast(enum atheros_cmd_id cmd_id, unsigned int reason)
+ 	else {
+ 		nla_put_u32(msg, ATHEROS_ATTR_MSG, reason);
+ 		genlmsg_end(msg, hdr);
+-		genlmsg_multicast(msg, 0, atheros_events_mcgrp.id, GFP_KERNEL);
++		genlmsg_multicast(msg, 0, atheros_events_mcgrp.id, GFP_ATOMIC);
+ 	}
+ 
+ 	return;
+-- 
+1.7.9.5
+
