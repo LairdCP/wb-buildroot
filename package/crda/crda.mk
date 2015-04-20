@@ -6,7 +6,7 @@
 
 CRDA_VERSION = 1.1.3
 CRDA_SOURCE = crda-$(CRDA_VERSION).tar.bz2
-CRDA_SITE = http://wireless.kernel.org/download/crda
+CRDA_SITE = https://www.kernel.org/pub/software/network/crda
 CRDA_DEPENDENCIES = host-pkgconf libnl openssl wireless-regdb
 CRDA_LICENSE = ISC
 CRDA_LICENSE_FILES = LICENSE
