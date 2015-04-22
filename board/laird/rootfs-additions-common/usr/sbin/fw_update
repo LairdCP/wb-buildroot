@@ -381,7 +381,10 @@ wget() {
       *) exit_error "wget utility is required";;
     esac
   fi
-  command wget $*
+  # workaround for spider mode using gnu version requires verbosity override
+  [ "$1" == "--spider" -a "$wget_version" == "gnu" ] && wget_v=-v || wget_v=
+
+  command wget ${wget_opt} ${wget_v} $*
 } 2>>/tmp/fwu.err
 
 copy() {
@@ -421,7 +424,7 @@ then
     || exit_error "firmware-update-list required, try '--usage'"
   verbose "Downloading '${url##*/}' from $host to $FWUL"
   rm -f $FWUL
-  wget $wget_opt $url -O $FWUL \
+  wget $url -O $FWUL \
     || exit_error "could not retrieve \"${url##*/}\""
 
 else
@@ -615,9 +618,9 @@ assert_image() {
     #==> SIZE kernel.bin ... 1782232 .....ftp method
     #Length: 24133632 (23M) [application/octet-stream] .....http method
     #
-    sz=$( wget --spider $src 2>&1 |tee /tmp/fwu.err \
-        |sed -n 's/.*SIZE.* \([0-9]*\)/\1/p;s/Length: \([0-9]*\)\ .*/\1/p' )
-
+    wget --spider $src #2>>fwu.err
+    sz=$( sed -n 's/.*SIZE.* \([0-9]*\)/\1/p;s/Length: \([0-9]*\)\ .*/\1/p' \
+                                                                  /tmp/fwu.err )
     if [ -z "$sz" ] \
     && wget -q -O - $src |grep -q .....
     then
@@ -689,7 +692,7 @@ flash_image() {
   case $1 in
     *://*) ## using a transfer protocol
     txt="image download/flash interrupted"
-    wget $wget_opt $1 -O /tmp/fwu.fifo
+    wget $1 -O /tmp/fwu.fifo
     ;;
     *) ## assume local copy 
     txt="image copy/flash failed"
