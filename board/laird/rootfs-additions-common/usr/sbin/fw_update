@@ -645,7 +645,7 @@ assert_image() {
       echo - overwriting
     else
       ask -e"n" -p"- overwrite? [y/N ..9s]" -rst9 -n1 a
-      [ "$a" == "n" ] && return 1
+      [ "$a" == "y" ] || return 1
     fi
   else
     echo
