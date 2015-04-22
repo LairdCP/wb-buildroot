@@ -366,6 +366,7 @@ done
 url=$1
 shift $#
 rm -f /tmp/fwu.*
+set -o pipefail
 
 wget() {
   if [ -z $wget_version ]
@@ -671,14 +672,16 @@ flash_image() {
   : >/tmp/fwu.err
   mtdinfo /dev/$tp |grep -q 'writabl.*tru' \
     || { echo -e "(protected)\n"; return 1; }
-  verbose ""
   if ${ubifs:=false}
   then
-    ${tm:-:} ubiformat /dev/$tp -q -S $sz -f -
+    verbose "(ubi)"
+    ${tm:-:} ubiformat -y /dev/$tp -S $sz -f -
     ${tm:-:} \ \ ^--- $1
     verbose "  (${et}s) erasing/writing\c"
-    ${tm:+:} ubiformat /dev/$tp -S $sz -f - < /tmp/fwu.fifo >>/tmp/fwu.ubifs &
+    ${tm:+:} ubiformat -y /dev/$tp -S $sz -f - < /tmp/fwu.fifo 2>&1 \
+              |sed 's/.*\r//;s/e  u.*: w/e  \n  w/' >>/tmp/fwu.ubifs &
   else
+    verbose ""
     ${tm:-:} flash_erase -q /dev/$tp 0 0
     ${tm:-:} nandwrite -mpq /dev/$tp
     ${tm:-:} \ \ ^--- $1
@@ -721,12 +724,13 @@ test_image() {
       { ubi=$( ubinfo |sed -n '/Present/s/.* \(ubi.\)/\1/p' ); } 2>$X
       { logread |sed -n "/$ts/"',${s/^.*kernel: //p}'; } 2>$X
         ubinfo /dev/${ubi}_0 |{ sed '/^[TS]/!d'; } 2>$X
-      { dmesg -E; echo; } 2>$X
+      { echo; } 2>$X
       : --- integrity check using mount ro and crc32 ---
         mount -t ubifs /dev/${ubi}_0 -r /mnt/$tp \
           && ubicrc32 /dev/${ubi}_0
         umount /mnt/$tp
         ubidetach -p /dev/$tp
+      { dmesg -E; set +x; echo; } 2>$X
       } >>/tmp/fwu.ubifs 2>&1 &
       await $! $et _ && wait
       test -n "`sed -n '/^State:.*OK/,${/^0x......../p}' /tmp/fwu.ubifs`"
@@ -837,7 +841,7 @@ case `rootfs_x` in
   $rip_a) tp=mtd${rip_b}; ab=b;;
   $rip_b) tp=mtd${rip_a}; ab=a;;
 esac
-image=${ROOTFS_IMG%%.*}-$ab ubifs=true
+image=${ROOTFS_IMG%%.*}-$ab ubifs=${UBIFS:-true}
 if assert_image ROOTFS "Root Filesystem"
 then
   if flash_image $ROOTFS_URL
