@@ -728,10 +728,9 @@ test_image() {
     else
       head -c $sz /tmp/fwu.fifo |md5sum >/tmp/fwu.md5 &
       await $! $et _
-      nanddump -qf /tmp/fwu.fifo --bb=skipbad /dev/$tp 2>/tmp/fwu.error
+      nanddump -qf /tmp/fwu.fifo --omitoob --bb=skipbad /dev/$tp 2>/tmp/fwu.error
       # legitimate exit is zero or sigpipe
-      [ 0 -eq $? -o $? -eq 141 ]; error=$?
-      echo -e `grep -qso "^[0-9a-f]\{32\}" /tmp/fwu.md5 || echo ^ERROR`' \c'
+      [ 0 -eq $? -o $? -eq 141 ]; error=$?; wait
       read md5 in_flash < /tmp/fwu.md5 && rm /tmp/fwu.md5
       test "$md5" == "$1"
     fi
