@@ -203,9 +203,12 @@ ask() {
 exit_error() {
   let error && $x_notify && $0 --n $nsap update_failure
   echo -e "${1:+  ...$@}"
-  grep -s . /tmp/fwu.error
-  mv $FWUL $FWUL~ 2>$X
-  rm -f /tmp/fwu.[f]*
+  if [ -n "$url" ]
+  then
+    grep -s . /tmp/fwu.err
+    mv $FWUL $FWUL~ 2>$X
+    rm -f /tmp/fwu.[f]*
+  fi
   exit 1
 } >&2
 
@@ -214,8 +217,8 @@ verbose() {
 } 2>$X
 
 await() {
-  let eto=$2+0
-  while [ -f /proc/$1/comm ] && let eto--
+  let ax=$1 eto=$2+0
+  while [ -f /proc/$ax/comm ] && let eto--
   do
     $o_verbose && printf $3
     usleep 999876
@@ -362,6 +365,7 @@ do
 done
 url=$1
 shift $#
+rm -f /tmp/fwu.*
 
 wget() {
   if [ -z $wget_version ]
@@ -372,25 +376,25 @@ wget() {
     # ..connect-timeout appears to be unsupported/broken
     # ..error messages are generally different
     case $( command wget --version 2>&1 |sed -n '/^BusyBox\|^GNU/s/\ .*//p' ) in
-      BusyBox) wget_version=bb; wget_opt='-t1';;
-      GNU) wget_version=gnu; wget_opt='-t1 -nv --no-check-certificate';;
+      BusyBox) wget_version=bb; wget_opt='-T4 -t1';;
+      GNU) wget_version=gnu; wget_opt='-T4 -t1 -nv --no-check-certificate';;
       *) exit_error "wget utility is required";;
     esac
   fi
   command wget $*
-}
+} 2>>/tmp/fwu.err
 
 copy() {
   # args: <src> -O <dst>
   ${3:+${*/* -O */eval >$3 cat $1}}
-}
+} 2>>/tmp/fwu.err
 
 ping_server() {
   # extract host from given url
   set -- ${1##*//}
   host=${1%%/*}
-  ping -W2 -c1 $host >$X
-}
+  ping -W4 -c1 $host >$X
+} 2>>/tmp/fwu.err
 
 # assume remote
 test -z "$url" \
@@ -417,7 +421,7 @@ then
     || exit_error "firmware-update-list required, try '--usage'"
   verbose "Downloading '${url##*/}' from $host to $FWUL"
   rm -f $FWUL
-  wget $wget_opt $url -O $FWUL 2>$X \
+  wget $wget_opt $url -O $FWUL \
     || exit_error "could not retrieve \"${url##*/}\""
 
 else
@@ -428,7 +432,7 @@ else
   if [ "$url" != "$FWUL" ]
   then
     verbose "Copying '${url##*/}' from ${url%/*}/ to $FWUL"
-    copy $url -O $FWUL 2>$X
+    copy $url -O $FWUL
   fi
 fi
 
@@ -499,7 +503,6 @@ test remote == "${url/*:*/remote}" \
   && ${o_dnload:-false} && exit 0
 
 mv $FWUL $FWUL~ 2>$X
-rm -f /tmp/fwu.*
 
 # foreach set default if unset
 o_verbose=${o_verbose:-true}
@@ -594,7 +597,7 @@ assert_image() {
   sz=
   local src md5
   echo -e "${tm:+\n}Checking $2 \c"
-
+  : >/tmp/fwu.err
   eval src=\$${1}_URL
   test -n "$src" \
     || { echo - update n/a; return 1; }
@@ -612,11 +615,11 @@ assert_image() {
     #==> SIZE kernel.bin ... 1782232 .....ftp method
     #Length: 24133632 (23M) [application/octet-stream] .....http method
     #
-    sz=$( wget --spider $src 2>&1 |tee /tmp/fwu.error \
+    sz=$( wget --spider $src 2>&1 |tee /tmp/fwu.err \
         |sed -n 's/.*SIZE.* \([0-9]*\)/\1/p;s/Length: \([0-9]*\)\ .*/\1/p' )
 
     if [ -z "$sz" ] \
-    && wget -q -O - $src 2>$X |grep -q .....
+    && wget -q -O - $src |grep -q .....
     then
       # try reading file when length n/a via spider
       eval let sz=\$${1}_LEN || sz=$( wget -q -O - $src |wc -c )
@@ -631,7 +634,7 @@ assert_image() {
   fi
   let sz+=0 \
     || { echo -e - file n/a\\\n\\\t\ $src;
-         grep -s . /tmp/fwu.error; let errors++; return 3; }
+         grep -s . /tmp/fwu.err; let errors++; return 3; }
 
   eval md5=\$${1}_MD5
   test -n "$md5" \
@@ -662,6 +665,7 @@ flash_image() {
   # args: <image_url>
   #
   echo -e "Updating $image \c"
+  : >/tmp/fwu.err
   mtdinfo /dev/$tp |grep -q 'writabl.*tru' \
     || { echo -e "(protected)\n"; return 1; }
   verbose ""
@@ -681,21 +685,19 @@ flash_image() {
     ${tm:+:} nandwrite -mpq /dev/$tp < /tmp/fwu.fifo &
   fi
   ${tm:+eval sleep 0${et} & }
-  rm -f /tmp/fwu.error
   await $! $et _
   case $1 in
-    *://*) ## use a transfer protocol
-    txt="image download interrupted"
-    wget $wget_opt $1 -O /tmp/fwu.fifo 2>/tmp/fwu.error
+    *://*) ## using a transfer protocol
+    txt="image download/flash interrupted"
+    wget $wget_opt $1 -O /tmp/fwu.fifo
     ;;
     *) ## assume local copy 
-    txt="image copy failed"
-    copy $1 -O /tmp/fwu.fifo 2>/tmp/fwu.error
+    txt="image copy/flash failed"
+    copy $1 -O /tmp/fwu.fifo
   esac
-  wait
-  let $? \
-    && exit_error $txt
-
+  test $? -eq 0 \
+    && wait $ax \
+    || exit_error $txt
   return 0
 }
 
@@ -728,7 +730,7 @@ test_image() {
     else
       head -c $sz /tmp/fwu.fifo |md5sum >/tmp/fwu.md5 &
       await $! $et _
-      nanddump -qf /tmp/fwu.fifo --omitoob --bb=skipbad /dev/$tp 2>/tmp/fwu.error
+      nanddump -qf /tmp/fwu.fifo --omitoob --bb=skipbad /dev/$tp 2>>/tmp/fwu.err
       # legitimate exit is zero or sigpipe
       [ 0 -eq $? -o $? -eq 141 ]; error=$?; wait
       read md5 in_flash < /tmp/fwu.md5 && rm /tmp/fwu.md5
@@ -740,10 +742,10 @@ test_image() {
     echo ^OK
   else
     echo ^FAIL
-    grep -s . /tmp/fwu.error
+    grep -s . /tmp/fwu.err
     if $o_check
     then
-      echo "  $md5  $image"
+      echo "  ${md5:-${1//?/ }}  $image"
       echo "  $1  expected"
       x_reboot=false
     fi
@@ -862,10 +864,10 @@ then
   await $! 5 .
   wait
   verbose ${uc:+OK}
+  $fw_setenv _ucs ${uc}
 else
   nsap=
 fi
-rm -f /tmp/fwu.[fe]*
 
 echo -e Sync\\\047ing
 $fw_setenv updated_% \
@@ -880,9 +882,6 @@ test -n "$rootfs" -a -n "$bootargs" \
 
 test -n "$kernel" -a -n "$bootcmd" \
   && $fw_setenv bootcmd $bootcmd
-
-test -n "$rum" \
-  && $fw_setenv _ucs $rum
 
 sync
 
@@ -927,6 +926,6 @@ then
 fi
 
 ${tm:-:} \\\n$SELF v$VERSION \[testmode\]
-
+let $errors+0 && echo "Errors:$errors"
 echo "Done."
 exit $errors
