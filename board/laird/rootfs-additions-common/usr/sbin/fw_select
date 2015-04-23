@@ -16,7 +16,7 @@
 
 # Firmware Select Utility for WB40n/WB45n
 #
-VERSION=20131217k+ubi
+VERSION=20131217m
 SELF=${0##*/}
 X=/dev/null
 
@@ -501,7 +501,9 @@ case $1 in
         *tstrap) vers=`strings $mtd |sed -n 's/\(^[0-9]\..\..-.*\) (.*)/\1/p'`;;
         at91bs ) vers=`strings $mtd |sed -n 's/\(^[0-9]\..\..-.*\) (.*)/\1/p'`;;
         u-boot ) vers=`strings $mtd |sed -n 's/^U-Boot \(20...*\) (.*)/\1/p'`;;
-        kernel*) vers=`strings $mtd |sed '/^Linux-.*/!d;q'`;;
+        kernel*) vers=`strings $mtd |sed -n \
+                                         -e'/^Linux-.*/{s/Linux-//p;q}' \
+                                         -e'/^[0-9]\.[0-9]\+.*/{s/ .*//;p;q}'`;;
         rootfs*) vers=`strings $mtd |sed -n \
                                          -e '/Laird Linux/{s/.* //p;q}' \
                                          -e '/SDC Linux Release/{s/.* //p;q}'`;;
