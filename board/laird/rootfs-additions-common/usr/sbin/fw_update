@@ -16,7 +16,7 @@
 
 # Firmware Update Utility for WB40n/WB45n
 #
-VERSION=20131217k+ubi_e
+VERSION=20131217m
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
