@@ -41,6 +41,7 @@ endif
 
 define UDEV_INSTALL_INITSCRIPT
 	$(INSTALL) -m 0755 package/udev/S10udev $(TARGET_DIR)/etc/init.d/S10udev
+	$(INSTALL) -m 0755 package/udev/S99udev-stop-exec-queue $(TARGET_DIR)/etc/init.d/S99udev-stop-exec-queue
 endef
 
 define UDEV_NO_AUTO_LOAD_HANDLING

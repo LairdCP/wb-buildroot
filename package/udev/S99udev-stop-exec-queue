@@ -1,0 +1,11 @@
+#!/bin/sh
+# S99udev-stop-exec-queue
+# Suspend the execution of queued events.
+
+case $1 in
+  stop)
+    echo "Stopping execution of events, via udev... "
+    udevadm control --stop-exec-queue
+    ;;
+esac
+

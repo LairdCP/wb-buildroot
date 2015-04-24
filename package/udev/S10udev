@@ -34,10 +34,8 @@ case $1 in
         echo
         ;;
     stop)
-        echo -n "Stopping execution of events, via udev... "
-        udevadm control --stop-exec-queue
-        killall udevd 2>/dev/null
-        echo
+        echo "Stopping udev daemon."
+        udevadm control --exit
         ;;
     *)
         echo "Usage: $0 {start|stop}"
