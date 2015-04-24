@@ -31,9 +31,11 @@ cat >\#\ ${FWUSI##*/} << \
 
 #!/bin/ash
 # fw_usi - fw_update/select installer
+# Created by buildroot/board/laird/mkfwusi.sh
 # This file contains ustar headers and is to be run directly: 'sh fw_usi'
 # Installs fw_* utilities to rootfs-a/b and reports versions.
-# Created by buildroot/board/laird/mkfwusi.sh
+# Optionally, use to invoke a fw_update or fw_select command.
+# Example: 'sh fw_usi update -c -f http://server/path/fw.txt'
 
 sh() { set -x; \$@; { let rv+=\$?; echo; set +x; } 2>/dev/null; }
 
@@ -53,9 +55,21 @@ sh fw_select --version
 
 sh fw_select --show
 
-sh fw_select --transfer export -- \$( cat \$tls; rm \$tls )
-
 test \$rv -eq 0 \
+&& case \${1#fw_} in
+    '') ## assume default operation to install utilities
+      sh fw_select --transfer export -- \$( cat \$tls; rm \$tls )
+      ;;
+
+    update|select) ## invoke specified update/select command
+      cat \$tls >>/tmp/alt_rootfs.transfer-list
+      sh fw_\${@#fw_}
+      ;;
+
+    *) let ++rv && echo "v---- usage/syntax: \$@"
+  esac
+
+test \$rv\$? -eq 0 \
 && echo "OK" \
 || echo "Error"
 exit \$rv
