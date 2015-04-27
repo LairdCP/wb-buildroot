@@ -19,7 +19,6 @@ MAKE_ENV = \
 
 define LIBBLUETOPIA_BUILD_CMDS
 	$(MAKE) $(LINUX_MAKE_FLAGS) -C $(LINUX_DIR) M=$(@D)/USBDriver/driver/source modules
-	$(MAKE) $(LINUX_MAKE_FLAGS) -C $(LINUX_DIR) M=$(@D)/VSER/driver/source modules
 endef
 
 define LIBBLUETOPIA_INSTALL_STAGING_CMDS
