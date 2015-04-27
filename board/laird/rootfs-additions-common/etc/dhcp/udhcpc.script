@@ -118,12 +118,7 @@ ${vecho:=:} \ \ esa: $action >>$LOG_FILE
 
 case $action in
   deconfig)
-    # Remove relative entries from the routing table.
-    # The iface is still up and accessible.
-    fn ip addr flush dev $interface
-
-    # Remove any applicable policy rules.
-    while ip rule del not table $tn 2>/dev/null; do :;done
+    # Don't do anything so IP connectivity is preserved
     ;;
 
   renew|bound)
