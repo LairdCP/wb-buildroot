@@ -22,9 +22,6 @@ define MSD45N_BINARIES_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/usr/bin/dhcp_injector $(TARGET_DIR)/usr/bin/dhcp_injector
     $(INSTALL) -D -m 755 $(@D)/usr/bin/smartSS $(TARGET_DIR)/usr/bin/smartSS
 	$(INSTALL) -D -m 755 $(@D)/usr/bin/smartBASIC $(TARGET_DIR)/usr/bin/smartBASIC
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/Flash0_2000_1.bin $(TARGET_DIR)/usr/bin/Flash0_2000_1.bin
-    $(INSTALL) -D -m 755 $(@D)/usr/bin/Flash1_2000_1.bin $(TARGET_DIR)/usr/bin/Flash1_2000_1.bin
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/Flash2_C000_1.bin $(TARGET_DIR)/usr/bin/Flash2_C000_1.bin
 	mkdir -p $(TARGET_DIR)/usr/lib
     $(INSTALL) -m 755 $(@D)/usr/lib/libsdc_sdk.so* $(TARGET_DIR)/usr/lib/
 	$(INSTALL) -m 755 $(@D)/usr/lib/liblrd_btsdk.so* $(TARGET_DIR)/usr/lib/

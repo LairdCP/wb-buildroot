@@ -22,9 +22,6 @@ endef
 define SMARTBASIC_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/UwApp/smartSS/DebugLinux/smartBASIC $(TARGET_DIR)/usr/bin/smartBASIC
 	$(INSTALL) -D -m 755 $(@D)/UwApp/smartSS/DebugLinux/smartSS $(TARGET_DIR)/usr/bin/smartSS
-	$(INSTALL) -D -m 755 $(@D)/UwApp/smartSS/default/Flash0_2000_1.bin $(TARGET_DIR)/usr/bin/Flash0_2000_1.bin
-	$(INSTALL) -D -m 755 $(@D)/UwApp/smartSS/default/Flash1_2000_1.bin $(TARGET_DIR)/usr/bin/Flash1_2000_1.bin
-	$(INSTALL) -D -m 755 $(@D)/UwApp/smartSS/default/Flash2_C000_1.bin $(TARGET_DIR)/usr/bin/Flash2_C000_1.bin
 endef
 
 $(eval $(generic-package))
