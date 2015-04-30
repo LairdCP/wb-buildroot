@@ -498,15 +498,18 @@ case $1 in
       mtd=/dev/mtd${mtd}
       vers=' '
       case "$name" in
-        *tstrap) vers=`strings $mtd |sed -n 's/\(^[0-9]\..\..-.*\) (.*)/\1/p'`;;
-        at91bs ) vers=`strings $mtd |sed -n 's/\(^[0-9]\..\..-.*\) (.*)/\1/p'`;;
-        u-boot ) vers=`strings $mtd |sed -n 's/^U-Boot \(20...*\) (.*)/\1/p'`;;
+        *tstrap) vers=`strings $mtd |sed -n \
+                                         -e's/ *\([0-9]\..\..-.*\) (.*)/\1/p'`;;
+        at91bs ) vers=`strings $mtd |sed -n \
+                                         -e's/ *\([0-9]\..\..-.*\) (.*)/\1/p'`;;
+        u-boot ) vers=`strings $mtd |sed -n \
+                                         -e's/^U-Boot \(20...*\) (.*)/\1/p'`;;
         kernel*) vers=`strings $mtd |sed -n \
                                          -e'/^Linux-.*/{s/Linux-//p;q}' \
                                          -e'/^[0-9]\.[0-9]\+.*/{s/ .*//;p;q}'`;;
         rootfs*) vers=`strings $mtd |sed -n \
-                                         -e '/Laird Linux/{s/.* //p;q}' \
-                                         -e '/SDC Linux Release/{s/.* //p;q}'`;;
+                                         -e'/Laird Linux/{s/.* //p;q}' \
+                                         -e'/SDC Linux Release/{s/.* //p;q}'`;;
       esac
       echo "$vers"
       let addr+=$size
