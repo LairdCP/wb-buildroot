@@ -14,97 +14,71 @@
 #
 # contact: ews-support@lairdtech.com
 
-# tcmd.sh - manage firmware for athtestcmd and setup
+# tcmd.sh
+# Provides athtestcmd support.
+# Usage:
+# Enable/disable testmode:
+#   tcmd.sh [off]
 #
-# For normal wifi operation, we use latest firmware, which requires a symlink.
-# An alternate fw_v#.#.#.#.bin may be set by doing:
-# tcmd.sh norm fw_v#.#.#.#.bin
+# Show firmware related files and version info:
+#   tcmd.sh check
+#
+# Set firmware link:  (use 'fw' for latest or specify filename)
+#   tcmd.sh [fw|<fw_v#.#.#.#.bin>]
 #
 
 
 FW_PATH=/lib/firmware/ath6k/AR6003/hw2.1.1
-FW_TCMD=/lib/firmware/ath6k/AR6003/hw2.1.1/fw_v3.2.0.144.bin
 
 
 do_() {
-  echo -e "# $@"; $@; return $?
+  echo -e "+ $@"; $@; return $?
 }
 
 
 case ${1#--} in
-  -h|help)
-    echo "Use to set version of firmware for testing vs. normal operation."
-    echo "The 'athtestcmd' requires a specific firmware version."
-    echo
-    echo "Running this script w/o option will attempt setup for athtestcmd."
-    echo "However, firmware must be set for using athtestcmd first."
-    echo 
-    echo "Option:"
-    echo "  testing - set fw for athtestcmd usage"
-    echo "  normal - set fw for normal wifi operation"
-    echo "  check - list fw files and show version details"
-    echo 
-    echo "Usage:"
-    echo "  $0 [option] [fw_v#.#.#.#]"
-    echo 
+  -h|help|usage)
+    sed -n "/# tcmd/,/^$/{/# tcmd/d;/^$/q;p}" $0
     ;;
 
   '') ## setup for athtestcmd
     test -x /usr/bin/athtestcmd \
       || { echo "error - athtestcmd not available"; exit 1; }
 
-    test -h ${FW_PATH}/fw-3.bin \
-      || { echo "run 'tcmd.sh testmode' firstly"; exit 1; }
-
-    rmmod ath6kl_sdio 2>/dev/null
-    rmmod ath6kl_core 2>/dev/null
-    echo "  ...setting up for athtestcmd"
+    do_ ifrc -v -n wlan0 stop
+    echo
     (
       cd /lib/modules/`uname -r`/kernel/drivers/net/wireless/ath/ath6kl
       do_ insmod ath6kl_core.ko testmode=1
       do_ insmod ath6kl_sdio.ko
     )
-    echo -n \
-    && grep -s . /sys/class/net/wlan0/device/uevent \
-    && grep -s . /sys/class/net/wlan0/uevent \
-    || { echo "  ...interface n/a, try:  ${0##*/} help"; exit 1; }
+    grep -sH ..:. /sys/class/net/wlan0/address \
+      || { echo "  ...error - interface n/a"; $0 off; exit 1; }
 
-    echo 
+    dmesg |sed -n '/ath6kl: ar6003 .* fw/h;$g;${s/\\[^ ]\+//;p}'
+    echo
     do_ athtestcmd -i wlan0 --otpdump
-
-    # examples
-    #do_ athtestcmd -i wlan0 --rx promis --rxfreq 2417 --rx antenna auto
-    #do_ athtestcmd -i wlan0 --rx report --rxfreq 2417 --rx antenna auto
-    ;;
-  
-  norm*) ## restore normal wifi with latest fw found or specified [fw_v#.#.#.#]
-    for FW in $FW_PATH/fw_v*.bin; do :; done
-    echo "  ...restoring fw version for normal wifi: ${FW##*/}"
-    #
-    do_ rm -f ${FW_PATH}/fw-3.bin
-    if do_ ln -sf ${FW##*/} ${FW_PATH}/fw-4.bin
-    then
-      # set /e/n/i option
-      do_ ifrc -v -n wlan0 auto
-      do_ ifrc -v -n wlan0 stop
-    fi
     ;;
 
-  test*) ## setup for testing
-    echo "  ...setting fw version for athtestcmd"
-    #
-    do_ rm -f ${FW_PATH}/fw-4.bin
-    if do_ ln -sf ${FW_TCMD##*/} ${FW_PATH}/fw-3.bin
-    then
-      # unset /e/n/i option
-      do_ ifrc -v -n wlan0 noauto
-      do_ ifrc -v -n wlan0 stop
-      echo
-      echo "Now can run 'tcmd.sh' to load modules for 'athtestcmd'."
-    fi
+  off|done) ## unload drivers
+    for m in `grep -o "^ath6kl_[^ ]*" /proc/modules`
+    do
+      do_ rmmod $m
+    done
     ;;
 
-  check) ## list firmware files
+  fw*) ## set firmware link to latest fw found or a specified <fw_v#.#.#.#.bin>
+    [ "${#1}" -gt 2 ] && fw_specified=$FW_PATH/$1
+
+    # find/test the latest or a specified version of firmware
+    for FW in $FW_PATH/fw_v*.bin $fw_specified; do [ -f $FW ]; done
+    test $? -eq 0 \
+      || { echo "  ...n/a: $FW"; exit 1; }
+
+    do_ ln -sf ${FW##*/} ${FW_PATH}/fw-4.bin
+    ;;
+
+  show|check) ## list firmware files
     echo "Contents of ${FW_PATH}:"
     ls -ln --color=always ${FW_PATH} \
        |sed '/^.otal/d;s/ \+[0-9]\+ //;s/0        //g'
@@ -115,17 +89,13 @@ case ${1#--} in
     for x in fw_v*.bin
     do
       label=
-      [ "`readlink fw-3.bin 2>/dev/null`" == $x ] && label="fw-3:"
       [ "`readlink fw-4.bin 2>/dev/null`" == $x ] && label="fw-4:"
-    
+
       echo -e "${label:-  -  }" \
       `grep -s -e "^QCA" -e "^$n\.$n\.$n\.$n" $x || echo "(unidentifable)"` \
       "\r\t\t\t\t\b\b\b\b" \
       `md5sum $x 2>/dev/null`
     done
-    echo
-    echo "Note: The 'athtestcmd' may be used when the driver can load fw-3 symlink."
-    echo "      However, the driver will load a fw-4 symlink instead, if available."
     echo
     echo "Driver status:"
     grep ath6kl /proc/modules \
