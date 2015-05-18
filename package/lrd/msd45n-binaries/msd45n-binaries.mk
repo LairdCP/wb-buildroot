@@ -27,8 +27,6 @@ define MSD45N_BINARIES_INSTALL_TARGET_CMDS
 	$(INSTALL) -m 755 $(@D)/usr/lib/liblrd_btsdk.so* $(TARGET_DIR)/usr/lib/
 	$(MAKE) --no-print-directory -C $(LINUX_DIR) kernelrelease ARCH=arm CROSS_COMPILE="$(TARGET_CROSS)" > $(@D)/kernel.release
 	mkdir -p $(TARGET_DIR)/lib/modules/`cat $(@D)/kernel.release`/extra
-	$(INSTALL) -D -m 644 $(@D)/lib/modules/`cat $(@D)/kernel.release`/extra/SS1BTUSBM.ko \
-        $(TARGET_DIR)/lib/modules/`cat $(@D)/kernel.release`/extra/SS1BTUSBM.ko
 	$(INSTALL) -D -m 755 $(@D)/etc/init.d/S95bluetooth $(TARGET_DIR)/etc/init.d/S95bluetooth
 	mkdir -p $(TARGET_DIR)/var/www/docs
     mkdir -p $(TARGET_DIR)/var/www/docs/assets/css

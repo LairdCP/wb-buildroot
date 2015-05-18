@@ -17,10 +17,6 @@ MAKE_ENV = \
         CROSS_COMPILE=$(TARGET_CROSS) \
         KERNELDIR=$(LINUX_DIR)
 
-define LIBBLUETOPIA_BUILD_CMDS
-	$(MAKE) $(LINUX_MAKE_FLAGS) -C $(LINUX_DIR) M=$(@D)/USBDriver/driver/source modules
-endef
-
 define LIBBLUETOPIA_INSTALL_STAGING_CMDS
 	$(INSTALL) -D -m 0755 $(@D)/lib/*.a $(STAGING_DIR)/usr/lib
 	$(INSTALL) -D -m 0644 $(@D)/include/*.h $(STAGING_DIR)/usr/include
