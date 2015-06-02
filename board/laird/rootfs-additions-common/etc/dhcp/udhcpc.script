@@ -270,10 +270,7 @@ case $action in
 
     if [ "$action" != refresh ]
     then
-      # Update the leases file.
       write_lease_info $LEASES_FILE
-    else
-      vecho "^-lease re-applied: ${apid:-?}"
     fi
     ;;
 
