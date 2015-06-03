@@ -145,7 +145,22 @@ ${vecho:=:} \ \ esa: $1 >>$LOG_FILE
 
 case ${action:=$1} in
   deconfig)
-    # Don't do anything so IP connectivity is preserved
+    if [ "${RETAIN_INACTIVE_IPADDR/auto/yes}" != "yes" ]
+    then
+      # Remove relative entries from the routing table.
+      # The iface is still up and accessible.
+      fn ip -4 addr flush dev $interface
+
+      # Also remove any applicable table-name policy rules.
+      [ -n "$tn" ] && while ip rule del table $tn 2>/dev/null; do :; done
+
+      # Preserve other default-route/nexthops excluding this interface.
+      nexthop=${tn:+nexthop}
+      odr=$( ip route |sed -n "/via /{/$interface/d;s/^[ \t]*//p}" )
+      fn ip route replace default \
+          ${odr//default/$nexthop} ;
+    fi
+    fn ip route flush ${tn:+table $tn} cache
     ;;
 
   renew|bound|refresh)
