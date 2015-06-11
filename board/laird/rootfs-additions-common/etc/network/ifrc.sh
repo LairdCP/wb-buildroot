@@ -80,7 +80,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140909
+ifrc_Version=20140910
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -91,6 +91,9 @@ ifrc_Log=${ifrc_Lfp}/msg
 
 # latch settings
 eval $ifrc_Settings
+eval zz=\$$#
+test "$zz" == '&' \
+  && { exec $0 ${@%&}& exit; }
 
 # ensure ifrc exists and is supported as a system executable
 ifrc=/sbin/ifrc
@@ -974,7 +977,7 @@ else
     $phy80211 && api=-miff
     #
     # start the netlink daemon
-    $ifnl -i$dev $api $nsl -fa -qMp -u0 -d0 -Ir$0
+    $ifnl -i$dev $api $nsl -fa -qMp -u0 -d0 -Ir$0 -x\&
 
     msg1 "  $ifnl started"
   fi
