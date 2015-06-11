@@ -80,7 +80,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140910
+ifrc_Version=20140912
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -614,12 +614,12 @@ then
     # use tasks following matching iface inet
     if [ -z "$IFRC_SCRIPT" -a -z "$ifnl_s" ]
     then
-      msg3 "parsing /e/n/i for pre/post conf directives, intended for $dev..."
-
-      set -- "$( sed -n "/^iface $devalias $inet /,/^if/!d;/^$/q;\
-         s/^[ \t]\+\([^#]p[or][se][t]*\)-\([d]*cfg\)-do \(.*\)/\1_\2_do='\3'/p"\
-                       $eni 2>/dev/null )"
-      IFRC_SCRIPT=$@
+      msg3 "parsing /e/n/i for $dev pre/post-d/cfg-do directives"
+      set -- "$( sed "/^iface $devalias $inet /,/^if/{/^$/q;\
+         s/^[ \t]\+[^#]\(p[or][se][t]*\)-\([d]*cfg\)-do \(.*\)/\1_\2_do='\3'/p;\
+         s/^[ \t]\+[^#]\(delay\)-\([d]*cfg\) \(.*\)/\1_\2='\3'/p;}"\
+                     -n $eni 2>/dev/null )"
+      IFRC_SCRIPT=${@//$'\n'/ }
     fi
   fi
   shift $#
@@ -668,7 +668,27 @@ then
       break
     fi
 
-    ## maybe signal client to release
+    ## option no/wait ip-dcfg
+    if [ -n "$delay_dcfg" ]
+    then
+      let delay_dcfg || { IFRC_ACTION=xx; break; }
+      # when 'delay_dcfg' is zero then no deconfigure
+      # otherwise, wait 'delay_dcfg' before deconfigure
+      # an 'up' event will cancel any pending deconfigure
+      #
+      echo "$$: $0 $@" >${ifrc_Lfp}/$dev.dd \
+        && pause $delay_dcfg
+
+      if [ -f ${ifrc_Lfp}/$dev.dd ]
+      then
+        rm -f ${ifrc_Lfp}/$dev.dd
+      else
+        IFRC_ACTION=xx
+        break
+      fi
+    fi
+
+    ## handle dhcp ip-dcfg
     if [ "${IFRC_METHOD%% *}" == "dhcp" ]
     then
       if [ ! -d ${ifrc_Lfp}/$dev.dhcp ]
@@ -682,10 +702,10 @@ then
       break
     fi
 
-    ## by default the ip-cfg is not retained on a down event
+    ## handle static ip-dcfg
     ip addr flush dev $dev 2>/dev/null
 
-    ## otherwise ignore down event via ifnl - no deconfigure
+    ## otherwise ignore down event via ifnl
     IFRC_ACTION=xx
     break
   done
@@ -693,7 +713,11 @@ then
   ## nl event rules for status '  ->up'
   while [ "${IFRC_STATUS##*->}" == "up" ]
   do
-    ## maybe signal client to renew
+    ## option ip-dcfg cancelled
+    { read -r zz < ${ifrc_Lfp}/$dev.dd; } 2>/dev/null \
+    && { kill ${zz%%:*}; rm -f ${ifrc_Lfp}/$dev.dd ]; }
+
+    ## handle dhcp ip-cfg renew/refresh
     if [ "${IFRC_METHOD%% *}" == "dhcp" ]
     then
       if [ ! -d ${ifrc_Lfp}/$dev.dhcp ]
@@ -722,6 +746,14 @@ then
 
   msg @. ifrc_s/d/a/m: "$IFRC_STATUS" $IFRC_DEVICE ${IFRC_ACTION:---} \
                        ${IFRC_METHOD%% *} #cdt"${IFRC_SCRIPT:-{\}}"
+else #!via ifnl
+  case $IFRC_ACTION in
+    up|dn|down)
+      ## option ip-dcfg cancelled
+      { read -r zz < ${ifrc_Lfp}/$dev.dd; } 2>/dev/null \
+      && { kill ${zz%%:*}; rm -f ${ifrc_Lfp}/$dev.dd ]; }
+      ;;
+  esac
 fi
 
 # rt_tables support...
@@ -1028,9 +1060,9 @@ show_filtered_method_params() {
     if [ -n "$IFRC_SCRIPT" ]
     then
       # strip newlines and expand other escapes for sed
-      IFRC_SCRIPT=${IFRC_SCRIPT//$'\n'/}
+      IFRC_SCRIPT=${IFRC_SCRIPT//$'\n'/ }
       IFRC_SCRIPT=${IFRC_SCRIPT//\\/\\\\}
-      set -- "$mp_cdt cdt{$IFRC_SCRIPT\; }"
+      set -- "$mp_cdt cdt{ $IFRC_SCRIPT\; }"
     else
       set -- "$mp_cdt"
     fi
