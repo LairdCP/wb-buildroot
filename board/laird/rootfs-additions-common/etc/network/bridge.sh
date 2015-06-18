@@ -28,6 +28,7 @@ bridge_method="manual"          ## config method is manual/static/dhcp/...
 bridge_ports="eth0 wlan0"       ## iface ports to be bridged
 bridge_fd="0"                   ## set forwarding delay in seconds
 bridge_stp="off"                ## spanning tree protocol is off/on
+bridge_mcs="off"                ## multicast snooping can be off/on
 bridge_setup="auto"             ## setup is auto/manual, and any flags:
   ##                            --verbose or -v
   ##
@@ -49,6 +50,10 @@ br_start() {
   fn 'modprobe nf_conntrack_ipv4'
   fn 'echo 1 > /proc/sys/net/ipv4/ip_forward'
   fn 'echo 1 > /proc/sys/net/ipv4/conf/all/proxy_arp'
+
+  # disable multicast snooping
+  [ "$bridge_mcs" == "off" ] && \
+  fn 'echo 0 > /sys/devices/virtual/net/$bridge_iface/bridge/multicast_snooping'
 
   # check/start each port
   for dev in $bridge_ports
