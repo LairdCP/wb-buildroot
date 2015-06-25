@@ -24,7 +24,7 @@ ifeq ($(BTSDK_PLATFORM),wb45n)
     BTSDK_RADIO_FLAGS := CONFIG_SDC_RADIO_QCA45N=y
 else ifeq ($(BTSDK_PLATFORM),wb40n)
     BTSDK_RADIO_FLAGS := CONFIG_SDC_RADIO_BCM40N=y
-else
+else ifeq ($(BR2_PACKAGE_BTSDK),y)
     $(error "ERROR: Expected BR2_LRD_PLATFORM to be wb45n or wb40n.")
 endif
 
