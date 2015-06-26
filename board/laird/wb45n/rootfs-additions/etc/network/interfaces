@@ -87,8 +87,8 @@ iface usb0 inet static
   #post-cfg-do /etc/network/wifi-nat.conf
   #pre-dcfg-do /etc/network/wifi-nat.conf
   ## optional g_ether-nat
-  post-cfg-do /etc/network/usb-g_ether-nat.conf
-  pre-dcfg-do /etc/network/usb-g_ether-nat.conf
+  #post-cfg-do /etc/network/usb-g_ether-nat.conf
+  #pre-dcfg-do /etc/network/usb-g_ether-nat.conf
 
 
 
