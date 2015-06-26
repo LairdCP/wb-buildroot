@@ -15,18 +15,14 @@
 # contact: ews-support@lairdtech.com
 
 # /etc/dhcp/autoip.sh
+# The 'option ap-identifier <mac> <ssid>' may be stored for a wireless link.
 # Extract last active lease info for matching ap-identifier not yet expired,
-# and re-apply the lease settings.  Only re-apply minimal subset of options.
+# and then re-apply via:  udhcpc.script refresh
 
 
-# iface
-dev=$1
-
-# mac
-apmac=..:..:..:..:..:.. #$2
-
-# ssid
-apssid=$3
+# check iface still exists
+test -d /sys/class/net/${dev:=$1} \
+  && { echo $0: interface n/a; exit 2; }
 
 # bailout if not enabled...
 grep -sq "^ENABLE_AUTOIP_REFRESH=yes" \
@@ -34,14 +30,19 @@ grep -sq "^ENABLE_AUTOIP_REFRESH=yes" \
       /etc/dhcp/udhcpc.conf \
   || exit
 
-#
-# The 'apid' is a custom option:
-#   option ap-identifier <mac> <ssid>
-#
-# This is inserted into the current lease info section for a wireless link.
-#
-test $# -lt 3 \
-  && { echo $0: error; exit 2; }
+# get current ap_indentifier MAC SSID
+apid=$( iw dev $dev link \
+      |sed '/.:../{N;s/.* \(..:.[^ ]*\).*\n.*SSID: \(.*\)/\1 "\2"/;q}' )
+
+# mac - allow any via pattern match
+apmac=..:..:..:..:..:..
+
+# ssid - allow current ap
+apssid=${apid#* }
+
+# patterns for mac and ssid are required
+test ${#apmac} -eq 17 -a ${#apssid} -gt 0 \
+  || exit
 
 # find lease-info section containing the apid and extract params
 # w/ multiple hits, successive params will always win out anyway
