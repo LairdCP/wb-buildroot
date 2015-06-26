@@ -80,7 +80,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140912
+ifrc_Version=20140913
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Lfp=/tmp/ifrc
@@ -727,11 +727,7 @@ then
         then
           # this is likely a 'reconnect' or 'roam' related event
           # if for AP with same SSID, then try dhcp-esa: refresh
-          apid=$( iw dev $dev link \
-            |sed -n 's/.* \(..:..:..:..:..:..\) .*/\1/p;s/.*SSID:\( .*\)/\1/p' \
-            |tr -d '\n' )
-          test -n "$apid" \
-            && /etc/dhcp/autoip.sh $dev $apid
+          /etc/dhcp/autoip.sh $dev
         fi
         : signal_dhcp_client RENEW
         # renewal is handled via re-up config...
