@@ -89,30 +89,26 @@ wifi_status() {
   echo
 }
 
-wifi_awaitinterface() {
+wifi_queryinterface() {
+  # on driver init, must check and wait for device
   # arg1 is timeout (10*mSec) to await availability
   let x=0
-  while [ $x -lt $1 ]
+  while [ $x -le ${1:-0} ]
   do
-    grep -q "${WIFI_DEV:-xx}" /proc/net/dev && break
+    if [ -n "$WIFI_DEV" ]
+    then # check if available/ready
+      grep -q "$WIFI_DEV" /proc/net/dev && break
+    else
+      # determine iface via path with matching device/uevent
+      WIFI_DEV=$( grep -s "$WIFI_DRIVER" /sys/class/net/*/device/uevent \
+                   |sed -n 's,/sys/class/net/\([a-z0-9]\+\)/device.*,\1,p' )
+      # recheck
+      [ -n "$WIFI_DEV" ] && continue
+    fi
     $usleep 10000 && { let x+=1; msg -n .; }
   done
-  [ $x -lt $1 ] && return 0 || return 1
-} 2>/dev/null
-
-wifi_queryinterface() {
-  # determine iface via path with matching device/uevent (do not quote token)
-  WIFI_DEV=$( grep -s "$WIFI_DRIVER" /sys/class/net/*/device/uevent \
-               |sed -n 's,/sys/class/net/\([a-z0-9]\+\)/device.*,\1,p' )
-
-  if [ -z "$WIFI_DEV" ]
-  then
-    return 1
-  elif let $1+0
-  then
-    wifi_awaitinterface $1 || return 1
-  fi
-  return 0
+  let $x && msg ${x}0mSec
+  test $x -le ${1:-0}
 }
 
 wifi_fips_mode() {
