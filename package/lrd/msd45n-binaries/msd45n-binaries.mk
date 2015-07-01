@@ -54,6 +54,7 @@ define MSD45N_BINARIES_INSTALL_STAGING_CMDS
                           $(@D)/include/sdc_events.h \
 						  $(@D)/include/lrd_bt_sdk.h \
 						  $(@D)/include/lrd_bt_errors.h \
+                          $(@D)/include/lrd_sdk_pil.h \
                           $(STAGING_DIR)/usr/include/
 endef
 

@@ -13,6 +13,7 @@ TARFILE="$IMAGESDIR/$BR2_LRD_PRODUCT.tar"
 tar cf "$TARFILE" -C "$IMAGESDIR" rootfs.tar
 tar f "$TARFILE" -C "$STAGING_DIR/usr" -u include/sdc_sdk.h
 tar f "$TARFILE" -C "$STAGING_DIR/usr" -u include/sdc_events.h
+tar f "$TARFILE" -C "$STAGING_DIR/usr" -u include/lrd_sdk_pil.h
 bzip2 -f "$TARFILE"
 
 echo "MSD40n POST IMAGE script: done."

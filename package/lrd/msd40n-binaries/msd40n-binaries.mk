@@ -38,6 +38,7 @@ define MSD40N_BINARIES_INSTALL_STAGING_CMDS
     cd  $(STAGING_DIR)/usr/lib/ && ln -s libsdc_sdk.so.1 libsdc_sdk.so
 	$(INSTALL) -D -m 0755 $(@D)/include/sdc_sdk.h \
                           $(@D)/include/sdc_events.h \
+                          $(@D)/include/lrd_sdk_pil.h \
                           $(STAGING_DIR)/usr/include/
 endef
 
