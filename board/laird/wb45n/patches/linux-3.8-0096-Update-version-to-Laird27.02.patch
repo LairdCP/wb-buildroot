@@ -1,0 +1,25 @@
+From bc43c8a5f60f69d2cff59be1a4ea054c39f904d8 Mon Sep 17 00:00:00 2001
+From: "zachary.coffy" <zachary.coffy@lairdtech.com>
+Date: Wed, 1 Jul 2015 16:04:29 -0400
+Subject: [PATCH] Update version to Laird27.02
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 5254d2e..cc75e61 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,7 +1,7 @@
+ VERSION = 3
+ PATCHLEVEL = 8
+ SUBLEVEL = 0
+-EXTRAVERSION = -laird27.01
++EXTRAVERSION = -laird27.02
+ NAME = Unicycling Gorilla
+ 
+ # *DOCUMENTATION*
+-- 
+1.8.3.2
+
