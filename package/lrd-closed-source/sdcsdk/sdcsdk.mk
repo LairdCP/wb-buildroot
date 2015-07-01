@@ -41,7 +41,7 @@ define SDCSDK_INSTALL_STAGING_CMDS
 	$(INSTALL) -D -m 0755 $(@D)/dhcp_injector $(STAGING_DIR)/usr/bin/
 	cd  $(STAGING_DIR)/usr/lib/ && ln -s libsdc_sdk.so.1.0 libsdc_sdk.so.1
     cd  $(STAGING_DIR)/usr/lib/ && ln -s libsdc_sdk.so.1 libsdc_sdk.so
-	$(INSTALL) -D -m 0755 $(@D)/src/sdc_sdk.h \
+	$(INSTALL) -D -m 0644 $(@D)/src/sdc_sdk.h \
               $(@D)/src/sdc_events.h \
 			  $(@D)/src/linux/include/linux_perm_stor.h \
 			  $(@D)/src/sdk_version.h \

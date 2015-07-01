@@ -50,7 +50,7 @@ define MSD45N_BINARIES_INSTALL_STAGING_CMDS
     cd  $(STAGING_DIR)/usr/lib/ && ln -s libsdc_sdk.so.1 libsdc_sdk.so
 	cd $(STAGING_DIR)/usr/lib/ && ln -s liblrd_btsdk.so.1.0 liblrd_btsdk.so.1
 	cd $(STAGING_DIR)/usr/lib/ && ln -s liblrd_btsdk.so.1 liblrd_btsdk.so
-	$(INSTALL) -D -m 0755 $(@D)/include/sdc_sdk.h \
+	$(INSTALL) -D -m 0644 $(@D)/include/sdc_sdk.h \
                           $(@D)/include/sdc_events.h \
 						  $(@D)/include/lrd_bt_sdk.h \
 						  $(@D)/include/lrd_bt_errors.h \
