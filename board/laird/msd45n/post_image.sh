@@ -16,7 +16,6 @@ tar f "$TARFILE" -C "$STAGING_DIR/usr" -u include/sdc_events.h
 tar f "$TARFILE" -C "$STAGING_DIR/usr" -u include/lrd_bt_sdk.h
 tar f "$TARFILE" -C "$STAGING_DIR/usr" -u include/lrd_bt_errors.h
 tar f "$TARFILE" -C "$STAGING_DIR/usr" -u include/lrd_sdk_pil.h
-tar f "$TARFILE" -C "board/laird/wb45n" -u patches/
 bzip2 -f "$TARFILE"
 
 echo "MSD45n POST IMAGE script: done."
