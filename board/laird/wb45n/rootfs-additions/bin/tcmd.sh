@@ -45,6 +45,7 @@ case ${1#--} in
     test -x /usr/bin/athtestcmd \
       || { echo "error - athtestcmd not available"; exit 1; }
 
+    # remove any configuration
     do_ ifrc -v -n wlan0 stop
     echo
     (
@@ -52,9 +53,12 @@ case ${1#--} in
       do_ insmod ath6kl_core.ko testmode=1
       do_ insmod ath6kl_sdio.ko
     )
+    sleep 1
+    # allow driver init time and check interface
     grep -sH ..:. /sys/class/net/wlan0/address \
       || { echo "  ...error - interface n/a"; $0 off; exit 1; }
 
+    # report driver/firmware loaded and dump settings
     dmesg |sed -n '/ath6kl: ar6003 .* fw/h;$g;${s/\\[^ ]\+//;p}'
     echo
     do_ athtestcmd -i wlan0 --otpdump
