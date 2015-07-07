@@ -80,13 +80,12 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140913
+ifrc_Version=20140914
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
-ifrc_Lfp=/tmp/ifrc
-ifrc_Cmd=$0\ $@
-ifrc_Pid=$$
+ifrc_Cmd=${0##*/}\ $@
 ifrc_Via=''
+ifrc_Lfp=/tmp/ifrc
 ifrc_Log=${ifrc_Lfp}/msg
 
 # latch settings
@@ -128,21 +127,18 @@ $conf_resolv -c
 
 msg() {
   if [ "$1" == "@." ] && shift
-  then
-    # w/'@.' prefix
+  then # has a '@.' prefix
     if [ -n "$mm" ]
     then
-      # to controlling pty in monitor-mode
-      echo "$@" >$mm 2>/dev/null || mm=
-      # and to syslog if verbose too
-      test -n "$vm" \
-        && logger -tifrc \
-            "$IFRC_STATUS $IFRC_DEVICE ${IFRC_ACTION:-??} m:${IFRC_METHOD%% *}"
-      return
+      # log to the controlling pty in monitor-mode
+      ${qm:+:} echo "$@" >$mm 2>/dev/null || mm=
+      # and to syslog if verbose-mode
+      ${vm:+logger -tifrc[$$] "$@"}
+      return 0
     fi
   else
-    # to stdout while not quiet-mode
-    [ -z "$qm" ] && echo "$@" || :
+    # to stdout while not via_flag/quiet-mode
+    [ -z "$ifrc_Via$qm" ] && echo "$@" || :
   fi
   # and log to file unless set to /dev/null
   echo "$@" >>${ifrc_Log:-/dev/null} || :
@@ -157,7 +153,7 @@ parse_flag() {
       echo ifrc -- v$ifrc_Version - md5:`md5sum < $0` len:`wc -c < $0`; exit 0
       ;;
     -q) ## quiet, no stdout
-      qm='>/dev/null'
+      qm=.
       ;;
     -v) ## add verbosity, multi-level
       vm=$vm.
@@ -203,9 +199,8 @@ ifnl_s=${ifnl_s//down/dn}
 ifnl_s=${ifnl_s//dormant/dt}
 [ "$ifnl_s" == "->" ] && ifnl_s=
 
-[ -n "$rcS_" ] && ifrc_Via="-- ${PPID}_rcS"
-[ -n "$ifnl_s" ] && ifrc_Via="-- ${PPID}_$ifnl"
-[ -n "$ifrc_Via" ] && qm='>/dev/null'
+[ -n "$rcS_" ] && ifrc_Via=" <- rcS"
+[ -n "$ifnl_s" ] && ifrc_Via=" <- $ifnl"
 
 [ "$vm" == "....." ] && set -x
 
@@ -317,6 +312,7 @@ signal_dhcp_client() {
   if { read -r pid < /var/run/dhclient.$dev.pid; } 2>/dev/null \
   && { read client < /proc/$pid/comm; } 2>/dev/null
   then
+    msg @. "  $client $1"
     kill $signal $pid
     rv=$?
     msg1 "  ${pid}_$client <- $action:$rv"
@@ -547,7 +543,7 @@ ifrc_Log=${dev:+${ifrc_Lfp}/$dev}
 test ! -f $ifrc_Log \
   && x="\n\n\n     -- v$ifrc_Version - md5:`md5sum < $0`" || x=
 
-printf "${x%  -}\n% 13.2f __${ifrc_Cmd}  $ifrc_Via\n" $us >>$ifrc_Log
+printf "${x%  -}\n% 13.2f -- $$_${ifrc_Cmd}${ifrc_Via}\n" $us >>$ifrc_Log
 msg3 -e "env:\n`env |sed -n 's/^IF[A-Z]*_.*/  &/p' |grep . || echo \ \ ...`\n"
 
 make_() { ( eval $1; x=$?; [ ${1:0:1} == / ] && echo \ \ ${1##*/}: $x ); }
@@ -647,7 +643,13 @@ eval $IFRC_SCRIPT \
 # The action may be overridden depending on the following event rules.
 if [ -n "$ifnl_s" ]
 then
-  ## run via nl daemon, consume args
+  ifnl_event_action() {
+    [ -n "${1/--}" ] && IFRC_ACTION=$1
+    ${ifnl_event_action_notify:=true} \
+     && ifnl_event_action_notify=false \
+     && msg @. \ $IFRC_STATUS $IFRC_DEVICE ${IFRC_ACTION:-??} ${IFRC_METHOD%% *}
+    ${2:+msg @. "    ${@#$1}"}
+  }
   shift $#
 
   ## nl event rules for status '  ->dn'
@@ -656,14 +658,15 @@ then
     ## handle a temporarily lost interface
     if [ ! -f /sys/class/net/$dev/carrier ]
     then
+      ifnl_event_action -- iface\?
       msg1 $dev is gone, waiting 2s
       pause 2
       if [ ! -f /sys/class/net/$dev/carrier ]
       then
         msg1 $dev is gone, allowing deconfigure
       else
+        ifnl_event_action xx
         msg1 ignoring dn event - iface is back
-        IFRC_ACTION=xx
       fi
       break
     fi
@@ -671,19 +674,20 @@ then
     ## option no/wait ip-dcfg
     if [ -n "$delay_dcfg" ]
     then
-      let delay_dcfg || { IFRC_ACTION=xx; break; }
+      let delay_dcfg || { ifnl_event_action xx; break; }
       # when 'delay_dcfg' is zero then no deconfigure
       # otherwise, wait 'delay_dcfg' before deconfigure
       # an 'up' event will cancel any pending deconfigure
       #
       echo "$$: $0 $@" >${ifrc_Lfp}/$dev.dd \
+        && ifnl_event_action -- delay_dcfg \
         && pause $delay_dcfg
 
       if [ -f ${ifrc_Lfp}/$dev.dd ]
       then
         rm -f ${ifrc_Lfp}/$dev.dd
       else
-        IFRC_ACTION=xx
+        ifnl_event_action xx
         break
       fi
     fi
@@ -691,13 +695,12 @@ then
     ## handle dhcp ip-dcfg
     if [ "${IFRC_METHOD%% *}" == "dhcp" ]
     then
+      ifnl_event_action xx
       if [ ! -d ${ifrc_Lfp}/$dev.dhcp ]
       then
         signal_dhcp_client RELEASE
-        IFRC_ACTION=xx
       else
         msg1 "dhcp client lock exists, no act"
-        IFRC_ACTION=xx
       fi
       break
     fi
@@ -706,13 +709,21 @@ then
     ip addr flush dev $dev 2>/dev/null
 
     ## otherwise ignore down event via ifnl
-    IFRC_ACTION=xx
+    ifnl_event_action xx
     break
   done
 
   ## nl event rules for status '  ->up'
   while [ "${IFRC_STATUS##*->}" == "up" ]
   do
+    ifnl_event_action
+
+    if $phy80211 \
+    && [ "${IFRC_STATUS}" == "dt->up" ]
+    then
+      msg @. "  probable roam, was dormant"
+    fi
+
     ## option ip-dcfg cancelled
     { read -r zz < ${ifrc_Lfp}/$dev.dd; } 2>/dev/null \
     && { kill ${zz%%:*}; rm -f ${ifrc_Lfp}/$dev.dd ]; }
@@ -739,9 +750,6 @@ then
     fi
     break
   done
-
-  msg @. ifrc_s/d/a/m: "$IFRC_STATUS" $IFRC_DEVICE ${IFRC_ACTION:---} \
-                       ${IFRC_METHOD%% *} #cdt"${IFRC_SCRIPT:-{\}}"
 else #!via ifnl
   case $IFRC_ACTION in
     up|dn|down)
@@ -1250,7 +1258,8 @@ run_udhcpc() {
 
   # set no-verbose or verbose mode level
   [ -z "$vm" ] && nv='|grep -E "obtained|udhcpc"'
-  [ "${vm:2:1}" == "." ] && vb='-v' 
+  [ -z "$qm" -a -n "$mm" ] && vlf='-v'
+  [ "${vm:2:1}" == "." ] && vb='-v'
   [ "${vm:1:1}" == "." ] && q=
 
   # optional exit-no-lease and quit
@@ -1291,7 +1300,7 @@ run_udhcpc() {
 
   # spawn a client_wd
   test -x "$CLIENT_WD" \
-    && client=udhcpc $CLIENT_WD ${mm:+-v} -i$dev
+    && client=udhcpc $CLIENT_WD $vlf -i$dev
 
   #return $?
 }
