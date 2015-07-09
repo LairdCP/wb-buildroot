@@ -80,7 +80,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=20140914
+ifrc_Version=20140915
 ifrc_Disable=/etc/default/ifrc.disable
 ifrc_Script=/etc/network/ifrc.sh
 ifrc_Cmd=${0##*/}\ $@
@@ -453,8 +453,8 @@ read_ifrc_info() {
       #:alias=iface & settings
       ifrc_Settings=${ifrc_i#* }
       ifrc_i=${ifrc_i% $ifrc_Settings}
-      devalias=${ifrc_i%=*}
-      dev=${ifrc_i#*=}
+    : ${devalias:=${ifrc_i%=*}}
+    : ${dev:=${ifrc_i#*=}}
     fi
     exec 3<&-
     if [ -n "$devalias" ]\
@@ -469,30 +469,34 @@ read_ifrc_info() {
 }
 
 if ! read_ifrc_info $dev \
-|| [ -z "$mp_cdt" ]
+|| [ -n "${dev/$devalias}" ] \
+|| [ -z "$mp_cdt" -o 0${eni_sk#* } -eq 0 ]
 then
   # Generally, operations are on a specific interface.
   # It is possible that the $dev may initially be unknown.
   # A stanza uses '$dev' as a dev*alias or as dev*iface name.
-  # For /e/n/i stanza lookups, we assume the use of $devalias.
+  # Retry lookup if cache read fail or dev*iface != dev*alias.
+  # For /e/n/i stanza lookups, we assume the use of dev*alias.
   msg3 "  checking /e/n/i file..."
   D='[a-z][a-z][a-z0-9]*'
   devalias=$( sed -n "/$dev/s/^[ \t]*alias \($D\)[ is]* \($D\)/\1 \2/p" $eni )
   if [ -n "$devalias" ]
   then
     if grep -q "^iface ${devalias%% *} inet" $eni
-    then # matched dev*alias name via alias
+    then : \## matched dev*alias name via option alias
       ifacemsg="${devalias%% *} (alias)"
       dev=${devalias##* }
       devalias=${devalias%% *}
     elif grep -q "^iface ${devalias##* } inet" $eni
-    then # matched dev*iface name via alias
-      ifacemsg="${devalias%% *} (alias)"
+    then : \## matched dev*iface name via option alias
+      ifacemsg="${devalias##* } (${devalias%% *} alias)"
       dev=${devalias##* }
+      devalias=${devalias##* }
+    else : \## assumed via option alias
       devalias=${devalias##* }
     fi
   elif grep -q "^iface $dev inet" $eni
-  then # matched name via dev
+  then : \## matched name as specified
     ifacemsg="$dev"
     devalias=$dev
   fi
@@ -505,8 +509,8 @@ then
   # check if multipath polcy routing is enabled
   grep -q "^allow-multipath" $eni && mpr=yes || mpr=
 
-  # re-attempt lookup
-  read_ifrc_info $dev
+  # re-attempt lookup using dev*iface?
+  [ -n "$eni_sk" ] || read_ifrc_info $dev
 
   # read ifrc-flags if not more than '-v' specified on cli - cummulative
   test -z "${fls//-v/}" \
@@ -517,7 +521,7 @@ then
   # apply flags from iface stanza in /e/n/i
   for af in $flags_eni; do parse_flag $af || break; done
 fi
-msg3 "  deviface: ${dev:-?}"
+msg3 "  dev*alias/dev*iface: ${devalias:-?}/${dev:-?}"
 test -n "$dev" \
   || { msg "iface?"; exit 1; }
 
@@ -567,7 +571,7 @@ test -n "$1" \
 # Determine method and params and tasks to apply.
 if [ "$IFRC_ACTION" == "up" ]
 then
-  # get current iface stanza crc from /e/n/i
+  # get current iface stanza crc from /e/n/i  (stanza n/a when '4294967295 0')
   eni_sc=$( sed "/./{H;$!d;};x;/[#]*iface $devalias inet/!d;a\\" $eni |cksum )
 
   if [ -n "$ifnl_s" ]
