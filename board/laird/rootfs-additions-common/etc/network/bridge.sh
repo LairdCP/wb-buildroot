@@ -14,7 +14,7 @@
 #
 # contact: ews-support@lairdtech.com
 
-# /etc/network/bridge.sh v108
+# /etc/network/bridge.sh v109
 # Sets up Ethernet L2 Bridging for USB or WiFi.
 # Bridge ports are handled via init.d/S??network.
 # Settings applied via cmd-line or the /e/n/i file.
@@ -38,8 +38,9 @@ bridge_setup="auto"             ## setup is auto/manual, and any flags:
 br_start() {
   echo Starting bridge-mode $bridge_iface: $bridge_ports
 
-  # create bridge device
-  $brctl addbr $bridge_iface \
+  # create bridge device if necessary
+  test ! -s /sys/class/net/$bridge_iface/address \
+    && $brctl addbr $bridge_iface \
     || { echo \ \ ...failed; exit 1; }
 
   # set bridge device options
