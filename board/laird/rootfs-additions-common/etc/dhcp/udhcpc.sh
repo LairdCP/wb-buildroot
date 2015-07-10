@@ -198,7 +198,7 @@ case ${act:-status} in
     udhcpc_start || exit $?
     if [ -x "$CLIENT_WD" ]
     then
-      client=udhcpc $CLIENT_WD -i$dev
+      client=udhcpc $CLIENT_WD ${vm/..*/-v} -i$dev
     fi
     ;;
 
