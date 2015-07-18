@@ -154,11 +154,11 @@ case ${action:=$1} in
       # Also remove any applicable table-name policy rules.
       [ -n "$tn" ] && while ip rule del table $tn 2>/dev/null; do :; done
 
-      # Preserve other default-route/nexthops excluding this interface.
-      nexthop=${tn:+nexthop}
-      odr=$( ip route |sed -n "/via /{/$interface/d;s/^[ \t]*//p}" )
-      fn ip route replace default \
-          ${odr//default/$nexthop} ;
+      # Preserve other default route/nexthops for multipath.
+      if odr=$( ip route show scope global |grep -v $interface )
+      then
+        fn ip route repl default ${odr//default/${tn:+nexthop}}
+      fi
     fi
     fn ip route flush ${tn:+table $tn} cache
     ;;
@@ -222,8 +222,8 @@ case ${action:=$1} in
     then
       { read -rs ifindex < /sys/class/net/$interface/ifindex; } 2>/dev/null
 
-      # preserve other-default-routes excluding this interface
-      odr=$( ip route |sed -n "/via /{/$interface/d;s/^[ \t]*//p}" )
+      # preserve other-default-route/nexthops for multipath
+      odr=$( ip route show scope global |grep -v $interface )
 
       # for rt_tables
       if [ -n "$tn" ]
