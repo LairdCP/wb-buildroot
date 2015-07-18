@@ -75,8 +75,8 @@ write_lease_info() {
 
   # make new copy of leases file, while retaining other non-lease info,
   # get just the previous lease-entry and then append current lease-entry
-  sed '/^leas/,$!p;/^leas/h;/^leas/!H;$!b;x;/^leas/,$p' -n $1 >$1~
-
+  sed '/^leas/,$!p;/^leas/h;/^leas/!H;$!b;x;/^leas/,$p' -n $1 \
+       >$1~
   cat >>$1~<<-	\
 	lease-entry
 	lease {
@@ -106,7 +106,13 @@ do_source() {
       || $vecho "  $1 - error $?" >>$LOGFILE
   fi
 }
-fn() { $vecho \+ $@ >>$LOGFILE; $@ || echo \? $@ >>$LOGFILE; }
+
+fn() {
+  # capture the passed in command and args with error context to logfile
+  exec 3>&1; fn_x=$( $@ 2>&1 1>&3 ) && x=\+ || x=\?; exec 3>&-
+  $vecho -e $x $@${fn_x:+\\\n$fn_x} >>$LOGFILE
+  test "$x" != \?
+}
 
 exit_err() { echo "__${0} - error: $@" >>$LOGFILE; exit 1; }
 
@@ -114,7 +120,6 @@ exit_err() { echo "__${0} - error: $@" >>$LOGFILE; exit 1; }
 S='          '
 dateRT=$( date +%s )
 esa=$( date +"# esa: ${S:${#1}}$1 - %u %Y/%m/%d %H:%M:%S" -d@$dateRT )
-
 
 # Update leases file w/ this event state action.
 sed "/^${esa:0:17}/d;/^#/h;/^ *$/{$!d};1,/^}/{/^leas/{s,^,${esa}\n\n,}}" \
@@ -128,21 +133,14 @@ then
   tn=t.$interface
 fi
 
-# Cap log_file size.
-if [ -f "$LOGFILE" ]
-then
-  let sz=$( { wc -c < $LOGFILE; } 2>/dev/null )+0
-  if [ $sz -le 102400 ]
-  then
-    read -rs us is </proc/uptime
-    printf "% 13.2f __$0 $@ ${ip:+ IP:$ip}\n" $us >>$LOGFILE
-  else
-    LOGFILE=/dev/null
-  fi
-fi
+# Cap log file size; disable logging if over 100-blocks.
+test 0$( { wc -c < $LOGFILE; } 2>/dev/null ) -le 102400 \
+  || LOGFILE=/dev/null
 
-${vecho:=:} \ \ esa: $1 >>$LOGFILE
+read -rs us is </proc/uptime
+printf "% 13.2f __$0 $@ ${ip:+ IP:$ip}\n" $us >>$LOGFILE
 
+# Handle event state.
 case ${action:=$1} in
   deconfig)
     if [ "${RETAIN_INACTIVE_IPADDR/auto/yes}" != "yes" ]
