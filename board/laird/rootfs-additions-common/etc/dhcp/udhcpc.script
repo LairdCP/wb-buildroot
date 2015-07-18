@@ -18,38 +18,38 @@
 # An event action script for udhcpc.
 # 20120521..20141028
 
-eval $udhcpc_Settings 2>/dev/null
+eval ${udhcpc_Settings} 2>/dev/null
+eval ${DHCP_PARAMS} 2>/dev/null
 test -f /etc/dhcp/udhcpc.conf && . /etc/dhcp/udhcpc.conf
 test -f /etc/dhcp/udhcpc.$interface.conf && . /etc/dhcp/udhcpc.$interface.conf
-# For the global variables below, values from the exported udhcpc_settings will
-# overwrite those from the udhcpc[.<iface>].conf files.  Otherwise, the default
-# values (below) will be used from the expanded right-most string.
+# Some settings may be passed in as DHCP_PARAMS via the shell environment, and
+# will be overridden by those from the udhcpc[.<iface>].conf files. Otherwise,
+# default values are set (below) from expanded right-most string as necessary.
 
 # Debug support.
-LOG_FILE=${log:-${LOG_FILE:-'/dev/null'}}
-VERBOSE=${vb:-${VERBOSE:-''}}
+: ${LOGFILE:=${log:-'/dev/null'}}
+: ${VERBOSE:=${vb:-''}}
 test -n "$VERBOSE" \
   && vecho=echo \
   || vecho=:
 
 # Support multipath policy routing.
-MULTIPATH_POLICY_ROUTING=${mpr:-${MULTIPATH_POLICY_ROUTING:-''}}
+: ${MULTIPATH_POLICY_ROUTING:=${mpr:-''}}
 
 # Extensions.
-VENDORINFO_HOOK=${vendorinfo_hook:-${VENDORINFO_HOOK:-''}}
-BOOTFILE_HOOK=${bootfile_hook:-${BOOTFILE_HOOK:-''}}
-ONEVENT_HOOK=${onevent_hook:-${ONEVENT_HOOK:-''}}
+: ${VENDORINFO_HOOK:=${vendorinfo_hook:-''}}
+: ${BOOTFILE_HOOK:=${bootfile_hook:-''}}
+: ${ONEVENT_HOOK:=${onevent_hook:-''}}
 
 # DNS resolvconf handling.
-RESOLV_CONF=${resolv_conf:-${RESOLV_CONF:-'/etc/resolv.conf'}}
-RESOLV_HOOK=${resolv_hook:-${RESOLV_HOOK:-''}}
+: ${RESOLV_CONF:=${resolv_conf:-'/etc/resolv.conf'}}
+: ${RESOLV_HOOK:=${resolv_hook:-''}}
 
 # The leases file is maintained in a 'dhclient' compatible format, w/last
 # event state action, plus the previous lease info and current lease info.
 # Assign a file name per interface, and ensure it exists.
 # Also create a /tmp destination for the leases file, if necessary.
-LEASES_FILE=${leases_file:-${LEASES_FILE:-'/var/lib/dhcp/dhclient.leases'}}
-LEASES_FILE=${LEASES_FILE/leases/$interface.leases}
+: ${LEASES_FILE:=${leases_file:-/var/lib/dhcp/dhclient.$interface.leases}}
 test -d ${LEASES_FILE%/*} || ln -s /tmp ${LEASES_FILE%/*}
 test -s ${LEASES_FILE} || printf "# via: $0\n#\n\n" >${LEASES_FILE}
 
@@ -101,14 +101,14 @@ write_lease_info() {
 do_source() {
   if [ -n "$1" ]
   then
-    $vecho ". $@" >>$LOG_FILE
-    ( source "$@" >>$LOG_FILE 2>&1 ) \
-      || $vecho "  $1 - error $?" >>$LOG_FILE
+    $vecho ". $@" >>$LOGFILE
+    ( source "$@" >>$LOGFILE 2>&1 ) \
+      || $vecho "  $1 - error $?" >>$LOGFILE
   fi
 }
-fn() { $vecho \+ $@ >>$LOG_FILE; $@ || echo \? $@ >>$LOG_FILE; }
+fn() { $vecho \+ $@ >>$LOGFILE; $@ || echo \? $@ >>$LOGFILE; }
 
-exit_err() { echo "__${0} - error: $@" >>$LOG_FILE; exit 1; }
+exit_err() { echo "__${0} - error: $@" >>$LOGFILE; exit 1; }
 
 # DHCP event
 S='          '
@@ -129,19 +129,19 @@ then
 fi
 
 # Cap log_file size.
-if [ -f "$LOG_FILE" ]
+if [ -f "$LOGFILE" ]
 then
-  let sz=$( { wc -c < $LOG_FILE; } 2>/dev/null )+0
+  let sz=$( { wc -c < $LOGFILE; } 2>/dev/null )+0
   if [ $sz -le 102400 ]
   then
     read -rs us is </proc/uptime
-    printf "% 13.2f __$0 $@ ${ip:+ IP:$ip}\n" $us >>$LOG_FILE
+    printf "% 13.2f __$0 $@ ${ip:+ IP:$ip}\n" $us >>$LOGFILE
   else
-    LOG_FILE=/dev/null
+    LOGFILE=/dev/null
   fi
 fi
 
-${vecho:=:} \ \ esa: $1 >>$LOG_FILE
+${vecho:=:} \ \ esa: $1 >>$LOGFILE
 
 case ${action:=$1} in
   deconfig)
@@ -214,7 +214,7 @@ case ${action:=$1} in
       test -n "$xip" \
         && fn ip addr del $ip/32 dev $interface
     else
-      $vecho "lease address not changed: $ip/$nm" >>$LOG_FILE
+      $vecho "lease address not changed: $ip/$nm" >>$LOGFILE
     fi
 
     # Re-write entries in routing table, only for this interface, if set.
