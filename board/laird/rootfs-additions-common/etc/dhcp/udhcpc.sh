@@ -71,14 +71,14 @@ udhcpc_conf() {
   if [ -f /etc/dhcp/udhcpc.conf ]
   then
     { set ${vm/..*/-x} --; }
-    . /etc/dhcp/udhcpc.conf 2>&1
+    . /etc/dhcp/udhcpc.conf
     { set +x; } 2>/dev/null
   fi
   ## apply select iface conf options
   if [ -f /etc/dhcp/udhcpc.$dev.conf ]
   then
     { set ${vm/..*/-x} --; }
-    . /etc/dhcp/udhcpc.$dev.conf 2>&1
+    . /etc/dhcp/udhcpc.$dev.conf
     { set +x; } 2>/dev/null
   fi
   ## flag-file bootfile req
@@ -86,7 +86,7 @@ udhcpc_conf() {
   then
     OPT_REQ=$OPT_REQ\ bootfile
   fi
-}
+} >>${log:-/dev/null} 2>&1
 
 udhcpc_start() {
   # set no-verbose or use a verbose mode level
@@ -129,7 +129,7 @@ udhcpc_start() {
   # send 4-discovers, paused at 2sec, repeat after 5sec
   eval \
     udhcpc -i$dev $vb $rip -R -t4 -T2 -A5 -b $ropt $vci $xopt $rbf $pf $rs $nv
-}
+} >>${log:-/dev/null}
 
 udhcpc_signal() {
   case $1 in
@@ -198,7 +198,7 @@ case ${act:-status} in
     udhcpc_start || exit $?
     if [ -x "$CLIENT_WD" ]
     then
-      client=udhcpc $CLIENT_WD ${vm/..*/-v} -i$dev
+      client=udhcpc $CLIENT_WD $vb -i$dev
     fi
     ;;
 
