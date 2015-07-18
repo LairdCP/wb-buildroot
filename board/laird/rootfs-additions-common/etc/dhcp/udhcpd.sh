@@ -36,7 +36,7 @@
 #
 
 msg() {
-  echo "$@" >&2
+  echo "$@"
   test "${1:0:3}" == "err" \
     && exit 1
 }
