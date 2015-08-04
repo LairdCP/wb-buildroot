@@ -1,0 +1,34 @@
+#!/bin/sh
+
+if [ ! $1 ]
+then
+	echo "Usage: $0 <pathname>"
+	exit
+fi
+
+if [ ! -d $1 ]
+then
+	echo "Error: Cannot find directory '$1'"
+	exit
+fi
+
+cd $1
+
+# Remove old hash files
+rm -f [0-9a-z][0-9a-z][0-9a-z][0-9a-z][0-9a-z][0-9a-z][0-9a-z][0-9a-z].[0-9]*
+
+# Create hashes of each file, avoiding collisions with an incremental suffix
+ls -1 *.pem | while read cert_file
+do
+	hash=`openssl x509 -subject_hash_old -noout -in $cert_file 2> /dev/null`
+	if [ $? == 0 ]
+	then
+		suffix=0
+		while [ -e $hash.$suffix ]
+		do
+			suffix=`expr $suffix + 1`
+		done
+		ln -s $cert_file $hash.$suffix
+	fi
+done
+
