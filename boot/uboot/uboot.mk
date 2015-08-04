@@ -146,6 +146,9 @@ define UBOOT_BUILD_CMDS
 		$(UBOOT_MAKE_TARGET)
 	$(if $(BR2_TARGET_UBOOT_FORMAT_SD),
 		$(@D)/tools/mxsboot sd $(@D)/u-boot.sb $(@D)/u-boot.sd)
+	$(if $(BR2_TARGET_UBOOT_ENV_TOOLS),
+		$(MAKE) -C $(@D) $(UBOOT_MAKE_OPTS) \
+		HOSTCC=$(TARGET_CROSS)gcc HOSTSTRIP=$(TARGET_CROSS)strip env )
 endef
 
 define UBOOT_BUILD_OMAP_IFT
@@ -161,6 +164,10 @@ define UBOOT_INSTALL_IMAGES_CMDS
 		$(HOST_DIR)/usr/bin/mkenvimage -s $(BR2_TARGET_UBOOT_ENVIMAGE_SIZE) \
 		$(if $(BR2_TARGET_UBOOT_ENVIMAGE_REDUNDANT),-r) \
 		-o $(BINARIES_DIR)/uboot-env.bin $(BR2_TARGET_UBOOT_ENVIMAGE_SOURCE))
+	$(if $(BR2_TARGET_UBOOT_ENV_TOOLS),
+		install -m 0644 -D $(@D)/tools/env/fw_env.config $(TARGET_DIR)/etc
+		install -m 0755 -D $(@D)/tools/env/fw_printenv $(TARGET_DIR)/usr/sbin
+		ln -sf fw_printenv $(TARGET_DIR)/usr/sbin/fw_setenv )
 endef
 
 define UBOOT_INSTALL_OMAP_IFT_IMAGE
