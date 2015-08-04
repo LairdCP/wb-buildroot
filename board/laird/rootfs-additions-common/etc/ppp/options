@@ -1,0 +1,57 @@
+# /etc/ppp/options (NO PAP/CHAP)
+
+# Prevent pppd from forking into the background
+-detach
+
+# Specifies that pppd should use a UUCP-style lock on the serial device
+# to ensure exclusive access to the device.
+lock
+
+# Add a default route to the system routing tables, using the peer as
+# the gateway, when IPCP negotiation is successfully completed.  This
+# entry is removed when the PPP connection is broken.
+defaultroute
+
+# do NOT set up any "escaped" control sequences
+asyncmap 0
+
+# Don't use the modem control lines.
+local
+
+# Use software flow control (i.e. XON/XOFF) to control the flow of data
+# on the serial port.
+xonxoff
+
+# Set the MRU [Maximum Receive Unit] value to <n> for negotiation.  pppd
+# will ask the peer to send packets of no more than <n> bytes. The
+# minimum MRU value is 128.  The default MRU value is 1500.  A value of
+# 296 is recommended for slow links (40 bytes for TCP/IP header + 256
+# bytes of data).
+mru 552
+
+# Set the MTU [Maximum Transmit Unit] value to <n>. Unless the peer
+# requests a smaller value via MRU negotiation, pppd will request that
+# the kernel networking code send data packets of no more than n bytes
+# through the PPP network interface.
+mtu 552
+
+# Don't agree to authenticate using PAP.
+-pap
+
+# Don't agree to authenticate using CHAP.
+-chap
+
+# Increase debugging level (same as -d).  If this option is given, pppd
+# will log the contents of all control packets sent or received in a
+# readable form.  The packets are logged through syslog with facility
+# daemon and level debug. This information can be directed to a file by
+# setting up /etc/syslog.conf appropriately (see syslog.conf(5)).  (If
+# pppd is compiled with extra debugging enabled, it will log messages
+# using facility local2 instead of daemon).
+#debug
+
+# Keep a persistent PPP connection (retry connecting forever)
+persist
+maxfail 0
+#holdoff 10
+

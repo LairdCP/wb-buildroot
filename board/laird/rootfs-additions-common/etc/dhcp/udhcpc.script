@@ -1,0 +1,297 @@
+#!/usr/bin/env ash
+
+# Copyright (c) 2015, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+# /etc/dhcp/udhcpc.script
+# An event action script for udhcpc.
+# 20120521..20141028
+
+eval ${udhcpc_Settings} 2>/dev/null
+eval ${DHCP_PARAMS} 2>/dev/null
+test -f /etc/dhcp/udhcpc.conf && . /etc/dhcp/udhcpc.conf
+test -f /etc/dhcp/udhcpc.$interface.conf && . /etc/dhcp/udhcpc.$interface.conf
+# Some settings may be passed in as DHCP_PARAMS via the shell environment, and
+# will be overridden by those from the udhcpc[.<iface>].conf files. Otherwise,
+# default values are set (below) from expanded right-most string as necessary.
+
+# Debug support.
+: ${LOGFILE:=${log:-'/dev/null'}}
+: ${VERBOSE:=${vb:-''}}
+test -n "$VERBOSE" \
+  && vecho=echo \
+  || vecho=:
+
+# Support multipath policy routing.
+: ${MULTIPATH_POLICY_ROUTING:=${mpr:-''}}
+
+# Extensions.
+: ${VENDORINFO_HOOK:=${vendorinfo_hook:-''}}
+: ${BOOTFILE_HOOK:=${bootfile_hook:-''}}
+: ${ONEVENT_HOOK:=${onevent_hook:-''}}
+
+# DNS resolvconf handling.
+: ${RESOLV_CONF:=${resolv_conf:-'/etc/resolv.conf'}}
+: ${RESOLV_HOOK:=${resolv_hook:-''}}
+
+# The leases file is maintained in a 'dhclient' compatible format, w/last
+# event state action, plus the previous lease info and current lease info.
+# Assign a file name per interface, and ensure it exists.
+# Also create a /tmp destination for the leases file, if necessary.
+: ${LEASES_FILE:=${leases_file:-/var/lib/dhcp/dhclient.$interface.leases}}
+test -d ${LEASES_FILE%/*} || ln -s /tmp ${LEASES_FILE%/*}
+test -s ${LEASES_FILE} || printf "# via: $0\n#\n\n" >${LEASES_FILE}
+
+write_lease_info() {
+  # calculate expiry info: renew=50%, rebind=87.5%, and expire=100%
+  # expiry format is UTC: DayOfWeek Year/Month/Day Hour:Minute:Second [TZ]
+  let dateT1=$dateRT+${lease:-0}/2
+  let dateT2=$dateRT+${lease:-0}*875/1000
+  let dateT3=$dateRT+${lease:-0}
+
+  # default DHCPACK and trim leading zero
+  opt53=${opt53:-5} && opt53=${opt53##*0}
+
+  # store wireless ap_indentifier MAC SSID
+  test -d /sys/class/net/$interface/phy80211 \
+    && apid=$( iw dev $interface link \
+             |sed '/.:../{N;s/.* \(..:.[^ ]*\).*\n.*SSID: \(.*\)/\1 "\2"/;q}' )
+  # add
+  extra_options=''
+  # formatted with: '\n  <content>;'
+  extra_options=$extra_options"${apid:+
+  option ap-identifier $apid;}"
+
+  # make new copy of leases file, while retaining other non-lease info,
+  # get just the previous lease-entry and then append current lease-entry
+  sed '/^leas/,$!p;/^leas/h;/^leas/!H;$!b;x;/^leas/,$p' -n $1 \
+       >$1~
+  cat >>$1~<<-	\
+	lease-entry
+	lease {
+	  interface "$interface";${extra_options}
+	  option fixed-address $ip;
+	  option broadcast-address $broadcast;
+	  option subnet-mask $subnet;
+	  option routers $router;
+	  option domain-name "$domain";
+	  option domain-name-servers $dns;
+	  option dhcp-server-identifier $serverid;
+	  option dhcp-message-type $opt53;
+	  option dhcp-lease-time $lease;
+	   renew `date +%u\ %Y/%m/%d\ %H:%M:%S -d @$dateT1`;
+	  rebind `date +%u\ %Y/%m/%d\ %H:%M:%S -d @$dateT2`;
+	  expire `date +%u\ %Y/%m/%d\ %H:%M:%S -d @$dateT3`;
+	}
+	lease-entry
+  mv -f $1~ $1
+}
+
+do_source() {
+  if [ -n "$1" ]
+  then
+    $vecho ". $@" >>$LOGFILE
+    ( source "$@" >>$LOGFILE 2>&1 ) \
+      || $vecho "  $1 - error $?" >>$LOGFILE
+  fi
+}
+
+fn() {
+  # capture the passed in command and args with error context to logfile
+  exec 3>&1; fn_x=$( $@ 2>&1 1>&3 ) && x=\+ || x=\?; exec 3>&-
+  $vecho -e $x $@${fn_x:+\\\n$fn_x} >>$LOGFILE
+  test "$x" != \?
+}
+
+exit_err() { echo "__${0} - error: $@" >>$LOGFILE; exit 1; }
+
+# DHCP event
+S='          '
+dateRT=$( date +%s )
+esa=$( date +"# esa: ${S:${#1}}$1 - %u %Y/%m/%d %H:%M:%S" -d@$dateRT )
+
+# Update leases file w/ this event state action.
+sed "/^${esa:0:17}/d;/^#/h;/^ *$/{$!d};1,/^}/{/^leas/{s,^,${esa}\n\n,}}" \
+    -i $LEASES_FILE
+
+# rt_tables support...
+if ip rule >/dev/null 2>&1 \
+&& [ "$MULTIPATH_POLICY_ROUTING" == "yes" ] \
+&& grep -qs "t.$interface" /etc/iproute2/rt_tables
+then
+  tn=t.$interface
+fi
+
+# Cap log file size; disable logging if over 100-blocks.
+test 0$( { wc -c < $LOGFILE; } 2>/dev/null ) -le 102400 \
+  || LOGFILE=/dev/null
+
+read -rs us is </proc/uptime
+printf "% 13.2f __$0 $@ ${ip:+ IP:$ip}\n" $us >>$LOGFILE
+
+# Handle event state.
+case ${action:=$1} in
+  deconfig)
+    if [ "${RETAIN_INACTIVE_IPADDR/auto/yes}" != "yes" ]
+    then
+      # Remove relative entries from the routing table.
+      # The iface is still up and accessible.
+      fn ip -4 addr flush dev $interface
+
+      # Also remove any applicable table-name policy rules.
+      [ -n "$tn" ] && while ip rule del table $tn 2>/dev/null; do :; done
+
+      # Preserve other default route/nexthops for multipath.
+      if odr=$( ip route show scope global |grep -v $interface )
+      then
+        fn ip route repl default ${odr//default/${tn:+nexthop}}
+      fi
+    fi
+    fn ip route flush ${tn:+table $tn} cache
+    ;;
+
+  renew|bound|refresh)
+    # Must have the ip-address.
+    [ -n "$ip" ] || exit_err "address unset"
+
+    # Determine netmask bits.
+    for octet in ${subnet//./ }
+    do
+      for bits in 255:8 254:7 252:6 248:5 240:4 224:3 192:2 128:1 0:0
+      do
+        [ $octet -eq ${bits%:*} ] && { let nm+=${bits#*:}; break; }
+      done
+    done
+
+    # Determine broadcast if not given.
+    [ -n "$broadcast" ] || broadcast=${ip%.[0-9]*}.255
+
+    # Determine network/subnet if not given.
+    [ -n "$network" ] || network=${broadcast%.[0-9]*}.0
+
+    # Copy value to a 'variable_set-value'.
+    [ -n "$subnet" ] && netmask_sv="netmask $subnet"
+    [ -n "$broadcast" ] && broadcast_sv="broadcast $broadcast"
+    [ -n "$bootfile" ] && bootfile_sv="bootfile $bootfile"
+
+    # Call a bootfile-option-handler if set and it exists.
+    if [ -f "$BOOTFILE_HOOK" -a -n "$bootfile" ]
+    then
+      do_source $BOOTFILE_HOOK
+    fi
+
+    # Call a vendorinfo-handler if set and it exists.
+    if [ -f "$VENDORINFO_HOOK" -a -n "$opt43" ]
+    then
+      do_source $VENDORINFO_HOOK
+    fi
+
+    # Configure the interface -> ip-addr-modify NIP/NM and BRD.
+    xip=$( ip addr show dev $interface \
+                       |sed -n '/inet/{s/.*t \([^ ]*\).*/\1/p;q}' )
+
+    if [ "$xip" != "$ip/$nm" ]
+    then
+      if [ -n "$xip" ]
+      then
+        fn ip addr add $ip/32 dev $interface
+        fn ip addr del $xip dev $interface
+      fi
+      fn ip addr add $ip${subnet:+/$subnet} $broadcast_sv dev $interface
+      test -n "$xip" \
+        && fn ip addr del $ip/32 dev $interface
+    else
+      $vecho "lease address not changed: $ip/$nm" >>$LOGFILE
+    fi
+
+    # Re-write entries in routing table, only for this interface, if set.
+    if [ -n "$router" ]
+    then
+      { read -rs ifindex < /sys/class/net/$interface/ifindex; } 2>/dev/null
+
+      # preserve other-default-route/nexthops for multipath
+      odr=$( ip route show scope global |grep -v $interface )
+
+      # for rt_tables
+      if [ -n "$tn" ]
+      then
+        # determine a weight for this interface
+        weight=weight\ ${weight:-${ifindex:-1}}
+        nexthop=nexthop
+      else
+        weight=
+        nexthop=
+        odr=
+      fi
+      default=default
+
+      for ra in $router
+      do
+        fn ip route replace $default \
+          $nexthop via $ra dev $interface $weight \
+            ${odr//default/$nexthop} ;
+
+        # only a single default route can exist (or is even usable)
+        # however, can assign 'nexthop's using IP_CONFIG_MULTIPATH
+        [ -n "$nexthop" ] || default=
+      done
+
+      # for rt_tables
+      if [ -n "$tn" ]
+      then
+        # add network and gateway routes to table
+        fn ip route add $network/$subnet dev $interface src $ip table $tn
+        fn ip route add default via $ra dev $interface table $tn
+
+        # rewrite policy rules in the lookup table
+        while ip rule del not table $tn 2>/dev/null; do :;done
+        fn ip rule add from ${ip}/32 lookup $tn  ### outgoing ##
+        fn ip rule add to ${ip}/32 lookup $tn  ### incoming ##
+      fi
+    fi
+    fn ip route flush cache
+
+    # Call on a resolv-conf-handler, or write resolv-conf directly.
+    if [ -x "$RESOLV_HOOK" ]
+    then
+      $RESOLV_HOOK -a $interface ${domain:+search $domain} nameserver $dns
+    elif [ -n "$RESOLV_CONF" ]
+    then
+      if : >$RESOLV_CONF
+      then
+        test -n "$domain" && echo search $domain >>$RESOLV_CONF
+        for x in $dns; do echo nameserver $x >>$RESOLV_CONF; done
+      fi
+    fi
+
+    if [ "$action" != refresh ]
+    then
+      write_lease_info $LEASES_FILE
+    fi
+    ;;
+
+  leasefail)
+    ;;
+
+  nak)
+    ;;
+esac
+
+# Call an on-event-action-handler if set and it exists.
+if [ -f "$ONEVENT_HOOK" ]
+then
+  do_source $ONEVENT_HOOK
+fi
+
+exit 0

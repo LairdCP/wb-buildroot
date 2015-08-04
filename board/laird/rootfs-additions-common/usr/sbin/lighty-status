@@ -1,0 +1,66 @@
+#!/bin/ash
+
+# Copyright (c) 2015, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+# /usr/sbin/lighty-status
+# Shows related webserver processes.
+# Parses lighttpd.conf and inetd.conf files for configured ports to report on.
+
+status() {
+  # show dis/enabled inetd service
+  echo "+ grep light /tmp/inetd.conf"
+  grep -o '.*light[^ ]*' /tmp/inetd.conf \
+    || echo \ \ ...
+  echo
+
+  # find lighty's config
+  eval $( ps axopid,args \
+    |sed -n '/[^S0-9]*lighttp[d]/s/ *\([^ ]*\) .*-f *\([^ ]*\)/pid=\1 cf=\2/p' )
+
+  # get service ports configured for lighttpd
+  test -n "$cf" \
+    && ports=$( sed -e '/server\.port/s/^[^#].* = \([0-9]\+\)/ -e \":\1\"/p' \
+                    -e '/socket/s/^[^#].*\(:[0-9]\+\).*/ -e \"\1\"/p' \
+                    -n $cf |tr -d '\n' )
+
+  # get service port configured for inetd
+  service=$( sed -n '/^[^#].*lighty/s/^\([^#][^ ]\+\) .*/\1/p' /etc/inetd.conf )
+  for name in $service
+  do
+    ports=$ports\ $( sed -e "/$name/s/^.*[ \t]\+\([0-9]\+\)\/tcp.*/-e :\1/p" \
+                         -n /etc/services )
+  done
+
+  # report relative service PIDs
+  echo "+ ps ax -opid,args"
+  ps ax -opid,args \
+  |sed -n '/status/d;/[^0-9]ligh[t]/p;/php[-]/p;$a'
+  echo
+
+  # report relative socket-statistics
+  echo "+ ss -4tunpla"
+  f1='\(.*[A-Z]\+\)'
+  f2='\(.*:[^ ]* *[^ ]*:[^ ]* *\)'
+  f3='u[^ ]\+\(\".*\",[0-9]*\),.*'
+  ports="grep -e State $ports"
+
+  ss -4tunpla \
+  |sed -e '1s/ Recv.*Q *//' \
+       -e '/WAIT/d;s/ESTAB/&L/' \
+       -e 's/^'$f1' .*[0-9]      '"$f2$f3"'/\r\1\2\3/' \
+       |$ports
+}
+
+status

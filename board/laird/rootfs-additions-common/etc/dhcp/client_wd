@@ -1,0 +1,109 @@
+#!/usr/bin/env ash
+
+# Copyright (c) 2015, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+# client_wd - dhcp client process watchdog
+#
+# Watches the dhcp client process of an interface.
+# And calls on ifrc to check/restart the client as necessary.
+#
+# Usage:
+# ./client_wd [-v] -i<iface> [--force]
+
+: ${client:=udhcpc}
+
+# verbose logger
+test "$1" == "-v" \
+  && { vf=$1; vl=-s; shift; }
+
+# enforce specific command invocation
+test "${1:0:2}" == "-i" -a -n "${1:2}" \
+  || { echo "specify interface as: -i<iface>" >/dev/stderr; exit 1; }
+
+dev=${1:2}
+wd=${0##*/}\($dev\)
+
+# force re-run of wd
+test "$2" == "--force" \
+  && { x=$(ps ax -opid,args \
+           |sed -n "s/ *\([^ ][0-9]\+\) .*${0##*/}[ ].*-i$dev/\1/p" ); \
+          kill ${x/$$/}; rmdir /tmp/$wd 2>/dev/null; shift; } 2>/dev/null
+
+# self-daemonize
+test "$2" != "  " \
+  && { exec $0 $vf -i$dev "  " & exit 0; } \
+  || { mkdir /tmp/$wd 2>/dev/null || exit 0; }
+
+# builtin
+sleep() {
+  test -p ${wdP:=/tmp/${0##*/}-} \
+    || { rm -f $wdP; mkfifo $wdP; }
+  read -rst${1:-1} <>$wdP                                  
+  return 0               
+} 2>/dev/null
+
+exited() {
+  logger $vl -t$wd "exited"
+  rmdir /tmp/$wd 2>/dev/null
+  trap '' 0 1 15
+  exit 0
+}
+trap exited 0 1 15
+
+while sleep 2
+do
+  # check process exists
+  test -d /proc/${pid:=0} \
+    && continue
+
+  logger $vl -t$wd "scanning for $client"
+
+  scans=8
+  while let --scans && sleep 1
+  do
+    # process id is gone, so scan for new client instance and set pid
+    if process=$( ps ax -opid,args |grep -m1 "[0-9].* $client[ ]-i$dev" )
+    then
+      pid=${process%%${client}*}
+      client_process_cmd=${process##$pid}
+      pid=${pid// /}
+      logger $vl -t$wd "client process id: $pid"
+      continue 2
+    fi
+  done
+
+  # client appears not active...
+  # check if method perhaps administratively disabled
+  { mp=x; read -rs mp < /var/log/ifrc/$dev; } 2>/dev/null
+  if [ "${mp/*:dhcp*/dhcp}" != "dhcp" ]
+  then
+    logger $vl -t$wd "dhcp method n/a via admin?"
+    # affirm whether client is terminated via leases file
+    if [ -s ${lf:=/var/lib/dhcp/dhclient.$dev.leases} ]
+    then
+      # leases file exists, so maybe want to re-'up'?
+      # detect if last event-state-action was: released
+      sed '/^# esa:/h;$!b;x;p' -n $lf |grep -q released && break
+    else
+      # no leases file, assume no
+      break
+    fi
+  fi
+
+  logger $vl -t$wd "client restart req"
+
+  ifrc $vf $dev up \
+    || break
+done

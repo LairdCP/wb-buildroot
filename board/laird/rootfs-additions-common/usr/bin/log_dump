@@ -1,0 +1,74 @@
+#!/usr/bin/env ash
+
+# Copyright (c) 2015, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+# /usr/bin/log_dump Support utility to gather logs for support to assist
+# with issue debugging
+
+# MSD customers may wish to use a different location
+LOGLOCALE=/tmp
+
+LOGFILE=${LOGLOCALE}/log_dump.txt
+
+LOG_DUMP_VERSION=20140830
+
+echo "= = = = = = = = = = = = = = = = = = = =" >> $LOGFILE
+echo "log_dump file create with version " $LOG_DUMP_VERSION >> $LOGFILE
+date >> $LOGFILE
+echo "-----uptime-----" >> $LOGFILE
+uptime >> $LOGFILE
+cat /etc/summit-release >> $LOGFILE
+uname -a >> $LOGFILE
+echo "-----kernel cmd line-----" >> $LOGFILE
+cat /proc/cmdline >> $LOGFILE
+echo "-----uboot env-----" >> $LOGFILE
+fw_printenv >> $LOGFILE
+sdc_cli >> $LOGFILE << \
+--sdc_cli_info--
+!echo "-----sdc_cli version-----" >> $LOGFILE
+version
+!echo "-----sdc_cli status-----" >> $LOGFILE
+status
+!echo "-----sdc_cli profile list-----" >> $LOGFILE
+profile list
+profile dumpall
+--sdc_cli_info--
+echo "-----ifrc -v wlan0-----" >> $LOGFILE
+ifrc -v wlan0 >> $LOGFILE
+echo "-----ifrc -v-----" >> $LOGFILE
+ifrc -v >> $LOGFILE
+echo "-----bridge staus------" >> $LOGFILE
+{ ifrc -v br0 && ifrc br0 status; } >> $LOGFILE
+echo "----image info-----" >> $LOGFILE
+fw_select --show >> $LOGFILE
+echo "-----route info-----" >> $LOGFILE
+ip route show >> $LOGFILE
+echo "-----ifrc log-----" >> $LOGFILE
+cat /var/log/ifrc/wlan0 >> $LOGFILE
+echo "-----top-----" >> $LOGFILE
+top -b -n 1 >> $LOGFILE
+echo "-----df-----" >> $LOGFILE
+df >> $LOGFILE
+echo "-----logread-----" >> $LOGFILE
+logread >> $LOGFILE
+echo "-----processes-----" >> $LOGFILE
+ps >> $LOGFILE
+echo "- - - - - - - - - - DMESG - - - - - - - - - - " >> $LOGFILE
+dmesg >> $LOGFILE
+
+echo "The file" $LOGFILE "was created.  Please provide this file to"
+echo "your support contact at ews-support@lairdtech.com"
+
+exit 0
