@@ -1,0 +1,32 @@
+diff -aur orig/Makefile new/Makefile
+--- orig/Makefile	2002-11-06 19:19:11.000000000 +0000
++++ new/Makefile	2013-09-07 15:03:43.951241542 +0100
+@@ -5,22 +5,22 @@
+ SRCDIR = src/
+ 
+ all:	$(OBJECTS)	
+-	gcc $(LDFLAGS) -o $(TARGET) $(OBJECTS)
++	$(CC) $(LDFLAGS) -o $(TARGET) $(OBJECTS)
+ 
+ ipv4_net.o:	$(SRCDIR)ipv4_net.c
+-	gcc $(CFLAGS) $(SRCDIR)ipv4_net.c -c
++	$(CC) $(CFLAGS) $(SRCDIR)ipv4_net.c -c
+ 
+ ipv6_net.o:	$(SRCDIR)ipv6_net.c
+-	gcc $(CFLAGS) $(SRCDIR)ipv6_net.c -c
++	$(CC) $(CFLAGS) $(SRCDIR)ipv6_net.c -c
+ 
+ transmit.o:	$(SRCDIR)transmit.c
+-	gcc $(CFLAGS) $(SRCDIR)transmit.c -c
++	$(CC) $(CFLAGS) $(SRCDIR)transmit.c -c
+ 	
+ mint.o:		$(SRCDIR)mint.c
+-	gcc $(CFLAGS) $(SRCDIR)mint.c -c
++	$(CC) $(CFLAGS) $(SRCDIR)mint.c -c
+ 
+ log.o:		$(SRCDIR)log.c
+-	gcc $(CFLAGS) $(SRCDIR)log.c -c
++	$(CC) $(CFLAGS) $(SRCDIR)log.c -c
+ 
+ tags:
+ 	find ./ -name '*.[ch]' | xargs ctags -a

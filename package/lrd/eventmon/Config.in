@@ -1,0 +1,4 @@
+config BR2_PACKAGE_EVENTMON
+	bool "eventmon"
+	help
+	  Laird Event Monitor

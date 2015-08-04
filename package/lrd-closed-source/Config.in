@@ -1,0 +1,18 @@
+source "package/lrd-closed-source/sdcsdk/Config.in"
+source "package/lrd-closed-source/sdccli/Config.in"
+source "package/lrd-closed-source/sdcsupp/Config.in"
+source "package/lrd-closed-source/dhd/Config.in"
+source "package/lrd-closed-source/sdc2u/Config.in"
+source "package/lrd-closed-source/ar6kl-tools/Config.in"
+source "package/lrd-closed-source/web_lcm/Config.in"
+source "package/lrd-closed-source/ncm/Config.in"
+source "package/lrd-closed-source/llagent/Config.in"
+source "package/lrd-closed-source/smartbasic/Config.in"
+source "package/lrd-closed-source/btsdk/Config.in"
+
+menu "Bluetopia"
+	source "package/lrd-closed-source/libbluetopia/Config.in"
+	if BR2_PACKAGE_LIBBLUETOPIA
+		source "package/lrd-closed-source/bluetopia_samples/Config.in"
+	endif
+endmenu
