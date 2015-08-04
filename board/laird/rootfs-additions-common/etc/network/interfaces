@@ -1,0 +1,91 @@
+# /etc/network/interfaces
+# Usually included by the "ifupdown" package, however "ifrc" is used instead.
+#
+# This file is parsed by the networking init script, and also by "ifrc".
+# 
+# Organized by sections:  Localhost, Wired, Serial, Wireless, ...
+# Each section should have an interface stanza:  iface <dev> <addr> <method>
+# Option/value pairs intended for the iface must follow the interface stanza.
+#  
+# See the manpage/documentation for this file, so that it remains compatible.
+# Command directives not used:  pre-up, post-up, pre-down, post-down
+# Other options such as mapping and run-parts/phases are not used by "ifrc". 
+#
+# The "ifrc" utility understands these additional options:
+#  alias <dev> [is] <actual-dev>
+#  portspeed <10baseT|100baseT|10baseT-HD|...etc>
+#  timeout <seconds>
+#
+# Optional command-on-config directives:
+# These command directives may be shell command statements or other executable
+# scripts; they are run in a backgrounded sub-shell for a specific interface.
+#  pre-cfg-do <shell command or script and args to do before configuration>
+#  post-cfg-do <shell command or script and args to do after configuration>
+#  pre-dcfg-do <shell command or script and args to do before deconfiguration>
+#  post-dcfg-do <shell command or script and args to do after deconfiguration>
+#
+
+# policy routing
+#allow-multipath
+
+#
+# Localhost
+auto lo
+iface lo inet loopback
+  #address 127.0.0.10
+
+#
+# Wired
+auto eth0
+iface eth0 inet dhcp
+  timeout 300
+  #portspeed 10baseT
+#iface eth0 inet static
+#  address 192.168.3.10
+#  network 192.168.3.0
+#  netmask 255.255.255.0
+#  gateway 192.168.3.187
+#  broadcast 192.168.3.255
+#  nameserver 8.8.8.8
+#  nameserver 8.8.4.4
+
+
+#
+# Serial
+#auto ppp0
+iface ppp0 inet manual
+  #post-cfg-do /etc/network/ppp_mode.conf
+
+
+#
+# Wireless
+auto wlan0
+iface wlan0 inet manual
+  alias wl is wlan0
+  #timeout 60
+  #pre-cfg-do echo -e "\a\t[ ...associated! ...applying settings ]"
+  #post-cfg-do echo -e "\a\t[ ...ready! ]"
+  #pre-dcfg-do echo -e "\a\t[ ...de-configuring interface ]"
+  #post-dcfg-do echo -e "\a\t[ ...interface de-configured ]"
+
+
+#
+# Bridge
+# works with a mode setup script in /etc/network/
+#auto br0
+iface br0 inet manual
+  bridge_ports eth0 wlan0
+  bridge_stp off
+  bridge_fd 0
+
+
+#
+# USB g_ether
+# works with a mode setup script in /etc/network/ 
+#auto usb0
+iface usb0 inet manual
+  # the following config file will configure traffic for this interface
+  #post-cfg-do /etc/network/usb-g_ether.conf
+  #pre-dcfg-do /etc/network/usb-g_ether.conf
+ 
+

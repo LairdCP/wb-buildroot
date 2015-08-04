@@ -1,0 +1,80 @@
+#!/bin/ash
+
+# Copyright (c) 2015, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+# /usr/sbin/lighty_wd
+# Keeps watch of whether a lighttpd process is running, and if it is,
+# then actively disables lighty for inetd. When the lighttpd is not
+# running, then restores lighty for inetd. The updates are performed
+# on a configuration copy: /tmp/inetd.conf
+#
+# This allows inetd to trigger lighty for starting lighttpd on :443.
+# While running, lighttpd will be able to claim the port directly.
+#
+# Usage:
+#  lighty_wd
+#
+
+case $1 in
+  \ \ ) ## in daemon mode, but no other
+    test ! -p ${wdP:=/tmp/${0##*/}-\|} \
+    && mkfifo $wdP 2>/dev/null \
+    || exit 1
+    ;;
+  '') ## self-daemonize
+    { exec $0 \ \ & exit 0; }
+    ;;
+  *)
+    exit 1
+esac
+
+onexit() {
+  [ -n "$wdP" ] && rm -f $wdP
+  trap '' 0 1 15
+}
+trap onexit 0 1 15
+
+snooze() {
+  test -p "$wdP" || return 1
+  read -rst${1:-1} <>$wdP
+  return 0
+} 2>/dev/null
+
+check_pid_of_lighttpd() {
+  read -r pid < /var/run/lighttpd.pid \
+  && test -f /proc/$pid/comm
+} 2>/dev/null
+
+while snooze 1
+do
+  : ${lighttpd_state_ref:=0}
+
+  if check_pid_of_lighttpd
+  then
+    lighttpd_state=1
+    if [ $lighttpd_state -ne $lighttpd_state_ref ]
+    then
+      lighttpd_state_ref=$lighttpd_state
+      lighty set_inet_service disable
+    fi
+  else
+    lighttpd_state=0
+    if [ $lighttpd_state -ne $lighttpd_state_ref ]
+    then
+      lighttpd_state_ref=$lighttpd_state
+      lighty set_inet_service enable
+    fi
+  fi
+done

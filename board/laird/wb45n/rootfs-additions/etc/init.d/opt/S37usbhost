@@ -1,0 +1,70 @@
+#!/bin/sh
+
+# Copyright (c) 2015, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+# usbhost - init for wb45n
+# Provides host-mode support for USB Mass Storage and Flash Devices.
+
+
+# bus identifiers
+ohci_bus=/dev/bus/usb/001/001
+
+
+rv=1
+case $1 in
+
+  stop)
+    echo -e "Disabling USB host-mode for Mass Storage"
+
+    # this will not be effective if still setting up,
+    # and thus... usb-storage will still be in use
+    umount /media/usb* 2>/dev/null
+
+    modprobe -r usb-storage
+    rv=$?
+    ;;
+
+  start)
+    echo -e "Enabling USB host-mode for Mass Storage"
+
+    [ ! -d /sys/class/net/usb0 ] \
+    || { echo "  Error: USB is already in device mode."; exit 1; }
+
+    modprobe ohci-hcd 
+    { read -rst3 x < ${ohci_bus}; } 2>/dev/null
+      # enumerate and provide upto 3s delay
+
+    modprobe usb-storage
+    rv=$?
+    ;;
+
+  status)
+    cat ${ohci_bus} >/dev/null 2>&1
+    echo -n STATUS=
+    if grep -q usb_storage /proc/modules && rv=$?
+    then
+      grep -q usb /proc/mounts && echo mounted || echo unmounted
+      echo \ \ Attached:
+      grep -o "[ ]\+[0-9]\+[ ][vs]d.*" /proc/partitions || echo -e "\t  0 ..."
+    else
+      echo n/a
+    fi
+    ;;
+
+  *)
+    echo "Usage: $0 {stop|start|status}"
+    ;;
+esac
+exit $rv

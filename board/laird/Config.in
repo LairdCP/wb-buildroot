@@ -1,0 +1,27 @@
+menu "Laird"
+
+    choice
+        prompt "Board"
+
+        config BR2_LRD_PLATFORM_WB45N
+            bool "WB45N"
+
+        config BR2_LRD_PLATFORM_WB40N
+            bool "WB40N"
+    endchoice
+
+    config BR2_LRD_PLATFORM
+        string
+        default "wb45n"   if BR2_LRD_PLATFORM_WB45N
+        default "wb40n"   if BR2_LRD_PLATFORM_WB40N
+
+    menu "Packages"
+        source "package/lrd/Config.in"
+    endmenu
+
+    menu "Packages (Closed Source)"
+        source "package/lrd-closed-source/Config.in"
+    endmenu
+
+endmenu
+
