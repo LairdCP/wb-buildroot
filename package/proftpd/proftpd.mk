@@ -55,7 +55,7 @@ define PROFTPD_USERS
 endef
 
 define PROFTPD_INSTALL_INIT_SYSV
-	$(INSTALL) -D -m 0755 package/proftpd/S50proftpd $(TARGET_DIR)/etc/init.d/S50proftpd
+	$(INSTALL) -D -m 0755 package/proftpd/S50proftpd $(TARGET_DIR)/etc/init.d/opt/S50proftpd
 endef
 
 define PROFTPD_INSTALL_INIT_SYSTEMD
