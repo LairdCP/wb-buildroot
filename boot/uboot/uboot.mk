@@ -201,6 +201,8 @@ define UBOOT_BUILD_CMDS
 			-o $(BR2_TARGET_UBOOT_FORMAT_NAND_OOB_SIZE)	\
 			-e $(BR2_TARGET_UBOOT_FORMAT_NAND_ERASE_SIZE)	\
 			nand $(@D)/u-boot.sb $(@D)/u-boot.nand)
+	$(if $(BR2_TARGET_UBOOT_ENV_TOOLS),
+		$(MAKE) -C $(@D) CROSS_COMPILE="$(TARGET_CROSS)" ARCH=$(UBOOT_ARCH) env )
 endef
 
 define UBOOT_BUILD_OMAP_IFT
@@ -225,6 +227,11 @@ define UBOOT_INSTALL_IMAGES_CMDS
 			$(if $(BR2_TARGET_UBOOT_ENVIMAGE_REDUNDANT),-r) \
 			$(if $(filter BIG,$(BR2_ENDIAN)),-b) \
 			-o $(BINARIES_DIR)/uboot-env.bin -)
+		-o $(BINARIES_DIR)/uboot-env.bin $(BR2_TARGET_UBOOT_ENVIMAGE_SOURCE)
+	$(if $(BR2_TARGET_UBOOT_ENV_TOOLS),
+		install -m 0644 -D $(@D)/tools/env/fw_env.config $(TARGET_DIR)/etc
+		install -m 0755 -D $(@D)/tools/env/fw_printenv $(TARGET_DIR)/usr/sbin
+		ln -sf fw_printenv $(TARGET_DIR)/usr/sbin/fw_setenv )
 endef
 
 define UBOOT_INSTALL_OMAP_IFT_IMAGE

@@ -347,6 +347,12 @@ config BR2_TARGET_UBOOT_ALTERA_SOCFPGA_IMAGE_CRC
 	  Generate SPL image fixed by the mkpimage tool to enable
 	  booting on the Altera SoC FPGA based platforms.
 
+config BR2_TARGET_UBOOT_ENV_TOOLS
+	bool "Environment tools"
+	help
+	  Make the environment tools, fw_env.config, fw_printenv,
+	  and fw_setenv from same source base.
+
 menuconfig BR2_TARGET_UBOOT_ENVIMAGE
 	bool "Environment image"
 	help
