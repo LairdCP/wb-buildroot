@@ -19,6 +19,15 @@ OPENSSL_PATCH = \
 	https://gitweb.gentoo.org/repo/gentoo.git/plain/dev-libs/openssl/files/openssl-1.0.2a-parallel-install-dirs.patch?id=c8abcbe8de5d3b6cdd68c162f398c011ff6e2d9d \
 	https://gitweb.gentoo.org/repo/gentoo.git/plain/dev-libs/openssl/files/openssl-1.0.2a-parallel-symlinking.patch?id=c8abcbe8de5d3b6cdd68c162f398c011ff6e2d9d
 
+# require openssl-fips built firstly
+ifneq ($(BR2_PACKAGE_OPENSSL_FIPS),)
+OPENSSL_DEPENDENCIES += openssl-fips
+OPENSSL_FIPS_CFG = fips
+OPENSSL_FIPS_OPT = FIPSDIR=$(STAGING_DIR)/usr/local/ssl/fips-2.0 \
+                   FIPS_SIG=$(STAGING_DIR)/usr/local/ssl/fips-2.0/bin/incore
+OPENSSL_FIPS_MAKE_OPT = FIPS_SIG=$(STAGING_DIR)/usr/local/ssl/fips-2.0/bin/incore
+endif
+
 # relocation truncated to fit: R_68K_GOT16O
 ifeq ($(BR2_m68k_cf),y)
 OPENSSL_CFLAGS += -mxgot
@@ -74,6 +83,7 @@ define OPENSSL_CONFIGURE_CMDS
 	(cd $(@D); \
 		$(TARGET_CONFIGURE_ARGS) \
 		$(TARGET_CONFIGURE_OPTS) \
+		$(OPENSSL_FIPS_OPT) \
 		./Configure \
 			linux-$(OPENSSL_TARGET_ARCH) \
 			--prefix=/usr \
@@ -87,6 +97,7 @@ define OPENSSL_CONFIGURE_CMDS
 			enable-tlsext \
 			$(if $(BR2_STATIC_LIBS),zlib,zlib-dynamic) \
 			$(if $(BR2_STATIC_LIBS),no-dso) \
+			$(OPENSSL_FIPS_CFG) \
 	)
 	$(SED) "s#-march=[-a-z0-9] ##" -e "s#-mcpu=[-a-z0-9] ##g" $(@D)/Makefile
 	$(SED) "s#-O[0-9]#$(OPENSSL_CFLAGS)#" $(@D)/Makefile
@@ -102,25 +113,24 @@ OPENSSL_POST_CONFIGURE_HOOKS += OPENSSL_FIXUP_STATIC_MAKEFILE
 endif
 
 define HOST_OPENSSL_BUILD_CMDS
-	$(HOST_MAKE_ENV) $(MAKE) -C $(@D)
+	$(HOST_MAKE_ENV) $(MAKE) $(OPENSSL_FIPS_MAKE_OPT) -C $(@D)
 endef
 
 define OPENSSL_BUILD_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)
+	$(TARGET_MAKE_ENV) $(MAKE) $(OPENSSL_FIPS_MAKE_OPT) -C $(@D)
 endef
 
 define OPENSSL_INSTALL_STAGING_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) INSTALL_PREFIX=$(STAGING_DIR) install
+	$(TARGET_MAKE_ENV) $(MAKE) $(OPENSSL_FIPS_MAKE_OPT) -C $(@D) INSTALL_PREFIX=$(STAGING_DIR) install
 endef
 
 define HOST_OPENSSL_INSTALL_CMDS
-	$(HOST_MAKE_ENV) $(MAKE) -C $(@D) install
+	$(HOST_MAKE_ENV) $(MAKE) $(OPENSSL_FIPS_MAKE_OPT) -C $(@D) install
 endef
 
 define OPENSSL_INSTALL_TARGET_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) INSTALL_PREFIX=$(TARGET_DIR) install
+	$(TARGET_MAKE_ENV) $(MAKE) $(OPENSSL_FIPS_MAKE_OPT) -C $(@D) INSTALL_PREFIX=$(TARGET_DIR) install
 	rm -rf $(TARGET_DIR)/usr/lib/ssl
-	rm -f $(TARGET_DIR)/usr/bin/c_rehash
 endef
 
 # libdl has no business in a static build
