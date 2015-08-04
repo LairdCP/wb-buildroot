@@ -1,0 +1,4 @@
+config BR2_PACKAGE_LLAGENT
+    bool "llagent"
+    help
+        LairdLink Agent

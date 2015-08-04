@@ -1,0 +1,9 @@
+source "package/lrd/patchram/Config.in"
+source "package/lrd/msd45n-binaries/Config.in"
+source "package/lrd/msd40n-binaries/Config.in"
+source "package/lrd/openssl-fips/Config.in"
+source "package/lrd/mc-mint/Config.in"
+source "package/lrd/eventmon/Config.in"
+source "package/lrd/fswatch/Config.in"
+source "package/lrd/wb_smartBASIC_apps/Config.in"
+

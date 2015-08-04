@@ -1,0 +1,22 @@
+config BR2_PACKAGE_SDCSDK
+	bool "SDC SDK"
+	help
+	  Summit SDK
+
+if BR2_PACKAGE_SDCSDK
+
+config BR2_PACKAGE_SDCSDK_PULL_FROM_SVN
+	bool "Pull source code from subversion"
+	help
+	  Pull source code from subversion
+
+if BR2_PACKAGE_SDCSDK_PULL_FROM_SVN
+
+config BR2_PACKAGE_SDCSDK_SVN_VERSION
+	string "Svn revision/label to pull"
+	help
+	  Svn revision/label to pull
+
+endif
+
+endif

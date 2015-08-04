@@ -1,0 +1,5 @@
+config BR2_PACKAGE_MC_MINT
+	bool "mc-mint"
+	help
+      Multicast packet generator
+

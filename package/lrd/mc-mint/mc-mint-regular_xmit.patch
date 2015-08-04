@@ -1,0 +1,37 @@
+diff -Naur mint-1.2/src/ipv4_net.c override/src/ipv4_net.c
+--- mint-1.2/src/ipv4_net.c	2002-11-06 19:19:42.000000000 +0000
++++ override/src/ipv4_net.c	2013-11-21 13:32:26.660902690 +0000
+@@ -128,7 +128,7 @@
+ int mc_sender(char *host, int port_num, int ttl_val, 
+ 			u_char loop, int num, int qos_val, int send_bytes)
+ 	{
+-        int s, err = 0, count;
++        int s, err = 0;
+ 	struct sockaddr_in address;
+   	struct in_addr group_addr;
+         char *sndstr[send_bytes];
+@@ -179,21 +179,12 @@
+ 		close(s);
+ 		return -ENETWORK;
+ 		}
+-/*  This while loop sends num number of packets per second by immediately spitting out num number of packets, then sleeping a second.  Seems to work pretty darn well.  */	
+-	count = 0;
+ 
+ 	while (!can_exit)
+ 		{
+-		if (count == 0)
+-			alarm(1);
+-		if ((num != -1) && (++count > num) && !wakeup)
+-			{
+-			while(!wakeup)
+-			     usleep(1);
+-			     count = wakeup = 0;
+-			continue;
+-			}
+-		
++		if (num > 0)
++			usleep(1000000/num);
++
+ 		if ((err = send_data(s, sndstr, sizeof(sndstr), 
+ 						
+ 					(struct sockaddr *)&address, 0)) < 0)

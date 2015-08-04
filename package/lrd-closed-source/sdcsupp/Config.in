@@ -1,0 +1,27 @@
+config BR2_PACKAGE_SDCSUPP
+	bool "SDC Supplicant"
+	help 
+	  SDC Supplicant
+
+if BR2_PACKAGE_SDCSUPP
+
+config BR2_PACKAGE_SDCSUPP_WPA_CLI
+	bool "Install wpa_cli binary"
+	help
+	  Install wpa_cli command line utility
+
+config BR2_PACKAGE_SDCSUPP_PULL_FROM_SVN
+	bool "Pull source code from subversion"
+	help
+	  Pull source code from subversion
+
+if BR2_PACKAGE_SDCSUPP_PULL_FROM_SVN
+
+config BR2_PACKAGE_SDCSUPP_SVN_VERSION
+	string "Svn revision/label to pull"
+	help
+	  Svn revision/label to pull
+
+endif
+
+endif
