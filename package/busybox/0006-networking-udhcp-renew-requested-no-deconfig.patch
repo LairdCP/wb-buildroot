@@ -1,0 +1,19 @@
+diff --git a/package/busybox/busybox-networking-udhcp-renew-requested-no-deconfig.patch b/package/busybox/busybox-networking-udhcp-renew-requested-no-deconfig.patch
+index e69de29..7b32906 100644
+--- a/package/busybox/busybox-networking-udhcp-renew-requested-no-deconfig.patch
++++ b/package/busybox/busybox-networking-udhcp-renew-requested-no-deconfig.patch
+@@ -0,0 +1,14 @@
++--- busybox-1.21.1/networking/udhcp/dhcpc.c
+++++ busybox-1.21.1/networking/udhcp/dhcpc.c
++@@ -1077,7 +1077,7 @@
++ 		udhcp_run_script(NULL, "renewing");
++ 		break;
++ 	case RENEW_REQUESTED: /* impatient are we? fine, square 1 */
++-		udhcp_run_script(NULL, "deconfig");
+++		break; /*udhcp_run_script(NULL, "deconfig");*/
++ 	case REQUESTING:
++ 	case RELEASED:
++ 		change_listen_mode(LISTEN_RAW);
++;
++; Ignore subsequent sigUSR1 when already in state renew-requested.
++;
