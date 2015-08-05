@@ -16,12 +16,6 @@ endif
 
 SDCCLI_DEPENDENCIES = libnl sdcsdk libedit
 
-ifeq ($(BR2_PACKAGE_BTSDK),y)
-    TARGET_CFLAGS += -DBLUETOOTH
-    SDCCLI_MAKE_ENV = BLUETOOTH=y
-    SDCCLI_DEPENDENCIES += btsdk
-endif
-
 SDCCLI_MAKE_ENV += CC="$(TARGET_CC)" \
                   CXX="$(TARGET_CXX)" \
                   ARCH="$(KERNEL_ARCH)" \
