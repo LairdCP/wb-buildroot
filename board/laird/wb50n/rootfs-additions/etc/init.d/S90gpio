@@ -1,0 +1,27 @@
+case $1 in
+
+  stop)
+    echo -e "Shutting down chip"
+
+	[ -d /sys/class/gpio/pioE3 ] || \
+	{ echo '0' > /sys/class/gpio/pioE3/value ; }
+    ;;
+
+  start)
+    echo -e "Starting AR6004 chip"
+
+	[ -d /sys/class/gpio/pioE3 ] || \
+	{ echo 131 > /sys/class/gpio/export ; echo 'out' > /sys/class/gpio/pioE3/direction ; }
+
+	echo '0' > /sys/class/gpio/pioE3/value
+	sleep 1
+	echo '1' > /sys/class/gpio/pioE3/value
+    ;;
+
+  status)
+    ;;
+
+  *)
+    echo "Usage: $0 {stop|start|status}"
+    ;;
+esac
