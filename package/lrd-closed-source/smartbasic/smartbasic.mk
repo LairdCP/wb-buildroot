@@ -20,6 +20,7 @@ define SMARTBASIC_BUILD_CMDS
 endef
 
 define SMARTBASIC_INSTALL_TARGET_CMDS
+	mkdir -p -m 700 $(TARGET_DIR)/usr/sbfs
 	$(INSTALL) -D -m 755 $(@D)/UwApp/smartSS/DebugLinux/smartBASIC $(TARGET_DIR)/usr/bin/smartBASIC
 	$(INSTALL) -D -m 755 $(@D)/UwApp/smartSS/DebugLinux/smartSS $(TARGET_DIR)/usr/bin/smartSS
 endef
