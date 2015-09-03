@@ -39,6 +39,7 @@ define MSD45N_BINARIES_INSTALL_TARGET_CMDS
     $(INSTALL) -D -m 644  $(@D)/var/www/docs/assets/js/*.js   $(TARGET_DIR)/var/www/docs/assets/js/
     mkdir -p $(TARGET_DIR)/etc/lighttpd
     $(INSTALL) -D -m 644  $(@D)/etc/lighttpd/lighttpd.*  $(TARGET_DIR)/etc/lighttpd/
+    mkdir -p -m 700 $(TARGET_DIR)/usr/sbfs
     $(INSTALL) -D -m 644 $(@D)/etc/summit/'$$autorun$$.SPPBridge.Socket.wb.sb' $(TARGET_DIR)/etc/summit/'$$autorun$$.SPPBridge.Socket.wb.sb'
 endef
 
