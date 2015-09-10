@@ -146,6 +146,11 @@ then
   ${tm:-exit 1}
 fi
 
+exit_error() {
+  echo -e "${1:+  ...$@}"
+  exit 1
+} >&2
+
 rm -f /tmp/incompatible_u-boot_env
 
 eval $( $fw_printenv -n updated_% 2>$X \
@@ -187,11 +192,6 @@ esac
 
 clx='printf `usleep 333333` \\033[1K\\r'
 ask() { read -rst1 -n999 a; eval ${@##* }=; read -r "$@"; eval $clx; }
-
-exit_error() {
-  echo -e "${1:+  ...$@}"
-  exit 1
-} >&2
 
 # special functions to evaluate arithimetic expressions
 iszero() { ! let ${1:-0} && return 0 || return 1; }
