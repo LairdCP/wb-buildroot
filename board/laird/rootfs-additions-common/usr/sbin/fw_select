@@ -520,7 +520,8 @@ case $1 in
     ;;
 
   --tm*) ## enable persistent testmode, or disable '--tm off'
-    [ "off" == "$2" ] && rm -fv $TMF || echo $2 >$TMF; exec $0 --
+    [ "off" == "$2" ] && rm -fv $TMF || { mkdir -p ${TMF%/*}; echo $2 >$TMF; }
+    exec $0 --
     ;;
 
   *-a) ## set kernel/rootfs to use '-a' images

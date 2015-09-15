@@ -323,7 +323,8 @@ do
     ;;
 
   --tm*) ## enable persistent testmode, or disable with '--tm off'
-    [ "off" == "$2" ] && rm -fv $TMF || echo $2 >$TMF; exec $0 --
+    [ "off" == "$2" ] && rm -fv $TMF || { mkdir -p ${TMF%/*}; echo $2 >$TMF; }
+    exec $0 --
     ;;
 
   --n*) ## notify remote via udp '--n <addr:port> <status> [<message>]'
