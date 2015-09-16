@@ -60,7 +60,7 @@ wifi_set_dev() {
 
 msg() {
   echo "$@"
-}
+} 2>/dev/null
 
 wifi_status() {
   module=${module/.ko/}
@@ -91,24 +91,29 @@ wifi_status() {
 
 wifi_queryinterface() {
   # on driver init, must check and wait for device
-  # arg1 is timeout (10*mSec) to await availability
-  let x=0
-  while [ $x -le ${1:-0} ]
+  # arg1 is timeout (deciseconds) to await availability
+  let x=0 timeout=${1:-0} && msg -n '  '
+  while [ $x -le $timeout ]
   do
-    if [ -n "$WIFI_DEV" ]
-    then # check if available/ready
-      grep -q "$WIFI_DEV" /proc/net/dev && break
-    else
-      # determine iface via path with matching device/uevent
-      WIFI_DEV=$( grep -s "$WIFI_DRIVER" /sys/class/net/*/device/uevent \
-                   |sed -n 's,/sys/class/net/\([a-z0-9]\+\)/device.*,\1,p' )
-      # recheck
-      [ -n "$WIFI_DEV" ] && continue
+    if [ -z "$WIFI_DEV" ]
+    then # determine iface via device path
+      for wl_dev in /sys/class/net/*/phy80211
+      do
+        wl_dev=${wl_dev#*net/} wl_dev=${wl_dev%/phy80211}
+        [ "$wl_dev" != \* ] && WIFI_DEV=$wl_dev && break
+      done
     fi
-    $usleep 10000 && { let x+=1; msg -n .; }
+    if [ -n "$WIFI_DEV" ] \
+    && read -rs wl_mac < /sys/class/net/$WIFI_DEV/address
+    then # check if device address is available/ready
+      [ "${wl_mac/??:??:??:??:??:??/addr}" == addr ] && break
+    else
+      let $timeout || break
+    fi 2>/dev/null
+    $usleep 87654 && { let x+=1; msg -n .; }
   done
-  let $x && msg ${x}0mSec
-  test $x -le ${1:-0}
+  let $x && msg ${x}00mSec
+  test $x -lt $timeout
 }
 
 wifi_fips_mode() {
@@ -172,7 +177,7 @@ wifi_start() {
     || { msg "  ...driver failed to load"; return 1; }
 
     ## await enumerated interface
-    wifi_queryinterface 67 \
+    wifi_queryinterface 27 \
     || { msg "  ...driver init failure, iface n/a: ${WIFI_DEV:-?}"; return 1; }
   fi
 
@@ -182,7 +187,6 @@ wifi_start() {
   || { msg "iface $WIFI_DEV n/a, FW issue?  -try: wireless restart"; return 1; }
 
   # save MAC address for WIFI if necessary
-  read -r wl_mac < /sys/class/net/$WIFI_DEV/address
   grep -sq ..:..:..:..:..:.. $WIFI_MACADDR \
     || echo $wl_mac >$WIFI_MACADDR
 
@@ -352,7 +356,7 @@ usleep='busybox usleep'
 [ "$1" == fips ] && { shift; WIFI_FIPS=-F; }
 
 # timed-wait (n deciseconds) for prior wifi task
-let n=27 && while [ -d /tmp/wifi^ ] && let n--; do usleep 98765; done
+while [ -d /tmp/wifi^ ] && let ${wifi_timed_wait:=27}--; do $usleep 98765; done
 
 # command
 case $1 in
