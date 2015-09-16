@@ -49,6 +49,7 @@ ifrc=/etc/network/ifrc.sh
 
 # Logfile rotation.
 log=/var/log/nis.log
+lf=${rcS_log:-$log}
 test -z $rcS_ \
   && { test 0`wc -c < $log` -le 2048 || mv -f $log $log.0; } 2>/dev/null
 
@@ -91,7 +92,10 @@ esac
 iface() {
   # args: <dev> <up/down> <start/stop> [method]
   # bring 'up' -or- 'down' an interface phy
-  logger -pinfo -s -t\ \ \ nis -- $* 2>&1
+  #
+  # report process id for this iface init
+  pid=$( sh -c 'echo $PPID' )
+  logger -pinfo -s -tnetwork\[$pid\] -- $* 2>&1
 
   up=false
   dn=false
@@ -155,10 +159,12 @@ iface() {
       echo \ \ ...unhandled interface name
       ;;
   esac
+  logger -pinfo -s -tnetwork\[$pid\] -- done 2>&1
 }
 
 save_log_of() {
-  sed 's/\(.*\)nis:/\1\n   nis:/' $log.$1 >>$log
+  echo "network: $1 available" >>$lf
+  sed 's/\(.*\)network\[[0-9]*\]:.* [rs][et].*/\1\n&\2/' $log.$1 >>$log
   rm -f $log.$1
 } 2>/dev/null
 
@@ -214,16 +220,13 @@ case $act in
       test -n "$bpls" \
         && echo -n \ \[${bpls##*ports }\]
     esac
-    wls=:
     check_ifrc
     for dev in $devls
     do
       # skip auto starting for bridge-mode ports
       case ${bpls##*ports } in *${dev:-X}*) continue;; esac
       #
-      ( $wls; iface $dev up $act $meth >>$log.$dev; $wnw; save_log_of $dev )&
-      #
-      wls=wait\ $!
+      ( iface $dev up $act $meth >>$log.$dev; save_log_of $dev )&
     done
     $msg ${alert:+\\\n \ $alert}
     ;;
