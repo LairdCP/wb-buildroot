@@ -44,8 +44,8 @@ g_ether=/etc/init.d/opt/S??g_ether
 # Interface activation.
 ifconfig='ip link set dev'
 
-# Interface configuration.
-ifrc=/etc/network/ifrc.sh
+# Interface config.
+ifrc=/usr/sbin/ifrc
 
 # Logfile rotation.
 log=/var/log/nis.log
