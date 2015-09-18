@@ -18,14 +18,37 @@ OPENSSL_FIPS_DEPENDENCIES = zlib
 
 OPENSSL_FIPS_CFLAGS = $(TARGET_CFLAGS)
 
+ifeq ($(ARCH),arm)
+OPENSSL_TARGET_ARCH = armv4
+endif
+ifeq ($(ARCH),powerpc)
+# 4xx cores seem to have trouble with openssl's ASM optimizations
+ifeq ($(BR2_powerpc_401)$(BR2_powerpc_403)$(BR2_powerpc_405)$(BR2_powerpc_405fp)$(BR2_powerpc_440)$(BR2_powerpc_440fp),)
+OPENSSL_TARGET_ARCH = ppc
+endif
+endif
+ifeq ($(ARCH),powerpc64)
+OPENSSL_TARGET_ARCH = ppc64
+endif
+ifeq ($(ARCH),powerpc64le)
+OPENSSL_TARGET_ARCH = ppc64le
+endif
+ifeq ($(ARCH),x86_64)
+OPENSSL_TARGET_ARCH = x86_64
+endif
+
+# Workaround for bug #3445
+ifeq ($(BR2_x86_i386),y)
+OPENSSL_TARGET_ARCH = generic32 386
+endif
 
 define OPENSSL_FIPS_CONFIGURE_CMDS
 	( cd $(@D); \
-	  export MACHINE=armv5tejl \
-	  export RELEASE=3.8-laird1; \
+	  export MACHINE=$(OPENSSL_TARGET_ARCH); \
+	  export RELEASE=4.x; \
 	  export SYSTEM=Linux; \
-	  export BUILD=sdc; \
-	  export CROSS_COMPILE=arm-sdc-linux-gnueabi-; \
+	  export BUILD=Laird; \
+	  export CROSS_COMPILE=$(TARGET_CROSS); \
 	  export HOSTCC=gcc; \
 	  ./config \
 	)
