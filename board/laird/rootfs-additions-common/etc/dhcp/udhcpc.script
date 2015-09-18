@@ -16,9 +16,9 @@
 
 # /etc/dhcp/udhcpc.script
 # An event action script for udhcpc.
-# 20120521..20141028
+# 20120521/20150917
 
-eval ${udhcpc_Settings} 2>/dev/null
+
 eval ${DHCP_PARAMS} 2>/dev/null
 test -f /etc/dhcp/udhcpc.conf && . /etc/dhcp/udhcpc.conf
 test -f /etc/dhcp/udhcpc.$interface.conf && . /etc/dhcp/udhcpc.$interface.conf
@@ -98,6 +98,45 @@ write_lease_info() {
   mv -f $1~ $1
 }
 
+calc_nm_nw_wc_bc() {
+  # args: <address> <netmask>
+  #
+  # Calculates the netmask-bits, network, wildcard, broadcast as necessary.
+  # The given ip-address and netmask args end up being stored as 'ip' and 'nm'
+  # for later usage in CIDR notation: <ip>/<bits>
+  #
+  [ -n "${ip:=$1}" -a -n "${nm:=$2}" ] || return
+
+  local octet bits n x1 x2 x3 x4 a1 a2 a3 a4 m1 m2 m3 m4
+
+  # load octets for ip-address and netmask
+  set -- ${ip//./ }; a1=$1 a2=$2 a3=$3 a4=$4
+  set -- ${nm//./ }; m1=$1 m2=$2 m3=$3 m4=$4; nm=0
+
+  # calc network using ip-addr and netmask
+  for n in 1 2 3 4; do eval 'let x$n="a$n & m$n"'; done
+  [ -n "${nw:=$network}" ] || nw=$x1.$x2.$x3.$x4
+
+  # calc wildcard using network and netmask
+  for n in 1 2 3 4; do eval 'let x$n="255 -(x$n | m$n)"'; done
+  [ -n "${wc:=$wildcard}" ] || wc=$x1.$x2.$x3.$x4
+
+  # calc broadcast using wildcard and netmask
+  for n in 1 2 3 4; do eval 'let x$n="x$n +(a$n & m$n)"'; done
+  [ -n "${bc:=$broadcast}" ] || bc=$x1.$x2.$x3.$x4
+
+  # count netmask bits
+  for octet in $m1 $m2 $m3 $m4
+  do
+    for bits in 255:8 254:7 252:6 248:5 240:4 224:3 192:2 128:1 0:0
+    do
+      [ $octet -eq ${bits%:*} ] && { let nm+=${bits#*:}; break; }
+    done
+  done
+
+  unset octet bits n x1 x2 x3 x4 a1 a2 a3 a4 m1 m2 m3 m4
+}
+
 do_source() {
   if [ -n "$1" ]
   then
@@ -153,7 +192,8 @@ case ${action:=$1} in
       [ -n "$tn" ] && while ip rule del table $tn 2>/dev/null; do :; done
 
       # Preserve other default route/nexthops for multipath.
-      if odr=$( ip route show scope global |grep -v $interface )
+      if odr=$( ip route show scope global \
+                              |grep -v -e "default *$\|dead$" -e "$interface" )
       then
         fn ip route repl default ${odr//default/${tn:+nexthop}}
       fi
@@ -162,28 +202,7 @@ case ${action:=$1} in
     ;;
 
   renew|bound|refresh)
-    # Must have the ip-address.
-    [ -n "$ip" ] || exit_err "address unset"
-
-    # Determine netmask bits.
-    for octet in ${subnet//./ }
-    do
-      for bits in 255:8 254:7 252:6 248:5 240:4 224:3 192:2 128:1 0:0
-      do
-        [ $octet -eq ${bits%:*} ] && { let nm+=${bits#*:}; break; }
-      done
-    done
-
-    # Determine broadcast if not given.
-    [ -n "$broadcast" ] || broadcast=${ip%.[0-9]*}.255
-
-    # Determine network/subnet if not given.
-    [ -n "$network" ] || network=${broadcast%.[0-9]*}.0
-
-    # Copy value to a 'variable_set-value'.
-    [ -n "$subnet" ] && netmask_sv="netmask $subnet"
-    [ -n "$broadcast" ] && broadcast_sv="broadcast $broadcast"
-    [ -n "$bootfile" ] && bootfile_sv="bootfile $bootfile"
+    calc_nm_nw_wc_bc $ip $subnet || exit_err "address/subnet unset"
 
     # Call a bootfile-option-handler if set and it exists.
     if [ -f "$BOOTFILE_HOOK" -a -n "$bootfile" ]
@@ -197,20 +216,20 @@ case ${action:=$1} in
       do_source $VENDORINFO_HOOK
     fi
 
-    # Configure the interface -> ip-addr-modify NIP/NM and BRD.
-    xip=$( ip addr show dev $interface \
-                       |sed -n '/inet/{s/.*t \([^ ]*\).*/\1/p;q}' )
-
+    # Configure the interface -> ip-addr-modify IP/NM and BC.
+    xip=$( ip -4 -o addr show dev $interface |sed 's/.*inet \([^ ]*\).*/\1/' )
     if [ "$xip" != "$ip/$nm" ]
     then
       if [ -n "$xip" ]
       then
-        fn ip addr add $ip/32 dev $interface
+        fn ip addr add $ip/32 ${bc:+broadcast $bc} dev $interface
         fn ip addr del $xip dev $interface
       fi
-      fn ip addr add $ip${subnet:+/$subnet} $broadcast_sv dev $interface
-      test -n "$xip" \
-        && fn ip addr del $ip/32 dev $interface
+      fn ip addr add $ip${nm:+/$nm} ${bc:+broadcast $bc} dev $interface
+      if [ -n "$xip" ]
+      then
+        fn ip addr del $ip/32 dev $interface
+      fi
     else
       $vecho "lease address not changed: $ip/$nm" >>$LOGFILE
     fi
@@ -221,8 +240,8 @@ case ${action:=$1} in
       { read -rs ifindex < /sys/class/net/$interface/ifindex; } 2>/dev/null
 
       # preserve other-default-route/nexthops for multipath
-      odr=$( ip route show scope global |grep -v $interface )
-
+      odr=$( ip route show scope global \
+                           |grep -v -e "default *$\|dead$" -e "$interface" )
       # for rt_tables
       if [ -n "$tn" ]
       then
@@ -238,7 +257,7 @@ case ${action:=$1} in
 
       for ra in $router
       do
-        fn ip route replace $default \
+        fn ip route repl $default \
           $nexthop via $ra dev $interface $weight \
             ${odr//default/$nexthop} ;
 
@@ -251,11 +270,10 @@ case ${action:=$1} in
       if [ -n "$tn" ]
       then
         # add network and gateway routes to table
-        fn ip route add $network/$subnet dev $interface src $ip table $tn
-        fn ip route add default via $ra dev $interface table $tn
-
+        fn ip route repl $nw/$nm dev $interface src $ip table $tn
+        fn ip route repl default via $ra dev $interface table $tn
         # rewrite policy rules in the lookup table
-        while ip rule del not table $tn 2>/dev/null; do :;done
+        while ip rule del table $tn 2>/dev/null; do :;done
         fn ip rule add from ${ip}/32 lookup $tn  ### outgoing ##
         fn ip rule add to ${ip}/32 lookup $tn  ### incoming ##
       fi
