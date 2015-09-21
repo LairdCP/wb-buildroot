@@ -16,7 +16,7 @@
 
 # Firmware Update Utility for WB40n/WB45n
 #
-VERSION=20131217n
+VERSION=20131217o
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
@@ -692,7 +692,7 @@ flash_image() {
     verbose "/writing\c"
     ${tm:+:} nandwrite -mpq /dev/$tp < /tmp/fwu.fifo &
   fi
-  ${tm:+eval sleep 0${et} & }
+  ${tm:+eval wc -c < /tmp/fwu.fifo >>/tmp/fwu.err & }
   await $! $et _
   case $1 in
     *://*) ## using a transfer protocol
