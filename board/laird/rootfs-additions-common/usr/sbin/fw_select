@@ -16,7 +16,7 @@
 
 # Firmware Select Utility for WB40n/WB45n
 #
-VERSION=20131217n
+VERSION=20131217o
 SELF=${0##*/}
 X=/dev/null
 
@@ -499,18 +499,23 @@ case $1 in
       mtd=/dev/mtd${mtd}
       vers=' '
       case "$name" in
-        *tstrap) vers=`strings $mtd |sed -n \
-                                         -e's/ *\([0-9]\..\..-.*\) (.*)/\1/p'`;;
-        at91bs ) vers=`strings $mtd |sed -n \
-                                         -e's/ *\([0-9]\..\..-.*\) (.*)/\1/p'`;;
-        u-boot ) vers=`strings $mtd |sed -n \
-                                         -e's/^U-Boot \(20...*\) (.*)/\1/p'`;;
-        kernel*) vers=`strings $mtd |sed -n \
-                                         -e'/^Linux-.*/{s/Linux-//p;q}' \
-                                         -e'/^[0-9]\.[0-9]\+.*/{s/ .*//;p;q}'`;;
-        rootfs*) vers=`strings $mtd |sed -n \
-                                         -e'/Laird Linux/{s/.* //p;q}' \
-                                         -e'/SDC Linux Release/{s/.* //p;q}'`;;
+        *tstrap)
+          vers=`strings -n8 < $mtd |sed -n \
+                                        -e's/ *\([0-9]\..\..-.*\) (.*)/\1/p'`;;
+        at91bs )
+          vers=`strings -n8 < $mtd |sed -n \
+                                        -e's/ *\([0-9]\..\..-.*\) (.*)/\1/p'`;;
+        u-boot )
+          vers=`strings -n8 < $mtd |sed -n \
+                                        -e's/^U-Boot \(20...*\) (.*)/\1/p'`;;
+        kernel*)
+          vers=`strings -n5 < $mtd |sed -n \
+                                        -e'/^Linux-.*/{s/Linux-//p;q}' \
+                                        -e'/^[0-9]\.[0-9]\+.*/{s/ .*//;p;q}'`;;
+        rootfs*)
+          vers=`strings -n8 < $mtd |sed -n \
+                                        -e'/Laird Linux/{s/.* //p;q}' \
+                                        -e'/SDC Linux Release/{s/.* //p;q}'`;;
       esac
       echo "$vers"
       let addr+=$size
