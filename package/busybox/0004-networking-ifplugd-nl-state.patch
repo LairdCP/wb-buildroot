@@ -1,0 +1,254 @@
+--- busybox-1.23.2/networking/ifplugd.c	2015-09-22 18:57:38.292697948 -0500
++++ busybox-1.23.2/networking/ifplugd.c	2015-09-22 18:57:38.292697948 -0500
+@@ -100,8 +100,10 @@
+ 
+ enum { // interface status
+ 	IFSTATUS_ERR = -1,
+-	IFSTATUS_DOWN = 0,
+-	IFSTATUS_UP = 1,
++	IFSTATUS_DOWN,
++	IFSTATUS_DORMANT,
++	IFSTATUS_UP,
++	IFSTATUS_UPAGAIN,
+ };
+ 
+ enum { // constant fds
+@@ -289,11 +291,33 @@
+ 	{ "IFF_RUNNING"       , &detect_link_iff     },
+ };
+ 
++static int operstate(int state)
++{
++	static int state_x = IFSTATUS_DORMANT;
++
++	/* Translate RFC2863 ifla_operstate to ifstatus value. */
++
++	if (state == IF_OPER_UP)
++		state = ( state_x == IFSTATUS_UP ? IFSTATUS_UPAGAIN : IFSTATUS_UP );
++	else
++	if (state == IF_OPER_DORMANT)
++		state = IFSTATUS_DORMANT;
++	else
++	if (state == IF_OPER_LOWERLAYERDOWN
++	||  state == IF_OPER_DOWN)
++		state = IFSTATUS_DOWN;
++	else
++		state = IFSTATUS_ERR;
++
++	state_x = state;
++
++   return state;
++}
++
+ static const char *strstatus(int status)
+ {
+-	if (status == IFSTATUS_ERR)
+-		return "error";
+-	return "down\0up" + (status * 5);
++	return "error\0\0\0down\0\0\0\0dormant\0up\0\0\0\0\0\0up again"
++	       + (status*8) +8;
+ }
+ 
+ static int run_script(const char *action)
+@@ -327,13 +351,19 @@
+ 	return (option_mask32 & FLAG_IGNORE_RETVAL) ? 0 : r;
+ }
+ 
+-static void up_iface(void)
++static void maybe_up_iface(void)
+ {
+ 	struct ifreq ifrequest;
+ 
+ 	if (!G.iface_exists)
+ 		return;
+ 
++	if (option_mask32 & FLAG_NO_AUTO)
++		return;
++
++	if (G.api_mode[0] == 'a')
++		G.api_method_num = API_AUTO;
++
+ 	set_ifreq_to_ifname(&ifrequest);
+ 	if (network_ioctl(SIOCGIFFLAGS, &ifrequest, "getting interface flags") < 0) {
+ 		G.iface_exists = 0;
+@@ -360,12 +390,12 @@
+ #endif
+ }
+ 
++#if 0 /* bloat */
+ static void maybe_up_new_iface(void)
+ {
+ 	if (!(option_mask32 & FLAG_NO_AUTO))
+ 		up_iface();
+ 
+-#if 0 /* bloat */
+ 	struct ifreq ifrequest;
+ 	struct ethtool_drvinfo driver_info;
+ 
+@@ -391,24 +421,23 @@
+ 		bb_error_msg("using interface %s%s with driver<%s> (version: %s)",
+ 			G.iface, buf, driver_info.driver, driver_info.version);
+ 	}
+-#endif
+ 	if (G.api_mode[0] == 'a')
+ 		G.api_method_num = API_AUTO;
+ }
++#endif
+ 
+ static smallint detect_link(void)
+ {
+ 	smallint status;
+ 
+ 	if (!G.iface_exists)
+-		return (option_mask32 & FLAG_MONITOR) ? IFSTATUS_DOWN : IFSTATUS_ERR;
++		return IFSTATUS_ERR;
+ 
+ 	/* Some drivers can't detect link status when the interface is down.
+ 	 * I imagine detect_link_iff() is the most vulnerable.
+ 	 * That's why -a "noauto" in an option, not a hardwired behavior.
+ 	 */
+-	if (!(option_mask32 & FLAG_NO_AUTO))
+-		up_iface();
++	maybe_up_iface();
+ 
+ 	if (G.api_method_num == API_AUTO) {
+ 		int i;
+@@ -438,15 +467,10 @@
+ 			bb_error_msg("can't detect link status");
+ 	}
+ 
+-	if (status != G.iface_last_status) {
+-		G.iface_prev_status = G.iface_last_status;
+-		G.iface_last_status = status;
+-	}
+-
+ 	return status;
+ }
+ 
+-static NOINLINE int check_existence_through_netlink(void)
++static NOINLINE int check_existence_through_netlink(int *status)
+ {
+ 	int iface_len;
+ 	/* Buffer was 1K, but on linux-3.9.9 it was reported to be too small.
+@@ -500,6 +524,11 @@
+ 						) {
+ 							G.iface_exists = (mhdr->nlmsg_type == RTM_NEWLINK);
+ 						}
++						else
++							break;
++					}
++					if (attr->rta_type == IFLA_OPERSTATE) {
++						*status = operstate(*((unsigned char *)RTA_DATA(attr)));
+ 					}
+ 					attr = RTA_NEXT(attr, attr_len);
+ 				}
+@@ -615,12 +644,17 @@
+ 		G.iface_exists = (network_ioctl(SIOCGIFINDEX, &ifrequest, NULL) == 0);
+ 	}
+ 
+-	if (G.iface_exists)
+-		maybe_up_new_iface();
+-
+ 	iface_status = detect_link();
+-	if (iface_status == IFSTATUS_ERR)
+-		goto exiting;
++	if (iface_status == IFSTATUS_ERR) {
++		if (opts & FLAG_MONITOR)
++			iface_status = IFSTATUS_DOWN;
++		else
++			goto exiting;
++	}
++	if (iface_status != G.iface_last_status) {
++		G.iface_prev_status = G.iface_last_status;
++		G.iface_last_status = iface_status;
++	}
+ 	iface_status_str = strstatus(iface_status);
+ 
+ 	if (opts & FLAG_MONITOR) {
+@@ -650,6 +684,7 @@
+ 	delay_time = 0;
+ 	while (1) {
+ 		int iface_status_old;
++		int iface_exists_old;
+ 
+ 		switch (bb_got_signal) {
+ 		case SIGINT:
+@@ -675,44 +710,59 @@
+ 			goto exiting;
+ 		}
+ 
++		iface_status_old = iface_status;
++		iface_exists_old = G.iface_exists;
++
+ 		if ((opts & FLAG_MONITOR)
+ 		 && (netlink_pollfd[0].revents & POLLIN)
+ 		) {
+-			int iface_exists_old;
+-
+-			iface_exists_old = G.iface_exists;
+-			G.iface_exists = check_existence_through_netlink();
++			G.iface_exists = check_existence_through_netlink(&iface_status);
+ 			if (G.iface_exists < 0) /* error */
+ 				goto exiting;
+ 			if (iface_exists_old != G.iface_exists) {
+ 				bb_error_msg("interface %sappeared",
+ 						G.iface_exists ? "" : "dis");
+ 				if (G.iface_exists)
+-					maybe_up_new_iface();
++					maybe_up_iface();
++				else {
++					/* notify upon status:  error -> down */
++					iface_status_old = IFSTATUS_ERR;
++					delay_time = 0;
++				}
+ 			}
+ 		}
++		else {
++			iface_status = detect_link();
++		}
+ 
+-		/* note: if !G.iface_exists, returns DOWN */
+-		iface_status_old = iface_status;
+-		iface_status = detect_link();
+ 		if (iface_status == IFSTATUS_ERR) {
+-			if (!(opts & FLAG_MONITOR))
++			if (opts & FLAG_MONITOR)
++				iface_status = IFSTATUS_DOWN;
++			else
+ 				goto exiting;
+-			iface_status = IFSTATUS_DOWN;
++		}
++		if (iface_status != G.iface_last_status) {
++			G.iface_prev_status = G.iface_last_status;
++			G.iface_last_status = iface_status;
+ 		}
+ 		iface_status_str = strstatus(iface_status);
+ 
+ 		if (iface_status_old != iface_status) {
+ 			bb_error_msg("link is %s", iface_status_str);
+ 
++			if (iface_status == IFSTATUS_DORMANT) {
++				continue; /* ignore for now */
++			}
+ 			if (delay_time) {
+ 				/* link restored its old status before
+ 				 * we ran script. don't run the script: */
+ 				delay_time = 0;
+ 			} else {
+ 				delay_time = monotonic_sec();
+-				if (iface_status == IFSTATUS_UP)
++				if (iface_status >= IFSTATUS_UP) {
++					iface_status = IFSTATUS_UP;
+ 					delay_time += G.delay_up;
++				}
+ 				if (iface_status == IFSTATUS_DOWN)
+ 					delay_time += G.delay_down;
+ #if 0  /* if you are back in 1970... */
+@@ -723,6 +773,7 @@
+ #endif
+ 			}
+ 		}
++		iface_status_str = strstatus(iface_status);
+ 
+ 		if (delay_time && (int)(monotonic_sec() - delay_time) >= 0) {
+ 			if (run_script(iface_status_str) != 0)
