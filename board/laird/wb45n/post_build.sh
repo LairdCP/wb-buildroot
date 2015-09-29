@@ -21,6 +21,9 @@ gzip -c $TARGETDIR/etc/network/interfaces >$TARGETDIR/etc/network/interfaces~.gz
 # Services to enable or disable by default
 chmod a+x $TARGETDIR/etc/init.d/S??lighttpd
 
+# Remove the custom bluetooth init-script if bluez utility is not included
+[ -x $TARGETDIR/usr/sbin/hciconfig ] || rm -f /etc/init.d/opt/S??bluetooth
+
 # Fixup and add debugfs to fstab
 echo 'nodev /sys/kernel/debug   debugfs   defaults   0  0' >> $TARGETDIR/etc/fstab
 
