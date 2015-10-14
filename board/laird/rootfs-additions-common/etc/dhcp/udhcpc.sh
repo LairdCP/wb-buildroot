@@ -90,17 +90,17 @@ udhcpc_conf() {
 
 udhcpc_start() {
   # set no-verbose or use a verbose mode level
-  [ -n "$vm" ] && nv='|grep -E "obtained|udhcpc"'
-  [ -z "$vm" ] && nv='>/dev/null'
-  [ "${vm:1:1}" == "." ] && q=
-  [ "${vm:2:1}" == "." ] && vb='-v'
+  # udhcpc debug is offset from verbose level by 2
+  [ ${#vm} -eq 0 ] && nv='>/dev/null'
+  [ ${#vm} -eq 1 ] && nv='|grep -E "obtained|udhcpc"'
+  [ ${#vm} -ge 2 ] && v=${vm//./-v } v=${v/-v } vb=${v:+-v}
 
   # request ip-address (env)
   rip=${rip:+--request $rip}
 
   # specific options to request in lieu of defaults
   ropt=; for t in ${OPT_REQ}; do ropt=$ropt\ -O$t; done
-  ropt=${ropt:+-o $ropt}
+  ropt=${ropt:+-o$ropt}
 
   # vendor-class-id support (as last line of file or a string)
   vci=$( sed '$!d;s/.*=["]\(.*\)["]/\1/' ${OPT_VCI:-/} 2>/dev/null \
@@ -116,7 +116,6 @@ udhcpc_start() {
   pf='-p/var/run/dhclient.$dev.pid'
 
   # merge settings
-  eval ${DHCP_PARAMS}
   export \
     DHCP_PARAMS="vb=$vb log=$log mpr=$mpr metric=$metric weight=$weight"
 
@@ -128,7 +127,8 @@ udhcpc_start() {
   # Retry mechanism:
   # send 4-discovers, paused at 2sec, repeat after 5sec
   eval \
-    udhcpc -i$dev $vb $rip -R -t4 -T2 -A5 -b $ropt $vci $xopt $rbf $pf $rs $nv
+    udhcpc -i$dev $v $rip -R -t4 -T2 -A5 -b $ropt $vci $xopt $rbf $pf $rs $nv
+
 } >>${log:-/dev/null}
 
 udhcpc_signal() {
@@ -194,6 +194,7 @@ case ${act:-status} in
 
   start) ## (re)spawn
     udhcpc_signal TERM
+    eval ${DHCP_PARAMS}
     udhcpc_conf
     udhcpc_start || exit $?
     if [ -x "$CLIENT_WD" ]
