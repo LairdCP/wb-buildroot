@@ -56,4 +56,16 @@ define EUDEV_USERS
 	- - input -1 * - - - Input device group
 endef
 
+define EUDEV_NO_AUTO_LOAD_HANDLING
+	# Avoid auto-loading device drivers, since some devices require
+	# conditional handling, and thus are managed by specific init-scripts.
+	( cd $(TARGET_DIR)/lib/udev; \
+	  mkdir -p rules.disabled; \
+	  [ -f rules.d/??-drivers.rules ] \
+	  && mv rules.d/??-drivers.rules rules.disabled || : \
+	)
+endef
+
+EUDEV_POST_INSTALL_TARGET_HOOKS += EUDEV_NO_AUTO_LOAD_HANDLING
+
 $(eval $(autotools-package))
