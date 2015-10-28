@@ -14,9 +14,9 @@
 #
 # contact: ews-support@lairdtech.com
 
-# Firmware Select Utility for WB40n/WB45n
+# Firmware Select Utility for WB40n/WB45n/WB50n
 #
-VERSION=20131217p
+VERSION=2.17
 SELF=${0##*/}
 X=/dev/null
 
@@ -166,6 +166,9 @@ case $x in
     ;;
   *'Workgroup Bridge 45N'*) ### arch/arm/mach-at91/board-dt.c
     wb=wb45n
+    ;;
+  *'Workgroup Bridge 50N'*) ### arch/arm/boot/dts/wb50n.dts
+    wb=wb50n
     ;;
   *) ### architecture unknown...
     echo -e : ${x:-\\\r\\\c} >&2
