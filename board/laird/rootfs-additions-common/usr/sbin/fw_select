@@ -16,7 +16,7 @@
 
 # Firmware Select Utility for WB40n/WB45n
 #
-VERSION=20131217o
+VERSION=20131217p
 SELF=${0##*/}
 X=/dev/null
 
@@ -174,22 +174,27 @@ case $x in
     exit_error "unsupported, must be Laird WB platform"
     ;;
 esac
-case $wb in
-  wb40n*) ### settings for imageset a/a, add to get b/b
-    UBM=0x21000000
-    KIS=0x00200000
-    KIA=0x000a0000
-    KIP=3
-    RIP=5
-    ;;
-  wb45n*) ### settings for imageset a/a, add to get b/b
-    UBM=0x22000000
-    KIS=0x00280000
-    KIA=0x000e0000
-    KIP=4
-    RIP=6
-    ;;
-esac
+
+scan_partitions() {
+# find settings for imageset a/a, add to get b/b
+for x in `grep -ls nand /sys/class/mtd/*/type`
+do
+  mtd=${x%%/type}
+  read -rst1 name < $mtd/name
+  read -rst1 size < $mtd/size
+  mtd=${mtd##/sys/class/mtd/mtd}
+  let mtd || addr=0
+  case $name in
+    kernel-a) KIA=$( hexify $addr ) KIS=$( hexify $size ) KIP=$mtd;;
+    rootfs-a) RIP=$mtd;;
+  esac
+  let addr+=$size
+done
+UBM=$( fw_printenv bootcmd |sed 's/.*nand read \(0x[^ ]*\) .*/\1/' )
+
+let ${UBM:-0} ${KIP:-0} ${KIA:-0} ${KIS:-0} ${RIP:-0} \
+  || exit_error "cannot determine mapping for kernel/rootfs"
+}
 
 clx='printf `usleep 333333` \\033[1K\\r'
 ask() { read -rst1 -n999 a; eval ${@##* }=; read -r "$@"; eval $clx; }
@@ -199,6 +204,8 @@ iszero() { ! let ${1:-0} && return 0 || return 1; }
 hexify() { let x=${1:-0}; printf "0x%08x" $x; }
 
 bootcmd_x() {
+  [ -z "$UBM" ] && scan_partitions
+
   # parse formatted kernel-image-address and also copy any boot commands
   eval $( BC_kia=; BC_boot=; F='0x[0-9A-Fa-f]*'; $fw_printenv -n bootcmd \
         |sed -n "s/nand read $F \($F\) $F[; ]*\(.*\)/BC_kia=\1 BC_boot='\2'/p" )
@@ -259,6 +266,7 @@ rootfs_x() {
 }
 
 current_configuration() {
+  scan_partitions
   echo -e "$wb - `sed -n "1s/.*$wb/\r&/;p" /etc/*-release 2>$X`"
   iszero `rootfs_x`-$RIP && ab=a || ab=b
   echo " -> `uname -nr` on rootfs-$ab"
