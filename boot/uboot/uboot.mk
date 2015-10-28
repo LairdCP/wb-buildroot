@@ -148,7 +148,7 @@ define UBOOT_BUILD_CMDS
 		$(@D)/tools/mxsboot sd $(@D)/u-boot.sb $(@D)/u-boot.sd)
 	$(if $(BR2_TARGET_UBOOT_ENV_TOOLS),
 		$(MAKE) -C $(@D) $(UBOOT_MAKE_OPTS) \
-		$(if $(findstring wb50n,$(BR2_TARGET_UBOOT_BOARDNAME)),,
+		$(if $(findstring wb50n,$(BR2_TARGET_UBOOT_BOARDNAME)),, \
 			HOSTCC=$(TARGET_CROSS)gcc HOSTSTRIP=$(TARGET_CROSS)strip ) \
 		env )
 endef
