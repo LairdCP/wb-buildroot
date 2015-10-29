@@ -15,7 +15,7 @@
 # contact: ews-support@lairdtech.com
 
 # /etc/network/wireless.sh - driver-&-firmware configuration for the wb45n
-# 20120520/20151020
+# 20120520/20151028
 
 WIFI_PREFIX=wlan                              ## iface to be enumerated
 WIFI_DRIVER=ath6kl_sdio                       ## device driver "name"
@@ -149,7 +149,7 @@ wifi_fips_mode() {
 }
 
 wifi_start() {
-  mkdir -p /tmp/wifi^
+  wifi_lock_wait
   if grep -q "${module/.ko/}" /proc/modules
   then
     msg "checking interface/mode"
@@ -279,7 +279,7 @@ wifi_start() {
 }
 
 wifi_stop() {
-  mkdir -p /tmp/wifi^
+  wifi_lock_wait
   if [ -f /sys/class/net/$WIFI_DEV/address ]
   then
     { read -r ifs < /sys/class/net/$WIFI_DEV/operstate; } 2>/dev/null
@@ -345,6 +345,12 @@ wifi_kill_pid_of_service() {
   fi
 } 2>/dev/null
 
+wifi_lock_wait() {
+  w4it=27
+  # allow upto (n) deciseconds for a prior stop/start to finish
+  while [ -d /tmp/wifi^ ] && let --w4it; do $usleep 98765; done
+  mkdir -p /tmp/wifi^
+} 2>/dev/null
 
 # ensure this script is available as system command
 [ -x /sbin/wireless ] || ln -sf /etc/network/wireless.sh /sbin/wireless
@@ -367,9 +373,6 @@ usleep='busybox usleep'
 
 # optionally, set fips-mode via cmdline
 [ "$1" == fips ] && { shift; WIFI_FIPS=-F; }
-
-# timed-wait (n deciseconds) for prior wifi task
-while [ -d /tmp/wifi^ ] && let ${wifi_timed_wait:=27}--; do $usleep 98765; done
 
 # command
 case $1 in
