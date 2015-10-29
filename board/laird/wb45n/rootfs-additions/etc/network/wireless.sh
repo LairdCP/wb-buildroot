@@ -15,7 +15,7 @@
 # contact: ews-support@lairdtech.com
 
 # /etc/network/wireless.sh - driver-&-firmware configuration for the wb45n
-# 20120520/20151028
+# 20120520/20151029
 
 WIFI_PREFIX=wlan                              ## iface to be enumerated
 WIFI_DRIVER=ath6kl_sdio                       ## device driver "name"
@@ -39,9 +39,6 @@ WIFI_80211=-Dnl80211                          ## supplicant driver nl80211
 ## fips-mode support - also can invoke directly via the cmdline as 'fips'
 #WIFI_FIPS=-F                                  ## FIPS mode support '-F'
 
-## regulatory domain
-#WIFI_REG_DOMAIN=
-
 wifi_config() {
   # ensure that the profiles.conf file exists and is not zero-length
   # avoids issues while loading drivers and starting the supplicant
@@ -52,10 +49,6 @@ wifi_config() {
   # cmdline or script setting may override, otherwise not-enabled
   fm=$( ${SDC_CLI:-:} global show fips 2>/dev/null )
   [ "${fm/*Enabled*/yes}" == yes ] && WIFI_FIPS=-F
-
-  # determine the currently set regulatory domain
-  reg=$( ${SDC_CLI:-:} global show reg-domain 2>/dev/null )
-  WIFI_REG_DOMAIN="${reg##*: }"
 
   return 0
 }
@@ -221,13 +214,7 @@ wifi_start() {
         sed "/^ssid=wb..n/s/_.*/_${wl_vei//:}/" -i $cf && fsync $cf
       fi
 
-      if [ "$WIFI_REG_DOMAIN" == WW ]
-      then
-        msg "Cannot start hostapd while set for World Wide regulatory domain"
-        return 2
-      fi
-
-      $SDC_CLI radio_init
+      $SDC_CLI radio_init_4_hostapd
       # construct the hostapd invocation and execute (flags can be in /e/n/i)
       #debug=-d                                   ## allow debug/err capture
       #pf=-P$apd_sd/pid                            ## pid only if daemonized
