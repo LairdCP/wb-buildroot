@@ -58,15 +58,15 @@ iface ppp0 inet manual
 
 ## Wireless - setup handled by /etc/network/wireless.sh
 auto wlan0
-iface wlan0 inet static
+iface wlan0 inet dhcp
   alias wl is wlan0
   #timeout 60
   address 192.168.1.1
   broadcast 192.168.1.255
   netmask 255.255.255.252
-  post-cfg-do /etc/dhcp/udhcpd.sh -iwlan0 /etc/dhcp/udhcpd.wlan0.conf
-  pre-dcfg-do /etc/dhcp/udhcpd.sh -iwlan0 stop
-  hostapd /etc/hostapd/hostapd.conf
+#  post-cfg-do /etc/dhcp/udhcpd.sh -iwlan0 /etc/dhcp/udhcpd.wlan0.conf
+#  pre-dcfg-do /etc/dhcp/udhcpd.sh -iwlan0 stop
+#  hostapd /etc/hostapd/hostapd.conf
 
 
 ## Bridge - setup handled by /etc/network/bridge.sh
