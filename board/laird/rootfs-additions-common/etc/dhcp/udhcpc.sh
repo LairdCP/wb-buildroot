@@ -93,7 +93,7 @@ udhcpc_start() {
   # udhcpc debug is offset from verbose level by 2
   [ ${#vm} -eq 0 ] && nv='>/dev/null'
   [ ${#vm} -eq 1 ] && nv='|grep -E "obtained|udhcpc"'
-  [ ${#vm} -ge 2 ] && v=${vm//./-v } v=${v/-v } vb=${v:+-v}
+  [ ${#vm} -ge 2 ] && v=${vm//./-v } v=${v/-v }-S vb=${v:+-v}
 
   # request ip-address (env)
   rip=${rip:+--request $rip}
