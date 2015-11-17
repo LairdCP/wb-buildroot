@@ -30,7 +30,7 @@ define PHP_SDK_INSTALL_STAGING_CMDS
 endef
 
 ifeq ($(BR2_PACKAGE_PHP_SDK_TEST),y)
-	INSTALL_TEST = $(INSTALL) -D -m 755 $(@D)/test/lrd_sdk_test.php $(TARGET_DIR)/var/www/docs/test/lrd_sdk_test.php
+	INSTALL_TEST = $(INSTALL) -D -m 755 $(@D)/examples/lrd_sdk_GetVersion.php $(TARGET_DIR)/var/www/docs/examples/lrd_sdk_GetVersion.php
 else
 	INSTALL_TEST =
 endif
