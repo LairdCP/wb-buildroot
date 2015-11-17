@@ -12,12 +12,17 @@ LIBBLUETOPIA_SITE_METHOD = local
 LIBBLUETOPIA_INSTALL_STAGING = YES
 
 LIBBLUETOPIA_DEPENDENCIES = linux
-MAKE_ENV = \
+LIBBLUETOPIA_MAKE_ENV = \
         ARCH=arm \
         CROSS_COMPILE=$(TARGET_CROSS) \
         KERNELDIR=$(LINUX_DIR)
 
+define LIBBLUETOPIA_BUILD_CMDS
+	$(LIBBLUETOPIA_MAKE_ENV) $(MAKE) -C $(@D)/btpsvend -f BTPSVEND_Dist.mak
+endef
+
 define LIBBLUETOPIA_INSTALL_STAGING_CMDS
+	$(INSTALL) -D -m 0755 $(@D)/btpsvend/*.a $(STAGING_DIR)/usr/lib
 	$(INSTALL) -D -m 0755 $(@D)/lib/*.a $(STAGING_DIR)/usr/lib
 	$(INSTALL) -D -m 0644 $(@D)/include/*.h $(STAGING_DIR)/usr/include
 	$(INSTALL) -D -m 0644 $(@D)/debug/include/*.h $(STAGING_DIR)/usr/include
