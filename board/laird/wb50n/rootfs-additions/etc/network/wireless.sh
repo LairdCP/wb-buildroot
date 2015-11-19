@@ -15,7 +15,7 @@
 # contact: ews-support@lairdtech.com
 
 # /etc/network/wireless.sh - driver-&-firmware configuration for the wb50n
-# 20120520
+# 20120520/20151029
 
 WIFI_PREFIX=wlan                              ## iface to be enumerated
 WIFI_DRIVER=ath6kl_sdio                       ## device driver "name"
@@ -39,7 +39,6 @@ WIFI_80211=-Dnl80211                          ## supplicant driver nl80211
 ## fips-mode support - also can invoke directly via the cmdline as 'fips'
 #WIFI_FIPS=-F                                  ## FIPS mode support '-F'
 
-
 wifi_config() {
   # ensure that the profiles.conf file exists and is not zero-length
   # avoids issues while loading drivers and starting the supplicant
@@ -48,7 +47,7 @@ wifi_config() {
 
   # check global profile setting: fips-mode <disabled|enabled>
   # cmdline or script setting may override, otherwise not-enabled
-  fm=$( ${SDC_CLI:-:} global show fips-mode 2>/dev/null )
+  fm=$( ${SDC_CLI:-:} global show fips 2>/dev/null )
   [ "${fm/*Enabled*/yes}" == yes ] && WIFI_FIPS=-F
 
   return 0
@@ -60,7 +59,7 @@ wifi_set_dev() {
 
 msg() {
   echo "$@"
-}
+} 2>/dev/null
 
 wifi_status() {
   module=${module/.ko/}
@@ -89,30 +88,31 @@ wifi_status() {
   echo
 }
 
-wifi_awaitinterface() {
-  # arg1 is timeout (10*mSec) to await availability
-  let x=0
-  while [ $x -lt $1 ]
-  do
-    grep -q "${WIFI_DEV:-xx}" /proc/net/dev && break
-    $usleep 10000 && { let x+=1; msg -n .; }
-  done
-  [ $x -lt $1 ] && return 0 || return 1
-} 2>/dev/null
-
 wifi_queryinterface() {
-  # determine iface via path with matching device/uevent (do not quote token)
-  WIFI_DEV=$( grep -s "$WIFI_DRIVER" /sys/class/net/*/device/uevent \
-               |sed -n 's,/sys/class/net/\([a-z0-9]\+\)/device.*,\1,p' )
-
-  if [ -z "$WIFI_DEV" ]
-  then
-    return 1
-  elif let $1+0
-  then
-    wifi_awaitinterface $1 || return 1
-  fi
-  return 0
+  # on driver init, must check and wait for device
+  # arg1 is timeout (deciseconds) to await availability
+  let x=0 timeout=${1:-0} && msg -n '  '
+  while [ $x -le $timeout ]
+  do
+    if [ -z "$WIFI_DEV" ]
+    then # determine iface via device path
+      for wl_dev in /sys/class/net/*/phy80211
+      do
+        wl_dev=${wl_dev#*net/} wl_dev=${wl_dev%/phy80211}
+        [ "$wl_dev" != \* ] && WIFI_DEV=$wl_dev && break
+      done
+    fi
+    if [ -n "$WIFI_DEV" ] \
+    && read -rs wl_mac < /sys/class/net/$WIFI_DEV/address
+    then # check if device address is available/ready
+      [ "${wl_mac/??:??:??:??:??:??/addr}" == addr ] && break
+    else
+      let $timeout || break
+    fi 2>/dev/null
+    $usleep 87654 && { let x+=1; msg -n .; }
+  done
+  let $x && msg ${x}00mSec
+  test $x -lt $timeout
 }
 
 wifi_fips_mode() {
@@ -142,7 +142,7 @@ wifi_fips_mode() {
 }
 
 wifi_start() {
-  mkdir -p /tmp/wifi^
+  wifi_lock_wait
   if grep -q "${module/.ko/}" /proc/modules
   then
     msg "checking interface/mode"
@@ -176,7 +176,7 @@ wifi_start() {
     || { msg "  ...driver failed to load"; return 1; }
 
     ## await enumerated interface
-    wifi_queryinterface 67 \
+    wifi_queryinterface 27 \
     || { msg "  ...driver init failure, iface n/a: ${WIFI_DEV:-?}"; return 1; }
   fi
 
@@ -186,7 +186,6 @@ wifi_start() {
   || { msg "iface $WIFI_DEV n/a, FW issue?  -try: wireless restart"; return 1; }
 
   # save MAC address for WIFI if necessary
-  read -r wl_mac < /sys/class/net/$WIFI_DEV/address
   grep -sq ..:..:..:..:..:.. $WIFI_MACADDR \
     || echo $wl_mac >$WIFI_MACADDR
 
@@ -215,6 +214,7 @@ wifi_start() {
         sed "/^ssid=wb..n/s/_.*/_${wl_vei//:}/" -i $cf && fsync $cf
       fi
 
+      $SDC_CLI radio_init_4_hostapd
       # construct the hostapd invocation and execute (flags can be in /e/n/i)
       #debug=-d                                   ## allow debug/err capture
       #pf=-P$apd_sd/pid                            ## pid only if daemonized
@@ -254,18 +254,19 @@ wifi_start() {
       || { msg ..error; return 2; }
       msg .ok
     fi
-    if [ -e "$EVENT_MON" ] \
-    && ! pidof event_mon >/dev/null
-    then
-      $EVENT_MON -ologging -b0x0000003FA3008000 -m &
-      msg "  started: event_mon[$!]"
-    fi
+  fi
+
+  if [ -e "$EVENT_MON" ] \
+  && ! pidof event_mon >/dev/null
+  then
+    $EVENT_MON -ologging -b0x0000003FA3008000 -m &
+    msg "  started: event_mon[$!]"
   fi
   return 0
 }
 
 wifi_stop() {
-  mkdir -p /tmp/wifi^
+  wifi_lock_wait
   if [ -f /sys/class/net/$WIFI_DEV/address ]
   then
     { read -r ifs < /sys/class/net/$WIFI_DEV/operstate; } 2>/dev/null
@@ -278,10 +279,6 @@ wifi_stop() {
     ## terminate the supplicant by looking up its process id
     if { read -r pid < $supp_sd/pid; } 2>/dev/null && let pid+0
     then
-      # and terminate event_mon too
-      killall event_mon 2>/dev/null \
-           && msg "event_mon stopped"
-
       rm -f $supp_sd/pid
       wifi_kill_pid_of_service $pid sdcsupp
       let rv+=$?
@@ -294,6 +291,10 @@ wifi_stop() {
       wifi_kill_pid_of_service $pid hostapd
       let rv+=$?
     fi
+
+    ## terminate event_mon
+    killall event_mon 2>/dev/null \
+         && msg "event_mon stopped"
 
     ## return if only stopping sdcsupp or hostapd
     test "${1/*supp*/X}" == "X" -o "${1/*host*/X}" == "X" \
@@ -331,6 +332,12 @@ wifi_kill_pid_of_service() {
   fi
 } 2>/dev/null
 
+wifi_lock_wait() {
+  w4it=27
+  # allow upto (n) deciseconds for a prior stop/start to finish
+  while [ -d /tmp/wifi^ ] && let --w4it; do $usleep 98765; done
+  mkdir -p /tmp/wifi^
+} 2>/dev/null
 
 # ensure this script is available as system command
 [ -x /sbin/wireless ] || ln -sf /etc/network/wireless.sh /sbin/wireless
@@ -353,9 +360,6 @@ usleep='busybox usleep'
 
 # optionally, set fips-mode via cmdline
 [ "$1" == fips ] && { shift; WIFI_FIPS=-F; }
-
-# timed-wait (n deciseconds) for prior wifi task
-let n=27 && while [ -d /tmp/wifi^ ] && let n--; do usleep 98765; done
 
 # command
 case $1 in
@@ -392,7 +396,7 @@ case $1 in
     echo "  -d  debug verbosity (-dd even more)"
     echo
     echo "Usage:"
-    echo "# ${0##*/} [-tdddd] [fips] {stop|start|restart|status} [supp]"
+    echo "# ${0##*/} [-tdddd] [fips] {stop|start|restart|status} [supp|host]"
     ;;
 
   *)
