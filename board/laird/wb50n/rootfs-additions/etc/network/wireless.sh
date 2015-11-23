@@ -15,7 +15,7 @@
 # contact: ews-support@lairdtech.com
 
 # /etc/network/wireless.sh - driver-&-firmware configuration for the wb50n
-# 20120520/20151029
+# 20151122
 
 WIFI_PREFIX=wlan                              ## iface to be enumerated
 WIFI_DRIVER=ath6kl_sdio                       ## device driver "name"
@@ -163,6 +163,7 @@ wifi_start() {
 
     ## set atheros driver core options
     ath6kl_params="recovery_enable=1 heart_beat_poll=200"
+    ath6kl_sdio_params="reset_pwd_gpio=131"
 
     ## check fips-mode support
     if [ -n "$WIFI_FIPS" ]
@@ -172,7 +173,7 @@ wifi_start() {
       insmod $WIFI_KMPATH/ath/ath6kl/ath6kl_core.ko $ath6kl_params
     fi
 
-    modprobe $WIFI_DRIVER \
+    modprobe $WIFI_DRIVER $ath6kl_sdio_params \
     || { msg "  ...driver failed to load"; return 1; }
 
     ## await enumerated interface
