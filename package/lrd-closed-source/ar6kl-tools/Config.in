@@ -2,3 +2,12 @@ config BR2_PACKAGE_AR6KL_TOOLS
 	bool "Ar6kl Tools"
 	help
 	  Ar6kl Tools
+
+if BR2_PACKAGE_AR6KL_TOOLS
+
+config BR2_PACKAGE_AR6KL_TOOLS_6004_SUPPORT
+	bool "AR6004 support"
+	help
+	  Builds tools to support AR6004 instead of AR6003.
+
+endif
