@@ -1,4 +1,4 @@
-#!/usr/bin/env ash
+#!/bin/sh
 
 # Copyright (c) 2015, Laird
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -17,56 +17,126 @@
 # /usr/bin/log_dump Support utility to gather logs for support to assist
 # with issue debugging
 
+# if your system does not support /bin/sh, you can modify the first line
+# as appropriate for your system.
+
 # MSD customers may wish to use a different location
 LOGLOCALE=/tmp
 
 LOGFILE=${LOGLOCALE}/log_dump.txt
 
-LOG_DUMP_VERSION=20140830
+LOG_DUMP_VERSION=20151125
 
+command_exists () {
+    command -v "$1" > /dev/null  2>&1;
+}
+
+command_exists echo
+if [ $? -ne 0 ]; then
+	echo >&2 "Echo is required.  Aborting."
+	exit 1
+fi
+
+echo "creating $LOGFILE"
 echo "= = = = = = = = = = = = = = = = = = = =" >> $LOGFILE
-echo "log_dump file create with version " $LOG_DUMP_VERSION >> $LOGFILE
-date >> $LOGFILE
-echo "-----uptime-----" >> $LOGFILE
-uptime >> $LOGFILE
-cat /etc/summit-release >> $LOGFILE
-uname -a >> $LOGFILE
+echo "log_dump file created with version " $LOG_DUMP_VERSION >> $LOGFILE
+if command_exists date ; then
+	date >> $LOGFILE;
+fi
+
+if command_exists uptime ; then
+	echo "-----uptime-----" >> $LOGFILE
+	uptime >> $LOGFILE
+else
+	echo "no uptime command" >> $LOGFILE
+fi
+
+if command_exists grep ; then
+	if command_exists sed ; then
+		x=$( grep -s 'Workgroup Bridge' /proc/device-tree/model \
+		|| sed -n 's/Hardware[ \t:]*\(.*\)/\1/p' /proc/cpuinfo )
+	fi
+fi
+
+echo "-----system-----" >> $LOGFILE
+case "$x" in
+	*'Workgroup Bridge'*)
+	cat /etc/summit-release >> $LOGFILE
+	wb=yes
+	;;
+	*)
+	echo "MSD/SSD system" >> $LOGFILE
+	wb=no
+	;;
+esac
+
+if command_exists uname ; then
+	echo "-----kernel info-----" >> $LOGFILE
+	uname -a >> $LOGFILE
+fi
+
 echo "-----kernel cmd line-----" >> $LOGFILE
 cat /proc/cmdline >> $LOGFILE
-echo "-----uboot env-----" >> $LOGFILE
-fw_printenv >> $LOGFILE
-sdc_cli >> $LOGFILE << \
+
+if [ "$wb" = "yes" ]; then
+	echo "-----uboot env-----" >> $LOGFILE
+	fw_printenv >> $LOGFILE
+fi
+
+if command_exists sdc_cli ; then
+	sdc_cli >> $LOGFILE << \
+	--sdc_cli_info--
+	!echo "-----sdc_cli version-----" >> $LOGFILE
+	version
+	!echo "-----sdc_cli status-----" >> $LOGFILE
+	status
+	!echo "-----sdc_cli profile list-----" >> $LOGFILE
+	profile list
+	profile dumpall
 --sdc_cli_info--
-!echo "-----sdc_cli version-----" >> $LOGFILE
-version
-!echo "-----sdc_cli status-----" >> $LOGFILE
-status
-!echo "-----sdc_cli profile list-----" >> $LOGFILE
-profile list
-profile dumpall
---sdc_cli_info--
-echo "-----ifrc -v wlan0-----" >> $LOGFILE
-ifrc -v wlan0 >> $LOGFILE
-echo "-----ifrc -v-----" >> $LOGFILE
-ifrc -v >> $LOGFILE
-echo "-----bridge staus------" >> $LOGFILE
-{ ifrc -v br0 && ifrc br0 status; } >> $LOGFILE
-echo "----image info-----" >> $LOGFILE
-fw_select --show >> $LOGFILE
-echo "-----route info-----" >> $LOGFILE
-ip route show >> $LOGFILE
-echo "-----ifrc log-----" >> $LOGFILE
-cat /var/log/ifrc/wlan0 >> $LOGFILE
-echo "-----top-----" >> $LOGFILE
-top -b -n 1 >> $LOGFILE
-echo "-----df-----" >> $LOGFILE
-df >> $LOGFILE
-echo "-----logread-----" >> $LOGFILE
-logread >> $LOGFILE
-echo "-----processes-----" >> $LOGFILE
-ps >> $LOGFILE
-echo "- - - - - - - - - - DMESG - - - - - - - - - - " >> $LOGFILE
-dmesg >> $LOGFILE
+else
+	echo "Could not find sdc_cli in path" >> $LOGFILE
+fi
+
+if [ "$wb" = "yes" ]; then
+	echo "-----ifrc -v wlan0-----" >> $LOGFILE
+	ifrc -v wlan0 >> $LOGFILE
+	echo "-----ifrc -v-----" >> $LOGFILE
+	ifrc -v >> $LOGFILE
+	echo "-----bridge staus------" >> $LOGFILE
+	{ ifrc -v br0 && ifrc br0 status; } >> $LOGFILE
+	echo "----image info-----" >> $LOGFILE
+	fw_select --show >> $LOGFILE
+	echo "-----route info-----" >> $LOGFILE
+	ip route show >> $LOGFILE
+	echo "-----ifrc log-----" >> $LOGFILE
+	cat /var/log/ifrc/wlan0 >> $LOGFILE
+fi
+
+if command_exists top ; then
+	echo "-----top-----" >> $LOGFILE
+	top -b -n 1 >> $LOGFILE
+fi
+
+if command_exists df ; then
+	echo "-----df-----" >> $LOGFILE
+	df >> $LOGFILE
+fi
+
+if command_exists logread ; then
+	echo "-----logread-----" >> $LOGFILE
+	logread >> $LOGFILE
+fi
+
+if command_exists ps ; then
+	echo "-----processes-----" >> $LOGFILE
+	ps >> $LOGFILE
+fi
+
+if command_exists dmesg ; then
+	echo "- - - - - - - - - - DMESG - - - - - - - - - - " >> $LOGFILE
+	dmesg >> $LOGFILE
+fi
 
 echo "The file" $LOGFILE "was created.  Please provide this file to"
 echo "your support contact at ews-support@lairdtech.com"
