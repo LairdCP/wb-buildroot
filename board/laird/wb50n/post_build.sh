@@ -13,11 +13,6 @@ tar c --exclude=.svn --exclude=.empty -C board/laird/wb50n/rootfs-additions/ . |
 # create a compressed backup copy of the /e/n/i file
 gzip -c $TARGETDIR/etc/network/interfaces >$TARGETDIR/etc/network/interfaces~.gz
 
-# create missing symbolic link
-# TODO: shouldn't have to do this here, temporary workaround
-( cd $TARGETDIR/usr/lib \
-  && ln -sf liblrd_btsdk.so.1.0 liblrd_btsdk.so.1 )
-
 # Services to enable or disable by default
 chmod a+x $TARGETDIR/etc/init.d/S??lighttpd
 
