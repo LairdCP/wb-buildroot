@@ -1,0 +1,40 @@
+From da89aee59b030585a16c704d37d2ed78e98539ed Mon Sep 17 00:00:00 2001
+From: Jon Hefling <jon.hefling@lairdtech.com>
+Date: Thu, 19 Nov 2015 09:44:42 -0600
+Subject: [PATCH] Laird: wb50n: Adjust settings for g_ether.
+
+Allow CDC Ethernet Networking Control Model (ECM) to be used.
+The CDC Ethernet Emulation Model (EEM) is not well established.
+Also deselected (new) ConfigFS for USB Gadget.
+
+Bug 8455.
+---
+ arch/arm/configs/wb50n_defconfig | 11 -----------
+ 1 file changed, 11 deletions(-)
+
+diff --git a/arch/arm/configs/wb50n_defconfig b/arch/arm/configs/wb50n_defconfig
+index 73eb42c..1c27304 100644
+--- a/arch/arm/configs/wb50n_defconfig
++++ b/arch/arm/configs/wb50n_defconfig
+@@ -191,18 +191,7 @@ CONFIG_USB_GADGET=m
+ CONFIG_USB_GADGET_DEBUG_FS=y
+ CONFIG_USB_AT91=m
+ CONFIG_USB_ATMEL_USBA=m
+-CONFIG_USB_CONFIGFS=m
+-CONFIG_USB_CONFIGFS_SERIAL=y
+-CONFIG_USB_CONFIGFS_ACM=y
+-CONFIG_USB_CONFIGFS_NCM=y
+-CONFIG_USB_CONFIGFS_ECM=y
+-CONFIG_USB_CONFIGFS_ECM_SUBSET=y
+-CONFIG_USB_CONFIGFS_RNDIS=y
+-CONFIG_USB_CONFIGFS_EEM=y
+-CONFIG_USB_CONFIGFS_MASS_STORAGE=y
+-CONFIG_USB_CONFIGFS_F_LB_SS=y
+ CONFIG_USB_ETH=m
+-CONFIG_USB_ETH_EEM=y
+ CONFIG_MMC=y
+ CONFIG_MMC_ATMELMCI=y
+ CONFIG_NEW_LEDS=y
+-- 
+1.9.1
+

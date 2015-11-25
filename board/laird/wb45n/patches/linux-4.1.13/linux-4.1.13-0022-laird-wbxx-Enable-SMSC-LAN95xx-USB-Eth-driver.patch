@@ -1,0 +1,48 @@
+From 17e0166ec6beaffcc2bd3da3e02a5528a74138b7 Mon Sep 17 00:00:00 2001
+From: Steve deRosier <steve.derosier@lairdtech.com>
+Date: Sun, 15 Nov 2015 14:45:28 -0800
+Subject: [PATCH] laird: wbxx: Enable SMSC LAN95xx USB Eth driver
+
+This enables various common usb->eth dongle drivers. In particular we want
+to add support for the SMSC LAN95xx driver, and we include a few others that
+are common, while trimmint a couple of less likley options.
+
+Bug: 8544
+---
+ arch/arm/configs/wb45n_defconfig | 4 ++++
+ arch/arm/configs/wb50n_defconfig | 4 ++++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/arch/arm/configs/wb45n_defconfig b/arch/arm/configs/wb45n_defconfig
+index 237135a..28a94d3 100644
+--- a/arch/arm/configs/wb45n_defconfig
++++ b/arch/arm/configs/wb45n_defconfig
+@@ -163,6 +163,10 @@ CONFIG_PPP=m
+ CONFIG_PPP_BSDCOMP=m
+ CONFIG_PPP_DEFLATE=m
+ CONFIG_PPP_ASYNC=m
++CONFIG_USB_USBNET=m
++CONFIG_USB_NET_SMSC95XX=m
++# CONFIG_USB_NET_NET1080 is not set
++# CONFIG_USB_NET_ZAURUS is not set
+ CONFIG_ATH_CARDS=m
+ CONFIG_ATH6KL=m
+ CONFIG_ATH6KL_SDIO=m
+diff --git a/arch/arm/configs/wb50n_defconfig b/arch/arm/configs/wb50n_defconfig
+index 3d42f1f..73eb42c 100644
+--- a/arch/arm/configs/wb50n_defconfig
++++ b/arch/arm/configs/wb50n_defconfig
+@@ -146,6 +146,10 @@ CONFIG_MACB=y
+ # CONFIG_NET_VENDOR_WIZNET is not set
+ CONFIG_ICPLUS_PHY=y
+ CONFIG_MICREL_PHY=y
++CONFIG_USB_USBNET=m
++CONFIG_USB_NET_SMSC95XX=m
++# CONFIG_USB_NET_NET1080 is not set
++# CONFIG_USB_NET_ZAURUS is not set
+ CONFIG_ATH_CARDS=m
+ CONFIG_ATH6KL=m
+ CONFIG_ATH6KL_SDIO=m
+-- 
+1.9.1
+
