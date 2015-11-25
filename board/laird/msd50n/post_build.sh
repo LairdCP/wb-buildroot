@@ -15,7 +15,12 @@ rm -f -- $TARGETDIR/etc/os-release
 rm -rf -- $TARGETDIR/etc/libnl
 rm -rf -- $TARGETDIR/etc/ssl
 rm -rf -- $TARGETDIR/etc/wireless-regdb
+mkdir -p  $TARGETDIR/usr/smartBASICTemp
+mv        $TARGETDIR/usr/share/smartBASIC $TARGETDIR/usr/smartBASICTemp
 rm -rf -- $TARGETDIR/usr/share
+mkdir -p  $TARGETDIR/usr/share
+mv        $TARGETDIR/usr/smartBASICTemp/smartBASIC $TARGETDIR/usr/share
+rm -rf -- $TARGETDIR/usr/smartBASICTemp
 rm -rf -- $TARGETDIR/usr/sbin/nl* $TARGETDIR/usr/sbin/genl*
 rm -f  -- $TARGETDIR/sbin/regdbdump
 rm -f  -- $TARGETDIR/usr/lib/libstdc++*
@@ -46,10 +51,5 @@ tar c --exclude=.svn -C board/laird/wb45n/rootfs-additions/lib/firmware . | tar 
 # TODO: shouldn't have to do this here, temporary workaround
 ( cd $TARGETDIR/usr/lib \
   && ln -sf libsdc_sdk.so.1.0 libsdc_sdk.so.1 )
-
-# create missing symbolic link
-# TODO: shouldn't have to do this here, temporary workaround
-( cd $TARGETDIR/usr/lib \
-  && ln -sf liblrd_btsdk.so.1.0 liblrd_btsdk.so.1 )
 
 echo "MSD50n POST BUILD script: done."
