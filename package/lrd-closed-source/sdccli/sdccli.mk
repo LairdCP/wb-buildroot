@@ -4,15 +4,9 @@
 #
 #############################################################
 
-ifeq ($(BR2_PACKAGE_SDCCLI_PULL_FROM_SVN),y)
-SDCCLI_VERSION = $(BR2_PACKAGE_SDCCLI_SVN_VERSION)
-SDCCLI_SITE = svn://10.1.10.7/tests/sdc_cli/trunk
-SDCCLI_SITE_METHOD = svn
-else
 SDCCLI_VERSION = local
 SDCCLI_SITE = package/lrd-closed-source/externals/sdc_cli
 SDCCLI_SITE_METHOD = local
-endif
 
 SDCCLI_DEPENDENCIES = libnl sdcsdk libedit
 

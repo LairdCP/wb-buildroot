@@ -4,15 +4,9 @@
 #
 #############################################################
 
-ifeq ($(BR2_PACKAGE_SDCSUPP_PULL_FROM_SVN),y)
-SDCSUPP_VERSION = $(BR2_PACKAGE_SDCSUPP_SVN_VERSION)
-SDCSUPP_SITE = svn://10.1.10.7/sserver/supplicant/trunk/wpa_supplicant
-SDCSUPP_SITE_METHOD = svn
-else
 SDCSUPP_VERSION = local
 SDCSUPP_SITE = package/lrd-closed-source/externals/wpa_supplicant
 SDCSUPP_SITE_METHOD = local
-endif
 
 SDCSUPP_DEPENDENCIES = libnl openssl sdcsdk
 SDCSUPP_TARGET_DIR = $(TARGET_DIR)

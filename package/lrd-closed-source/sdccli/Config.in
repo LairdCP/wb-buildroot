@@ -2,21 +2,3 @@ config BR2_PACKAGE_SDCCLI
 	bool "SDC CLI"
 	help
 	  SDC CLI
-
-if BR2_PACKAGE_SDCCLI
-
-config BR2_PACKAGE_SDCCLI_PULL_FROM_SVN
-	bool "Pull source code from subversion"
-	help
-	  Pull source code from subversion
-
-if BR2_PACKAGE_SDCCLI_PULL_FROM_SVN
-
-config BR2_PACKAGE_SDCCLI_SVN_VERSION
-	string "Svn revision/label to pull"
-	help
-	  Svn revision/label to pull
-
-endif
-
-endif

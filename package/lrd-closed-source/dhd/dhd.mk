@@ -4,15 +4,9 @@
 #
 #############################################################
 
-ifeq ($(BR2_PACKAGE_DHD_PULL_FROM_SVN),y)
-DHD_VERSION = $(BR2_PACKAGE_DHD_SVN_VERSION)
-DHD_SITE = svn://10.1.10.7/dev_linux/sdc40n.5x/trunk
-DHD_SITE_METHOD = svn
-else
 DHD_VERSION = local
 DHD_SITE = package/lrd-closed-source/externals/dhd
 DHD_SITE_METHOD = local
-endif
 
 DHD_DEPENDENCIES = linux
 DHD_MAKE_ENV = CC="$(TARGET_CC)" \
