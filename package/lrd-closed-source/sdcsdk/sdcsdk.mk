@@ -4,15 +4,9 @@
 #
 #############################################################
 
-ifeq ($(BR2_PACKAGE_SDCSDK_PULL_FROM_SVN),y)
-SDCSDK_VERSION = $(BR2_PACKAGE_SDCSDK_SVN_VERSION)
-SDCSDK_SITE = svn://10.1.10.7/dev_linux/sdk/trunk
-SDCSDK_SITE_METHOD = svn
-else
 SDCSDK_VERSION = local
 SDCSDK_SITE = package/lrd-closed-source/externals/sdk
 SDCSDK_SITE_METHOD = local
-endif
 
 SDCSDK_DEPENDENCIES = libnl host-pkgconf openssl 
 SDCSDK_INSTALL_STAGING = YES
