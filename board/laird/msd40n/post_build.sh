@@ -33,6 +33,9 @@ find $TARGETDIR/etc -mindepth 1 -maxdepth 1 \
                     -not -name summit \
                     -exec rm -rf "{}" ";"
 
+# copy log_dump
+cp board/laird/rootfs-additions-common/usr/bin/log_dump $TARGETDIR/usr/bin/
+
 # create missing symbolic link
 # TODO: shouldn't have to do this here, temporary workaround
 ( cd $TARGETDIR/usr/lib \

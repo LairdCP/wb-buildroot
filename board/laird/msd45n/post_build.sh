@@ -47,6 +47,9 @@ rm -rf -- $TARGETDIR/lib/modules/*/kernel
 mkdir -p $TARGETDIR/lib/firmware
 tar c --exclude=.svn -C board/laird/wb45n/rootfs-additions/lib/firmware . | tar x -C $TARGETDIR/lib/firmware
 
+# copy log_dump
+cp board/laird/rootfs-additions-common/usr/bin/log_dump $TARGETDIR/usr/bin/
+
 # create missing symbolic link
 # TODO: shouldn't have to do this here, temporary workaround
 ( cd $TARGETDIR/usr/lib \
