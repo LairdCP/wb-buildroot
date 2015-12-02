@@ -1,0 +1,34 @@
+From cae31da8125535e3ac6d31a4c526a33dd3fe4165 Mon Sep 17 00:00:00 2001
+From: Steve deRosier <steve.derosier@lairdtech.com>
+Date: Mon, 30 Nov 2015 16:49:14 -0800
+Subject: [PATCH] laird: dts: wb50n: Add gpio-key for WAKE button
+
+Bug: 8381
+---
+ arch/arm/boot/dts/wb50n.dts | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/arm/boot/dts/wb50n.dts b/arch/arm/boot/dts/wb50n.dts
+index 1fb91dd..bf7fa26 100644
+--- a/arch/arm/boot/dts/wb50n.dts
++++ b/arch/arm/boot/dts/wb50n.dts
+@@ -221,4 +221,16 @@
+ 		atheros,board-id = "SD32";
+  	};
+ 
++	gpio_keys {
++		compatible = "gpio-keys";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		irqbtn@pe31 {
++			label = "IRQBTN";
++			linux,code = <99>;
++			gpios = <&pioE 31 GPIO_ACTIVE_LOW>;
++			gpio-key,wakeup = <1>;
++		};
++	};
++
+ };
+-- 
+1.8.3.1
+
