@@ -55,9 +55,4 @@ cp board/laird/rootfs-additions-common/usr/bin/log_dump $TARGETDIR/usr/bin/
 ( cd $TARGETDIR/usr/lib \
   && ln -sf libsdc_sdk.so.1.0 libsdc_sdk.so.1 )
 
-# create missing symbolic link
-# TODO: shouldn't have to do this here, temporary workaround
-( cd $TARGETDIR/usr/lib \
-  && ln -sf liblrd_btsdk.so.1.0 liblrd_btsdk.so.1 )
-
 echo "MSD45n POST BUILD script: done."

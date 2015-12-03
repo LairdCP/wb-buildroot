@@ -1,4 +1,0 @@
-config BR2_PACKAGE_BTSDK
-	bool "LRD BT"
-	help
-	  Laird BT SDK

@@ -8,7 +8,6 @@ source "package/lrd-closed-source/web_lcm/Config.in"
 source "package/lrd-closed-source/ncm/Config.in"
 source "package/lrd-closed-source/llagent/Config.in"
 source "package/lrd-closed-source/smartbasic/Config.in"
-source "package/lrd-closed-source/btsdk/Config.in"
 
 menu "Bluetopia"
 	source "package/lrd-closed-source/libbluetopia/Config.in"
