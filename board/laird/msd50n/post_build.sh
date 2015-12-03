@@ -45,7 +45,7 @@ rm -rf -- $TARGETDIR/lib/modules/*/kernel
 
 # copy firmware files
 mkdir -p $TARGETDIR/lib/firmware
-tar c --exclude=.svn -C board/laird/wb45n/rootfs-additions/lib/firmware . | tar x -C $TARGETDIR/lib/firmware
+tar c --exclude=.svn -C board/laird/wb50n/rootfs-additions/lib/firmware . | tar x -C $TARGETDIR/lib/firmware
 
 # create missing symbolic link
 # TODO: shouldn't have to do this here, temporary workaround
