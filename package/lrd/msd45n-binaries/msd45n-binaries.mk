@@ -54,7 +54,6 @@ endef
 
 define MSD45N_BINARIES_INSTALL_STAGING_CMDS
     rm -f $(STAGING_DIR)/usr/lib/libsdc_sdk.so*
-	rm -f $(STAGING_DIR)/usr/lib/liblrd_btsdk.so*
 	$(INSTALL) -D -m 0755 $(@D)/usr/lib/libsdc_sdk.so.1.0 $(STAGING_DIR)/usr/lib/
 	cd  $(STAGING_DIR)/usr/lib/ && ln -s libsdc_sdk.so.1.0 libsdc_sdk.so.1
     cd  $(STAGING_DIR)/usr/lib/ && ln -s libsdc_sdk.so.1 libsdc_sdk.so
