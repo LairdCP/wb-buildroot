@@ -80,9 +80,9 @@ gzip -c $TARGETDIR/etc/network/interfaces >$TARGETDIR/etc/network/interfaces~.gz
 # This may be overwritten by a proper release file.
 if [ -z "$LAIRD_RELEASE_STRING" ]; then
   echo "Laird Linux development build `date +%Y%m%d`" \
-    > $TARGETDIR/etc/summit-release
+    > $TARGETDIR/etc/laird-release
 else
-  echo "$LAIRD_RELEASE_STRING" > $TARGETDIR/etc/summit-release
+  echo "$LAIRD_RELEASE_STRING" > $TARGETDIR/etc/laird-release
 fi
 
 echo "COMMON POST BUILD script: done."
