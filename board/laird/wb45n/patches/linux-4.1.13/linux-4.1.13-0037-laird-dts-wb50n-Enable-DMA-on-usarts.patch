@@ -1,0 +1,47 @@
+From 8e4bfe64627e3f3f039b8efdbc395519329a2274 Mon Sep 17 00:00:00 2001
+From: Steve deRosier <steve.derosier@lairdtech.com>
+Date: Thu, 3 Dec 2015 20:24:07 -0800
+Subject: [PATCH] laird: dts: wb50n: Enable DMA on usarts
+
+Bug: 8405
+---
+ arch/arm/boot/dts/wb50n.dts | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/boot/dts/wb50n.dts b/arch/arm/boot/dts/wb50n.dts
+index bf7fa26..55359e8 100644
+--- a/arch/arm/boot/dts/wb50n.dts
++++ b/arch/arm/boot/dts/wb50n.dts
+@@ -95,7 +95,8 @@
+ 
+ 			/* On BB40 this port is labeled UART1 */
+ 			usart0: serial@f001c000 {
+-				dmas = <0>, <0>;	/*  Do not use DMA for usart0 */
++				atmel,use-dma-rx;
++				atmel,use-dma-tx;
+ 				pinctrl-names = "default";
+ 				pinctrl-0 = <&pinctrl_usart0 &pinctrl_usart0_rts_cts>;
+ 				status = "okay";
+@@ -103,7 +104,8 @@
+ 
+ 			/* On BB40 this port is labeled UART0 */
+ 			usart1: serial@f0020000 {
+-				dmas = <0>, <0>;	/*  Do not use DMA for usart1 */
++				atmel,use-dma-rx;
++				atmel,use-dma-tx;
+ 				pinctrl-names = "default";
+ 				pinctrl-0 = <&pinctrl_usart1 &pinctrl_usart1_rts_cts>;
+ 				dtr-gpios = <&pioD 13 GPIO_ACTIVE_LOW>;
+@@ -115,7 +117,8 @@
+ 
+ 			/* USART3 is direct-connect to the Bluetooth UART on the radio SIP */
+ 			usart3: serial@f8024000 {
+-				dmas = <0>, <0>;	/*  Do not use DMA for usart3 */
++				atmel,use-dma-rx;
++				atmel,use-dma-tx;
+ 				pinctrl-names = "default";
+ 				pinctrl-0 = <&pinctrl_usart3 &pinctrl_usart3_rts_cts>;
+ 				status = "okay";
+-- 
+1.9.1
+

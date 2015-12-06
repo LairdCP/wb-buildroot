@@ -1,0 +1,36 @@
+From 8c4a4d026a5789c6040ca6d14328d03067243a1d Mon Sep 17 00:00:00 2001
+From: Steve deRosier <steve.derosier@lairdtech.com>
+Date: Thu, 3 Dec 2015 22:42:51 -0800
+Subject: [PATCH] laird: dts: wb50n: enable faster clock for usart1
+
+usart1 wasn't able to reach faster (~1Mbps) clock speeds with the existing
+clock due to the divisiors and clock combinign to make a baud rate that was
+too far outside of spec. This speeds up the clock speed to achieve this rate.
+
+Bug: 8405
+---
+ arch/arm/boot/dts/wb50n.dts | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/arm/boot/dts/wb50n.dts b/arch/arm/boot/dts/wb50n.dts
+index 55359e8..04cdbf3 100644
+--- a/arch/arm/boot/dts/wb50n.dts
++++ b/arch/arm/boot/dts/wb50n.dts
+@@ -37,6 +37,14 @@
+ 				main: mainck {
+ 					clock-frequency = <12000000>;
+ 				};
++
++				periphck {
++					usart1_clk: usart1_clk {
++						#clock-cells = <0>;
++						reg = <13>;
++						atmel,clk-output-range = <0 132000000>;
++					};
++				};
+ 			};
+ 
+ 			pinctrl@fffff200 {
+-- 
+1.9.1
+

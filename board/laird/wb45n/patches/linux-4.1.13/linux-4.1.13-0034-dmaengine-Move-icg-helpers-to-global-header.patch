@@ -1,0 +1,65 @@
+From ef3c5d7e4e38d38c849b6cb6342e954c72998ccb Mon Sep 17 00:00:00 2001
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+Date: Wed, 27 May 2015 16:01:52 +0200
+Subject: [PATCH] dmaengine: Move icg helpers to global header
+
+Now that we can have ICGs set for both the source and destination (using
+the icg field of struct data_chunk) or for only the source or the
+destination (using the dst_icg or src_icg respectively), and that these
+fields can be ignored depending on other parameters (src_inc, src_sgl,
+etc.), the logic to get the actual ICG value can be quite tricky.
+
+The XDMAC driver was already implementing it, but since we will need it in
+other drivers, we can move it to the main header file.
+
+Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+Acked-by: Ludovic Desroches <ludovic.desroches@atmel.com>
+Signed-off-by: Vinod Koul <vinod.koul@intel.com>
+
+Conflicts:
+	drivers/dma/at_xdmac.c
+---
+ include/linux/dmaengine.h | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+
+diff --git a/include/linux/dmaengine.h b/include/linux/dmaengine.h
+index 5d63acb..6a28139 100644
+--- a/include/linux/dmaengine.h
++++ b/include/linux/dmaengine.h
+@@ -882,6 +882,33 @@ static inline int dma_maxpq(struct dma_device *dma, enum dma_ctrl_flags flags)
+ 	BUG();
+ }
+ 
++static inline size_t dmaengine_get_icg(bool inc, bool sgl, size_t icg,
++				      size_t dir_icg)
++{
++	if (inc) {
++		if (dir_icg)
++			return dir_icg;
++		else if (sgl)
++			return icg;
++	}
++
++	return 0;
++}
++
++static inline size_t dmaengine_get_dst_icg(struct dma_interleaved_template *xt,
++					   struct data_chunk *chunk)
++{
++	return dmaengine_get_icg(xt->dst_inc, xt->dst_sgl,
++				 chunk->icg, chunk->dst_icg);
++}
++
++static inline size_t dmaengine_get_src_icg(struct dma_interleaved_template *xt,
++					   struct data_chunk *chunk)
++{
++	return dmaengine_get_icg(xt->src_inc, xt->src_sgl,
++				 chunk->icg, chunk->src_icg);
++}
++
+ /* --- public DMA engine API --- */
+ 
+ #ifdef CONFIG_DMA_ENGINE
+-- 
+1.9.1
+
