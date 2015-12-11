@@ -16,7 +16,7 @@
 
 # /etc/dhcp/udhcpc.script
 # An event action script for udhcpc.
-# 20120521/20150917
+# 20120521/20151202
 
 
 eval ${DHCP_PARAMS} 2>/dev/null
@@ -47,11 +47,11 @@ test -n "$VERBOSE" \
 
 # The leases file is maintained in a 'dhclient' compatible format, w/last
 # event state action, plus the previous lease info and current lease info.
-# Assign a file name per interface, and ensure it exists.
+# Assign a file name per interface, and ensure it exists w/ a lease block.
 # Also create a /tmp destination for the leases file, if necessary.
 : ${LEASES_FILE:=${leases_file:-/var/lib/dhcp/dhclient.$interface.leases}}
-test -d ${LEASES_FILE%/*} || ln -s /tmp ${LEASES_FILE%/*}
-test -s ${LEASES_FILE} || printf "# via: $0\n#\n\n" >${LEASES_FILE}
+test -d ${LEASES_FILE%/*} || ln -sf /tmp ${LEASES_FILE%/*}
+test -s ${LEASES_FILE} || printf "\nlease {\n}\n" >${LEASES_FILE}
 
 write_lease_info() {
   # calculate expiry info: renew=50%, rebind=87.5%, and expire=100%
@@ -161,7 +161,8 @@ dateRT=$( date +%s )
 esa=$( date +"# esa: ${S:${#1}}$1 - %u %Y/%m/%d %H:%M:%S" -d@$dateRT )
 
 # Update leases file w/ this event state action.
-sed "/^${esa:0:17}/d;/^#/h;/^ *$/{$!d};1,/^}/{/^leas/{s,^,${esa}\n\n,}}" \
+sed -e "/^${esa:0:17}/d;/^ *$/{$!d};1,/}/{/^leas/{s,^,${esa}\n\n,}}" \
+    -e "1{/# via:.*${0##*/}/b;s,^,# via: $0\n#\n,}" \
     -i $LEASES_FILE
 
 # rt_tables support...
@@ -297,6 +298,9 @@ case ${action:=$1} in
     then
       write_lease_info $LEASES_FILE
     fi
+    ;;
+
+  released)
     ;;
 
   leasefail)
