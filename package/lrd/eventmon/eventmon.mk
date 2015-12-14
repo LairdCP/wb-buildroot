@@ -9,7 +9,7 @@ EVENTMON_SITE = package/lrd/externals/eventmon
 EVENTMON_SITE_METHOD = local
 
 ifeq ($(BR2_PACKAGE_MSD45N_BINARIES),y)
-	EVENTMON_DEPENDENCIES = msd45n-binaries
+	EVENTMON_DEPENDENCIES = msd-binaries
 else ifeq ($(BR2_PACKAGE_MSD40N_BINARIES),y)
 	EVENTMON_DEPENDENCIES = msd40n-binaries
 else
