@@ -35,9 +35,6 @@ then
   # ps variant, show process hierarchy as forest
   alias psf='pstree -p'
 
-  # find executable
-  alias which='fe'
-
   # shutdown
   alias shutdown='poweroff'
 fi
