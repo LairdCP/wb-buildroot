@@ -26,6 +26,7 @@ endef
 
 define MSD_BINARIES_INSTALL_TARGET_CMDS
 	mkdir -p $(TARGET_DIR)/usr/bin
+	$(INSTALL) -D -m 755 $(@D)/usr/bin/event_mon $(TARGET_DIR)/usr/bin/event_mon
 	$(INSTALL) -D -m 755 $(@D)/usr/bin/sdc_cli $(TARGET_DIR)/usr/bin/sdc_cli
 	$(INSTALL) -D -m 755 $(@D)/usr/sbin/smu_cli $(TARGET_DIR)/usr/sbin/smu_cli
 	$(INSTALL) -D -m 755 $(@D)/usr/bin/sdcsupp $(TARGET_DIR)/usr/bin/sdcsupp
@@ -50,6 +51,10 @@ define MSD_BINARIES_INSTALL_TARGET_CMDS
 	mkdir -p $(TARGET_DIR)/etc/lighttpd
 	$(INSTALL) -D -m 644  $(@D)/etc/lighttpd/lighttpd.*  $(TARGET_DIR)/etc/lighttpd/
 	mkdir -p -m 700 $(TARGET_DIR)/usr/sbfs
+	mkdir -p $(TARGET_DIR)/usr/share/smartBASIC/apps
+	mkdir -p $(TARGET_DIR)/usr/share/smartBASIC/apps/lib
+	$(INSTALL) -D -m 755 $(@D)/usr/share/smartBASIC/apps/*.sb $(TARGET_DIR)/usr/share/smartBASIC/apps/
+	$(INSTALL) -D -m 755 $(@D)/usr/share/smartBASIC/apps/lib/*.sblib $(TARGET_DIR)/usr/share/smartBASIC/apps/lib/
 endef
 
 define MSD_BINARIES_INSTALL_STAGING_CMDS
