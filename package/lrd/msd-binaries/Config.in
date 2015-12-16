@@ -1,0 +1,21 @@
+config BR2_PACKAGE_MSD_BINARIES
+	bool "MSD Installer"
+	help
+      Extracts the Laird closed source binaries from an msd release and install them on the target.
+      (sdcsupp, sdcsdk, sdc_cli, etc)
+
+if BR2_PACKAGE_MSD_BINARIES
+
+config BR2_MSD_BINARIES_COMPANY_PROJECT
+	string "Laird Binaries company/project string"
+	help
+	  Specify the middle string of a msd name tag. I.e. company/project.
+	  E.g. laird or laird_fips
+
+config BR2_MSD_BINARIES_VERSION
+	string "Laird Binaries version"
+	help
+	  Specify the version of sdcbins to use.
+	  E.g. alpha.0.2
+
+endif
