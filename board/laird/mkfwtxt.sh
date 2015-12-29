@@ -49,15 +49,14 @@ echo "  flags -c" >>$fwul
 echo >>$fwul
 
 # add transfer-list section
-cat >>$fwul<<\
---transfer-list--
+cat >>$fwul<<TRANSFER-LIST
 # transfer-list
   /etc/summit/profiles.conf
   /etc/network/interfaces
   /etc/ssl/certs
   /root/.ssh
 
---transfer-list--
+TRANSFER-LIST
 
 # display file
 echo $fwul:
