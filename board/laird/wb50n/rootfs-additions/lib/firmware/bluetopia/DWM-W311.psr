@@ -64,14 +64,8 @@
 // PIO[3] is active when an external clock reference is required or if PIO[3] is high,
 // and is inactive when a clock reference is not required and PIO[3] is low.
 &0246 = 0003
-// PSKEY_DEEP_SLEEP_USE_EXTERNAL_CLOCK = FALSE
-// (default is FALSE)   &03c3 = 0000
-// PSKEY_EXTERNAL_SLOW_CLOCK_CALIBRATION_ATTEMPTS = TURN OFF CALIBRATION
-&21e7 = 0000
-// PSKEY_UART_SLEEP_TIMEOUT = INHIBIT DEEP SLEEP
-&0222 = 0000
-// PSKEY_DEEP_SLEEP_STATE = DISABLE SLEEP
-&0229 = 0000
+// PSKEY_DEEP_SLEEP_USE_EXTERNAL_CLOCK = TRUE
+&03c3 = 0001
 
 //--------------------------------------- User Configuration ---------------------------------------//
 
