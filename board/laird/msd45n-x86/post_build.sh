@@ -45,9 +45,4 @@ tar c --exclude=.svn -C board/laird/wb45n/rootfs-additions/lib/firmware . | tar 
 # copy log_dump
 cp board/laird/rootfs-additions-common/usr/bin/log_dump $TARGETDIR/usr/bin/
 
-# create missing symbolic link
-# TODO: shouldn't have to do this here, temporary workaround
-( cd $TARGETDIR/usr/lib \
-  && ln -sf libsdc_sdk.so.1.0 libsdc_sdk.so.1 )
-
 echo "MSD45n-x86 POST BUILD script: done."
