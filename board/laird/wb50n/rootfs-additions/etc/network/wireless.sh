@@ -224,11 +224,12 @@ wifi_start() {
       msg -n executing: $hostapd'  '
       $hostapd 2>&1 &
       #
-      await $apd_sd/$WIFI_DEV 200000; msg .ok
+      await $apd_sd/$WIFI_DEV 200000
       # check and store the process id
-      pidof hostapd >$apd_sd/pid \
-        && hostapd=started \
-        || return 2
+      pidof hostapd 2>/dev/null >$apd_sd/pid \
+      || { msg ..error; return 2; }
+      msg .ok
+      hostapd=started
     fi
   fi
 
@@ -353,8 +354,8 @@ esac
 eni=/etc/network/interfaces
 
 # socket directories
-supp_sd=/tmp/wpa_supplicant
-apd_sd=/tmp/hostapd
+supp_sd=/var/run/wpa_supplicant
+apd_sd=/var/run/hostapd
 
 module=${WIFI_MODULE##*/}
 usleep='busybox usleep'
