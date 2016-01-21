@@ -50,7 +50,7 @@ endef
 
 define SDCSDK_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 0755 $(@D)/libsdc_sdk.so.1.0 $(SDCSDK_TARGET_DIR)/usr/lib/libsdc_sdk.so.1.0
-	cd  $(SDCSDK_TARGET_DIR)/usr/lib/ && ln -s libsdc_sdk.so.1.0 libsdc_sdk.so.1
+	cd  $(SDCSDK_TARGET_DIR)/usr/lib/ && ln -sf libsdc_sdk.so.1.0 libsdc_sdk.so.1
 	$(INSTALL) -D -m 0755 $(@D)/dhcp_injector $(SDCSDK_TARGET_DIR)/usr/bin/dhcp_injector
 endef
 
