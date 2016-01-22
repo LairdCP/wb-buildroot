@@ -1,5 +1,6 @@
 config BR2_PACKAGE_SDCSUPP
 	bool "SDC Supplicant"
+	select BR2_PACKAGE_LIBNL
 	help 
 	  SDC Supplicant
 

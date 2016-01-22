@@ -1,4 +1,5 @@
 config BR2_PACKAGE_SDCCLI
 	bool "SDC CLI"
+	select BR2_PACKAGE_LIBNL
 	help
 	  SDC CLI
