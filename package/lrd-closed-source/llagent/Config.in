@@ -1,4 +1,5 @@
 config BR2_PACKAGE_LLAGENT
     bool "llagent"
+    select BR2_PACKAGE_LIBNL
     help
         LairdLink Agent
