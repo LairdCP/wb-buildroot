@@ -162,7 +162,8 @@ wifi_start() {
     modprobe cfg80211
 
     ## set atheros driver core options
-    ath6kl_params="recovery_enable=1 heart_beat_poll=200"
+    ath6kl_btcoex_params="btcoex_chip_type=2 btcoex_ant_config=4"
+    ath6kl_params="recovery_enable=1 heart_beat_poll=200"\ $ath6kl_btcoex_params
     ath6kl_sdio_params="reset_pwd_gpio=131"
 
     ## check fips-mode support
