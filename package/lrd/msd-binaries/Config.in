@@ -1,5 +1,6 @@
 config BR2_PACKAGE_MSD_BINARIES
 	bool "MSD Installer"
+	select BR2_PACKAGE_LIBNL
 	help
       Extracts the Laird closed source binaries from an msd release and install them on the target.
       (sdcsupp, sdcsdk, sdc_cli, etc)
