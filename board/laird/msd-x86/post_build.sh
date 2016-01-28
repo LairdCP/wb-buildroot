@@ -1,8 +1,8 @@
 TARGETDIR=$1
 
-export BR2_LRD_PLATFORM=msd45n-x86
+export BR2_LRD_PLATFORM=msd-x86
 
-echo "MSD45n-x86 POST BUILD script: starting..."
+echo "MSD-x86 POST BUILD script: starting..."
 
 # enable tracing and exit on errors
 set -x -e
@@ -41,8 +41,9 @@ rm -rf -- $TARGETDIR/lib/modules/*/kernel
 # copy firmware files
 mkdir -p $TARGETDIR/lib/firmware
 tar c --exclude=.svn -C board/laird/wb45n/rootfs-additions/lib/firmware . | tar x -C $TARGETDIR/lib/firmware
+tar c --exclude=.svn -C board/laird/wb50n/rootfs-additions/lib/firmware . | tar x -C $TARGETDIR/lib/firmware
 
 # copy log_dump
 cp board/laird/rootfs-additions-common/usr/bin/log_dump $TARGETDIR/usr/bin/
 
-echo "MSD45n-x86 POST BUILD script: done."
+echo "MSD-x86 POST BUILD script: done."
