@@ -1,13 +1,13 @@
 IMAGESDIR="$1"
 
-export BR2_LRD_PLATFORM=msd45n-x86
+export BR2_LRD_PLATFORM=msd-x86
 
-echo "MSD45n-x86 POST IMAGE script: starting..."
+echo "MSD-x86 POST IMAGE script: starting..."
 
 # enable tracing and exit on errors
 set -x -e
 
-test -z "$BR2_LRD_PRODUCT" && export BR2_LRD_PRODUCT=msd45n-x86
+test -z "$BR2_LRD_PRODUCT" && export BR2_LRD_PRODUCT=msd-x86
 TARFILE="$IMAGESDIR/$BR2_LRD_PRODUCT.tar"
 
 if [ -z "$LAIRD_RELEASE_STRING" ]; then
@@ -20,4 +20,4 @@ tar --transform "s,^,$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING/,"  -f "$TARFILE" -C
 tar --transform "s,^,$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING/,"  -f "$TARFILE" -C "$STAGING_DIR/usr" -u include/lrd_sdk_pil.h
 bzip2 -f "$TARFILE"
 
-echo "MSD45n-x86 POST IMAGE script: done."
+echo "MSD-x86 POST IMAGE script: done."
