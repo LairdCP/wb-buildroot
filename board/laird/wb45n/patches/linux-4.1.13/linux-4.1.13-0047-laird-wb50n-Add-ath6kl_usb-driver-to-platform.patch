@@ -1,0 +1,29 @@
+From 7a04e7d1fbb56892b42d3fcc2d08e590773574c9 Mon Sep 17 00:00:00 2001
+From: Steve deRosier <steve.derosier@lairdtech.com>
+Date: Wed, 27 Jan 2016 10:41:05 -0800
+Subject: [PATCH] laird: wb50n: Add ath6kl_usb driver to platform
+
+While the WB50 doesn't have an ath6kl_usb device directly on the board, we can
+use the WB50 to test and work with the M.2 USB50 device, so it's handy to
+build this driver.
+
+Bug: 8903
+---
+ arch/arm/configs/wb50n_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/configs/wb50n_defconfig b/arch/arm/configs/wb50n_defconfig
+index 7a392f1..4a06d5a 100644
+--- a/arch/arm/configs/wb50n_defconfig
++++ b/arch/arm/configs/wb50n_defconfig
+@@ -153,6 +153,7 @@ CONFIG_USB_NET_SMSC95XX=m
+ CONFIG_ATH_CARDS=m
+ CONFIG_ATH6KL=m
+ CONFIG_ATH6KL_SDIO=m
++CONFIG_ATH6KL_USB=m
+ CONFIG_ATH6KL_DEBUG=y
+ CONFIG_ATH6KL_REGDOMAIN=y
+ # CONFIG_INPUT_MOUSEDEV is not set
+-- 
+1.9.1
+
