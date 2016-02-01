@@ -14,7 +14,7 @@
 #
 # contact: ews-support@lairdtech.com
 
-# /etc/network/bridge.sh v109
+# /etc/network/bridge.sh v110
 # Sets up Ethernet L2 Bridging for USB or WiFi.
 # Bridge ports are handled via init.d/S??network.
 # Settings applied via cmd-line or the /e/n/i file.
@@ -52,9 +52,12 @@ br_start() {
   fn 'echo 0 > /sys/devices/virtual/net/$bridge_iface/bridge/multicast_snooping'
 
   # disable bridge netfilter
-  fn 'echo 0 > /proc/sys/net/bridge/bridge-nf-call-arptables'
-  fn 'echo 0 > /proc/sys/net/bridge/bridge-nf-call-ip6tables'
-  fn 'echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables'
+  if [ -d /proc/sys/net/bridge ]
+  then
+    fn 'echo 0 > /proc/sys/net/bridge/bridge-nf-call-arptables'
+    fn 'echo 0 > /proc/sys/net/bridge/bridge-nf-call-ip6tables'
+    fn 'echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables'
+  fi
 
   bridge_ports_check
   # activate bridge-mode
@@ -99,7 +102,10 @@ br_stop() {
   then
     for dev in $bridge_ports
     do
-      fn "echo 0 > /proc/sys/net/ipv4/conf/$dev/proxy_arp"
+      if [ -d /proc/sys/net/ipv4/conf/$dev ]
+      then
+        fn "echo 0 > /proc/sys/net/ipv4/conf/$dev/proxy_arp"
+      fi
       $ip link set promisc off dev $dev
       $brctl delif $bridge_iface $dev
       $nis $dev stop
