@@ -74,7 +74,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=2.01
+ifrc_Version=2.02
 ifrc_Cmd=${0##*/}\ $@
 ifrc_Via=''
 ifrc_Lfp=/tmp/ifrc
@@ -984,8 +984,12 @@ case $IFRC_ACTION in
     mkdir ${ifrc_Lfp}/$dev.cfg 2>/dev/null \
       || { msg0 "  ...$dev.cfg already in progress"; exit 0; }
 
-    if [ ! -n "$re" ]
-    then : \## new conf 'up'
+    if [ -n "$re" ]
+    then : \## reconfig 'up'
+      test -z "$ifnl_s" \
+        && ifrc_netlink_daemon stop
+
+    else : \## new conf 'up'
       mp_cdt=
       sed -e "1cmp_cdt:$mp_cdt" \
           -e "2ceni_sk:$eni_sc" \
@@ -1005,25 +1009,21 @@ case $IFRC_ACTION in
           fi
         fi
       fi
-      test -z "$ifnl_s" \
-        && ifrc_netlink_daemon stop
-
-      ifrc_dhcp_client stop
-      fn ip addr flush dev $dev
     fi
-    # bounce the iface for autoconf
-    #fn ip link set dev $dev down
 
     if [ "${methvia/*cfg*/cfg}" != "cfg" -a ! -n "$re" ]
     then
       cdt pre_cfg_do
     fi
-    fn ip link set dev $dev up
 
-    # Firstly, ensure that iface is up and the netlink daemon is active.
-    [ "${IFRC_METHOD%% *}" == "manual" ] && ifnl_disable=.
-    [ "$dev" == "lo" ] && ifnl_disable=.
-    ifrc_netlink_daemon
+    # Ensure that iface is up and the netlink daemon is active.
+    fn ip link set dev $dev up
+    if [ -z "$ifnl_s" ]
+    then
+      [ "${IFRC_METHOD%% *}" == "manual" ] && ifnl_disable=.
+      [ "$dev" == "lo" ] && ifnl_disable=.
+      ifrc_netlink_daemon
+    fi
 
     # This script can exit with a zero value, even if configuration is deferred,
     # which is considered a valid state.  A subsequent link 'up' event captured
@@ -1037,7 +1037,6 @@ case $IFRC_ACTION in
     then
       cdt post_cfg_do &
     fi
-    #pause 1
     rmdir ${ifrc_Lfp}/$dev.cfg 2>/dev/null || :
     ;;
 
@@ -1396,15 +1395,16 @@ do unset ip nm nw wc bc ns gw to rip client scope metric weight
         && msg1 "  +++ ${fm/=/_} method/params" \
         || continue
 
-      grep -q ipv6 /proc/modules \
+      test -d /proc/sys/net/ipv6 \
         || { modprobe ipv6 && msg "  IPv6 support enabled"; }
 
       case ${fm#*=} in
         auto) ## inet6 - StateLess Address AutoConfiguration
           ifrcmp_validate_f6auto
-          # address auto-configured on operstate change down->up
+          # auto-configured on phy state change down->up and (re)enabled ipv6
           # scope link-local (using mac) address/mask is: fe80::/10
-          true
+          echo 1 > /proc/sys/net/ipv6/conf/$dev/disable_ipv6
+          echo 0 > /proc/sys/net/ipv6/conf/$dev/disable_ipv6
           ;;
 
         dhcp) ## inet6 - Dynamic Host Configuration Protocol v6
@@ -1468,6 +1468,13 @@ do unset ip nm nw wc bc ns gw to rip client scope metric weight
         && msg1 "  +++ ${fm/=/_} method/params" \
         || continue
 
+      if [ -z "$re" ]
+      then
+        # prepare for a new config
+        test "${fm#*=}" != "dhcp" \
+          && ifrc_dhcp_client stop \
+          || fn ip -4 addr flush dev $dev
+      fi
       case ${fm#*=} in
         auto) ## inet4 method for ad-hoc networks
           # maybe use avahi-autoipd to provide IPv4LL
