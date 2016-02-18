@@ -1,0 +1,26 @@
+From 6d03328e93ae0d0fe4456ca9285a4a1284e135cc Mon Sep 17 00:00:00 2001
+From: "brian.wagner" <brian.wagner@lairdtech.com>
+Date: Mon, 15 Feb 2016 14:16:01 -0500
+Subject: [PATCH] laird: ath6kl: Resolve kernel warning on ath6kl_core remove
+
+added cfg80211_disconnected to properly clear bss before unregister_netdevice
+bug 8784
+---
+ drivers/net/wireless/ath/ath6kl/cfg80211.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/net/wireless/ath/ath6kl/cfg80211.c b/drivers/net/wireless/ath/ath6kl/cfg80211.c
+index 8daad7d..efdd2f4 100644
+--- a/drivers/net/wireless/ath/ath6kl/cfg80211.c
++++ b/drivers/net/wireless/ath/ath6kl/cfg80211.c
+@@ -3654,6 +3654,7 @@ void ath6kl_cfg80211_vif_cleanup(struct ath6kl_vif *vif)
+ 		kfree(mc_filter);
+ 	}
+ 
++	cfg80211_disconnected(vif->ndev, 0, NULL, 0, GFP_KERNEL);
+ 	unregister_netdevice(vif->ndev);
+ 
+ 	ar->num_vif--;
+-- 
+1.9.1
+
