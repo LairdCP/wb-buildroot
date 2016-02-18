@@ -15,7 +15,7 @@
 # contact: ews-support@lairdtech.com
 
 # /etc/network/wireless.sh - driver-&-firmware configuration for the wb50n
-# 20151122
+# 20160218
 
 WIFI_PREFIX=wlan                              ## iface to be enumerated
 WIFI_DRIVER=ath6kl_sdio                       ## device driver "name"
@@ -25,7 +25,6 @@ WIFI_KMPATH=/lib/modules/`uname -r`/kernel/drivers/net/wireless
 #WIFI_NVRAM=/lib/nvram/nv
 
 WIFI_PROFILES=/etc/summit/profiles.conf       ## sdc_cli profiles.conf
-WIFI_MACADDR=/etc/summit/wifi_interface       ## persistent mac-address file
 
 ## monitor, supplicant and cli - comment out to disable . . .
 EVENT_MON=/usr/bin/event_mon
@@ -186,10 +185,6 @@ wifi_start() {
   [ -n "$WIFI_DEV" ] \
   && { msg -n "activate: $WIFI_DEV  ..."; wifi_set_dev up && msg ok; } \
   || { msg "iface $WIFI_DEV n/a, FW issue?  -try: wireless restart"; return 1; }
-
-  # save MAC address for WIFI if necessary
-  grep -sq ..:..:..:..:..:.. $WIFI_MACADDR \
-    || echo $wl_mac >$WIFI_MACADDR
 
   # dynamic wait for socket args: <socket> <interval>
   await() { n=27; until [ -e $1 ] || ! let n--; do msg -n .; $usleep $2; done; }
