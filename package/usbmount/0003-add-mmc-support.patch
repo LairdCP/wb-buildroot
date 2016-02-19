@@ -1,0 +1,24 @@
+From 47ef7f74899fd45efa09ecb9d5cec1c4e1343fef Mon Sep 17 00:00:00 2001
+From: Joe Conley <joe.conley@lairdtech.com>
+Date: Fri, 19 Feb 2016 13:26:26 -0500
+Subject: [PATCH] usbmount: Add support for mmc devices
+
+---
+ usbmount.rules | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/usbmount.rules b/usbmount.rules
+index 81d657b..994a468 100644
+--- a/usbmount.rules
++++ b/usbmount.rules
+@@ -3,5 +3,7 @@
+ KERNEL=="sd*", DRIVERS=="sbp2",		ACTION=="add",	RUN+="/usr/share/usbmount/usbmount add"
+ KERNEL=="sd*", SUBSYSTEM=="block",	ACTION=="add",	RUN+="/usr/share/usbmount/usbmount add"
+ KERNEL=="ub*", SUBSYSTEM=="block",	ACTION=="add",	RUN+="/usr/share/usbmount/usbmount add"
++KERNEL=="mmc*", SUBSYSTEM=="block",	ACTION=="add",	RUN+="/usr/share/usbmount/usbmount add"
+ KERNEL=="sd*",				ACTION=="remove",	RUN+="/usr/share/usbmount/usbmount remove"
+ KERNEL=="ub*",				ACTION=="remove",	RUN+="/usr/share/usbmount/usbmount remove"
++KERNEL=="mmc*",				ACTION=="remove",	RUN+="/usr/share/usbmount/usbmount remove"
+--
+1.9.1
+
