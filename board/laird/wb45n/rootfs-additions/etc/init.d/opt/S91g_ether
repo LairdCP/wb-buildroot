@@ -39,9 +39,6 @@ await_interface() {
 
 start() {
   echo "Enabling USB gadget ethernet"
-
-  [ ! -d /sys/module/usb_storage ] \
-  || { echo "  Error: USB is already in host mode, for usb_storage."; return; }
  
   modprobe atmel_usba_udc
   modprobe g_ether
