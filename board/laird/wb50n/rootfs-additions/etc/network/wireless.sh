@@ -15,7 +15,7 @@
 # contact: ews-support@lairdtech.com
 
 # /etc/network/wireless.sh - driver-&-firmware configuration for the wb50n
-# 20160218
+# 20120520/20160219
 
 WIFI_PREFIX=wlan                              ## iface to be enumerated
 WIFI_DRIVER=ath6kl_sdio                       ## device driver "name"
@@ -97,8 +97,12 @@ wifi_queryinterface() {
     then # determine iface via device path
       for wl_dev in /sys/class/net/*/phy80211
       do
-        wl_dev=${wl_dev#*net/} wl_dev=${wl_dev%/phy80211}
-        [ "$wl_dev" != \* ] && WIFI_DEV=$wl_dev && break
+        if read wl_ < $wl_dev/device/uevent
+        then
+          test "${wl_#*=}" == "$WIFI_DRIVER" \
+            && WIFI_DEV=${wl_dev#*net/} WIFI_DEV=${WIFI_DEV%/phy80211} \
+            && break
+        fi
       done
     fi
     if [ -n "$WIFI_DEV" ] \
@@ -107,11 +111,11 @@ wifi_queryinterface() {
       [ "${wl_mac/??:??:??:??:??:??/addr}" == addr ] && break
     else
       let $timeout || break
-    fi 2>/dev/null
+    fi
     $usleep 87654 && { let x+=1; msg -n .; }
-  done
+  done 2>/dev/null
   let $x && msg ${x}00mSec
-  test $x -lt $timeout
+  test -n "$WIFI_DEV"
 }
 
 wifi_fips_mode() {
@@ -189,14 +193,14 @@ wifi_start() {
   # dynamic wait for socket args: <socket> <interval>
   await() { n=27; until [ -e $1 ] || ! let n--; do msg -n .; $usleep $2; done; }
 
-  # the /e/n/i wl* stanza
-  stanza='^iface wl.* inet'
+  # choose to run either hostapd or the supplicant (default)
+  # check the /e/n/i wifi_dev stanza(s)
+  stanza="/^iface ${WIFI_DEV} inet/,/^$/"
 
-  # see if enabled in /e/n/i stanza for wl* -or- requested via cmdline
-  hostapd=$( sed -n "/$stanza/"',/^[ \t]\+.*hostapd/h;$x;$s/[ \t]*//p' $eni )
-  if [ -n "$hostapd" -a "${hostapd/*#*/X}" != "X" ] \
-  && [ "${1/*apd*/X}" != "X" ] \
-  && [ ! -f "$supp_sd/pid" ]
+  # hostapd - enabled in /e/n/i -or- via cmdline
+  if [ ! -f "$supp_sd/pid" -a "${1/*supp*/X}" != "X" ] \
+  && hostapd=$( sed -n "${stanza}{/hostapd/{s/[ \t]*//;/^[^#]/{p;q}}}" $eni ) \
+  && [ -n "$hostapd" ]
   then
     if ! pidof hostapd >/dev/null \
     && ! pidof sdcsupp >/dev/null
@@ -229,11 +233,10 @@ wifi_start() {
     fi
   fi
 
-  # see if enabled in /e/n/i stanza for wl* -or- requested via cmdline
-  sdcsupp=$( sed -n "/$stanza/"',/^[ \t]\+.*.[dp].supp/h;$x;$s/[ \t]*//p' $eni )
-  if [ -n "$sdcsupp" -o "${hostapd:-not}" != "started" ] \
-  && [ "${1/*host*/X}" != "X" ] \
-  && [ ! -f $apd_sd/pid ]
+  # supplicant - enabled in /e/n/i -or- via cmdline
+  if [ ! -f "$apd_sd/pid" -a "${1/*host*/X}" != "X" ] \
+  && sdcsupp=$( sed -n "${stanza}{/[dp].supp/s/[ \t]*//;/^[^#]/{p;q}}}" $eni ) \
+  && [ -n "$sdcsupp" -o "${hostapd:-not}" != "started" ]
   then
     # launch supplicant if exists and not already running
     if test -e "$SDC_SUPP" && ! ps |grep -q "[ ]$SDC_SUPP" && let n=17
