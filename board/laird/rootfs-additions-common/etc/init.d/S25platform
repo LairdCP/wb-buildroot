@@ -82,7 +82,7 @@ do_platform_ethernet_mac_address_check() {
     echo "  invalid/null Ethernet MAC address detected: $mac"
     # get this device's OUI via u-boot default or assume via /etc/*-release
     oui=$( grep -om1 ethaddr=..:..:.. /dev/mtd1 || eval echo \$OUI_${rfn} )
-
+    oui=${oui#*=}
     random_mac=`dd if=/dev/urandom bs=1 count=3 2>/dev/null \
       |/usr/bin/od -t x1 -N 3 \
       |/bin/sed -n "1s/^....... \(..\) \(..\) \(..\)/$oui:\1:\2:\3/p"`
