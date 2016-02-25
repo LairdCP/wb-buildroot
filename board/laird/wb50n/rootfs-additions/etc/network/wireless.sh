@@ -15,7 +15,7 @@
 # contact: ews-support@lairdtech.com
 
 # /etc/network/wireless.sh - driver-&-firmware configuration for the wb50n
-# 20120520/20160219
+# 20120520/20160224
 
 WIFI_PREFIX=wlan                              ## iface to be enumerated
 WIFI_DRIVER=ath6kl_sdio                       ## device driver "name"
@@ -33,7 +33,6 @@ SDC_CLI=/usr/bin/sdc_cli
 
 ## supplicant options
 WIFI_80211=-Dnl80211                          ## supplicant driver nl80211 
-#WIFI_DEBUG=-tdddd                             ## supplicant debugging '-td..'
 
 ## fips-mode support - also can invoke directly via the cmdline as 'fips'
 #WIFI_FIPS=-F                                  ## FIPS mode support '-F'
@@ -72,7 +71,7 @@ wifi_status() {
   top -bn1 \
   |sed -e '/sed/d;s/\(^....[^ ]\)\ \+[^ ]\+\ \+[^ ]\+\ \+\(.*\)/\1 \2/' \
        -e '4h;/hostapd/H;/.[dp].supp/H;/event_m/H;/sdcu/H' \
-       -e "/${module%%_*}"'/{H;x;p;}' -n
+       -e "/${module%%_*}"'/H;${x;p}' -n
 
   if wifi_queryinterface
   then
@@ -154,8 +153,8 @@ wifi_start() {
     if ! { wifi_queryinterface || { msg "  ...n/a"; false; }; } \
     || { [ "$WIFI_FIPS" != "$fm" ] && msg "  ...mode"; }
     then
-      msg ${PS1}${0##*/} $WIFI_DEBUG ${WIFI_FIPS:+fips} restart
-      exec $0 $WIFI_DEBUG ${WIFI_FIPS:+fips} restart
+      msg ${PS1}${0##*/} $flags ${WIFI_FIPS:+fips} restart
+      exec $0 $flags ${WIFI_FIPS:+fips} restart
     fi
   else
     ## check for 'slot_b=' setting in kernel args
@@ -198,7 +197,7 @@ wifi_start() {
   stanza="/^iface ${WIFI_DEV} inet/,/^$/"
 
   # hostapd - enabled in /e/n/i -or- via cmdline
-  if [ ! -f "$supp_sd/pid" -a "${1/*supp*/X}" != "X" ] \
+  if [ ! -f "$supp_sd/pid" -a "${1/*supp*/X}" != "X" -a "$1" != "manual" ] \
   && hostapd=$( sed -n "${stanza}{/hostapd/{s/[ \t]*//;/^[^#]/{p;q}}}" $eni ) \
   && [ -n "$hostapd" ]
   then
@@ -234,7 +233,7 @@ wifi_start() {
   fi
 
   # supplicant - enabled in /e/n/i -or- via cmdline
-  if [ ! -f "$apd_sd/pid" -a "${1/*host*/X}" != "X" ] \
+  if [ ! -f "$apd_sd/pid" -a "${1/*host*/X}" != "X" -a "$1" != "manual" ] \
   && sdcsupp=$( sed -n "${stanza}{/[dp].supp/s/[ \t]*//;/^[^#]/{p;q}}}" $eni ) \
   && [ -n "$sdcsupp" -o "${hostapd:-not}" != "started" ]
   then
@@ -244,7 +243,7 @@ wifi_start() {
       [ -f $supp_sd/pid ] \
       && { msg "$supp_sd/pid exists"; return 1; }
 
-      supp_opt=$WIFI_80211\ $WIFI_DEBUG\ $WIFI_FIPS
+      supp_opt=$WIFI_80211\ $flags\ $WIFI_FIPS
       msg -n executing: $SDC_SUPP -i$WIFI_DEV $supp_opt -s'  '
       #
       $SDC_SUPP -i$WIFI_DEV $supp_opt -s >/dev/null 2>&1 &
@@ -343,12 +342,24 @@ wifi_lock_wait() {
 # ensure this script is available as system command
 [ -x /sbin/wireless ] || ln -sf /etc/network/wireless.sh /sbin/wireless
 
-# setting debug-mode from cmdline, overrides conf
-case $1 in
-  -[td]*)
-    WIFI_DEBUG=${1} && shift
-    ;;
-esac
+# parse cmdline flags
+while [ ${#1} -gt 1 ]
+do
+  case $1 in
+    -h*) ## show usage
+      break
+      ;;
+    -*) ## supplicant flags
+      flags=${flags:+$flags }$1
+      ;;
+    -F|fips) ## mode
+      WIFI_FIPS=-F
+      ;;
+    *)
+      break
+  esac
+  shift
+done
 
 eni=/etc/network/interfaces
 
@@ -358,9 +369,6 @@ apd_sd=/var/run/hostapd
 
 module=${WIFI_MODULE##*/}
 usleep='busybox usleep'
-
-# optionally, set fips-mode via cmdline
-[ "$1" == fips ] && { shift; WIFI_FIPS=-F; }
 
 # command
 case $1 in
@@ -377,7 +385,7 @@ case $1 in
     ;;
 
   restart)
-    $0 stop $2 && exec $0 $WIFI_DEBUG ${WIFI_FIPS:+fips} start $2 || false
+    $0 stop $2 && exec $0 $flags ${WIFI_FIPS:+fips} start $2 || false
     ;;
 
   status|'')
@@ -394,14 +402,19 @@ case $1 in
     [ "settings" == "$2" ] && grep "^WIFI_[A-Z]*=" $0 && echo
     echo "Flags:  (passed to supplicant)"
     echo "  -t  timestamp debug messages"
-    echo "  -d  debug verbosity (-dd even more)"
+    echo "  -d  debug verbosity is multilevel"
+    echo "  -b  specify bridge interface name (-bbr0)"
+    echo
+    echo "Option:  (link service to invoke)"
+    echo "  supp  ..target the supplicant"
+    echo "  host  ..target hostapd"
+    echo "  manual  ..no service"
     echo
     echo "Usage:"
-    echo "# ${0##*/} [-tdddd] [fips] {stop|start|restart|status} [supp|host]"
+    echo "# ${0##*/} [flags [fips]] {stop|start|restart|status} [option]"
     ;;
 
   *)
-    echo "$0 ? [settings]"
     false
     ;;
 esac

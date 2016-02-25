@@ -15,7 +15,7 @@
 # contact: ews-support@lairdtech.com
 
 # network - init script for all network interface devices
-# 20120522/20151214
+# 20120522/20160224
 #
 # This init-script serves to stop/start/restart all "auto" enabled interfaces
 # by checking the '/etc/network/interfaces' (/e/n/i) file.
@@ -113,7 +113,7 @@ iface() {
     eth*) ## ethernet device support
       # must re-exec using alias for non-wired-ethernet devices; exit if tm
       [ -d /sys/class/net/$1/wireless ] \
-      && { $tm exec $0 wl $3; exit 0; }
+      && { $tm exec $0 wl $3 $4; exit 0; }
 
       # check if wired-interface-phy is really there, when doing 'up'
       if [ ! -f /sys/class/net/$1/uevent ] \
@@ -145,7 +145,7 @@ iface() {
       # the wireless script handles device up/down
       # and the ifrc script will handle configuration
       $dn && $tm $ifrc -x $1 $2
-      $tm $wifi $3 || fail
+      $tm $wifi $3 $4 || fail
       $up && $tm $ifrc $1 $2 $4 &
       $dn && wait
       ;;
