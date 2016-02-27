@@ -1,77 +1,75 @@
 # /etc/network/interfaces
-# Usually included by the "ifupdown" package, however "ifrc" is used instead.
-#
-# This file is parsed by the networking init script, and also by "ifrc".
+# This 'eni' file is parsed by the 'ifrc' (interface-run-config) utility,
+# and also by the 'S??network' init-script.
 # 
-# Organized by sections:  Localhost, Wired, Serial, Wireless, ...
-# Each section should have an interface stanza:  iface <dev> <addr> <method>
-# Option/value pairs intended for the iface must follow the interface stanza.
-#  
-# See the manpage/documentation for this file, so that it remains compatible.
-# Command directives not used:  pre-up, post-up, pre-down, post-down
-# Other options such as mapping and run-parts/phases are not used by "ifrc". 
+# Each section has an interface stanza:  iface <dev> <addr> <method>
+# Indented <option value> pairs intended for the iface must follow the stanza.
 #
-# The "ifrc" utility understands these additional options:
+# This type of file is usually included by the Debian 'ifupdown' package.
+# However, 'ifrc/ifplugd' is used instead, for embedded interface management.
+# See the manpage/documentation for this file, so that it remains compatible.
+#
+# Options that 'ifrc' does not use:
+#  mapping and run-parts/phases
+#  directives... pre-up, post-up, pre-down, post-down
+#
+# Additional options that 'ifrc' does understand:
 #  alias <dev> [is] <actual-dev>
 #  portspeed <10baseT|100baseT|10baseT-HD|...etc>
 #  timeout <seconds>
-#
-# Optional command-on-config directives:
-# These command directives may be shell command statements or other executable
-# scripts; they are run in a backgrounded sub-shell for a specific interface.
+#  directives...
 #  pre-cfg-do <shell command or script and args to do before configuration>
 #  post-cfg-do <shell command or script and args to do after configuration>
 #  pre-dcfg-do <shell command or script and args to do before deconfiguration>
 #  post-dcfg-do <shell command or script and args to do after deconfiguration>
+#  ...these are run in the background for the specific interface
+#  ...see example *.conf files in /etc/network
 #
 
 # policy routing
-#allow-multipath
+allow-multipath
 
-#
-# Localhost
+
+## Localhost
 auto lo
 iface lo inet loopback
   #address 127.0.0.10
 
-#
-# Wired
+
+## Wired
 auto eth0
 iface eth0 inet dhcp
-  timeout 300
-  #portspeed 10baseT
+  #timeout 300
 #iface eth0 inet static
-#  address 192.168.3.10
-#  network 192.168.3.0
-#  netmask 255.255.255.0
-#  gateway 192.168.3.187
-#  broadcast 192.168.3.255
-#  nameserver 8.8.8.8
-#  nameserver 8.8.4.4
+  address 192.168.3.10
+  #network 192.168.3.0
+  netmask 255.255.255.0
+  gateway 192.168.3.187
+  broadcast 192.168.3.255
+  nameserver 8.8.8.8
+  nameserver 8.8.4.4
 
 
-#
-# Serial
+## Serial
 #auto ppp0
 iface ppp0 inet manual
   #post-cfg-do /etc/network/ppp_mode.conf
 
 
-#
-# Wireless
+## Wireless - setup handled by /etc/network/wireless.sh
 auto wlan0
-iface wlan0 inet manual
+iface wlan0 inet dhcp
   alias wl is wlan0
   #timeout 60
-  #pre-cfg-do echo -e "\a\t[ ...associated! ...applying settings ]"
-  #post-cfg-do echo -e "\a\t[ ...ready! ]"
-  #pre-dcfg-do echo -e "\a\t[ ...de-configuring interface ]"
-  #post-dcfg-do echo -e "\a\t[ ...interface de-configured ]"
+  address 192.168.1.1
+  broadcast 192.168.1.255
+  netmask 255.255.255.0
+#  post-cfg-do /etc/dhcp/udhcpd.sh -iwlan0 /etc/dhcp/udhcpd.wlan0.conf
+#  pre-dcfg-do /etc/dhcp/udhcpd.sh -iwlan0 stop
+#  hostapd /etc/hostapd/hostapd.conf
 
 
-#
-# Bridge
-# works with a mode setup script in /etc/network/
+## Bridge - setup handled by /etc/network/bridge.sh
 #auto br0
 iface br0 inet manual
   bridge_ports eth0 wlan0
@@ -79,13 +77,18 @@ iface br0 inet manual
   bridge_fd 0
 
 
-#
-# USB g_ether
-# works with a mode setup script in /etc/network/ 
-#auto usb0
-iface usb0 inet manual
-  # the following config file will configure traffic for this interface
-  #post-cfg-do /etc/network/usb-g_ether.conf
-  #pre-dcfg-do /etc/network/usb-g_ether.conf
- 
+## USB
+auto usb0
+iface usb0 inet static
+  address 192.168.3.1
+  broadcast 192.168.3.255
+  netmask 255.255.255.0
+  ## optional wifi-tethering
+  #post-cfg-do /etc/network/wifi-nat.conf
+  #pre-dcfg-do /etc/network/wifi-nat.conf
+  ## optional g_ether-nat
+  #post-cfg-do /etc/network/usb-g_ether-nat.conf
+  #pre-dcfg-do /etc/network/usb-g_ether-nat.conf
+
+
 
