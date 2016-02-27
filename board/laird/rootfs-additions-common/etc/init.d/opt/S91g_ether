@@ -14,7 +14,7 @@
 #
 # contact: ews-support@lairdtech.com
 
-# g_ether - init for wb45n
+# g_ether - init for wbXXn
 #
 # This init only loads/unloads the hw-phy gadget driver for a USB interface.
 # Configuration is handled via helpers in /etc/network. See the /e/n/i file.
