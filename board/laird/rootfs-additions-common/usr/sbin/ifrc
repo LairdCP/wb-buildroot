@@ -16,7 +16,7 @@
 
 # ifrc - interface_run_config
 # Auto-reconfigures an interface via netlink daemon with up/down event support.
-#                                                            20120520/20150917
+#                                                            20120520/20160224
 
 usage() {
   [ "${1:0:5}" == "error" ] \
@@ -74,7 +74,7 @@ usage() {
 }
 
 # internals
-ifrc_Version=2.02
+ifrc_Version=2.03
 ifrc_Cmd=${0##*/}\ $@
 ifrc_Via=''
 ifrc_Lfp=/tmp/ifrc
@@ -288,12 +288,13 @@ ifrc_dhcp_client() {
   # only do if inet4
   test -z "${ipf/-4}" \
     || return 0
-  msg1 @. "  ${client:-udhcpc} $1"
-  export DHCP_PARAMS=log=$ifrc_Log\ mpr=$mpr\ ${@#$1 }
+  export DHCP_PARAMS=log=$ifrc_Log${mpr:+ mpr=$mpr}${@#$1}
 
+  client_s=$1
+  v=${vm//?/ -v} v=${v:-${mm:+-v}}
   # call a <client.sh> wrapper script in /etc/dhcp/..
   # assume the busybox-udhcpc if client not specified
-  /etc/dhcp/${client:-udhcpc}.sh ${vm// / -v} ${mm:+-v} $qm -i$dev $1; rv=$?
+  /etc/dhcp/${client:-udhcpc}.sh $v ${qm:+-q} -i$dev $1; rv=$?
 
   # interrupt link-beat check, while if in-progress
   rmdir ${ifrc_Lfp}/$dev.lbto 2>/dev/null
@@ -794,20 +795,19 @@ then
     ## handle dhcp ip-cfg renew/refresh
     if [ "${IFRC_METHOD/f4=dhcp/dhcp}" == "dhcp" ]
     then
-      if [ ! -d ${ifrc_Lfp}/$dev.dhcp ]
+      if mkdir ${ifrc_Lfp}/$dev.dhcp 2>/dev/null
       then
-        if $phy80211 \
-        && [ -x /etc/dhcp/autoip.sh ]
+        if $phy80211
         then
           # this is likely a 'reconnect' or 'roam' related event
           # if for AP with same SSID, then try dhcp-esa: refresh
-          /etc/dhcp/autoip.sh $dev
+          ifrc_dhcp_client refresh
         fi
-        : ifrc_dhcp_client renew
-        # renewal is handled via re-up config...
+        # renew failure is handled via re-up config...
+        ifrc_dhcp_client renew && IFRC_ACTION=xx
       else
-        : msg1 "dhcp client lock exists, no act"
-        : IFRC_ACTION=xx
+        msg1 "dhcp client lock exists, no act"
+        IFRC_ACTION=xx
       fi
       break
     fi
@@ -1491,7 +1491,8 @@ do unset ip nm nw wc bc ns gw to rip client scope metric weight
           ifrcmp_validate_f4dhcp
 
           # (re)start client if necessary
-          ifrc_dhcp_client renew && continue
+          test "$client_s" != "stop" \
+            && ifrc_dhcp_client renew && continue
 
           ifrcmp_check_if_link
           $conf_resolv -c &
@@ -1504,7 +1505,6 @@ do unset ip nm nw wc bc ns gw to rip client scope metric weight
             ns=$ns\ rip=$rip\ metric=$metric\ weight=$weight
             # starting dhcp client w/shared options/settings
 
-          pause 1
           ifrcmp_await_f4dhcp
           rmdir ${ifrc_Lfp}/$dev.dhcp 2>/dev/null
           ;;

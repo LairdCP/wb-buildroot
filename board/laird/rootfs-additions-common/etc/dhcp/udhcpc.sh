@@ -36,6 +36,7 @@ msg() {
   echo "$@" >>${log:-/dev/null} || :
 } && vm=.
 
+eval ${DHCP_PARAMS}
 # invocation
 while let $#
 do
@@ -67,6 +68,14 @@ done
 
 
 udhcpc_conf() {
+  ## specified interface must exist
+  test -f /sys/class/net/$dev/uevent \
+    || { msg "required: -i<iface>"; return 1; }
+
+  ## dir exists for dhcp
+  test -d /var/lib/dhcp \
+    || ln -s /tmp /var/lib/dhcp
+
   ## apply global conf options
   if [ -f /etc/dhcp/udhcpc.conf ]
   then
@@ -142,18 +151,13 @@ udhcpc_signal() {
   if read -r pid < /var/run/dhclient.$dev.pid \
   && read client < /proc/$pid/comm
   then
-    kill $signal $pid
-    rv=$?
-    msg1 "  ${pid}_$client <- $action $rv"
+    kill $signal $pid; rv=$?
     if [ "$1" == "TERM" ]
     then
-      x=16
-      while [ -d /proc/$pid ] && usleep 320987
-      do
-        let --x \
-        || { msg "  ${pid}_$x <- $action error"; rv=1; break; }
-      done
+    # wait upto 4s for client to terminate
+    { x=12; while [ -d /proc/$pid ] && let x--; do usleep 320987; done; rv=$?; }
     fi
+    msg1 "  ${pid}_$client <- $action $rv"
   fi
   return $rv
 } 2>/dev/null
@@ -163,7 +167,7 @@ udhcpc_renewal() {
   for x in 1 2 3 4
   do
     { read -r txp_b </sys/class/net/$dev/statistics/tx_packets; } 2>/dev/null
-    udhcpc_signal RENEW || break
+    udhcpc_signal RENEW || return
     usleep 987654
     { read -r txp_a </sys/class/net/$dev/statistics/tx_packets; } 2>/dev/null
     msg2 "    tx_packets: $txp_b -> $txp_a"
@@ -178,14 +182,6 @@ udhcpc_renewal() {
   return 1
 }
 
-# specified interface must exist
-test -f /sys/class/net/$dev/uevent \
-  || { msg "required: -i<iface>"; exit 1; }
-
-# dir exists for dhcp
-test -d /var/lib/dhcp \
-  || ln -s /tmp /var/lib/dhcp
-
 # main
 case ${act:-status} in
   stop) ## terminate
@@ -194,8 +190,7 @@ case ${act:-status} in
 
   start) ## (re)spawn
     udhcpc_signal TERM
-    eval ${DHCP_PARAMS}
-    udhcpc_conf
+    udhcpc_conf || exit $?
     udhcpc_start || exit $?
     if [ -x "$CLIENT_WD" ]
     then
