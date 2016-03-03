@@ -27,14 +27,26 @@
 #   tcmd.sh [fw|<fw_v#.#.#.#.bin>]
 #
 
-
-FW_PATH=/lib/firmware/ath6k/AR6003/hw2.1.1
-
+if grep -Fq "Workgroup Bridge 50N" /proc/device-tree/model
+then
+        FW_PATH=/lib/firmware/ath6k/AR6004/hw3.0
+        FW_LINK=fw-5.bin
+        CHIPSET=ar6004
+        ATH6K_SDIO_PARAMS="reset_pwd_gpio=131"
+elif grep -Fq "Workgroup Bridge 45N" /proc/device-tree/model
+then
+        FW_PATH=/lib/firmware/ath6k/AR6003/hw2.1.1
+        FW_LINK=fw-4.bin
+        CHIPSET=ar6003
+        ATH6K_SDIO_PARAMS="reset_pwd_gpio=28"
+else
+        echo "Unsupported platform"
+        return 0
+fi
 
 do_() {
   echo -e "+ $@"; $@; return $?
 }
-
 
 case ${1#--} in
   -h|help|usage)
@@ -51,9 +63,10 @@ case ${1#--} in
     (
       cd /lib/modules/`uname -r`/kernel/drivers/net/wireless/ath/ath6kl
       do_ insmod ath6kl_core.ko testmode=1
-      do_ insmod ath6kl_sdio.ko
+      do_ insmod ath6kl_sdio.ko $ATH6K_SDIO_PARAMS
     )
-    sleep 1
+    sleep 3
+    ip link set wlan0 up
     # allow driver init time and check interface
     grep -sH ..:. /sys/class/net/wlan0/address \
       || { echo "  ...error - interface n/a"; $0 off; exit 1; }
@@ -65,10 +78,7 @@ case ${1#--} in
     ;;
 
   off|done) ## unload drivers
-    for m in `grep -o "^ath6kl_[^ ]*" /proc/modules`
-    do
-      do_ rmmod $m
-    done
+      do_ ifrc -v -n wlan0 restart
     ;;
 
   fw*) ## set firmware link to latest fw found or a specified <fw_v#.#.#.#.bin>
@@ -79,7 +89,7 @@ case ${1#--} in
     test $? -eq 0 \
       || { echo "  ...n/a: $FW"; exit 1; }
 
-    do_ ln -sf ${FW##*/} ${FW_PATH}/fw-4.bin
+    do_ ln -sf ${FW##*/} ${FW_PATH}/${FW_LINK}
     ;;
 
   show|check) ## list firmware files
@@ -93,7 +103,7 @@ case ${1#--} in
     for x in fw_v*.bin
     do
       label=
-      [ "`readlink fw-4.bin 2>/dev/null`" == $x ] && label="fw-4:"
+      [ "`readlink ${FW_LINK} 2>/dev/null`" == $x ] && label="${FW_LINK}"
 
       echo -e "${label:-  -  }" \
       `grep -s -e "^QCA" -e "^$n\.$n\.$n\.$n" $x || echo "(unidentifable)"` \
@@ -103,7 +113,7 @@ case ${1#--} in
     echo
     echo "Driver status:"
     grep ath6kl /proc/modules \
-      && dmesg |sed -n '/ath6kl: ar6003 .* fw/h;$g;$s/^.*ath6kl: /  /p' \
+      && dmesg |sed -n '/ath6kl: '${CHIPSET}' .* fw/h;$g;$s/^.*ath6kl: /  /p' \
       || echo "  ...not present"
     ;;
 esac
