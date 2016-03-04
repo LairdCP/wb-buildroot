@@ -25,7 +25,7 @@ LOGLOCALE=/tmp
 
 LOGFILE=${LOGLOCALE}/log_dump.txt
 
-LOG_DUMP_VERSION=20151125
+LOG_DUMP_VERSION=20160305
 
 command_exists () {
     command -v "$1" > /dev/null  2>&1;
@@ -96,6 +96,42 @@ if command_exists sdc_cli ; then
 --sdc_cli_info--
 else
 	echo "Could not find sdc_cli in path" >> $LOGFILE
+fi
+
+if grep -Fq "Workgroup Bridge 50N" /proc/device-tree/model
+then
+        FW_PATH=/lib/firmware/ath6k/AR6004/hw3.0
+        FW_LINK=fw-5.bin
+elif grep -Fq "Workgroup Bridge 45N" /proc/device-tree/model
+then
+        FW_PATH=/lib/firmware/ath6k/AR6003/hw2.1.1
+        FW_LINK=fw-4.bin
+else
+        echo "Unsupported platform"
+        return 0
+fi
+
+	echo "-----Contents of ${FW_PATH}-----" >> $LOGFILE
+if command_exists cut ; then
+ls -ln ${FW_PATH} | cut -c1-11,35-100 >> $LOGFILE
+else
+ls -ln ${FW_PATH} >> $LOGFILE
+fi
+echo >> $LOGFILE
+if command_exists readlink ; then
+echo "Firmware:" >> $LOGFILE
+cd $FW_PATH
+n='[0-9]'
+for x in fw_v*.bin
+do
+	label= [ "`readlink ${FW_LINK} 2>/dev/null`" == $x ] && label="${FW_LINK}"
+
+if command_exists md5sum ; then
+	echo -e "${label:-  -  }" \
+	`grep -s -e "^QCA" -e "^$n\.$n\.$n\.$n" $x || echo "(unidentifable)"` \
+	`md5sum $x 2>/dev/null` >> $LOGFILE
+fi
+done
 fi
 
 if [ "$wb" = "yes" ]; then
