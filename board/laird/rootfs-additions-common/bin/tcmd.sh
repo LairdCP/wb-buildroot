@@ -30,13 +30,11 @@
 if grep -Fq "Workgroup Bridge 50N" /proc/device-tree/model
 then
         FW_PATH=/lib/firmware/ath6k/AR6004/hw3.0
-        FW_LINK=fw-5.bin
         CHIPSET=ar6004
         ATH6K_SDIO_PARAMS="reset_pwd_gpio=131"
 elif grep -Fq "Workgroup Bridge 45N" /proc/device-tree/model
 then
         FW_PATH=/lib/firmware/ath6k/AR6003/hw2.1.1
-        FW_LINK=fw-4.bin
         CHIPSET=ar6003
         ATH6K_SDIO_PARAMS="reset_pwd_gpio=28"
 else
@@ -72,45 +70,14 @@ case ${1#--} in
       || { echo "  ...error - interface n/a"; $0 off; exit 1; }
 
     # report driver/firmware loaded and dump settings
-    dmesg |sed -n '/ath6kl: ar6003 .* fw/h;$g;${s/\\[^ ]\+//;p}'
-    echo
-    do_ athtestcmd -i wlan0 --otpdump
+    dmesg |sed -n '/ath6kl: '${CHIPSET}' .* fw/h;$g;${s/\\[^ ]\+//;p}'
     ;;
 
   off|done) ## unload drivers
       do_ ifrc -v -n wlan0 restart
     ;;
 
-  fw*) ## set firmware link to latest fw found or a specified <fw_v#.#.#.#.bin>
-    [ "${#1}" -gt 2 ] && fw_specified=$FW_PATH/$1
-
-    # find/test the latest or a specified version of firmware
-    for FW in $FW_PATH/fw_v*.bin $fw_specified; do [ -f $FW ]; done
-    test $? -eq 0 \
-      || { echo "  ...n/a: $FW"; exit 1; }
-
-    do_ ln -sf ${FW##*/} ${FW_PATH}/${FW_LINK}
-    ;;
-
   show|check) ## list firmware files
-    echo "Contents of ${FW_PATH}:"
-    ls -ln --color=always ${FW_PATH} \
-       |sed '/^.otal/d;s/ \+[0-9]\+ //;s/0        //g'
-    echo
-    echo "Firmware:"
-    cd $FW_PATH
-    n='[0-9]'
-    for x in fw_v*.bin
-    do
-      label=
-      [ "`readlink ${FW_LINK} 2>/dev/null`" == $x ] && label="${FW_LINK}"
-
-      echo -e "${label:-  -  }" \
-      `grep -s -e "^QCA" -e "^$n\.$n\.$n\.$n" $x || echo "(unidentifable)"` \
-      "\r\t\t\t\t\b\b\b\b" \
-      `md5sum $x 2>/dev/null`
-    done
-    echo
     echo "Driver status:"
     grep ath6kl /proc/modules \
       && dmesg |sed -n '/ath6kl: '${CHIPSET}' .* fw/h;$g;$s/^.*ath6kl: /  /p' \
