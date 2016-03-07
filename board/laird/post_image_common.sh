@@ -6,9 +6,14 @@ echo "COMMON POST IMAGE script: starting..."
 # enable tracing and exit on errors
 set -x -e
 
-cp "$IMAGESDIR/uImage"                "$IMAGESDIR/kernel.bin"
-cp "$IMAGESDIR/rootfs.ubi"            "$IMAGESDIR/rootfs.bin"
-cp "$IMAGESDIR/at91bootstrap.bin"    "$IMAGESDIR/at91bs.bin"
+if [ -e "$IMAGESDIR/uImage.$BR2_LRD_PLATFORM"  ]
+then
+	cp "$IMAGESDIR/uImage.$BR2_LRD_PLATFORM"  "$IMAGESDIR/kernel.bin"
+else
+	cp "$IMAGESDIR/uImage"                    "$IMAGESDIR/kernel.bin"
+fi
+cp "$IMAGESDIR/rootfs.ubi"                       "$IMAGESDIR/rootfs.bin"
+cp "$IMAGESDIR/at91bootstrap.bin"                "$IMAGESDIR/at91bs.bin"
 
 cp board/laird/rootfs-additions-common/usr/sbin/fw_select "$IMAGESDIR/"
 cp board/laird/rootfs-additions-common/usr/sbin/fw_update "$IMAGESDIR/"
