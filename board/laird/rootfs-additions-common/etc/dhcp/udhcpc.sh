@@ -202,6 +202,13 @@ case ${act:-status} in
     udhcpc_signal RELEASE
     ;;
 
+  refresh) ## try autoip
+    if [ -x /etc/dhcp/autoip.sh ]
+    then
+      /etc/dhcp/autoip.sh $dev
+    fi
+    ;;
+
   renew) ## request
     udhcpc_renewal
     ;;
