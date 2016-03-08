@@ -295,6 +295,7 @@ ifrc_dhcp_client() {
   # call a <client.sh> wrapper script in /etc/dhcp/..
   # assume the busybox-udhcpc if client not specified
   /etc/dhcp/${client:-udhcpc}.sh $v ${qm:+-q} -i$dev $1; rv=$?
+  rmdir ${ifrc_Lfp}/$dev.dhcp 2>/dev/null
 
   # interrupt link-beat check, while if in-progress
   rmdir ${ifrc_Lfp}/$dev.lbto 2>/dev/null
@@ -1506,7 +1507,6 @@ do unset ip nm nw wc bc ns gw to rip client scope metric weight
             # starting dhcp client w/shared options/settings
 
           ifrcmp_await_f4dhcp
-          rmdir ${ifrc_Lfp}/$dev.dhcp 2>/dev/null
           ;;
 
         static) ## inet4 method + optional params
