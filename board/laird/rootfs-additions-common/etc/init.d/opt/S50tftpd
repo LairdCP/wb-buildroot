@@ -24,7 +24,7 @@ pre_check() {
   [ ! -f /var/log/wtmp ] && touch /var/log/wtmp
 }
 
-tftpd=/usr/bin/tftpd
+tftpd=/usr/sbin/tftpd
 
 case "$1" in
   stop)
