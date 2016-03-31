@@ -15,7 +15,7 @@
 # contact: ews-support@lairdtech.com
 
 # /etc/network/wireless.sh - driver-&-firmware configuration for the wb45n
-# 20120520/20160224
+# 20120520/20160331
 
 WIFI_PREFIX=wlan                              ## iface to be enumerated
 WIFI_DRIVER=ath6kl_sdio                       ## device driver "name"
@@ -258,7 +258,7 @@ wifi_start() {
   if [ -e "$EVENT_MON" ] \
   && ! pidof event_mon >/dev/null
   then
-    $EVENT_MON -ologging -b0x0000003FA3008000 -m &
+    $EVENT_MON -ologging -b0x000000FFA3008000 -m &
     msg "  started: event_mon[$!]"
   fi
   return 0
