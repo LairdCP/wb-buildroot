@@ -861,7 +861,7 @@ case $IFRC_ACTION in
     echo Configuration for interface: ${ifacemsg:-$dev} $is
     if grep -qs Generic /sys/class/net/$dev/*/uevent
     then
-      echo Warning: using 'Generic PHY' driver
+      echo Using 'Generic PHY' driver
       [ -n "$mii" ] && $mii $dev |sed -n '/Yo/,$d;/media type/,$p'
     fi
     show_interface_config_and_status
@@ -997,19 +997,6 @@ case $IFRC_ACTION in
           -e "3cifrc_i:$devalias=$dev $ifrc_Settings" \
           -i $ifrc_Log
 
-      if [ "$dev" != "lo" ]
-      then
-        if ! $phy80211
-        then
-          # ethernet phy-hw is external; so try to determine if really there..
-          # generic phy driver is present when phy-hw is otherwise unsupported
-          if grep -s Generic /sys/class/net/$dev/*/uevent >/dev/stderr
-          then
-            msg "Warning: unknown '$dev' iface-phy-hw - generic phy driver"
-            [ -z "$mii" ] && exit 1 || $mii $dev |grep -B12 fault && exit 2
-          fi
-        fi
-      fi
     fi
 
     if [ "${methvia/*cfg*/cfg}" != "cfg" -a ! -n "$re" ]
