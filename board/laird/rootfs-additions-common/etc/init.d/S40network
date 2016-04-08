@@ -114,17 +114,8 @@ iface() {
       # must re-exec using alias for non-wired-ethernet devices; exit if tm
       [ -d /sys/class/net/$1/wireless ] \
       && { $tm exec $0 wl $3 $4; exit 0; }
-
-      # check if wired-interface-phy is really there, when doing 'up'
-      if [ ! -f /sys/class/net/$1/uevent ] \
-      || grep -q Generic /sys/class/net/$1/*/uevent 2>/dev/null
-      then
-        # the phy should be identified... (or probably floating hw)
-        echo \ \ interface-phy $1 is not available
-      else
-        # ifrc script handles eth* up, config, or deconfig
-        $tm $ifrc $1 $2 $4 &
-      fi
+      # ifrc script handles eth* up, config, or deconfig
+      $tm $ifrc $1 $2 $4 &
       $dn && wait && $tm $ifconfig $1 $2
       ;;
 
