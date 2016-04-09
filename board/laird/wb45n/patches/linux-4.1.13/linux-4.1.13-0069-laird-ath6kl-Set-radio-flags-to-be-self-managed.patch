@@ -1,0 +1,30 @@
+From 441d675578af214165d826575b719e519c3fcb30 Mon Sep 17 00:00:00 2001
+From: Joe Conley <joe.conley@lairdtech.com>
+Date: Thu, 3 Mar 2016 15:16:21 -0500
+Subject: [PATCH] laird: ath6kl: Set radio flags to be self managed
+
+Lairds 6000 firmware currently ignores regulatory hints passed down
+from cfg80211 and manages regulatory itself. This disables cfg80211 from
+processing reg domain events.
+
+bug 9112
+---
+ drivers/net/wireless/ath/ath6kl/cfg80211.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/net/wireless/ath/ath6kl/cfg80211.c b/drivers/net/wireless/ath/ath6kl/cfg80211.c
+index 4ed3ba2..fa5b1b0 100644
+--- a/drivers/net/wireless/ath/ath6kl/cfg80211.c
++++ b/drivers/net/wireless/ath/ath6kl/cfg80211.c
+@@ -3788,6 +3788,8 @@ int ath6kl_cfg80211_init(struct ath6kl *ar)
+ 		NL80211_PROBE_RESP_OFFLOAD_SUPPORT_WPS2 |
+ 		NL80211_PROBE_RESP_OFFLOAD_SUPPORT_P2P;
+ 
++	ar->wiphy->regulatory_flags = REGULATORY_WIPHY_SELF_MANAGED;
++
+ 	ret = wiphy_register(wiphy);
+ 	if (ret < 0) {
+ 		ath6kl_err("couldn't register wiphy device\n");
+-- 
+1.9.1
+
