@@ -1,0 +1,8 @@
+config BR2_PACKAGE_DCAS
+	bool "dcas"
+	select BR2_PACKAGE_FLATCC
+	select BR2_PACKAGE_LIBSSH
+	help
+	  dcas is Laird's Device Client API Server. It is a daemon that
+	  implements the server-side of the Device Client API and is used by
+	  a host's implementation of DCAL.
