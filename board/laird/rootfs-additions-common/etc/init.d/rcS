@@ -106,7 +106,7 @@ action=${1:-start}
 if [ "$action" == "stop" ]
 then
   [ -f $rcS_log ] && cp -f $rcS_log /root 2>/dev/null
-  [ $rcS_wdto -eq 0 ] || rcS_wdto=4
+  [ $rcS_wdto -eq 0 ] || rcS_wdto=10
   rcS_log=/dev/null
   o=-r
 fi
