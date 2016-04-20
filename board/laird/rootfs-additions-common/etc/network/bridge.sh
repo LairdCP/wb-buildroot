@@ -14,7 +14,7 @@
 #
 # contact: ews-support@lairdtech.com
 
-# /etc/network/bridge.sh v111
+# /etc/network/bridge.sh v112
 # Sets up Ethernet L2 Bridging for USB or WiFi.
 # Bridge ports are handled via init.d/S??network.
 # Settings applied via cmd-line or the /e/n/i file.
@@ -75,7 +75,7 @@ br_start() {
   $ebtables -t broute -F
   $ebtables -t nat -F
   $ebtables -F
-  if $phy80211
+  if ${phy80211:-false}
   then
     # wait n deciseconds for wireless setup to complete
     n=27; while [ -d /tmp/wifi^ ] && let n--; do usleep 98765; done
@@ -164,7 +164,7 @@ bridge_ports_check() {
     || { echo \ \ device n/a: $dev; exit 1; }
     then
       # check if port is wireless device
-      [ -d /sys/class/net/$dev/phy80211 ] && phy80211=true || phy80211=false
+      [ -d /sys/class/net/$dev/phy80211 ] && phy80211=true
 
       # (re)start supplicant with bridge interface name
       $phy80211 && wireless -b${bridge_iface} restart supp
