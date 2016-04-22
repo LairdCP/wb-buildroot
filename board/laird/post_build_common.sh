@@ -78,6 +78,10 @@ tar c --exclude=.svn --exclude=.empty -C board/laird/rootfs-additions-common/ . 
 [ -f $TARGETDIR/etc/init.d/S??openvpn ] \
 && chmod a-x $TARGETDIR/etc/init.d/S??openvpn     #not ready for use
 
+# background the bluetooth init-script
+[ -x $TARGETDIR/etc/init.d/S95bluetooth ] \
+&& mv $TARGETDIR/etc/init.d/S95bluetooth $TARGETDIR/etc/init.d/S95bluetooth.bg
+
 # create a compressed backup copy of the /e/n/i file
 gzip -c $TARGETDIR/etc/network/interfaces >$TARGETDIR/etc/network/interfaces~.gz
 
