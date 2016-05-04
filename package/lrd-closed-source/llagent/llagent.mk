@@ -16,12 +16,14 @@ endef
 
 define LLAGENT_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/src/agent/llagent $(TARGET_DIR)/usr/bin/llagent
+	$(INSTALL) -D -m 755 $(@D)/scripts/init.d/S99agent $(TARGET_DIR)/etc/init.d/opt/S99agent
 	mkdir -p $(TARGET_DIR)/usr/bin/integration-tests/
 	$(INSTALL) -D -m 755 $(@D)/src/platform/laird-sdk/test_radio $(TARGET_DIR)/usr/bin/integration-tests/
 endef
 
 define LLAGENT_UNINSTALL_TARGET_CMDS
 	rm -f $(TARGET_DIR)/usr/bin/llagent
+	rm -f $(TARGET_DIR)/etc/init.d/opt/S99agent
 endef
 
 $(eval $(generic-package))
