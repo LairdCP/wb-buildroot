@@ -14,32 +14,31 @@
 #
 # contact: ews-support@lairdtech.com
 
+
+# wireless interface stanza in /e/n/i
 eni=/etc/network/interfaces
- # the /e/n/i wl* stanza
 stanza='^iface wl.* inet'
 
 # see if enabled in /e/n/i stanza for wl*
 hostapd=$( sed -n "/$stanza/"',/^[ \t]\+.*hostapd/h;$x;$s/[ \t]*//p' $eni )
 
 case ${1#--} in
-  -h*|help)
+  -h|help)
     echo "Use to set or unset hostapd mode."
-    echo "wireless system will restart after setting on or off"
+    echo "(wireless system will restart after setting on or off)"
     echo 
     echo "Usage:"
-    echo "  $0 on|off"
+    echo "  $0 [on|off]"
+    echo
     ;;
 
   '')
-    echo
-    echo Hostapd current state:
-    if [ "${hostapd:0:1}" == '#' ]
+    if [ -z "$hostapd" ]
       then
-        echo "  hostapd inactive"
+        echo "Hostapd is disabled."
       else
-        echo "  hostapd active"
+        echo "Hostapd is enabled."
     fi
-    echo
   ;;
 
   enable|on)
@@ -53,5 +52,4 @@ case ${1#--} in
     grep -q '^iface wlan0 inet' $eni && sdc_cli iface set hostapd wlan0 off && sdc_cli iface set method wlan0 dhcp
     ifrc wlan0 restart
     ;;
-
 esac
