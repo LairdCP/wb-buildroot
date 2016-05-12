@@ -53,6 +53,7 @@ cat >>$fwul<<TRANSFER-LIST
 # transfer-list
   /etc/summit/profiles.conf
   /etc/network/interfaces
+  /etc/ssl
   /etc/ssl/certs
   /root/.ssh
 
