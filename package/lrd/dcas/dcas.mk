@@ -33,14 +33,12 @@ define DCAS_INSTALL_TARGET_CMDS
 	mkdir -p $(TARGET_DIR)/etc/dcas
 	cp -v $(@D)/test/ssh_host_* $(TARGET_DIR)/etc/dcas
 	install -D -m 755 $(@D)/support/S99dcas $(TARGET_DIR)/etc/init.d/S99dcas
-	install -D -m 755 $(@D)/support/loop_dcas.sh $(TARGET_DIR)/usr/bin/loop_dcas.sh
 endef
 
 define DCAS_UNINSTALL_TARGET_CMDS
 	rm $(TARGET_DIR)/usr/bin/dcas
 	rm -rf $(TARGET_DIR)/etc/dcas
 	rm $(TARGET_DIR)/etc/init.d/S99dcas
-	rm $(TARGET_DIR)/usr/bin/loop_dcas.sh
 endef
 
 $(eval $(generic-package))
