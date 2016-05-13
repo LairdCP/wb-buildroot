@@ -17,10 +17,12 @@
 # client_wd - dhcp client process watchdog
 #
 # Watches the dhcp client process of an interface.
-# And calls on ifrc to check/restart the client as necessary.
+# When the client is no longer found to be running, this watchdog will check
+# the iface.leases file for final logged 'esa' saying released and that the
+# interface still exists, before giving up.  Otherwise, will restart client.
 #
 # Usage:
-# ./client_wd [-v] -i<iface> [--force]
+# ./client_wd [-v] -i<iface>
 
 : ${client:=udhcpc}
 
@@ -35,12 +37,6 @@ test "${1:0:2}" == "-i" -a -n "${1:2}" \
 dev=${1:2}
 wd=${0##*/}\($dev\)
 
-# force re-run of wd
-test "$2" == "--force" \
-  && { x=$(ps ax -opid,args \
-           |sed -n "s/ *\([^ ][0-9]\+\) .*${0##*/}[ ].*-i$dev/\1/p" ); \
-          kill ${x/$$/}; rmdir /tmp/$wd 2>/dev/null; shift; } 2>/dev/null
-
 # self-daemonize
 test "$2" != "  " \
   && { exec $0 $vf -i$dev "  " & exit 0; } \
@@ -48,15 +44,15 @@ test "$2" != "  " \
 
 # builtin
 sleep() {
-  test -p ${wdP:=/tmp/${0##*/}-} \
+  test -p ${wdP:=/tmp/${wd}/-\|} \
     || { rm -f $wdP; mkfifo $wdP; }
-  read -rst${1:-1} <>$wdP                                  
-  return 0               
+  read -rst${1:-1} <>$wdP
+  return 0
 } 2>/dev/null
 
 exited() {
   logger $vl -t$wd "exited"
-  rmdir /tmp/$wd 2>/dev/null
+  rm -fr /tmp/$wd 2>/dev/null
   trap '' 0 1 15
   exit 0
 }
@@ -84,26 +80,19 @@ do
     fi
   done
 
-  # client appears not active...
-  # check if method perhaps administratively disabled
-  { mp=x; read -rs mp < /var/log/ifrc/$dev; } 2>/dev/null
-  if [ "${mp/*:dhcp*/dhcp}" != "dhcp" ]
+  logger $vl -t$wd "checking if $client properly exited"
+  # affirm whether client is terminated via leases file
+  if [ -s ${lf:=/var/lib/dhcp/dhclient.$dev.leases} ]\
+  && [ -e /sys/class/net/$dev ]
   then
-    logger $vl -t$wd "dhcp method n/a via admin?"
-    # affirm whether client is terminated via leases file
-    if [ -s ${lf:=/var/lib/dhcp/dhclient.$dev.leases} ]
-    then
-      # leases file exists, so maybe want to re-'up'?
-      # detect if last event-state-action was: released
-      sed '/^# esa:/h;$!b;x;p' -n $lf |grep -q released && break
-    else
-      # no leases file, assume no
-      break
-    fi
+    # detect if last event-state-action was: released
+    esa=$( sed '/^# esa:/h;$!b;x;p' -n $lf )
+    test "${esa/* released -*/-X-}" == "-X-" && break
+  else
+    # no iface/leases file
+    break
   fi
 
-  logger $vl -t$wd "client restart req"
-
-  ifrc $vf $dev up \
-    || break
+  logger $vl -t$wd "client process restart"
+  ( $client_process_cmd )&
 done
