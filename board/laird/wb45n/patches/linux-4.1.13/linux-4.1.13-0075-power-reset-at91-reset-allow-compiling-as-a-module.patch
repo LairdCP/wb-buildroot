@@ -1,0 +1,77 @@
+From 2ea1779d73a7b0921a1a09cdb224f80522a3c178 Mon Sep 17 00:00:00 2001
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Date: Tue, 11 Aug 2015 11:12:47 +0200
+Subject: [PATCH] power/reset: at91-reset: allow compiling as a module
+
+It was not possible to compile at91-reset as a module. Implement .remove()
+to allow it. Also switch to module_platform_driver_probe() as it is not
+hotpluggable.
+
+Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+---
+ drivers/power/reset/Kconfig      |  2 +-
+ drivers/power/reset/at91-reset.c | 17 ++++++++++++++---
+ 2 files changed, 15 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/power/reset/Kconfig b/drivers/power/reset/Kconfig
+index 17d93a7..e41da4a 100644
+--- a/drivers/power/reset/Kconfig
++++ b/drivers/power/reset/Kconfig
+@@ -23,7 +23,7 @@ config POWER_RESET_AT91_POWEROFF
+ 	  SoCs
+ 
+ config POWER_RESET_AT91_RESET
+-	bool "Atmel AT91 reset driver"
++	tristate "Atmel AT91 reset driver"
+ 	depends on ARCH_AT91
+ 	default SOC_AT91SAM9 || SOC_SAMA5
+ 	help
+diff --git a/drivers/power/reset/at91-reset.c b/drivers/power/reset/at91-reset.c
+index 16e12bd..6374f5c 100644
+--- a/drivers/power/reset/at91-reset.c
++++ b/drivers/power/reset/at91-reset.c
+@@ -178,7 +178,7 @@ static struct notifier_block at91_restart_nb = {
+ 	.priority = 192,
+ };
+ 
+-static int at91_reset_probe(struct platform_device *pdev)
++static int __init at91_reset_probe(struct platform_device *pdev)
+ {
+ 	const struct of_device_id *match;
+ 	struct device_node *np;
+@@ -214,6 +214,13 @@ static int at91_reset_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static int __exit at91_reset_remove(struct platform_device *pdev)
++{
++	unregister_restart_handler(&at91_restart_nb);
++
++	return 0;
++}
++
+ static const struct platform_device_id at91_reset_plat_match[] = {
+ 	{ "at91-sam9260-reset", (unsigned long)at91sam9260_restart },
+ 	{ "at91-sam9g45-reset", (unsigned long)at91sam9g45_restart },
+@@ -221,11 +228,15 @@ static const struct platform_device_id at91_reset_plat_match[] = {
+ };
+ 
+ static struct platform_driver at91_reset_driver = {
+-	.probe = at91_reset_probe,
++	.remove = __exit_p(at91_reset_remove),
+ 	.driver = {
+ 		.name = "at91-reset",
+ 		.of_match_table = at91_reset_of_match,
+ 	},
+ 	.id_table = at91_reset_plat_match,
+ };
+-module_platform_driver(at91_reset_driver);
++module_platform_driver_probe(at91_reset_driver, at91_reset_probe);
++
++MODULE_AUTHOR("Atmel Corporation");
++MODULE_DESCRIPTION("Reset driver for Atmel SoCs");
++MODULE_LICENSE("GPL v2");
+-- 
+1.9.1
+
