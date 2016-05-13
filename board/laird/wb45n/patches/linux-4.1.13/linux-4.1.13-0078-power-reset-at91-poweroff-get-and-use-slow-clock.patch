@@ -1,0 +1,75 @@
+From afc14a21b1d9aa3aa4b6019acf9708ae1c02c3c0 Mon Sep 17 00:00:00 2001
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Date: Tue, 11 Aug 2015 11:12:50 +0200
+Subject: [PATCH] power/reset: at91-poweroff: get and use slow clock
+
+Commit dca1a4b5ff6e ("clk: at91: keep slow clk enabled to prevent system
+hang") added a workaround for the slow clock as it is not properly handled
+by its users.
+
+Get and use the slow clock as it is necessary for the at91 shutdown
+controller.
+
+Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Signed-off-by: Sebastian Reichel <sre@kernel.org>
+---
+ drivers/power/reset/at91-poweroff.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/drivers/power/reset/at91-poweroff.c b/drivers/power/reset/at91-poweroff.c
+index 3e698d9..e9e24df 100644
+--- a/drivers/power/reset/at91-poweroff.c
++++ b/drivers/power/reset/at91-poweroff.c
+@@ -10,6 +10,7 @@
+  * warranty of any kind, whether express or implied.
+  */
+ 
++#include <linux/clk.h>
+ #include <linux/io.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+@@ -48,6 +49,7 @@ static const char *shdwc_wakeup_modes[] = {
+ };
+ 
+ static void __iomem *at91_shdwc_base;
++static struct clk *sclk;
+ 
+ static void __init at91_wakeup_status(void)
+ {
+@@ -122,6 +124,7 @@ static void at91_poweroff_dt_set_wakeup_mode(struct platform_device *pdev)
+ static int __init at91_poweroff_probe(struct platform_device *pdev)
+ {
+ 	struct resource *res;
++	int ret;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	at91_shdwc_base = devm_ioremap_resource(&pdev->dev, res);
+@@ -130,6 +133,16 @@ static int __init at91_poweroff_probe(struct platform_device *pdev)
+ 		return PTR_ERR(at91_shdwc_base);
+ 	}
+ 
++	sclk = devm_clk_get(&pdev->dev, NULL);
++	if (IS_ERR(sclk))
++		return PTR_ERR(sclk);
++
++	ret = clk_prepare_enable(sclk);
++	if (ret) {
++		dev_err(&pdev->dev, "Could not enable slow clock\n");
++		return ret;
++	}
++
+ 	at91_wakeup_status();
+ 
+ 	if (pdev->dev.of_node)
+@@ -145,6 +158,8 @@ static int __exit at91_poweroff_remove(struct platform_device *pdev)
+ 	if (pm_power_off == at91_poweroff)
+ 		pm_power_off = NULL;
+ 
++	clk_disable_unprepare(sclk);
++
+ 	return 0;
+ }
+ 
+-- 
+1.9.1
+

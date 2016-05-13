@@ -1,0 +1,25 @@
+From 9c91e5279b45ca060300cf7bb2a80120090ff3ad Mon Sep 17 00:00:00 2001
+From: Steve deRosier <steve.derosier@lairdtech.com>
+Date: Wed, 11 May 2016 16:07:19 -0700
+Subject: [PATCH] laird: update version to laird14
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index f07d35a..0d63c5d 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,7 +1,7 @@
+ VERSION = 4
+ PATCHLEVEL = 1
+ SUBLEVEL = 13
+-EXTRAVERSION = -laird13
++EXTRAVERSION = -laird14
+ NAME = Series 4800
+ 
+ # *DOCUMENTATION*
+-- 
+1.9.1
+

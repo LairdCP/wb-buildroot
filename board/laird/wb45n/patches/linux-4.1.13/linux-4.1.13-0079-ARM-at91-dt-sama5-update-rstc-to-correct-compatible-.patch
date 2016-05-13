@@ -1,0 +1,45 @@
+From 29cd7f0c6733d52bda684ad2a6947394b9c63329 Mon Sep 17 00:00:00 2001
+From: Josh Wu <josh.wu@atmel.com>
+Date: Mon, 20 Jul 2015 17:32:06 +0800
+Subject: [PATCH] ARM: at91/dt: sama5: update rstc to correct compatible string
+
+They'll use "atmel,sama5d3-rstc" for reset function.
+
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+[nicolas.ferre@atmel.com: add the old compatible string as a fallback]
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+---
+ arch/arm/boot/dts/sama5d3.dtsi | 2 +-
+ arch/arm/boot/dts/sama5d4.dtsi | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
+index 3f5eee6..a82d507 100644
+--- a/arch/arm/boot/dts/sama5d3.dtsi
++++ b/arch/arm/boot/dts/sama5d3.dtsi
+@@ -1259,7 +1259,7 @@
+ 			};
+ 
+ 			rstc@fffffe00 {
+-				compatible = "atmel,at91sam9g45-rstc";
++				compatible = "atmel,sama5d3-rstc", "atmel,at91sam9g45-rstc";
+ 				reg = <0xfffffe00 0x10>;
+ 			};
+ 
+diff --git a/arch/arm/boot/dts/sama5d4.dtsi b/arch/arm/boot/dts/sama5d4.dtsi
+index a5f5f40..37c8498 100644
+--- a/arch/arm/boot/dts/sama5d4.dtsi
++++ b/arch/arm/boot/dts/sama5d4.dtsi
+@@ -1162,7 +1162,7 @@
+ 			};
+ 
+ 			rstc@fc068600 {
+-				compatible = "atmel,at91sam9g45-rstc";
++				compatible = "atmel,sama5d3-rstc", "atmel,at91sam9g45-rstc";
+ 				reg = <0xfc068600 0x10>;
+ 			};
+ 
+-- 
+1.9.1
+
