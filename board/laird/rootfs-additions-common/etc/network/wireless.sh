@@ -14,8 +14,8 @@
 #
 # contact: ews-support@lairdtech.com
 
-# /etc/network/wireless.sh - driver-&-firmware configuration for the wb45n
-# 20120520/20160331
+# /etc/network/wireless.sh - driver-&-firmware configuration for wb45n/wb50n
+# 20120520/20160517
 
 WIFI_PREFIX=wlan                              ## iface to be enumerated
 WIFI_DRIVER=ath6kl_sdio                       ## device driver "name"
@@ -32,7 +32,7 @@ SDC_SUPP=/usr/bin/sdcsupp
 SDC_CLI=/usr/bin/sdc_cli
 
 ## supplicant options
-WIFI_80211=-Dnl80211                          ## supplicant driver nl80211 
+WIFI_80211=-Dnl80211                          ## supplicant driver nl80211
 
 ## fips-mode support - also can invoke directly via the cmdline as 'fips'
 #WIFI_FIPS=-F                                  ## FIPS mode support '-F'
@@ -125,11 +125,11 @@ wifi_fips_mode() {
     msg "configuring for FIPS mode"
     # note - only 'WPA2 EAP-TLS' is supported
     ath6kl_params=$ath6kl_params\ fips_mode=y
-    insmod $WIFI_KMPATH/ath/ath6kl/ath6kl_core.ko $ath6kl_params || return 1
+    modprobe ath6kl_core $ath6kl_params || return 1
     insmod $WIFI_KMPATH/laird_fips/sdc2u.ko || return 1
     insmod $WIFI_KMPATH/laird_fips/ath6kl_laird.ko || return 1
 
-    # create device node for user space daemon 
+    # create device node for user space daemon
     major=$( sed -n '/sdc2u/s/^[ ]*\([0-9]*\).*/\1/p' /proc/devices )
     minor=0
     rm -f /dev/sdc2u0
@@ -163,19 +163,18 @@ wifi_start() {
 
     modprobe cfg80211
 
-    ## set atheros driver core options
-    ath6kl_params="recovery_enable=1 heart_beat_poll=200"
-    ath6kl_sdio_params="reset_pwd_gpio=28"
+    ## atheros driver options are in modprobe.d/ath6kl.conf
+    ath6kl_params=""
 
     ## check fips-mode support
     if [ -n "$WIFI_FIPS" ]
     then
       wifi_fips_mode || { msg " ...fips-mode error"; return 1; }
     else
-      insmod $WIFI_KMPATH/ath/ath6kl/ath6kl_core.ko $ath6kl_params
+      modprobe ath6kl_core $ath6kl_params
     fi
 
-    modprobe $WIFI_DRIVER $ath6kl_sdio_params \
+    modprobe $WIFI_DRIVER \
     || { msg "  ...driver failed to load"; return 1; }
 
     ## await enumerated interface
@@ -183,7 +182,7 @@ wifi_start() {
     || { msg "  ...driver init failure, iface n/a: ${WIFI_DEV:-?}"; return 1; }
   fi
 
-  # enable interface  
+  # enable interface
   [ -n "$WIFI_DEV" ] \
   && { msg -n "activate: $WIFI_DEV  ..."; wifi_set_dev up && msg ok; } \
   || { msg "iface $WIFI_DEV n/a, FW issue?  -try: wireless restart"; return 1; }
@@ -371,7 +370,7 @@ usleep='busybox usleep'
 
 # command
 case $1 in
-  
+
   stop|down)
     wifi_queryinterface
     echo Stopping wireless $WIFI_DEV $2
@@ -390,7 +389,7 @@ case $1 in
   status|'')
     wifi_status
     ;;
-    
+
   -h|--help)
     echo "$0"
     echo "  ...stop/start/restart the '$WIFI_PREFIX#' interface"
