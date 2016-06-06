@@ -15,7 +15,7 @@
 # contact: ews-support@lairdtech.com
 
 # /etc/network/wireless.sh - driver-&-firmware configuration for wb45n/wb50n
-# 20120520/20160517
+# 20120520/20160604
 
 WIFI_PREFIX=wlan                              ## iface to be enumerated
 WIFI_DRIVER=ath6kl_sdio                       ## device driver "name"
@@ -96,12 +96,9 @@ wifi_queryinterface() {
     then # determine iface via device path
       for wl_dev in /sys/class/net/*/phy80211
       do
-        if read wl_ < $wl_dev/device/uevent
-        then
-          test "${wl_#*=}" == "$WIFI_DRIVER" \
-            && WIFI_DEV=${wl_dev#*net/} WIFI_DEV=${WIFI_DEV%/phy80211} \
-            && break
-        fi
+        test -d $wl_dev/device/subsystem/drivers/$WIFI_DRIVER \
+          && WIFI_DEV=${wl_dev#*net/} WIFI_DEV=${WIFI_DEV%/*} \
+          && break
       done
     fi
     if [ -n "$WIFI_DEV" ] \
@@ -313,7 +310,7 @@ wifi_stop() {
   fi
 
   ## unload ath6kl modules
-  if mls=$( grep -os -e "^ath6kl_sdio" -e "^ath6kl_core" /proc/modules )
+  if mls=$( grep -os -e "^${WIFI_DRIVER%[_-]*}[^ ]*" /proc/modules )
   then
     msg unloading: $mls
     rmmod $mls
