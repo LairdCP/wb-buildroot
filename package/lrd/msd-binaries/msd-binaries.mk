@@ -55,7 +55,7 @@ define MSD_BINARIES_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/usr/share/smartBASIC/apps/*.sb $(TARGET_DIR)/usr/share/smartBASIC/apps/
 	$(INSTALL) -D -m 755 $(@D)/usr/share/smartBASIC/apps/lib/*.sblib $(TARGET_DIR)/usr/share/smartBASIC/apps/lib/
 	$(INSTALL) -D -m 755 $(@D)/usr/bin/llagent $(TARGET_DIR)/usr/bin/llagent
-	$(INSTALL) -D -m 755 $(@D)/scripts/init.d/opt/S99agent $(TARGET_DIR)/etc/init.d/opt/S99agent
+	$(INSTALL) -D -m 755 $(@D)/etc/init.d/opt/S99agent $(TARGET_DIR)/etc/init.d/opt/S99agent
 endef
 
 define MSD_BINARIES_INSTALL_STAGING_CMDS
