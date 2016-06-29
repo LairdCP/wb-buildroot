@@ -1,0 +1,132 @@
+#!/bin/sh
+
+# Copyright (c) 2015, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+# inetd - super server initialization (nonblocking)
+#
+# For enabled services in /etc/inetd.conf,  a pre-check is performed for each
+# daemon's init-script successfully found in /etc/init.d/opt/.
+#
+# Each init-script should have a 'check)' handler to prepare its service.
+# This allows using TCPwrappers to respond fast to a requested protocol.
+
+# capture messages to a log-file
+lf=${rcS_log:-/tmp/inetd.log}
+
+log() {
+  echo "inetd: $@" >>$lf
+} 2>/dev/null
+
+inetd_services_check() {
+  echo -n services:
+  while read -r a1 a2 a3 a4 a5 a6 a7
+  do
+    # parse service parameters: daemon-exec, daemon-name, daemon-init
+    # from each {7+}args line contained in file: inetd.conf
+    [ "$a1" != "#" ] && [ -n "$a7" ] || continue
+
+    srv=$a1
+    daemon_exec=$a6
+    daemon_name=${daemon_exec##*/}
+    daemon_init=/etc/init.d/opt/S??${daemon_name}
+    #
+    # check if this service daemon can be enabled
+    [ \# != ${srv::1}"" ] || { log "  $srv - $daemon_name disabled"; continue; }
+    [ -x $daemon_exec"" ] || { log "  $srv - daemon/exec n/a"; continue; }
+    [ -x $daemon_init"" ] || { log "  $srv - init/check n/a"; continue; }
+    #
+    : ${checkls:=:}
+    # skip doing any duplicate checks
+    test -n "${checkls/*$daemon_name*}"  \
+      && checkls=$checkls\ $daemon_name \
+      || continue
+    #
+    # wait on any net-init firstly, to avoid conflicts due to excessive load
+    # run an enabled daemon-init-script to perform a pre-check in background
+    # ( this allows the service to be started quickly when actually needed )
+    # and add each daemon-init pid to list, to wait on before starting inetd
+    #
+    ( wait $net_init_pids
+    { $daemon_init check && echo \ \ ...$daemon_name ready; } >>$lf )&
+
+    srv_init_pids=$srv_init_pids\ $!
+    log "    $daemon_init check - $!"
+    echo -n " $srv"
+
+  done < /etc/inetd.conf
+}
+
+# find any network and bridge init-script pids
+let net_init_pids=$( ps ax |sed -n '/[S]..[nb][er][ti][wd][og][re]/\
+                                          s/^\ *\([0-9]\+\).*/\1/p' )+0
+inetd_wait_run() {
+  echo \ ...
+  wait $srv_init_pids
+  #
+  if cp /etc/inetd.conf /tmp/inetd.conf \
+  && /usr/sbin/inetd -e /tmp/inetd.conf
+  then
+    echo "inetd: started" >>$lf
+    #
+    # dump log-cache to console
+    grep -s . /tmp/inetd.log \
+      && rm /tmp/inetd.log
+  fi
+  pidof inetd >/var/run/inetd.pid \
+    || echo "inetd: failed" >&2
+}
+
+export inetd_=^
+case $1 in
+  reload)
+    echo "Reloading inetd configuration."
+    killall -s HUP inetd
+    ;;
+    
+  restart)
+    $0 stop
+    $0 start
+    ;;
+
+  start)
+    echo -n "Checking inetd "
+    # the config file is required
+    if [ ! -s /etc/inetd.conf ]
+    then
+      echo "- /etc/inetd.conf n/a"
+      exit 1
+    fi
+    # run pre-checks on enabled services
+    inetd_services_check
+    # wait in background to run daemon
+    inetd_wait_run &
+    ;;
+
+  stop)
+    if [ -f /var/run/inetd.pid ]
+    then
+      echo "Stopping inetd."
+      read -r pid < /var/run/inetd.pid \
+        && rm /var/run/inetd.pid
+      kill $pid 2>/dev/null
+      rm -f /tmp/inetd.conf
+    fi
+    ;;
+
+  *)
+    echo "Usage: $0 {stop|start|restart|reload}"
+    ;;
+esac
+exit 0

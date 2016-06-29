@@ -1,0 +1,152 @@
+#!/bin/ash
+
+# Copyright (c) 2015, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+# /usr/sbin/lighty - a service wrapper for lighttpd
+#
+# The following line in /etc/inetd.conf allows stateless connect handling:
+# http     stream  tcp       nowait  root    /usr/sbin/lighty  lighty -v start
+#
+# On an incoming TCP service request via inetd, the webserver is started.
+# A redirect is then sent back to the requesting host.
+#
+# Usage:
+#   lighty [-v] {stop|start|restart|status|check} [--redirect]
+
+
+self=${0##*/}
+console=/dev/console
+lockfile=/tmp/lighty^
+
+# webserver init-script w/o exec bit set
+lighttpd_initscript=/etc/init.d/S??lighttpd
+
+# option verbose
+test "$1" == "-v" \
+  && { verbose() { printf -- "%b" "$*" >>$console; } 2>/dev/null; shift; } \
+  || { verbose() { : ; }; console=/dev/null; }
+
+exec 2>$console
+
+redirect() {
+  # redirect the host and close
+  printf "HTTP/1.1 302 Found\r\n"
+  printf "Location: https://$host/$req\r\n"
+  printf "Content-Length: 0\r\n"
+  printf "Connection: close\r\n"
+  printf "\r\n"
+}
+
+inet_service() {
+  # args: <service> <dis/enable>
+  if { read -r inetd_pid < /var/run/inetd.pid; } 2>/dev/null
+  then
+    test -f /tmp/inetd.conf \
+      || cp /etc/inetd.conf /tmp
+
+    case $2 in
+      disable)
+        sed "s/^$1/#$1/" -i /tmp/inetd.conf
+        ;;
+      enable)
+        rmdir $lockfile 2>/dev/null
+        sed "s/^#$1/$1/" -i /tmp/inetd.conf
+        ;;
+    esac
+    fsync /tmp/inetd.conf
+    kill -s HUP $inetd_pid \
+      || echo $0 $* - failed >/dev/console
+  fi
+}
+
+# report invocation
+test -n "$inetd_" \
+  && verbose "\n(lighty triggered via inetd)\n" \
+  || verbose "\n(lighty is running manually)\n"
+
+# main
+case $1 in
+  stop) ## terminate webserver
+    ash $lighttpd_initscript stop >>$console 2>&1
+    chmod +x $lighttpd_initscript
+    killall lighty_wd 2>/dev/null
+    rmdir $lockfile 2>/dev/null
+    exit $?
+    ;;
+
+  start) ## start webserver as necessary
+    if [ ! -d $lockfile ]
+    then
+      mkdir -p $lockfile
+      inet_service https disable
+      ash $lighttpd_initscript start >>$console 2>&1
+      rmdir $lockfile 2>/dev/null
+    fi
+    ;;
+
+  restart) ## restart the webserver
+    ash $lighttpd_initscript restart
+    exit $?
+    ;;
+
+  status) ## report webserver related detail
+    echo "+ ls -l /tmp/light*"
+    { ls -l /tmp/light* 2>/dev/null || echo \ \ ...; } |sed '/^$/,$d' && echo
+
+    lighty-status 2>/dev/null \
+      || ash $lighttpd_initscript status
+    exit $?
+    ;;
+
+  check) ## check webserver configuration
+    chmod -x $lighttpd_initscript
+    ash $lighttpd_initscript check
+    lighty_wd
+    exit $?
+    ;;
+
+  *service) ## un/set inet service
+    inet_service https $2
+    exit $?
+    ;;
+
+  *) ## show about/usage
+    sed -n '2,/^[^#]/s/.*/&/p;/^$/q' $0
+    exit 1
+esac
+
+test "$2" == "--redirect" \
+  || exit 0
+
+# read req-&-headers
+while read -rt1 stream
+do
+  verbose "$stream\n"
+  case $stream in
+    GET\ /*)
+      req=${stream#* /} req=${req%%[$'\r'$'\n';\ \\\`]*}
+      ;;
+    Host:\ *)
+      host=${stream#*: } host=${host%%[$'\r'$'\n';\ \\\`]*}
+      ;;
+  esac
+done
+
+# proceed w/connection from host
+test -n "$host" \
+  && redirect |tee -a $console
+
+exit $?
+

@@ -1,0 +1,65 @@
+#!/bin/sh
+
+# Copyright (c) 2015, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+
+trap "" 1
+trap "" 15
+
+PPP_SERIAL_INTERFACE=/dev/ttyS1
+PPP_SERIAL_RATE=230400
+
+start() {
+  echo "Starting pppd"
+  modprobe ppp_generic
+  modprobe ppp_async
+  /usr/sbin/pppd \
+   192.168.0.1:192.168.0.2 \
+   $PPP_SERIAL_INTERFACE \
+   $PPP_SERIAL_RATE \
+    > /dev/null &
+}
+
+stop() {
+  echo "Stopping pppd"
+  killall -9 pppd
+  rmmod ppp_async
+  rmmod crc_ccitt
+  rmmod ppp_generic
+  rmmod slhc
+}
+
+case "$1" in
+  
+  start)
+    start
+    ;;
+
+  stop)
+    stop
+    ;;
+
+  restart)
+    stop
+    start
+    ;;
+
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    exit 1
+    ;;
+esac
+
+exit 0
