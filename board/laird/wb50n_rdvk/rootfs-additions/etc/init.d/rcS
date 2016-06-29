@@ -1,0 +1,158 @@
+#!/bin/ash
+
+# Copyright (c) 2015, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+# /etc/init.d/rcS
+export rcS_=^
+export rcS_log=/dev/null
+export rcS_awaitscript
+#
+#   Called by init, to start/stop all /etc/init.d/S??* init-scripts in
+#   lexical order when starting, and reverse-lexical order when stopping.
+#   Each script name and its relative starting init time, is logged.
+#
+#   An init-script can be made rcS aware, via the 'rcS_' flag.
+#   For optional scripts, good practice is to employ a symlink to it in opt/.
+#
+#   This rcS is designed for speed, and some operations can be backgrounded.
+#   However, caution must be exercised when backgrounding operations, and it
+#   is up to the scripts to ensure dependencies are in place!!
+#
+#   The rcS_watchdog (internal) awaits an init-script until the timeout value
+#   expires, and then kills off that script if it has not already finished.
+#   This prevents an init-script from 'hanging' the system.
+#
+#   The rcS_awaitscript (exported) function can be used by other scripts to
+#   wait on a specified init-script to finish, before proceeding. This can
+#   be useful for backgrounded scripts.  (Be careful doing this!!)
+#
+#   Suffixes:  (all other scripts are run normally)
+#   *.bg  (run in a backgrounded subshell [caution])
+#   *.sh  (sourced in a subshell)
+#
+#
+
+# enable rcS logging to <file>
+rcS_log=/var/log/rcS.log
+
+# enable watchdog timeout <seconds>
+rcS_wdto=240
+
+# 
+# function for use in init-scripts
+# setup:
+#   eval $rcS_awaitscript
+# usage:
+#   rcS_awaitsript <script-base-name>
+#
+rcS_awaitscript=\
+'rcS_awaitscript() { '\
+'let n=0; '\
+'while ps |grep -q "S[0-9][0-9]${1}*"; do '\
+'[ $n -eq 0 ] && echo \ \ ${2:+${2##*/}\ -\ }awaiting $1-init; '\
+'busybox usleep 999999 && let n++; '\
+'done; '\
+'[ $n -gt 0 ] && echo \ \ $1-init completed...; '\
+'}'
+
+#
+# arg1 - prior-pid
+# arg2 - script-name
+rcS_watchdog() {
+  [ $1 -eq 0 ] || kill $1 2>/dev/null ## reset 
+  #   
+  if [ -n "$2" ]
+  then ## set and await script
+    [ -n "$rcS_wdto" ] && let s=${rcS_wdto} || return 0
+    while [ $s -gt 0 ]
+    do
+      busybox usleep 999999
+      # time allowed for script to start and recheck each 1s
+      # decrement or breakout if the script already finished
+      ps -o pid,comm |grep -q "[ ]$2" && let s-- || return 0
+    done
+    # timed-out, so terminate the script
+    echo rcS_watchdog: $2 >/dev/console
+    kill -9 `pidof $2` && echo "${ets}$2 terminated by rcS_watchdog" >>$rcS_log
+  fi
+}
+
+ets='            '
+rcS_timestamp() {
+  read -r us is </proc/uptime
+  let n=${#ets}-${#us}
+  echo "${ets:0:$n}+${us}s  $@" >>$rcS_log
+}
+
+# options for test or disable
+[ "${1:0:1}" == "-" ] && set $1    
+[ -f /etc/default/${0##*/}.disable ] \
+&& { echo "/etc/default/${0##*/}.disable exists"; exit 0; }
+
+o=
+action=${1:-start}
+if [ "$action" == "stop" ]
+then
+  [ -f $rcS_log ] && cp -f $rcS_log /root 2>/dev/null
+  [ $rcS_wdto -eq 0 ] || rcS_wdto=10
+  rcS_log=/dev/null
+  o=-r
+fi
+
+let pp=0
+echo -en \\\r
+echo "$ets$action" >>$rcS_log
+for spn in `ls $o /etc/init.d/S??* 2>/dev/null`
+do
+  # skip if non-executable scriptpathname
+  [ -x $spn ] && sn=${spn##*/} || continue
+  
+  # setup watchdog for this scriptname, cancel priorpid
+  ( rcS_watchdog $pp $sn )&
+  pp=$!
+
+  # run method based on suffix
+  case $spn in
+
+    *\.sh) ## source in subshell
+      (
+        rcS_timestamp $sn sourced in subshell
+        trap - INT QUIT TSTP
+        set $action
+        . $spn |tee -a $rcS_log
+      )
+      continue
+      ;;
+  
+    *\.bg) ## fork as subprocess to background
+      if [ "$action" == "start" ]
+      then
+        rcS_timestamp $sn backgrounded
+        sed -n '/Star/s/.*\(Starting.*[^.:"]\)[":.].*/\1 - in background/p' $spn 
+        ( $spn $action >>$rcS_log )&  #|tee -a $rcS_log )& 
+        continue
+      fi
+      ;;
+  esac
+
+  # run normally
+  rcS_timestamp $sn
+  $spn $action  #|tee -a $rcS_log
+done
+
+( rcS_watchdog $pp '' )&
+rcS_timestamp ...finished
+
+exit 0

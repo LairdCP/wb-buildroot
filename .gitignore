@@ -34,4 +34,5 @@
 !/configs/msd50n_defconfig
 !/configs/wb50n_defconfig
 !/configs/wb50n_devel_defconfig
+!/configs/wb50n_rdvk_defconfig
 # note the above is necessary to avoid customer configs.
