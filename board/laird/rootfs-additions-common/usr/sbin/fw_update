@@ -67,6 +67,8 @@ Using 'fw_update':
 
   Use the '-c' flag, to also check each flashed image update, for matched md5.
 
+  The '-f' flag will assume image overwrites and avoid pings to the server.
+
   Using '-d', allows just downloading the update-list, for optional editing.
 
   The update procedure may be controlled via the firmware-update-list, by also
@@ -287,6 +289,7 @@ parse_flags() {
     ;;
   -f) ## force image overwriting
     o_force=true
+    o_ping=false
     ;;
   -c) ## check md5's of the updated images
     o_check=true
@@ -408,6 +411,8 @@ ping_server() {
   # extract host from given url
   set -- ${1##*//}
   host=${1%%/*}
+  o_ping \
+    || return 0
   ping -W4 -c1 $host >$X
 } 2>>/tmp/fwu.err
 
@@ -523,6 +528,7 @@ mv $FWUL $FWUL~ 2>$X
 o_verbose=${o_verbose:-true}
 o_quiet=${o_quiet:-false}
 o_force=${o_force:-false}
+o_ping=${o_ping:-true}
 o_check=${o_check:-false}
 x_notify=${x_notify:-true}
 x_transfer=${x_transfer:-true}
