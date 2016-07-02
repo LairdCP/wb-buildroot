@@ -444,6 +444,7 @@ then
 
   test fwul == "${url/*.txt/fwul}" \
     || exit_error "firmware-update-list required, try '--usage'"
+
   verbose "Downloading '${url##*/}' from $host to $FWUL"
   rm -f $FWUL
   wget $url$port -O $FWUL \
@@ -460,23 +461,39 @@ else
     copy $url -O $FWUL
   fi
 fi
+test -s "$FWUL" \
+  || exit_error "zero-length file: $FWUL"
 
-# parse firmware-update-list
-if [ -z "$url" -o ! -s "$FWUL" ]
+# process any flags; given via cmdline preferred over fwul
+flags=$( sed -n '/^ *fl[ags]* /{s/.*fl[ags]* //p;q}' $FWUL )
+for f in ${fls:-$flags}; do parse_flags $f; done
+
+# bail if set option download for remote fwul
+test remote == "${url/*:*/remote}" \
+  && ${o_dnload:-false} \
+  && exit 0
+
+verbose "Processing firmware-update-list \c"
+# convert from older format if necessary
+if grep -q ".*\.bin\ \+[0-9a-f]\{32\}" $FWUL
 then
-  exit_error "zero-length file: $FWUL"
-else
-  verbose "Processing firmware-update-list \c"
+  sed -e '/[0-9a-f]\{32\}/{s/ *\([^ #]\+\)\///}' \
+      -e '/[0-9a-f]\{32\}/{s/ *\([^ #]\+\) *\([0-9a-f]\{32\}\)/\2  \1/}' \
+      -e 's/#\+ */# /;s/^[^ #] */  &/' \
+      -i $FWUL && txt="*"
+fi
 
-  ## convert from older format if necessary
-  if grep -q ".*\.bin\ \+[0-9a-f]\{32\}" $FWUL
+# firmware-update-list
+if [ -s "$FWUL" ]
+then
+  ## confirm target wb?? match to update upon given version-tag
+  vt=$( sed -n '1s/^[# ]*\([^ ]*wb[45][05][^ ]\+\)/\1/p' $FWUL )
+  if [ -n "$vt" ]
   then
-    sed -e '/[0-9a-f]\{32\}/{s/ *\([^ #]\+\)\///}' \
-        -e '/[0-9a-f]\{32\}/{s/ *\([^ #]\+\) *\([0-9a-f]\{32\}\)/\2  \1/}' \
-        -e 's/#\+ */# /;s/^[^ #] */  &/' \
-        -i $FWUL && txt="*"
+    test yes == "${vt/*$wb*/yes}" \
+      || exit_error "aborted, $wb update mismatch: $vt"
+    txt=$txt\\\n"  ...updating to $vt"
   fi
-  verbose "$txt"
 
   ## parse md5, name, length and check if absolute url/path or convert
   set -- $( sed -n "/^[^#] *[0-9a-f]\{32\}\ .*${AT91BS_IMG}/p" $FWUL )
@@ -502,32 +519,16 @@ else
   test -n "${2}" && [ "${2:0:1}" != "/" -a "${2/*:*/:}" != ":" ] \
     && ROOTFS_URL=${isl:-${url%/*}}/${2/^.\/}
 
-  ## confirm matching target wb??n update if version-tag found
-  vt=$( sed -n '1s/^[# ]*\([^ ]*wb[45][05][^ ]\+\)/\1/p' $FWUL )
-  if [ -n "$vt" ]
-  then
-    [ yes == "${vt/*$wb*/yes}" ] \
-    || exit_error "aborted, $wb update mismatch: $vt"
-    verbose "  ...updating to $vt"
-  fi
-
   ## parse other options
-  flags=$( sed -n '/^ *fl[ags]* /{s/.*fl[ags]* //p;q}' $FWUL )
   shell=$( sed -n '/^ *sh[ell]* /{s/.*sh[ell]* //p;q}' $FWUL )
 
   ## parse/copy transfer-list items to file
   sed -n '/transfer-list/,/^$/p' $FWUL >>/tmp/alt_rootfs.transfer-list
+else
+  exit_error "firmware-update-list error"
 fi
-o_verbose=
-
-# process any flags, cmdline preferred over fwul
-for f in ${fls:-$flags}; do parse_flags $f; done
-
-# bail if set option download for remote fwul
-test remote == "${url/*:*/remote}" \
-  && ${o_dnload:-false} && exit 0
-
 mv $FWUL $FWUL~ 2>$X
+verbose "$txt"
 
 # foreach set default if unset
 o_verbose=${o_verbose:-true}
