@@ -1,6 +1,6 @@
 IMAGESDIR="$1"
 
-export BR2_LRD_PLATFORM=wb50n
+export BR2_LRD_PLATFORM=wb50n_rdvk
 export BR2_LRD_PRODUCT=wb50n_rdvk
 
 echo "WB50n POST IMAGE script: starting..."
