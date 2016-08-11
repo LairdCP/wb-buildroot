@@ -1,0 +1,5 @@
+config BR2_PACKAGE_LORA_PACKET_FORWARDER
+	bool "lora-packet-forwarder"
+	help
+      Semtech packet forwarder
+
