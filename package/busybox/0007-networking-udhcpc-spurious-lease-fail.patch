@@ -1,0 +1,32 @@
+diff --git a/networking/udhcp/dhcpc.c b/networking/udhcp/dhcpc.c
+index d1d60a8..ef287f1 100644
+--- a/networking/udhcp/dhcpc.c
++++ b/networking/udhcp/dhcpc.c
+@@ -1399,6 +1399,7 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
+ 	packet_num = 0;
+ 	timeout = 0;
+ 	already_waited_sec = 0;
++	bool show_leasefail = true;
+ 
+ 	/* Main event loop. select() waits on signal pipe and possibly
+ 	 * on sockfd.
+@@ -1474,7 +1475,10 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
+ 					continue;
+ 				}
+  leasefail:
+-				udhcp_run_script(NULL, "leasefail");
++ 				if (show_leasefail) {
++					show_leasefail = false;
++					udhcp_run_script(NULL, "leasefail");
++				}
+ #if BB_MMU /* -b is not supported on NOMMU */
+ 				if (opt & OPT_b) { /* background if no lease */
+ 					bb_info_msg("No lease, forking to background");
+@@ -1757,6 +1761,7 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
+ 				}
+ #endif
+ 				/* enter bound state */
++				show_leasefail = true;
+ 				timeout = lease_seconds / 2;
+ 				temp_addr.s_addr = packet.yiaddr;
+ 				bb_info_msg("Lease of %s obtained, lease time %u",
