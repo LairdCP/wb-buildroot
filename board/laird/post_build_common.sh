@@ -32,6 +32,10 @@ rm -f $TARGETDIR/etc/init.d/S50lighttpd
 rm -f $TARGETDIR/etc/init.d/S01logging
 rm -f $TARGETDIR/etc/init.d/S20urandom
 
+#remove the dhcp init scripts
+rm -f $TARGETDIR/etc/init.d/S80dhcp-relay
+rm -f $TARGETDIR/etc/init.d/S80dhcp-server
+
 # remove bash cruft
 rm -fr $TARGETDIR/etc/bash*
 rm -f $TARGETDIR/root/.bash*
