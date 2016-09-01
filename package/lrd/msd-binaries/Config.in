@@ -11,7 +11,7 @@ config BR2_MSD_BINARIES_COMPANY_PROJECT
 	string "Laird Binaries company/project string"
 	help
 	  Specify the middle string of a msd name tag. I.e. company/project.
-	  E.g. laird or laird_fips
+	  E.g. laird
 
 config BR2_MSD_BINARIES_VERSION
 	string "Laird Binaries version"
