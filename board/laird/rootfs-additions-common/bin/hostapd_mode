@@ -20,7 +20,7 @@ eni=/etc/network/interfaces
 stanza='^iface wl.* inet'
 
 # see if enabled in /e/n/i stanza for wl*
-hostapd=$( sed -n "/$stanza/"',/^[ \t]\+.*hostapd/h;$x;$s/[ \t]*//p' $eni )
+hostapd=$( sed -n "/$stanza/"',/^[ \t]\+[^#]*hostapd/h;$x;$s/[ \t]*//p' $eni )
 
 case ${1#--} in
   -h|help)
