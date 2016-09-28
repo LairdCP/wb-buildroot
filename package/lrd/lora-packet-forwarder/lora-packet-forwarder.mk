@@ -20,5 +20,12 @@ define LORA_PACKET_FORWARDER_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/lora_pkt_fwd/update_gwid.sh $(TARGET_DIR)/opt/lora/update_gwid
 endef
 
+define LORA_PACKET_FORWARDER_INSTALL_INITSCRIPT
+	mkdir -p $(TARGET_DIR)/etc/init.d/
+	$(INSTALL) -m 0755 package/lrd/lora-packet-forwarder/S95lora_pkt_fwd $(TARGET_DIR)/etc/init.d/S95lora_pkt_fwd
+endef
+
+LORA_PACKET_FORWARDER_POST_INSTALL_TARGET_HOOKS += LORA_PACKET_FORWARDER_INSTALL_INITSCRIPT
+
 $(eval $(generic-package))
 
