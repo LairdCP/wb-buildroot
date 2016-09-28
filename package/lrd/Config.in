@@ -9,4 +9,5 @@ source "package/lrd/wb_smartBASIC_apps/Config.in"
 source "package/lrd/php_sdk/Config.in"
 source "package/lrd/dcas/Config.in"
 source "package/lrd/lrd-network-manager/Config.in"
+source "package/lrd/lora-packet-forwarder/Config.in"
 
