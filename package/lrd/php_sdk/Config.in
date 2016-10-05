@@ -1,6 +1,6 @@
 config BR2_PACKAGE_PHP_SDK
 	bool "LAIRD PHP SDK"
-	depends on BR2_PACKAGE_SDCSDK
+	depends on BR2_PACKAGE_SDCSDK || BR2_PACKAGE_MSD_BINARIES
 	help
 	  Laird SDK PHP library interface
 
