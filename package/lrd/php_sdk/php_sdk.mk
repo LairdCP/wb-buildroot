@@ -9,7 +9,13 @@ PHP_SDK_SITE = package/lrd/externals/php_sdk
 PHP_SDK_SITE_METHOD = local
 PHP_SDK_LICENSE = ICS
 
-PHP_SDK_DEPENDENCIES = php host-swig sdcsdk
+PHP_SDK_DEPENDENCIES = php host-swig
+
+ifeq ($(BR2_PACKAGE_MSD_BINARIES),y)
+PHP_SDK_DEPENDENCIES += msd-binaries
+else
+PHP_SDK_DEPENDENCIES += sdcsdk
+endif
 
 PHP_SDK_MAKE_ENV = CC="$(TARGET_CC)" \
 			CXX="$(TARGET_CXX)" \
