@@ -26,7 +26,7 @@ usage() {
 	Configure and/or show interfaces.
 	Use settings in '/etc/network/interfaces', or from the command-line.
 	Works with a netlink daemon to maintain dhcp/static methods on-the-fly.
-	
+
 	Flags:
 	  -q   be quiet, no stdout
 	  -v   be more verbose...
@@ -34,11 +34,11 @@ usage() {
 	  -m   monitor ifrc events
 	  -#   inet family protocol
 	  -x   run w/o netlink daemon
-	
+
 	Interface:           (ignored with:  /etc/default/ifrc.[iface.]disable)
 	  must be kernel-resident, or exec the network-init-script to start
 	  can be an alias defined in /e/n/i file
-	
+
 	Action:
 	  stop|start|restart   - act on hw-phy init/driver (via: nis)
 	  noauto|auto   - unset or set auto-starting an interface in /e/n/i
@@ -48,23 +48,23 @@ usage() {
 	  logs   - list or manage related files: {clean|show [<iface>]}
 	  eni   - view stanza or edit file: /etc/network/interfaces
 	  usage   - view file: /etc/network/networking.README
-	
+
 	Method:
 	  dhcp [<param=value> ...]
 	     - employ client to get/renew lease, info stored in leases file
 	       requestip=x.x.x.x   - request an address (rip) from dhcp server
 	       timeout=nn   - seconds to allow client to try/await response
-	
+
 	  static [ip=x.x.x.x[/b] <param=value> ...]
 	     - use settings from /e/n/i file or those given on commandline
 	       params:  address, netmask, broadcast, gateway  (ip,nm,bc,gw)
-	
+
 	  loopback [ip=x.x.x.x[/b]]
 	     - use to set a specific localhost address
-	
+
 	  manual
 	     - the interface will not be configured
-	
+
 	Usage:
 	# ifrc [flags..] [<iface>] [<action>] [<method> [<param=value> ...]]
 	#
@@ -757,6 +757,12 @@ then
       fi
     fi
 
+    if [ "${IFRC_METHOD/*f6=dhcp*/dhcp}" == "dhcp" ] || [ "${IFRC_METHOD/*f6=auto*/auto}" == "auto" ]
+    then
+      ## handle dhcpv6 ip-dcfg
+      /usr/sbin/dhclient6.sh release $dev
+    fi
+
     ## handle dhcp ip-dcfg
     if [ "${IFRC_METHOD/*f4=dhcp*/dhcp}" == "dhcp" ]
     then
@@ -792,6 +798,18 @@ then
     ## option ip-dcfg cancelled
     { read -r zz < ${ifrc_Lfp}/$dev.dd; } 2>/dev/null \
     && { kill ${zz%%:*}; rm -f ${ifrc_Lfp}/$dev.dd ]; }
+
+    if [ "${IFRC_METHOD/*f6=dhcp*/dhcp}" == "dhcp" ] || [ "${IFRC_METHOD/*f6=auto*/auto}" == "auto" ]
+    then
+      if $phy80211
+      then
+        # this is likely a 'reconnect' or 'roam' related event
+        # if for AP with same SSID, then try dhcp-esa: refresh
+	usr/sbin/dhclient6.sh release $dev
+      fi
+	# renew failure is handled via re-up config...
+	usr/sbin/dhclient6.sh renew $dev
+    fi
 
     ## handle dhcp ip-cfg renew/refresh
     if [ "${IFRC_METHOD/f4=dhcp/dhcp}" == "dhcp" ]
@@ -931,7 +949,9 @@ case $IFRC_ACTION in
 
     cdt pre_dcfg_do
 
+    /usr/sbin/dhclient6.sh stop
     ifrc_dhcp_client stop
+
     sed '1cmp_cdt:' -i $ifrc_Log
 
     # remove all relative entries from the routing table
@@ -1249,7 +1269,9 @@ ifrcmp_await_f6dad() {
   local idad_timer=50
   while let --idad_timer ## deciseconds
   do
-    test -z "$( ip -6 -o addr list dev $dev to $ip/$nm tentative )" \
+      [ -n "$( ip -6 -o addr list dev $dev | grep "link/ether" )" ] \
+      && [ -z "$( ip -6 -o addr list dev $dev | grep "scope global tentative" )" ] \
+      && [ -z "$( ip -6 -o addr list dev $dev | grep "scope link tentative" )" ] \
       && break
     usleep 87654
   done
@@ -1393,14 +1415,19 @@ do unset ip nm nw wc bc ns gw to rip client scope metric weight
           # scope link-local (using mac) address/mask is: fe80::/10
           echo 1 > /proc/sys/net/ipv6/conf/$dev/disable_ipv6
           echo 0 > /proc/sys/net/ipv6/conf/$dev/disable_ipv6
+	  echo 1 > /proc/sys/net/ipv6/conf/$dev/accept_ra
+	  ifrcmp_await_f6dad || exec $0 -6 $dev dn
+	  /usr/sbin/dhclient6.sh start $dev
+	  ;;
+
+
+	dhcp) ## inet6 - Dynamic Host Configuration Protocol v6
+	  echo "DHCPv6"
+	  echo 0 > /proc/sys/net/ipv6/conf/$dev/accept_ra
+		ifrcmp_await_f6dad || exec $0 -6 $dev dn
+		/usr/sbin/dhclient6.sh start $dev
           ;;
 
-        dhcp) ## inet6 - Dynamic Host Configuration Protocol v6
-          # Stateful Address AutoConfiguration w/Options
-          # odhcp6c - Embedded DHCPv6 Client
-          #ifrcmp_validate_f6dhcp
-          msg "DHCPv6 support n/a"
-          ;;
 
         static) ## inet6 - Static method + optional params
           ifrcmp_validate_f6static
