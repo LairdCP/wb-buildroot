@@ -24,20 +24,7 @@ define MSD_BINARIES_CONFIGURE_CMDS
 	(cd $(@D) && ls -1 && tar xf rootfs.tar)
 endef
 
-define MSD_BINARIES_INSTALL_TARGET_CMDS
-	mkdir -p $(TARGET_DIR)/usr/bin
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/event_mon $(TARGET_DIR)/usr/bin/event_mon
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/sdc_cli $(TARGET_DIR)/usr/bin/sdc_cli
-	$(INSTALL) -D -m 755 $(@D)/usr/sbin/smu_cli $(TARGET_DIR)/usr/sbin/smu_cli
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/sdcsupp $(TARGET_DIR)/usr/bin/sdcsupp
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/dhcp_injector $(TARGET_DIR)/usr/bin/dhcp_injector
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/smartSS $(TARGET_DIR)/usr/bin/smartSS
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/smartBASIC $(TARGET_DIR)/usr/bin/smartBASIC
-	mkdir -p $(TARGET_DIR)/usr/lib
-	$(INSTALL) -m 755 $(@D)/usr/lib/libsdc_sdk.so* $(TARGET_DIR)/usr/lib/
-	$(MAKE) --no-print-directory -C $(LINUX_DIR) kernelrelease ARCH=arm CROSS_COMPILE="$(TARGET_CROSS)" > $(@D)/kernel.release
-	mkdir -p $(TARGET_DIR)/lib/modules/`cat $(@D)/kernel.release`/extra
-	$(INSTALL) -D -m 755 $(@D)/etc/init.d/S95bluetooth $(TARGET_DIR)/etc/init.d/S95bluetooth
+define MSD_BINARIES_WEBLCM_INSTALL_TARGET
 	mkdir -p $(TARGET_DIR)/var/www/docs
 	mkdir -p $(TARGET_DIR)/var/www/docs/assets/css
 	mkdir -p $(TARGET_DIR)/var/www/docs/assets/img
@@ -49,16 +36,38 @@ define MSD_BINARIES_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 644  $(@D)/var/www/docs/assets/js/*.js   $(TARGET_DIR)/var/www/docs/assets/js/
 	mkdir -p $(TARGET_DIR)/etc/lighttpd
 	$(INSTALL) -D -m 644  $(@D)/etc/lighttpd/lighttpd.*  $(TARGET_DIR)/etc/lighttpd/
-	mkdir -p -m 700 $(TARGET_DIR)/usr/sbfs
-	mkdir -p $(TARGET_DIR)/usr/share/smartBASIC/apps
-	mkdir -p $(TARGET_DIR)/usr/share/smartBASIC/apps/lib
-	$(INSTALL) -D -m 755 $(@D)/usr/share/smartBASIC/apps/*.sb $(TARGET_DIR)/usr/share/smartBASIC/apps/
-	$(INSTALL) -D -m 755 $(@D)/usr/share/smartBASIC/apps/lib/*.sblib $(TARGET_DIR)/usr/share/smartBASIC/apps/lib/
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/llagent $(TARGET_DIR)/usr/bin/llagent
-	$(INSTALL) -D -m 755 $(@D)/etc/init.d/opt/S99agent $(TARGET_DIR)/etc/init.d/opt/S99agent
 endef
+ifeq ($(BR2_MSD_BINARIES_WEBLCM),y)
+	MSD_BINARIES_POST_INSTALL_TARGET_HOOKS += MSD_BINARIES_WEBLCM_INSTALL_TARGET
+endif
 
-define MSD_BINARIES_INSTALL_STAGING_CMDS
+define MSD_BINARIES_EVENTMON_INSTALL_TARGET
+	$(INSTALL) -D -m 755 $(@D)/usr/bin/event_mon $(TARGET_DIR)/usr/bin/event_mon
+endef
+ifeq ($(BR2_MSD_BINARIES_EVENTMON),y)
+	MSD_BINARIES_POST_INSTALL_TARGET_HOOKS += MSD_BINARIES_EVENTMON_INSTALL_TARGET
+endif
+
+define MSD_BINARIES_SDCCLI_INSTALL_TARGET
+	$(INSTALL) -D -m 755 $(@D)/usr/bin/sdc_cli $(TARGET_DIR)/usr/bin/sdc_cli
+	$(INSTALL) -D -m 755 $(@D)/usr/sbin/smu_cli $(TARGET_DIR)/usr/sbin/smu_cli
+endef
+ifeq ($(BR2_MSD_BINARIES_SDCCLI),y)
+	MSD_BINARIES_POST_INSTALL_TARGET_HOOKS += MSD_BINARIES_SDCCLI_INSTALL_TARGET
+endif
+
+define MSD_BINARIES_SDCSUPP_INSTALL_TARGET
+	$(INSTALL) -D -m 755 $(@D)/usr/bin/sdcsupp $(TARGET_DIR)/usr/bin/sdcsupp
+endef
+ifeq ($(BR2_MSD_BINARIES_SDCSUPP),y)
+	MSD_BINARIES_POST_INSTALL_TARGET_HOOKS += MSD_BINARIES_SDCSUPP_INSTALL_TARGET
+endif
+
+define MSD_BINARIES_SDCSDK_INSTALL_TARGET
+	$(INSTALL) -D -m 755 $(@D)/usr/bin/dhcp_injector $(TARGET_DIR)/usr/bin/dhcp_injector
+	$(INSTALL) -m 755 $(@D)/usr/lib/libsdc_sdk.so* $(TARGET_DIR)/usr/lib/
+endef
+define MSD_BINARIES_SDCSDK_STAGING_TARGET
 	rm -f $(STAGING_DIR)/usr/lib/libsdc_sdk.so*
 	$(INSTALL) -D -m 0755 $(@D)/usr/lib/libsdc_sdk.so.1.0 $(STAGING_DIR)/usr/lib/
 	cd  $(STAGING_DIR)/usr/lib/ && ln -s libsdc_sdk.so.1.0 libsdc_sdk.so.1
@@ -67,6 +76,46 @@ define MSD_BINARIES_INSTALL_STAGING_CMDS
 		$(@D)/include/sdc_events.h \
 		$(@D)/include/lrd_sdk_pil.h \
 		$(STAGING_DIR)/usr/include/
+endef
+	MSD_BINARIES_POST_INSTALL_TARGET_HOOKS += MSD_BINARIES_SDCSDK_INSTALL_TARGET
+	MSD_BINARIES_POST_INSTALL_STAGING_HOOKS += MSD_BINARIES_SDCSDK_STAGING_TARGET
+
+define MSD_BINARIES_SMARTBASIC_INSTALL_TARGET
+	$(INSTALL) -D -m 755 $(@D)/usr/bin/smartSS $(TARGET_DIR)/usr/bin/smartSS
+	$(INSTALL) -D -m 755 $(@D)/usr/bin/smartBASIC $(TARGET_DIR)/usr/bin/smartBASIC
+	$(INSTALL) -D -m 755 $(@D)/etc/init.d/S95bluetooth $(TARGET_DIR)/etc/init.d/S95bluetooth
+endef
+ifeq ($(BR2_MSD_BINARIES_SMARTBASIC),y)
+	MSD_BINARIES_POST_INSTALL_TARGET_HOOKS += MSD_BINARIES_SMARTBASIC_INSTALL_TARGET
+endif
+
+define MSD_BINARIES_SMARTBASIC_APPS_INSTALL_TARGET
+	mkdir -p $(TARGET_DIR)/usr/share/smartBASIC/apps
+	mkdir -p $(TARGET_DIR)/usr/share/smartBASIC/apps/lib
+	$(INSTALL) -D -m 755 $(@D)/usr/share/smartBASIC/apps/*.sb $(TARGET_DIR)/usr/share/smartBASIC/apps/
+	$(INSTALL) -D -m 755 $(@D)/usr/share/smartBASIC/apps/lib/*.sblib $(TARGET_DIR)/usr/share/smartBASIC/apps/lib/
+endef
+ifeq ($(BR2_MSD_BINARIES_SMARTBASIC_APPS),y)
+	MSD_BINARIES_POST_INSTALL_TARGET_HOOKS += MSD_BINARIES_SMARTBASIC_APPS_INSTALL_TARGET
+endif
+
+define MSD_BINARIES_LLAGENT_INSTALL_TARGET
+	$(INSTALL) -D -m 755 $(@D)/usr/bin/llagent $(TARGET_DIR)/usr/bin/llagent
+	$(INSTALL) -D -m 755 $(@D)/etc/init.d/opt/S99agent $(TARGET_DIR)/etc/init.d/opt/S99agent
+endef
+ifeq ($(BR2_MSD_BINARIES_LLAGENT),y)
+	MSD_BINARIES_POST_INSTALL_TARGET_HOOKS += MSD_BINARIES_LLAGENT_INSTALL_TARGET
+endif
+
+define MSD_BINARIES_INSTALL_TARGET_CMDS
+	mkdir -p $(TARGET_DIR)/usr/bin
+	mkdir -p $(TARGET_DIR)/usr/lib
+	$(MAKE) --no-print-directory -C $(LINUX_DIR) kernelrelease ARCH=arm CROSS_COMPILE="$(TARGET_CROSS)" > $(@D)/kernel.release
+	mkdir -p $(TARGET_DIR)/lib/modules/`cat $(@D)/kernel.release`/extra
+	mkdir -p -m 700 $(TARGET_DIR)/usr/sbfs
+endef
+
+define MSD_BINARIES_INSTALL_STAGING_CMDS
 endef
 
 define MSD_BINARIES_INSTALL_FIPS_BINARIES
