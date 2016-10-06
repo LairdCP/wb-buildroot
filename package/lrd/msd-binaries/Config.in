@@ -19,4 +19,47 @@ config BR2_MSD_BINARIES_VERSION
 	  Specify the version of sdcbins to use.
 	  E.g. alpha.0.2
 
+config BR2_MSD_BINARIES_WEBLCM
+	bool "Laird webLCM"
+    default y
+	help
+	  Install the webLCM from the MSD package.
+
+config BR2_MSD_BINARIES_EVENTMON
+	bool "Laird event monitor"
+    default y
+	help
+	  Install the eventmon from the MSD package.
+
+config BR2_MSD_BINARIES_SDCCLI
+	bool "Laird SDC CLI"
+    default y
+	help
+	  Install the SDC CLI from the MSD package.
+
+config BR2_MSD_BINARIES_SDCSUPP
+	bool "Laird SDC Supplicant"
+    default y
+	help
+	  Install the SDC Supplicant from the MSD package.
+
+config BR2_MSD_BINARIES_SMARTBASIC
+	bool "Laird smartBASIC"
+    default y
+	help
+	  Install the smartBASIC from the MSD package.
+
+if BR2_MSD_BINARIES_SMARTBASIC
+config BR2_MSD_BINARIES_SMARTBASIC_APPS
+	bool "Laird smartBASIC apps"
+    default y
+	help
+	  Install the smartBASIC apps from the MSD package.
+endif
+
+config BR2_MSD_BINARIES_LLAGENT
+	bool "Laird Link agent"
+    default y
+	help
+	  Install the Laird Link agent from the MSD package.
 endif
