@@ -1,0 +1,5 @@
+config BR2_PACKAGE_WEB_LCM_GATWICK
+	bool "web_lcm_gatwick"
+	help
+	  Laird webapp to configure LoRa gateway
+	    http://lairdtech.com
