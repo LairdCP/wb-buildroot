@@ -671,11 +671,15 @@ then
     if [ -z "$IFRC_SCRIPT" -a -z "$ifnl_s" ]
     then
       msg3 "parsing /e/n/i for $dev pre/post-d/cfg-do directives"
-      set -- "$( sed "/^iface $devalias $inet /,/^if/{/^$/q;\
+      set -- "$( sed "/^iface $devalias inet /,/^if/{/^$/q;\
          s/^[ \t]\+[^#]\(p[or][se][t]*\)-\([d]*cfg\)-do \(.*\)/\1_\2_do='\3'/p;\
-         s/^[ \t]\+[^#]\(delay\)-\([d]*cfg\) \(.*\)/\1_\2='\3'/p;}"\
-                     -n $eni 2>/dev/null )"
-      IFRC_SCRIPT=${@//$'\n'/ }
+         s/^[ \t]\+[^#]\(delay\)-\([d]*cfg\) \(.*\)/\1_\2='\3'/p;}" -n $eni 2>/dev/null )"
+      INET_SCRIPT=${@//$'\n'/ }
+      set -- "$( sed "/^iface $devalias inet6 /,/^if/{/^$/q;\
+         s/^[ \t]\+[^#]\(p[or][se][t]*\)-\([d]*cfg6\)-do \(.*\)/\1_\2_do='\3'/p;\
+         s/^[ \t]\+[^#]\(delay\)-\([d]*cfg6\) \(.*\)/\1_\2='\3'/p;}" -n $eni 2>/dev/null )"
+      INET6_SCRIPT=${@//$'\n'/ }
+      IFRC_SCRIPT="$INET_SCRIPT $INET6_SCRIPT"
     fi
   fi
   shift $#
@@ -696,7 +700,7 @@ then
     IFRC_SCRIPT=${mp_cdt/*cdt{/{}
   fi
 fi
-eval $IFRC_SCRIPT \
+eval $IFRC_SCRIPT 2>/dev/null \
   || msg "**cfg-do-task error - $IFRC_SCRIPT"
 
 #
@@ -947,6 +951,7 @@ case $IFRC_ACTION in
     msg1 "deconfiguring $dev"
     ifrc_netlink_daemon stop
 
+    cdt pre_dcfg6_do
     cdt pre_dcfg_do
 
     /usr/sbin/dhclient6.sh stop
@@ -964,6 +969,7 @@ case $IFRC_ACTION in
     fn ip ${vm:+-s} route flush cache
     #fn ip link set dev $dev down
 
+    cdt post_dcfg6_do
     cdt post_dcfg_do &
 
     rmdir ${ifrc_Lfp}/$dev.* 2>/dev/null || :
@@ -1021,7 +1027,8 @@ case $IFRC_ACTION in
 
     if [ "${methvia/*cfg*/cfg}" != "cfg" -a ! -n "$re" ]
     then
-      cdt pre_cfg_do
+      cdt pre_cfg6_do
+      cdt pre_cfg_do &
     fi
 
     # Ensure that iface is up and the netlink daemon is active.
@@ -1043,6 +1050,7 @@ case $IFRC_ACTION in
 
     if [ "${methvia/*cfg*/cfg}" != "cfg" -a ! -n "$re" ]
     then
+      cdt post_cfg6_do
       cdt post_cfg_do &
     fi
     rmdir ${ifrc_Lfp}/$dev.cfg 2>/dev/null || :
@@ -1269,19 +1277,12 @@ ifrcmp_await_f6dad() {
   local idad_timer=50
   while let --idad_timer ## deciseconds
   do
-      [ -n "$( ip -6 -o addr list dev $dev | grep "link/ether" )" ] \
-      && [ -z "$( ip -6 -o addr list dev $dev | grep "scope global tentative" )" ] \
-      && [ -z "$( ip -6 -o addr list dev $dev | grep "scope link tentative" )" ] \
-      && break
+    [ -n "$( ip -6 -o addr list dev $dev | grep "link/ether" )" ] \
+    && [ -z "$( ip -6 -o addr list dev $dev | grep "scope global tentative" )" ] \
+    && [ -z "$( ip -6 -o addr list dev $dev | grep "scope link tentative" )" ] \
+    && break
     usleep 87654
   done
-
-  if [ $idad_timer -lt 0 ] \
-  || [ -n "$( ip -6 -o addr list dev $dev to $ip/$nm dadfailed )" ]
-  then
-    msg "probable inet6 duplicate address!"
-    false
-  fi
 }
 
 ifrcmp_await_f4dhcp() {
@@ -1420,23 +1421,24 @@ do unset ip nm nw wc bc ns gw to rip client scope metric weight
 	  /usr/sbin/dhclient6.sh start $dev
 	  ;;
 
-
 	dhcp) ## inet6 - Dynamic Host Configuration Protocol v6
-	  echo "DHCPv6"
+	  echo 1 > /proc/sys/net/ipv6/conf/$dev/disable_ipv6
+	  echo 0 > /proc/sys/net/ipv6/conf/$dev/disable_ipv6
 	  echo 0 > /proc/sys/net/ipv6/conf/$dev/accept_ra
-		ifrcmp_await_f6dad || exec $0 -6 $dev dn
-		/usr/sbin/dhclient6.sh start $dev
-          ;;
+	  ifrcmp_await_f6dad || exec $0 -6 $dev dn
+	  /usr/sbin/dhclient6.sh start $dev
+	  ;;
 
-
-        static) ## inet6 - Static method + optional params
-          ifrcmp_validate_f6static
-
-          # ip-addr-modify IP/NM
-          xip=$( ip -6 -o addr show dev $dev scope global primary \
+	static) ## inet6 - Static method + optional params
+	  ifrcmp_validate_f6static
+	  echo 1 > /proc/sys/net/ipv6/conf/$dev/disable_ipv6
+	  echo 0 > /proc/sys/net/ipv6/conf/$dev/disable_ipv6
+	  echo 0 > /proc/sys/net/ipv6/conf/$dev/accept_ra
+	  # ip-addr-modify IP/NM
+	  xip=$( ip -6 -o addr show dev $dev scope global primary \
                |grep -om1 '[0-9a-f:]*/[0-9]*' )
 
-          test -n "$xip" \
+	  test -n "$xip" \
             && fn ip -6 addr del $xip dev $dev
           : && fn ip -6 addr add $ip/$nm ${scope:+scope $scope} dev $dev
 
