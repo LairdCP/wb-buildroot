@@ -33,7 +33,7 @@ x_chk() {
       && mv /etc/resolv.conf /tmp
 
     # install symlink
-    ln -s /tmp/resolv.conf /etc/resolv.conf
+    ln -sf /tmp/resolv.conf /etc/resolv.conf
   fi
   test -s /tmp/resolv.conf \
     || printf "\n" >/tmp/resolv.conf
@@ -51,10 +51,7 @@ x_chk() {
 }
 
 x_add() {
-  # check if valid nameserver
-  nslookup $1 $1 >/dev/null \
-    || return 1
-  # and insert if not there
+  # insert if not there
   grep -q "^nameserver $1" /tmp/resolv.conf \
     && return 1 \
     || sed "2inameserver $1" -i /tmp/resolv.conf
