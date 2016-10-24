@@ -25,17 +25,21 @@ define MSD_BINARIES_CONFIGURE_CMDS
 endef
 
 define MSD_BINARIES_WEBLCM_INSTALL_TARGET
-	mkdir -p $(TARGET_DIR)/var/www/docs
-	mkdir -p $(TARGET_DIR)/var/www/docs/assets/css
-	mkdir -p $(TARGET_DIR)/var/www/docs/assets/img
-	mkdir -p $(TARGET_DIR)/var/www/docs/assets/js
-	$(INSTALL) -D -m 644  $(@D)/var/www/docs/*.html   $(TARGET_DIR)/var/www/docs/
-	$(INSTALL) -D -m 644  $(@D)/var/www/docs/*.php   $(TARGET_DIR)/var/www/docs/
-	$(INSTALL) -D -m 644  $(@D)/var/www/docs/assets/css/*.css   $(TARGET_DIR)/var/www/docs/assets/css/
-	$(INSTALL) -D -m 644  $(@D)/var/www/docs/assets/img/*.png   $(TARGET_DIR)/var/www/docs/assets/img/
-	$(INSTALL) -D -m 644  $(@D)/var/www/docs/assets/js/*.js   $(TARGET_DIR)/var/www/docs/assets/js/
-	mkdir -p $(TARGET_DIR)/etc/lighttpd
-	$(INSTALL) -D -m 644  $(@D)/etc/lighttpd/lighttpd.*  $(TARGET_DIR)/etc/lighttpd/
+	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs
+	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/assets/css
+	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/assets/img
+	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/assets/js
+	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/html
+	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/php
+	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/plugins
+	mkdir -p -m 0775 $(TARGET_DIR)/etc/lighttpd
+	cp -r $(@D)/var/www/docs/php/* $(TARGET_DIR)/var/www/docs/php
+	cp -r $(@D)/var/www/docs/plugins/* $(TARGET_DIR)/var/www/docs/plugins
+	$(INSTALL) -D -m 644 $(@D)/var/www/docs/webLCM.* $(TARGET_DIR)/var/www/docs/
+	$(INSTALL) -D -m 644 $(@D)/var/www/docs/assets/css/*.css $(TARGET_DIR)/var/www/docs/assets/css/
+	$(INSTALL) -D -m 644 $(@D)/var/www/docs/assets/img/*.png $(TARGET_DIR)/var/www/docs/assets/img/
+	$(INSTALL) -D -m 644 $(@D)/var/www/docs/assets/js/*.js $(TARGET_DIR)/var/www/docs/assets/js/
+	$(INSTALL) -D -m 644 $(@D)/var/www/docs/lighttpd.* $(TARGET_DIR)/etc/lighttpd/
 endef
 ifeq ($(BR2_MSD_BINARIES_WEBLCM),y)
 	MSD_BINARIES_POST_INSTALL_TARGET_HOOKS += MSD_BINARIES_WEBLCM_INSTALL_TARGET
