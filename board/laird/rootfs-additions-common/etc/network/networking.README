@@ -112,7 +112,6 @@ Otherwise, the static configuration is shown as enabled here.
 	iface eth0 inet static
 	  address 192.168.3.10
 	  netmask 255.255.255.0
-	  gateway 192.168.3.187
 	  broadcast 192.168.3.255
 	  nameserver 8.8.8.8
 	  nameserver 4.4.4.4
