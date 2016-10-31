@@ -1,0 +1,42 @@
+#!/bin/sh -e
+### BEGIN INIT INFO
+# Provides:
+# Required-Start:    mountkernfs $local_fs urandom
+# Required-Stop:     $local_fs
+# Default-Start:     S
+# Default-Stop:      0 6
+# Short-Description: Raise network interfaces.
+# Description:       Prepare /run/network directory, ifstate file and raise network interfaces, or take them down.
+### END INIT INFO
+
+WIFI_PREFIX=wlan
+WIFI_DRIVER=ath6kl_sdio
+WIFI_MODULE=ath/ath6kl/ath6kl_sdio.ko
+WIFI_KMPATH=/lib/modules/`uname -r`/kernel/drivers/net/wireless
+
+case "$1" in
+start)
+	modprobe cfg80211
+	modprobe ath6kl_core
+        modprobe $WIFI_DRIVER
+	ip link set dev wlan0 up 2>&1
+	;;
+
+stop)
+	ip addr flush dev wlan0
+	ip link set dev wlan0 down 2>&1
+	modprobe -r $WIFI_DRIVER
+	;;
+
+restart)
+	stop
+	start
+	;;
+
+*)
+	echo "Usage: /etc/init.d/S40wifi {start|stop|restart}"
+	exit 1
+	;;
+esac
+exit 0
+
