@@ -7,6 +7,7 @@
 SDCSUPP_VERSION = local
 SDCSUPP_SITE = package/lrd-closed-source/externals/wpa_supplicant
 SDCSUPP_SITE_METHOD = local
+SDCSUPP_DBUS_NEW_SERVICE = fi.w1.wpa_supplicant1
 
 SDCSUPP_DEPENDENCIES = libnl openssl sdcsdk
 SDCSUPP_TARGET_DIR = $(TARGET_DIR)
@@ -38,15 +39,29 @@ define SDCSUPP_BUILD_CMDS
     #(cd $(@D)/wpa_supplicant/wpa_supplicant && CROSS_COMPILE=arm-sdc-linux-gnueabi ./sdc-build-linux.sh 4 1 2 3 1)
 endef
 
+define SDCSUPP_INSTALL_DBUS_NEW
+	$(INSTALL) -m 0644 -D \
+		$(@D)/wpa_supplicant/wpa_supplicant/dbus/$(SDCSUPP_DBUS_NEW_SERVICE).service \
+		$(TARGET_DIR)/usr/share/dbus-1/system-services/$(SDCSUPP_DBUS_NEW_SERVICE).service
+endef
+
 ifeq ($(BR2_PACKAGE_SDCSUPP_WPA_CLI),y)
 define SDCSUPP_INSTALL_WPA_CLI
 	$(INSTALL) -D -m 755 $(@D)/wpa_supplicant/wpa_supplicant/wpa_cli $(SDCSUPP_TARGET_DIR)/usr/bin/wpa_cli
 endef
 endif
 
+define SDCSUPP_INSTALL_DBUS
+	$(INSTALL) -m 0644 -D \
+		$(@D)/wpa_supplicant/wpa_supplicant/dbus/dbus-wpa_supplicant.conf \
+		$(TARGET_DIR)/etc/dbus-1/system.d/wpa_supplicant.conf
+	$(SDCSUPP_INSTALL_DBUS_NEW)
+endef
+
 define SDCSUPP_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/wpa_supplicant/wpa_supplicant/sdcsupp $(SDCSUPP_TARGET_DIR)/usr/bin/sdcsupp
 	$(SDCSUPP_INSTALL_WPA_CLI)
+	$(SDCSUPP_INSTALL_DBUS)
 endef
 
 define SDCSUPP_UNINSTALL_TARGET_CMDS
