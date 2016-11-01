@@ -31,6 +31,7 @@ rm -f $TARGETDIR/etc/init.d/S50sshd
 rm -f $TARGETDIR/etc/init.d/S50lighttpd
 rm -f $TARGETDIR/etc/init.d/S01logging
 rm -f $TARGETDIR/etc/init.d/S20urandom
+rm -f $TARGETDIR/etc/init.d/S40network
 
 #remove the dhcp init scripts
 rm -f $TARGETDIR/etc/init.d/S80dhcp-relay
