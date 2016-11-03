@@ -1,0 +1,30 @@
+From c0e04ccc98da829f8e0e2115c4a674503499d7c3 Mon Sep 17 00:00:00 2001
+From: Dan Kephart <dan.kephart@lairdtech.com>
+Date: Thu, 27 Oct 2016 18:37:33 -0400
+Subject: [PATCH] laird: cfg80211: Fix CFG80211_INTERNAL_REGDB_FILE depends on
+
+Should depend on CFG80211_INTERNAL_REGDB not CFG80211.  Otherwise will
+have CFG80211_INTERNAL_REGDB_FILE show up in .configs that don't specify
+CFG80211_INTERNAL_REGDB but do specify CFG80211.
+
+Bug 10334
+---
+ net/wireless/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/wireless/Kconfig b/net/wireless/Kconfig
+index fef4d2a7..7476cf7 100644
+--- a/net/wireless/Kconfig
++++ b/net/wireless/Kconfig
+@@ -177,7 +177,7 @@ config CFG80211_INTERNAL_REGDB
+ config CFG80211_INTERNAL_REGDB_FILE
+ 	string "specify file for internal regulatory rules" if CFG80211_INTERNAL_REGDB
+ 	default "db.txt"
+-	depends on CFG80211
++	depends on CFG80211_INTERNAL_REGDB
+ 	---help---
+ 	  This option specifies what file in net/wireless is used to
+ 	  generate the internal data structure repesenting the wireless
+-- 
+1.9.1
+

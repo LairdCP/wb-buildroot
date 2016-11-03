@@ -1,0 +1,25 @@
+From 86577b7a34795c3aec47fea1f76c7882024b0714 Mon Sep 17 00:00:00 2001
+From: Steve deRosier <steve.derosier@lairdtech.com>
+Date: Wed, 2 Nov 2016 20:02:31 -0700
+Subject: [PATCH] laird: Update version to 4.4.11-laird06
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 9f057e24..6d887d3 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,7 +1,7 @@
+ VERSION = 4
+ PATCHLEVEL = 4
+ SUBLEVEL = 11
+-EXTRAVERSION = -laird05
++EXTRAVERSION = -laird06
+ NAME = Blurry Fish Butt
+ 
+ # *DOCUMENTATION*
+-- 
+1.9.1
+
