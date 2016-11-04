@@ -1,0 +1,14 @@
+config BR2_PACKAGE_HOST_NODEJS
+	bool "host nodejs tools for npm"
+	help
+	  Build nodejs for the host
+
+	  https://nodejs.org/
+
+if BR2_PACKAGE_HOST_NODEJS
+
+config BR2_PACKAGE_NODEJS_VERSION_STRING
+	string
+	default "6.9.4"
+
+endif
