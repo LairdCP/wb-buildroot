@@ -5,6 +5,10 @@
 ################################################################################
 
 NODEJS_VERSION = $(call qstrip,$(BR2_PACKAGE_NODEJS_VERSION_STRING))
+ifeq ($(NODEJS_VERSION),)
+NODEJS_VERSION = 6.2.1
+endif
+
 NODEJS_SOURCE = node-v$(NODEJS_VERSION).tar.xz
 NODEJS_SITE = http://nodejs.org/dist/v$(NODEJS_VERSION)
 NODEJS_DEPENDENCIES = host-python host-nodejs zlib \
