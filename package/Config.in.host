@@ -1,6 +1,7 @@
 menu "Host utilities"
 
 	source "package/checkpolicy/Config.in.host"
+	source "package/composer/Config.in.host"
 	source "package/cramfs/Config.in.host"
 	source "package/dfu-util/Config.in.host"
 	source "package/dos2unix/Config.in.host"
