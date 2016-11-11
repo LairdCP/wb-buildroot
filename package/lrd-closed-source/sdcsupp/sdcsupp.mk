@@ -9,8 +9,9 @@ SDCSUPP_SITE = package/lrd-closed-source/externals/wpa_supplicant
 SDCSUPP_SITE_METHOD = local
 SDCSUPP_DBUS_NEW_SERVICE = fi.w1.wpa_supplicant1
 
-SDCSUPP_DEPENDENCIES = libnl openssl sdcsdk
+SDCSUPP_DEPENDENCIES = host-pkgconf dbus libnl openssl sdcsdk
 SDCSUPP_TARGET_DIR = $(TARGET_DIR)
+SDCSUPP_MAKE_ENV = PKG_CONFIG="$(HOST_DIR)"/usr/bin/pkg-config
 
 SDCSUPP_PLATFORM := $(call qstrip,$(BR2_LRD_PLATFORM))
 ifeq ($(SDCSUPP_PLATFORM),wb50n)
@@ -33,7 +34,7 @@ define SDCSUPP_BUILD_CMDS
     cp $(@D)/wpa_supplicant/wpa_supplicant/config_openssl $(@D)/wpa_supplicant/wpa_supplicant/.config
     $(MAKE) -C $(@D)/wpa_supplicant/wpa_supplicant clean
     CFLAGS="-I$(STAGING_DIR)/usr/include/libnl3 $(TARGET_CFLAGS) -MMD -Wall -g" \
-        $(MAKE) -C $(@D)/wpa_supplicant/wpa_supplicant V=1 NEED_TLS_LIBDL=1 $(SDCSUPP_FIPS) \
+        $(SDCSUPP_MAKE_ENV) $(MAKE) -C $(@D)/wpa_supplicant/wpa_supplicant V=1 NEED_TLS_LIBDL=1 $(SDCSUPP_FIPS) \
             $(SDCSUPP_RADIO_FLAGS) CROSS_COMPILE="$(TARGET_CROSS)"
     $(TARGET_CROSS)objcopy -S $(@D)/wpa_supplicant/wpa_supplicant/wpa_supplicant $(@D)/wpa_supplicant/wpa_supplicant/sdcsupp
     #(cd $(@D)/wpa_supplicant/wpa_supplicant && CROSS_COMPILE=arm-sdc-linux-gnueabi ./sdc-build-linux.sh 4 1 2 3 1)
