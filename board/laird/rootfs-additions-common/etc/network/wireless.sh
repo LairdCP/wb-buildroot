@@ -96,7 +96,7 @@ wifi_queryinterface() {
     then # determine iface via device path
       for wl_dev in /sys/class/net/*/phy80211
       do
-        test -d $wl_dev/device/subsystem/drivers/$WIFI_DRIVER \
+        test -d "${wl_dev//\*}"/device/subsystem/drivers/$WIFI_DRIVER \
           && WIFI_DEV=${wl_dev#*net/} WIFI_DEV=${WIFI_DEV%/*} \
           && break
       done
@@ -140,6 +140,36 @@ wifi_fips_mode() {
   return 0
 }
 
+wifi_reset_gpio(){
+  msg "  ...mmc failed to register, retrying: ${WIFI_DEV:-?}";
+  reset_gpio_path=/sys/module/ath6kl_sdio/parameters/reset_pwd_gpio
+  if [ -f "$reset_gpio_path" ]
+  then
+    { read -r reset_pwd_gpio < "$reset_gpio_path"; } 2>/dev/null
+    case $reset_pwd_gpio in
+    #WB50
+      "131")
+      echo 0 > /sys/class/gpio/pioE3/value
+      $usleep 2500
+      echo 1 > /sys/class/gpio/pioE3/value
+      $usleep 2500
+      break
+      ;;
+    #WB45
+    "28")
+      echo 0 > /sys/class/gpio/pioA28/value
+      $usleep 2500
+      echo 1 > /sys/class/gpio/pioA28/value
+      $usleep 2500
+      break
+      ;;
+    *)
+      msg "  ...reset GPIO not found: ${WIFI_DEV:-?}";
+      ;;
+    esac
+  fi
+}
+
 wifi_start() {
   wifi_lock_wait
   if grep -q "${module/.ko/}" /proc/modules
@@ -175,8 +205,14 @@ wifi_start() {
     || { msg "  ...driver failed to load"; return 1; }
 
     ## await enumerated interface
-    wifi_queryinterface 27 \
-    || { msg "  ...driver init failure, iface n/a: ${WIFI_DEV:-?}"; return 1; }
+    wifi_queryinterface 27
+    if [ ! -n "$WIFI_DEV"  ]
+    then
+      wifi_reset_gpio
+      wifi_queryinterface 27 \
+        || { msg "  ...driver init failure, iface n/a: ${WIFI_DEV:-?}"; }
+    fi
+
   fi
 
   # enable interface
