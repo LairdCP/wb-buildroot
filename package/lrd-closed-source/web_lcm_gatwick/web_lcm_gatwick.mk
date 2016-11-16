@@ -12,7 +12,7 @@ define WEB_LCM_GATWICK_BUILD_CMDS
 
 	cd $(@D); \
 		PATH=$(BR_PATH) \
-		$(HOST_DIR)/usr/bin/ng build
+		$(HOST_DIR)/usr/bin/ng build --prod
 endef
 
 define WEB_LCM_GATWICK_INSTALL_TARGET_CMDS
