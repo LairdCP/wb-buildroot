@@ -11,6 +11,7 @@ PHP_INSTALL_STAGING = YES
 PHP_INSTALL_STAGING_OPTS = INSTALL_ROOT=$(STAGING_DIR) install
 PHP_INSTALL_TARGET_OPTS = INSTALL_ROOT=$(TARGET_DIR) install
 PHP_DEPENDENCIES = host-pkgconf
+HOST_PHP_DEPENDENCIES = host-pkgconf host-libxml2 host-openssl
 PHP_LICENSE = PHP
 PHP_LICENSE_FILES = LICENSE
 PHP_CONF_OPTS = \
@@ -21,6 +22,10 @@ PHP_CONF_OPTS = \
 	--with-config-file-path=/etc \
 	--disable-phpdbg \
 	--disable-rpath
+HOST_PHP_CONF_OPTS = \
+	--with-libxml-dir=$(HOST_DIR)/usr \
+	--with-openssl=$(HOST_DIR)/usr
+
 PHP_CONF_ENV = \
 	ac_cv_func_strcasestr=yes \
 	EXTRA_LIBS="$(PHP_EXTRA_LIBS)"
@@ -46,6 +51,12 @@ define PHP_BUILDCONF
 	cd $(@D) ; $(TARGET_MAKE_ENV) ./buildconf --force
 endef
 PHP_PRE_CONFIGURE_HOOKS += PHP_BUILDCONF
+
+HOST_PHP_DEPENDENCIES += host-autoconf host-automake host-libtool
+define HOST_PHP_BUILDCONF
+	cd $(@D) ; $(HOST_MAKE_ENV) ./buildconf --force
+endef
+HOST_PHP_PRE_CONFIGURE_HOOKS += HOST_PHP_BUILDCONF
 
 ifeq ($(BR2_ENDIAN),"BIG")
 PHP_CONF_ENV += ac_cv_c_bigendian_php=yes
@@ -346,3 +357,4 @@ PHP_POST_INSTALL_TARGET_HOOKS += PHP_INSTALL_FIXUP
 PHP_CONF_ENV += CFLAGS="$(PHP_CFLAGS)"
 
 $(eval $(autotools-package))
+$(eval $(host-autotools-package))
