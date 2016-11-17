@@ -4,7 +4,7 @@ WEB_LCM_GATWICK_SITE_METHOD = local
 WEB_LCM_GATWICK_DEPENDENCIES = host-angular-cli host-composer php_sdk
 
 define WEB_LCM_GATWICK_BUILD_CMDS
-	cd $(@D); $(HOST_DIR)/usr/bin/composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+	cd $(@D); $(HOST_DIR)/usr/bin/php $(HOST_DIR)/usr/bin/composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
 	cd $(@D); \
 		PATH=$(BR_PATH) \
