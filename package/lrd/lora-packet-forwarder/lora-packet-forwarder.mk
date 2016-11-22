@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-LORA_PACKET_FORWARDER_VERSION = v3.0.0
+LORA_PACKET_FORWARDER_VERSION = v3.1.0
 LORA_PACKET_FORWARDER_SITE = https://github.com/Lora-net/packet_forwarder.git
 LORA_PACKET_FORWARDER_SITE_METHOD = git
 LORA_PACKET_FORWARDER_DEPENDENCIES = libloragw
