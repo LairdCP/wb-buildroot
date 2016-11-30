@@ -133,10 +133,8 @@ udhcpc_start() {
   # And it may be signalled or re-spawned again, depending on events/conditions.
   # Flags are:
   # iface, verbose, request-ip, exit-no-lease/quit-option, exit-release
-  # Retry mechanism:
-  # send 4-discovers, paused at 2sec, repeat after 5sec
   eval \
-    udhcpc -i$dev $v $rip -R -t4 -T2 -A5 -b $ropt $vci $xopt $rbf $pf $rs $nv
+    udhcpc -i$dev $v $rip -R -b $ropt $vci $xopt $rbf $pf $rs $nv
 
 } >>${log:-/dev/null}
 
