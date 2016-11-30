@@ -326,7 +326,7 @@ ifrc_netlink_daemon() {
       $phy80211 && api=-miff
       #
       # start the netlink daemon
-      $ifnl -i$dev $api $nsl -fa -qMp -u0 -d0 -Ir$0 -x\&
+      $ifnl -i$dev $api $nsl -fa -qMp -u0 -Ir$0 -x\&
 
       msg1 "  $ifnl started"
     fi
