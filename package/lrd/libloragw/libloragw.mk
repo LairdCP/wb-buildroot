@@ -22,7 +22,7 @@ endef
 
 define LIBLORAGW_INSTALL_TARGET_CMDS
 	$(INSTALL) -d $(TARGET_DIR)/opt/lora/
-	$(INSTALL) -D -m 755 $(@D)/reset_lgw.sh $(TARGET_DIR)/opt/lora/reset_lgw
+	$(INSTALL) -D -m 755 $(@D)/reset_lgw.sh $(TARGET_DIR)/usr/sbin/reset_lgw
 endef
 
 $(eval $(generic-package))
