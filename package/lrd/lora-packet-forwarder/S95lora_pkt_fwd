@@ -23,14 +23,14 @@ start()
   modprobe spidev
 
   # set the gateway EUI
-  /opt/lora/update_gwid /opt/lora/local_conf.json >/dev/null
+  update_gwid /opt/lora/local_conf.json >/dev/null
 
   # start the concentrator
-  /opt/lora/reset_lgw start
+  reset_lgw start
 
   # brind up the packet forwarder
   cd /opt/lora/
-  /opt/lora/lora_pkt_fwd >/var/log/lora_pkt_fwd 2>&1 &
+  lora_pkt_fwd >/var/log/lora_pkt_fwd 2>&1 &
 }
 
 stop()
@@ -39,7 +39,7 @@ stop()
   killall lora_pkt_fwd 2>/dev/null
 
   # hold the concentrator in reset
-  /opt/lora/reset_lgw stop
+  reset_lgw stop
 
   true
 }

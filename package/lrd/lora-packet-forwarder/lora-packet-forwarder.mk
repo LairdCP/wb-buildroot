@@ -15,9 +15,9 @@ endef
 
 define LORA_PACKET_FORWARDER_INSTALL_TARGET_CMDS
 	$(INSTALL) -d $(TARGET_DIR)/opt/lora/
-	$(INSTALL) -D -m 755 $(@D)/lora_pkt_fwd/lora_pkt_fwd $(TARGET_DIR)/opt/lora/
+	$(INSTALL) -D -m 755 $(@D)/lora_pkt_fwd/lora_pkt_fwd $(TARGET_DIR)/usr/sbin/
 	$(INSTALL) -D -m 755 $(@D)/lora_pkt_fwd/*.json $(TARGET_DIR)/opt/lora/
-	$(INSTALL) -D -m 755 $(@D)/lora_pkt_fwd/update_gwid.sh $(TARGET_DIR)/opt/lora/update_gwid
+	$(INSTALL) -D -m 755 $(@D)/lora_pkt_fwd/update_gwid.sh $(TARGET_DIR)/usr/sbin/update_gwid
 endef
 
 define LORA_PACKET_FORWARDER_INSTALL_INITSCRIPT
