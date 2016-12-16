@@ -1,0 +1,27 @@
+From 703fa5ef83c79a19fc3477025e5a87428af889ea Mon Sep 17 00:00:00 2001
+From: Steve deRosier <steve.derosier@lairdtech.com>
+Date: Mon, 5 Dec 2016 14:57:01 -0800
+Subject: [PATCH] laird: wb50n_rdvk: add mwifiex driver to the defconfig
+
+Bug: 10483
+---
+ arch/arm/configs/wb50n_rdvk_defconfig | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/arch/arm/configs/wb50n_rdvk_defconfig b/arch/arm/configs/wb50n_rdvk_defconfig
+index c288a17..28c28b2 100644
+--- a/arch/arm/configs/wb50n_rdvk_defconfig
++++ b/arch/arm/configs/wb50n_rdvk_defconfig
+@@ -183,6 +183,9 @@ CONFIG_BRCMDBG=y
+ CONFIG_WL_TI=y
+ CONFIG_WL18XX=m
+ CONFIG_WLCORE_SDIO=m
++CONFIG_MWIFIEX=m
++CONFIG_MWIFIEX_SDIO=m
++CONFIG_MWIFIEX_USB=m
+ # CONFIG_INPUT_MOUSEDEV is not set
+ CONFIG_INPUT_EVDEV=y
+ # CONFIG_KEYBOARD_ATKBD is not set
+-- 
+1.9.1
+
