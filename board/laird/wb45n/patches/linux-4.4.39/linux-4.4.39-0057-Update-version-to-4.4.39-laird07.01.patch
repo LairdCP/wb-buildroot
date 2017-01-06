@@ -1,0 +1,25 @@
+From 39acf2470f58066e6c7f0767156bbfae2b9e5bb5 Mon Sep 17 00:00:00 2001
+From: Steve deRosier <steve.derosier@lairdtech.com>
+Date: Wed, 4 Jan 2017 14:57:05 -0800
+Subject: [PATCH] Update version to 4.4.39-laird07.01
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 88d26a632bef..7f01c4f52fca 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,7 +1,7 @@
+ VERSION = 4
+ PATCHLEVEL = 4
+ SUBLEVEL = 39
+-EXTRAVERSION =
++EXTRAVERSION = -laird07.01
+ NAME = Blurry Fish Butt
+ 
+ # *DOCUMENTATION*
+-- 
+2.11.0
+
