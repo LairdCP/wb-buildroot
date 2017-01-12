@@ -679,7 +679,14 @@ then
          s/^[ \t]\+[^#]\(p[or][se][t]*\)-\([d]*cfg6\)-do \(.*\)/\1_\2_do='\3'/p;\
          s/^[ \t]\+[^#]\(delay\)-\([d]*cfg6\) \(.*\)/\1_\2='\3'/p;}" -n $eni 2>/dev/null )"
       INET6_SCRIPT=${@//$'\n'/ }
-      IFRC_SCRIPT="$INET_SCRIPT $INET6_SCRIPT"
+      if [ ! -z "$INET_SCRIPT" ]
+      then
+        IFRC_SCRIPT="$IFRC_SCRIPT $INET_SCRIPT"
+      fi
+      if [ ! -z "$INET6_SCRIPT" ]
+      then
+	IFRC_SCRIPT="$IFRC_SCRIPT $INET6_SCRIPT"
+      fi
     fi
   fi
   shift $#
