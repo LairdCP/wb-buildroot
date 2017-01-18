@@ -33,7 +33,8 @@ LRD_NETWORK_MANAGER_CONF_OPTS = \
 	--with-crypto=gnutls \
 	--with-iptables=/usr/sbin/iptables \
 	--disable-ifupdown \
-	--disable-ifnet
+	--disable-ifnet \
+	--disable-json-validation
 
 ifeq ($(BR2_PACKAGE_LRD_NETWORK_MANAGER_TUI),y)
 LRD_NETWORK_MANAGER_DEPENDENCIES += newt
