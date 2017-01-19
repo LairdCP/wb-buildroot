@@ -99,4 +99,6 @@ else
   echo "$LAIRD_RELEASE_STRING" > $TARGETDIR/etc/laird-release
 fi
 
+mkdir -p $TARGETDIR/etc/NetworkManager/system-connections
+
 echo "COMMON POST BUILD script: done."
