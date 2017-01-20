@@ -11,6 +11,10 @@ CRDA_DEPENDENCIES = host-pkgconf host-python-pycrypto libnl libgcrypt
 CRDA_LICENSE = ISC
 CRDA_LICENSE_FILES = LICENSE
 
+ifeq ($(BR2_PACKAGE_CRDA_NO_SIGN_CHECK),y)
+export CRDA_NO_SIGN_CHECK=y
+endif
+
 define CRDA_BUILD_CMDS
 	$(TARGET_CONFIGURE_OPTS) \
 		$(MAKE) all_noverify -C $(@D)

@@ -17,5 +17,15 @@ config BR2_PACKAGE_CRDA
 
 	  http://linuxwireless.org/en/developers/Regulatory/CRDA
 
+if BR2_PACKAGE_CRDA
+
+config BR2_PACKAGE_CRDA_NO_SIGN_CHECK
+	bool "disable crda signature checking"
+	help
+		Disable CRDA from doing a signature check on the regulatory
+		database.
+
+endif
+
 comment "crda needs a toolchain w/ threads, dynamic library"
 	depends on !BR2_TOOLCHAIN_HAS_THREADS || BR2_STATIC_LIBS

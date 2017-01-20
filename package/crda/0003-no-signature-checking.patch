@@ -1,0 +1,20 @@
+diff --git a/Makefile b/Makefile
+index 2ad0587..a9acf38 100644
+--- a/Makefile
++++ b/Makefile
+@@ -38,6 +38,7 @@ all: all_noverify verify
+ 
+ all_noverify: $(LIBREG) crda intersect regdbdump db2rd optimize
+ 
++ifneq ($(CRDA_NO_SIGN_CHECK),y)
+ ifeq ($(USE_OPENSSL),1)
+ CFLAGS += -DUSE_OPENSSL -DPUBKEY_DIR=\"$(RUNTIME_PUBKEY_DIR)\" `pkg-config --cflags openssl`
+ LDLIBS += `pkg-config --libs openssl`
+@@ -51,6 +52,7 @@ LDLIBS += -lgcrypt
+ $(LIBREG): keys-gcrypt.c
+ 
+ endif
++endif
+ PYTHON ?= python2
+ MKDIR ?= mkdir -p
+ INSTALL ?= install
