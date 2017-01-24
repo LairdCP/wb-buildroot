@@ -19,7 +19,6 @@ test -c "${BT_UART_DEV}"
 
 echo 30 > /sys/class/gpio/export
 echo high > /sys/class/gpio/pioA30/direction
-echo 1 > /sys/class/gpio/pioA30/value
 
 "${NOHUP_EXE}" "${BLUETOOTHD_EXE}" &
 
