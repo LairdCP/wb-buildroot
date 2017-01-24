@@ -79,4 +79,6 @@ fi
 # Fixup and add debugfs to fstab
 echo 'nodev /sys/kernel/debug   debugfs   defaults   0  0' >> $TARGETDIR/etc/fstab
 
+mkdir -p $TARGETDIR/etc/NetworkManager/system-connections
+
 echo "WB50n RDVK POST BUILD script: done."
