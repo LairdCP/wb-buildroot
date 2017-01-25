@@ -23,7 +23,7 @@ define WEB_LCM_GATWICK_INSTALL_TARGET_CMDS
 	rm $(TARGET_DIR)/var/www/http/*.gz
 
 	mv $(TARGET_DIR)/var/www/api/api.php $(TARGET_DIR)/var/www/http/
-	cp $(TARGET_DIR)/var/www/docs/lrd_php_sdk.php $(TARGET_DIR)/var/www/api/app/plugins/wifi/classes/
+	cp $(TARGET_DIR)/var/www/docs/lrd_php_sdk.php $(TARGET_DIR)/var/www/api/app/Plugins/Wifi/
 
 	$(INSTALL) -D -m 0755 $(@D)/lighttpd.conf \
 				$(@D)/lighttpd.password \
