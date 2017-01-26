@@ -63,6 +63,10 @@ rm -f $TARGETDIR/etc/init.d/rcK
 # create something in /run or a subdirectory.
 rm -rf $TARGETDIR/run
 
+# remove the resolv.conf.  Network Manager will create the appropriate file and
+# link on startup.
+rm -f $TARGETDIR/etc/resolv.conf
+
 # Copy the rootfs-additions-common in place first.
 # If necessary, these can be overwritten by the product specific rootfs-additions.
 tar c --exclude=.svn --exclude=.empty -C board/laird/rootfs-additions-common/ . | tar x -C $TARGETDIR/
