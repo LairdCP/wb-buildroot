@@ -1,0 +1,69 @@
+config BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird Firmware"
+	help
+	  Allow installation of Laird firmware or public Linux firmware
+	  supported by the Laird RDVK from the Laird firmware repository.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_AR6003
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird 45-series"
+	help
+	  Install Laird's AR6003 firmware and calibration data for the 45
+	  series radios.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_AR6004
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird 50-series"
+	help
+	  Install Laird's AR6004 firmware and calibration data for the 50
+	  series radios.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_AR6004_PUBLIC
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Upstream AR6004"
+	help
+	  Install public linux-firmware AR6004 firmware and calibration
+	  data for Laird 50 series radios and Silex radios.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB"
+	help
+	  Install Laird's firmware, calibration data and Bluetooth firmware
+	  for the LWB-Sterling radio.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB5"
+	help
+	  Install Laird's firmware, calibration data and Bluetooth firmware
+	  for the LWB5-Sterling radio.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_MRVL_SD8997
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Upstream full-MAC SD8997"
+	help
+	  Install public linux-firmware SD8997 firmware for the full-MAC
+	  mwifiex driver.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_MWLWIFI_SD8997
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird 60-series"
+	help
+	  Install Laird's SD8997 firmware for the thin-MAC mwlwifi driver.
+	  This supports Laird 60 series radios.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_WL18XX
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "TI WL18XX"
+	help
+	  Install public linux-firmware for the TI WiLink8 wl1835 and
+	  wl1837 radios. Installs the proper configuration for use on a
+	  WB50-RDVK and sets up for default use of the wl1837. Should be
+	  used in conjunction of our setup scripts.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_BT
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Bluetopia"
+	help
+	  Install bluetopia patchram for the 50.
