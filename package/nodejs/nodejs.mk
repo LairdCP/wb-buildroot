@@ -79,7 +79,7 @@ endef
 
 define HOST_NODEJS_BUILD_CMDS
 	$(HOST_MAKE_ENV) PYTHON=$(HOST_DIR)/usr/bin/python2 \
-		$(MAKE1) -C $(@D) \
+		$(MAKE) -C $(@D) \
 		$(HOST_CONFIGURE_OPTS) \
 		PATH=$(@D)/bin:$(BR_PATH)
 endef
