@@ -1,5 +1,36 @@
 config BR2_PACKAGE_WEB_LCM_GATWICK
-	bool "web_lcm_gatwick"
+	bool "Web LCM Gatwick"
 	help
 	  Laird webapp to configure LoRa gateway
 	    http://lairdtech.com
+
+if BR2_PACKAGE_WEB_LCM_GATWICK
+
+config BR2_WEB_LCM_GATWICK_OPTIMIZE_AUTOLOADER
+    bool "Optimize PHP autoloader"
+    default y
+    help
+      If the php backend should allow composer to optimise the autoloader
+      into a classmap.
+
+config BR2_WEB_LCM_GATWICK_SOURCEMAP
+    bool "Include Angular sourcemap"
+    default n
+    help
+      Include source maps generated from Angular in the final image, this
+      helps with in browser debugging.
+
+config BR2_WEB_LCM_GATWICK_AOT
+    bool "Use Angular AOT compilation"
+    default y
+    help
+      Allow AOT to run when compiling the Angular front end, this reduces
+      on the fly page generation but may produce build errors.
+
+config BR2_WEB_LCM_GATWICK_INCLUDE_GZ
+    bool "Include Angular GZ files in image"
+    default n
+    help
+      Include GZ files in final image for web server substitution, also
+      requires webserver configuration.
+endif
