@@ -4,7 +4,8 @@ WEB_LCM_GATWICK_SITE_METHOD = local
 WEB_LCM_GATWICK_DEPENDENCIES = host-nodejs host-composer php_sdk
 
 define WEB_LCM_GATWICK_BUILD_CMDS
-	cd $(@D); $(HOST_DIR)/usr/bin/php $(HOST_DIR)/usr/bin/composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+	cd $(@D); $(HOST_DIR)/usr/bin/php $(HOST_DIR)/usr/bin/composer install --no-dev --ignore-platform-reqs --prefer-dist \
+		$(if $(BR2_WEB_LCM_GATWICK_OPTIMIZE_AUTOLOADER),--optimize-autoloader)
 
 	cd $(@D); \
 		PATH=$(BR_PATH) \
@@ -12,15 +13,15 @@ define WEB_LCM_GATWICK_BUILD_CMDS
 
 	cd $(@D); \
 		PATH=$(BR_PATH) \
-		$(HOST_NPM) run ng -- build --prod --sourcemap true --aot true
+		$(HOST_NPM) run ng -- build --prod \
+		--sourcemap $(if $(BR2_WEB_LCM_GATWICK_SOURCEMAP),true,false) \
+		--aot $(if $(BR2_WEB_LCM_GATWICK_AOT),true,false)
 endef
 
 define WEB_LCM_GATWICK_INSTALL_TARGET_CMDS
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/http/
 	cp -rf $(@D)/api $(TARGET_DIR)/var/www/
 	cp -rf $(@D)/dist/* $(TARGET_DIR)/var/www/http/
-
-	rm $(TARGET_DIR)/var/www/http/*.gz
 
 	mv $(TARGET_DIR)/var/www/api/api.php $(TARGET_DIR)/var/www/http/
 	cp $(TARGET_DIR)/var/www/docs/lrd_php_sdk.php $(TARGET_DIR)/var/www/api/app/Plugins/Wifi/
@@ -29,5 +30,12 @@ define WEB_LCM_GATWICK_INSTALL_TARGET_CMDS
 				$(@D)/lighttpd.password \
 				$(TARGET_DIR)/etc/lighttpd
 endef
+
+define WEB_LCM_GATWICK_REMOVE_GZ_INSTALL_TARGET
+	rm $(TARGET_DIR)/var/www/http/*.gz
+endef
+ifneq ($(BR2_WEB_LCM_GATWICK_INCLUDE_GZ),y)
+	WEB_LCM_GATWICK_POST_INSTALL_TARGET_HOOKS += WEB_LCM_GATWICK_REMOVE_GZ_INSTALL_TARGET
+endif
 
 $(eval $(generic-package))
