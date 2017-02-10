@@ -35,6 +35,7 @@ define MSD_BINARIES_WEBLCM_INSTALL_TARGET
 	mkdir -p -m 0775 $(TARGET_DIR)/etc/lighttpd
 	cp -r $(@D)/var/www/docs/php/* $(TARGET_DIR)/var/www/docs/php
 	cp -r $(@D)/var/www/docs/plugins/* $(TARGET_DIR)/var/www/docs/plugins
+	cp -r $(@D)/var/www/docs/html/* $(TARGET_DIR)/var/www/docs/html
 	$(INSTALL) -D -m 644 $(@D)/var/www/docs/webLCM.* $(TARGET_DIR)/var/www/docs/
 	$(INSTALL) -D -m 644 $(@D)/var/www/docs/assets/css/*.css $(TARGET_DIR)/var/www/docs/assets/css/
 	$(INSTALL) -D -m 644 $(@D)/var/www/docs/assets/img/*.png $(TARGET_DIR)/var/www/docs/assets/img/
