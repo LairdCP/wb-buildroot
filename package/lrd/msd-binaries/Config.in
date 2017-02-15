@@ -69,4 +69,17 @@ config BR2_MSD_BINARIES_LAIRD_FIRMWARE_AR6003
 	help
 	  Install Laird's AR6003 firmware and calibration data for the 45
 	  series radios.
+
+config BR2_MSD_BINARIES_LAIRD_FIRMWARE_AR6004
+	bool "Laird 50-series"
+	default n
+	help
+	  Install Laird's AR6004 firmware and calibration data for the 50
+	  series radios.
+
+config BR2_MSD_BINARIES_LAIRD_FIRMWARE_BT
+	bool "Bluetopia"
+	default n
+	help
+	  Install bluetopia patchram for Laird's 50 series radios.
 endif
