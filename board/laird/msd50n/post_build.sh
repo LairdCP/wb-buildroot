@@ -43,10 +43,6 @@ rm -rf -- $TARGETDIR/usr/local
 rm -f  -- $TARGETDIR/lib/modules/*/modules*
 rm -rf -- $TARGETDIR/lib/modules/*/kernel
 
-# copy firmware files
-mkdir -p $TARGETDIR/lib/firmware
-tar c --exclude=.svn -C board/laird/wb50n/rootfs-additions/lib/firmware . | tar x -C $TARGETDIR/lib/firmware
-
 # copy log_dump
 cp board/laird/rootfs-additions-common/usr/bin/log_dump $TARGETDIR/usr/bin/
 
