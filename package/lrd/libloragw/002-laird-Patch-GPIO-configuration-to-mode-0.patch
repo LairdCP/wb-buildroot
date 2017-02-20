@@ -1,0 +1,39 @@
+From 6beb77f63845fa16471e55fa8ee62190052484c4 Mon Sep 17 00:00:00 2001
+From: Ben Whitten <ben.whitten@lairdtech.com>
+Date: Mon, 20 Feb 2017 10:37:12 +0000
+Subject: [PATCH] laird: Patch GPIO configuration to mode 0
+
+For debugging we set GPIO of the SX1301 to mode 0 which sets;
+GPIO0 rx_buffer_not_empty
+GPIO1 sensor_pkt
+GPIO2 bh_pkt
+GPIO3 fsk_pkt
+GPIO4 tx_on
+---
+ libloragw/src/loragw_hal.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/libloragw/src/loragw_hal.c b/libloragw/src/loragw_hal.c
+index e5770df..b32bfaa 100644
+--- a/libloragw/src/loragw_hal.c
++++ b/libloragw/src/loragw_hal.c
+@@ -714,9 +714,14 @@ int lgw_start(void) {
+         return LGW_HAL_ERROR;
+     }
+ 
+-    /* gives AGC control of GPIOs to enable Tx external digital filter */
++    /* Sets the SX1301 GPIO configuration to mode 0
++     * GPIO0 rx_buffer_not_empty
++     * GPIO1 sensor_pkt
++     * GPIO2 bh_pkt
++     * GPIO3 fsk_pkt
++     * GPIO4 tx_on */
+     lgw_reg_w(LGW_GPIO_MODE,31); /* Set all GPIOs as output */
+-    lgw_reg_w(LGW_GPIO_SELECT_OUTPUT,2);
++    lgw_reg_w(LGW_GPIO_SELECT_OUTPUT,0);
+ 
+     /* Configure LBT */
+     if (lbt_is_enabled() == true) {
+-- 
+2.7.4
+
