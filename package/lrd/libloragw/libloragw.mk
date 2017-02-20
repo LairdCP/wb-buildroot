@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-LIBLORAGW_VERSION = v4.1.0
+LIBLORAGW_VERSION = v4.1.3
 LIBLORAGW_SITE = https://github.com/Lora-net/lora_gateway.git
 LIBLORAGW_SITE_METHOD = git
 LIBLORAGW_INSTALL_STAGING = YES
