@@ -6,6 +6,7 @@ define WEB_LCM_INSTALL_TARGET_CMDS
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/assets/css
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/assets/img
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/assets/js
+	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/assets/fonts
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/html
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/php
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/plugins
@@ -17,6 +18,7 @@ define WEB_LCM_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 0775 $(@D)/assets/css/*.css $(TARGET_DIR)/var/www/docs/assets/css
 	$(INSTALL) -D -m 0755 $(@D)/assets/img/*.png $(TARGET_DIR)/var/www/docs/assets/img
 	$(INSTALL) -D -m 0755 $(@D)/assets/js/*.js $(TARGET_DIR)/var/www/docs/assets/js
+	$(INSTALL) -D -m 0755 $(@D)/assets/fonts/* $(TARGET_DIR)/var/www/docs/assets/fonts
 	$(INSTALL) -D -m 0755 $(@D)/lighttpd.conf $(@D)/lighttpd.password \
 		$(TARGET_DIR)/etc/lighttpd
 endef
