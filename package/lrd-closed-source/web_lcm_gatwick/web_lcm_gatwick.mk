@@ -4,6 +4,8 @@ WEB_LCM_GATWICK_SITE_METHOD = local
 WEB_LCM_GATWICK_DEPENDENCIES = host-nodejs host-composer php_sdk
 
 define WEB_LCM_GATWICK_BUILD_CMDS
+	cd $(@D); cp $(TARGET_DIR)/var/www/docs/lrd_php_sdk.php $(@D)/api/lib/
+
 	cd $(@D); $(HOST_DIR)/usr/bin/php $(HOST_DIR)/usr/bin/composer install --no-dev --ignore-platform-reqs --prefer-dist \
 		$(if $(BR2_WEB_LCM_GATWICK_OPTIMIZE_AUTOLOADER),--optimize-autoloader)
 
@@ -24,7 +26,6 @@ define WEB_LCM_GATWICK_INSTALL_TARGET_CMDS
 	cp -rf $(@D)/dist/* $(TARGET_DIR)/var/www/http/
 
 	mv $(TARGET_DIR)/var/www/api/api.php $(TARGET_DIR)/var/www/http/
-	cp $(TARGET_DIR)/var/www/docs/lrd_php_sdk.php $(TARGET_DIR)/var/www/api/app/Plugins/Wifi/
 
 	$(INSTALL) -D -m 0755 $(@D)/lighttpd.conf \
 				$(@D)/lighttpd.password \
