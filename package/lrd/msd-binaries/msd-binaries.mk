@@ -41,7 +41,7 @@ define MSD_BINARIES_WEBLCM_INSTALL_TARGET
 	$(INSTALL) -D -m 644 $(@D)/var/www/docs/assets/css/*.css $(TARGET_DIR)/var/www/docs/assets/css/
 	$(INSTALL) -D -m 644 $(@D)/var/www/docs/assets/img/*.png $(TARGET_DIR)/var/www/docs/assets/img/
 	$(INSTALL) -D -m 644 $(@D)/var/www/docs/assets/js/*.js $(TARGET_DIR)/var/www/docs/assets/js/
-	$(INSTALL) -D -m 0755 $(@D)/assets/fonts/* $(TARGET_DIR)/var/www/docs/assets/fonts/
+	$(INSTALL) -D -m 0755 $(@D)/var/www/docs/assets/fonts/* $(TARGET_DIR)/var/www/docs/assets/fonts/
 	$(INSTALL) -D -m 644 $(@D)/etc/lighttpd/lighttpd.* $(TARGET_DIR)/etc/lighttpd/
 endef
 ifeq ($(BR2_MSD_BINARIES_WEBLCM),y)
