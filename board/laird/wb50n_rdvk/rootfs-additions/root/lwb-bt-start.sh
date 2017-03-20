@@ -6,7 +6,7 @@ set -e
 readonly PATCHRAM_DEBUG_ARG="-d"
 
 NOHUP_EXE="/usr/bin/nohup"
-PATCHRAM_EXE="/usr/bin/brcm_patchram_plus"
+PATCHRAM_EXE="/usr/bin/patchram"
 BLUETOOTHD_EXE="/usr/libexec/bluetooth/bluetoothd"
 BT_FW_FILE="/lib/firmware/brcm/4343w.hcd"
 BT_UART_DEV="/dev/ttyS1"
