@@ -1,0 +1,43 @@
+From d69da3863fc3517535141c893670c7e7ee391930 Mon Sep 17 00:00:00 2001
+From: "Steve.Braneky" <stephen.braneky@lairdtech.com>
+Date: Thu, 9 Mar 2017 17:02:14 -0500
+Subject: [PATCH] Laird: wbxxn Enhanced UAPSD support
+
+    Enhanced UAPSD support to allow selection of specific access classes.
+    The sdk in conjunction with the 45/50 driver will handle adding and deleting
+    pstreams as needed.
+
+    Bug: 10536
+
+(cherry picked from commit 4c5e3c12e2d0f1ec63968e6113dcca3eb947379c)
+---
+ drivers/net/wireless/ath/ath6kl/wmi.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/net/wireless/ath/ath6kl/wmi.c b/drivers/net/wireless/ath/ath6kl/wmi.c
+index 1f39a0c..5ee59c7 100644
+--- a/drivers/net/wireless/ath/ath6kl/wmi.c
++++ b/drivers/net/wireless/ath/ath6kl/wmi.c
+@@ -92,6 +92,7 @@ enum { // keep this list in sync with the one from ath_access.c from the SDK
+ 	GETAPNAME,
+ 	GETAPIP,
+ 	GETFWSTR,
++	GETPSTREAMS,
+ } ATHEROS_CMD_GET_VALUES;
+ 
+ #define AIRONET_CCX_IE   0x85
+@@ -4460,6 +4461,11 @@ static int ath6kl_genl_get_value (struct sk_buff *skb_2, struct genl_info *info)
+ 						test_bit(TESTMODE, &ar->flag) ? " testmode" : "");
+ 				rc = nla_put_string(skb, ATHEROS_ATTR_MSG, fwStr);
+ 				break;
++			case GETPSTREAMS:
++				spin_lock_bh(&ar->wmi->lock);
++				rc = nla_put(skb, ATHEROS_ATTR_MSG, sizeof(ar->wmi->stream_exist_for_ac), ar->wmi->stream_exist_for_ac);
++				spin_unlock_bh(&ar->wmi->lock);
++				break;
+ 		}
+ 	}
+ 	if (rc != 0)
+-- 
+2.7.4
+
