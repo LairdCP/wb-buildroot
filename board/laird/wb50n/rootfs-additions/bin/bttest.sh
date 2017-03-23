@@ -72,7 +72,7 @@ case $1 in
 
         echo -n "Shutting down Bluetooth..."
         # Shutdown bt/smartbasic via the init script
-        if ! /etc/init.d/S95bluetooth stop > /dev/null
+        if ! /etc/init.d/S95bluetooth.bg stop > /dev/null
         then
             echo "failed!"
             exit 1
@@ -153,7 +153,7 @@ case $1 in
 
         echo -n "Starting Bluetooth..."
         # Shutdown bt/smartbasic via the init script
-        /etc/init.d/S95bluetooth start > /dev/null
+        /etc/init.d/S95bluetooth.bg start > /dev/null
         echo "done."
     ;;
 
