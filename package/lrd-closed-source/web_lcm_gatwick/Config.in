@@ -27,10 +27,4 @@ config BR2_WEB_LCM_GATWICK_AOT
       Allow AOT to run when compiling the Angular front end, this reduces
       on the fly page generation but may produce build errors.
 
-config BR2_WEB_LCM_GATWICK_INCLUDE_GZ
-    bool "Include Angular GZ files in image"
-    default n
-    help
-      Include GZ files in final image for web server substitution, also
-      requires webserver configuration.
 endif
