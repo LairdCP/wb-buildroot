@@ -32,11 +32,4 @@ define WEB_LCM_GATWICK_INSTALL_TARGET_CMDS
 				$(TARGET_DIR)/etc/lighttpd
 endef
 
-define WEB_LCM_GATWICK_REMOVE_GZ_INSTALL_TARGET
-	rm $(TARGET_DIR)/var/www/http/*.gz
-endef
-ifneq ($(BR2_WEB_LCM_GATWICK_INCLUDE_GZ),y)
-	WEB_LCM_GATWICK_POST_INSTALL_TARGET_HOOKS += WEB_LCM_GATWICK_REMOVE_GZ_INSTALL_TARGET
-endif
-
 $(eval $(generic-package))
