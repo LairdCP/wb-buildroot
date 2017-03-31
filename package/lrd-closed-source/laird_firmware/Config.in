@@ -46,13 +46,6 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_MRVL_SD8997
 	  Install public linux-firmware SD8997 firmware for the full-MAC
 	  mwifiex driver.
 
-config BR2_PACKAGE_LAIRD_FIRMWARE_MWLWIFI_SD8997
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird 60-series"
-	help
-	  Install Laird's SD8997 firmware for the thin-MAC mwlwifi driver.
-	  This supports Laird 60 series radios.
-
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird 60-series"
