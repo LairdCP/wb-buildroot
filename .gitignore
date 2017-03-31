@@ -16,6 +16,7 @@
 # ignore our git clones brought in via Repo
 /package/lrd/externals/*
 /package/lrd-closed-source/externals/*
+/package/lrd-closed-source/externals/kernel/drivers/net/wireless/laird/lrdmwl
 /package/lrd-devel/at91bootstrap3
 /package/lrd-devel/u-boot
 /board/laird/customers/*
