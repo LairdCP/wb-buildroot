@@ -761,6 +761,8 @@ then
 
       if [ -f ${ifrc_Lfp}/$dev.dd ]
       then
+        cdt pre_dcfg6_do
+	cdt pre_dcfg_do
         rm -f ${ifrc_Lfp}/$dev.dd
       else
         ifnl_event_action xx
@@ -772,6 +774,7 @@ then
     then
       ## handle dhcpv6 ip-dcfg
       /usr/sbin/dhclient6.sh release $dev
+      cdt post_dcfg6_do
     fi
 
     ## handle dhcp ip-dcfg
@@ -784,11 +787,15 @@ then
       else
         msg1 "dhcp client lock exists, no act"
       fi
+      cdt post_dcfg_do &
       break
     fi
 
     ## handle static ip-dcfg
     ip -4 addr flush dev $dev 2>/dev/null
+
+    cdt post_dcfg6_do
+    cdt post_dcfg_do &
 
     ## otherwise ignore down event via ifnl
     ifnl_event_action xx
@@ -812,6 +819,7 @@ then
 
     if [ "${IFRC_METHOD/*f6=dhcp*/dhcp}" == "dhcp" ] || [ "${IFRC_METHOD/*f6=auto*/auto}" == "auto" ]
     then
+      cdt pre_cfg6_do
       if $phy80211
       then
         # this is likely a 'reconnect' or 'roam' related event
@@ -820,6 +828,7 @@ then
       fi
 	# renew failure is handled via re-up config...
 	usr/sbin/dhclient6.sh renew $dev
+      cdt post_cfg6_do
     fi
 
     ## handle dhcp ip-cfg renew/refresh
@@ -827,6 +836,7 @@ then
     then
       if mkdir ${ifrc_Lfp}/$dev.dhcp 2>/dev/null
       then
+	cdt pre_cfg_do
         if $phy80211
         then
           # this is likely a 'reconnect' or 'roam' related event
@@ -835,6 +845,7 @@ then
         fi
         # renew failure is handled via re-up config...
         ifrc_dhcp_client renew && IFRC_ACTION=xx
+        cdt post_cfg_do &
       else
         msg1 "dhcp client lock exists, no act"
         IFRC_ACTION=xx
