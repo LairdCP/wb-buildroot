@@ -1224,6 +1224,7 @@ endif
 	source "package/mrouted/Config.in"
 	source "package/mtr/Config.in"
 	source "package/nbd/Config.in"
+	source "package/nbnsd/Config.in"
 	source "package/ncftp/Config.in"
 	source "package/ndisc6/Config.in"
 	source "package/netatalk/Config.in"
