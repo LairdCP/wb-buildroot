@@ -27,26 +27,24 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343),y)
 define LAIRD_FW_BCM4343_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/brcm
-	$(INSTALL) -D -m 0644 $(@D)/brcm/4343w-*.hcd $(TARGET_DIR)/lib/firmware/brcm/
-	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf 4343w-*.hcd 4343w.hcd
-	$(INSTALL) -D -m 0644 $(@D)/brcm/bcmdhd_4343w*.cal $(TARGET_DIR)/lib/firmware/brcm/
-	$(INSTALL) -D -m 0644 $(@D)/brcm/fw_bcmdhd_4343w*.bin $(TARGET_DIR)/lib/firmware/brcm/
-	$(INSTALL) -D -m 0644 $(@D)/brcm/fw_bcmdhd_mfgtest_4343w*.bin $(TARGET_DIR)/lib/firmware/brcm/
-	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf fw_bcmdhd_4343w-*.bin brcmfmac43430-sdio.bin
-	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf bcmdhd_4343w_fcc-*.cal brcmfmac43430-sdio.txt
+	cp -rad $(@D)/brcm/bcm4343w $(TARGET_DIR)/lib/firmware/brcm/
+	find $(TARGET_DIR)/lib/firmware/brcm/bcm4343w -type d | xargs chmod 0755
+	find $(TARGET_DIR)/lib/firmware/brcm/bcm4343w -type f | xargs chmod 0644
+	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/4343w.hcd 4343w.hcd
+	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/brcmfmac43430-sdio.bin brcmfmac43430-sdio.bin
+	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/brcmfmac43430-sdio.txt brcmfmac43430-sdio.txt
 endef
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339),y)
 define LAIRD_FW_BCM4339_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/brcm
-	$(INSTALL) -D -m 0644 $(@D)/brcm/4339-*.hcd $(TARGET_DIR)/lib/firmware/brcm/
-	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf 4339-*.hcd 4339.hcd
-	$(INSTALL) -D -m 0644 $(@D)/brcm/bcmdhd_4339*.cal $(TARGET_DIR)/lib/firmware/brcm/
-	$(INSTALL) -D -m 0644 $(@D)/brcm/fw_bcmdhd_4339*.bin $(TARGET_DIR)/lib/firmware/brcm/
-	$(INSTALL) -D -m 0644 $(@D)/brcm/fw_bcmdhd_mfgtest_4339*.bin $(TARGET_DIR)/lib/firmware/brcm/
-	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf fw_bcmdhd_4339-*.bin brcmfmac4339-sdio.bin
-	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf bcmdhd_4339-??_??_????.cal brcmfmac4339-sdio.txt
+	cp -rad $(@D)/brcm/bcm4339 $(TARGET_DIR)/lib/firmware/brcm/
+	find $(TARGET_DIR)/lib/firmware/brcm/bcm4339 -type d | xargs chmod 0755
+	find $(TARGET_DIR)/lib/firmware/brcm/bcm4339 -type f | xargs chmod 0644
+	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4339/4339.hcd 4339.hcd
+	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4339/brcmfmac4339-sdio.bin brcmfmac4339-sdio.bin
+	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4339/brcmfmac4339-sdio.txt brcmfmac4339-sdio.txt
 endef
 endif
 
