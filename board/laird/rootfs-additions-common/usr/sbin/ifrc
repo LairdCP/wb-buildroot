@@ -1432,16 +1432,12 @@ do unset ip nm nw wc bc ns gw to rip client scope metric weight
           ifrcmp_validate_f6auto
           # auto-configured on phy state change down->up and (re)enabled ipv6
           # scope link-local (using mac) address/mask is: fe80::/10
-          echo 1 > /proc/sys/net/ipv6/conf/$dev/disable_ipv6
-          echo 0 > /proc/sys/net/ipv6/conf/$dev/disable_ipv6
 	  echo 1 > /proc/sys/net/ipv6/conf/$dev/accept_ra
 	  ifrcmp_await_f6dad || exec $0 -6 $dev dn
 	  /usr/sbin/dhclient6.sh start $dev
 	  ;;
 
 	dhcp) ## inet6 - Dynamic Host Configuration Protocol v6
-	  echo 1 > /proc/sys/net/ipv6/conf/$dev/disable_ipv6
-	  echo 0 > /proc/sys/net/ipv6/conf/$dev/disable_ipv6
 	  echo 0 > /proc/sys/net/ipv6/conf/$dev/accept_ra
 	  ifrcmp_await_f6dad || exec $0 -6 $dev dn
 	  /usr/sbin/dhclient6.sh start $dev
@@ -1449,8 +1445,6 @@ do unset ip nm nw wc bc ns gw to rip client scope metric weight
 
 	static) ## inet6 - Static method + optional params
 	  ifrcmp_validate_f6static
-	  echo 1 > /proc/sys/net/ipv6/conf/$dev/disable_ipv6
-	  echo 0 > /proc/sys/net/ipv6/conf/$dev/disable_ipv6
 	  echo 0 > /proc/sys/net/ipv6/conf/$dev/accept_ra
 	  # ip-addr-modify IP/NM
 	  xip=$( ip -6 -o addr show dev $dev scope global primary \
