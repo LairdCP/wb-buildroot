@@ -17,10 +17,14 @@ rm -rf -- $TARGETDIR/etc/ssl
 rm -rf -- $TARGETDIR/etc/wireless-regdb
 mkdir -p  $TARGETDIR/usr/smartBASICTemp
 mv        $TARGETDIR/usr/share/smartBASIC $TARGETDIR/usr/smartBASICTemp
+mkdir -p  $TARGETDIR/usr/dbusTemp
+mv        $TARGETDIR/usr/share/dbus-1 $TARGETDIR/usr/dbusTemp
 rm -rf -- $TARGETDIR/usr/share
 mkdir -p  $TARGETDIR/usr/share
 mv        $TARGETDIR/usr/smartBASICTemp/smartBASIC $TARGETDIR/usr/share
 rm -rf -- $TARGETDIR/usr/smartBASICTemp
+mv        $TARGETDIR/usr/dbusTemp/dbus-1 $TARGETDIR/usr/share
+rm -rf -- $TARGETDIR/usr/dbusTemp
 rm -rf -- $TARGETDIR/usr/sbin/nl* $TARGETDIR/usr/sbin/genl*
 rm -f  -- $TARGETDIR/sbin/regdbdump
 rm -f  -- $TARGETDIR/usr/lib/libstdc++*
