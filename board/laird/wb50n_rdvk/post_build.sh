@@ -33,7 +33,10 @@ rm -rf $TARGETDIR/run
 # source the common post build script
 source "board/laird/post_build_common.sh" "$TARGETDIR"
 
-# Copy the product specific rootfs additions - we don't currently use rootfs-common
+# fix rootfs-additions-common to come up without any wireless adapter by default
+mv $TARGETDIR/etc/init.d/S40wifi $TARGETDIR/etc/init.d/opt/
+
+# Copy the product specific rootfs additions
 tar c --exclude=.svn --exclude=.empty -C board/laird/wb50n_rdvk/rootfs-additions/ . | tar x -C $TARGETDIR/
 
 # Fixup and add debugfs to fstab
