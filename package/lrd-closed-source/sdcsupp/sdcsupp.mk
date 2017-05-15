@@ -9,7 +9,7 @@ SDCSUPP_SITE = package/lrd-closed-source/externals/wpa_supplicant
 SDCSUPP_SITE_METHOD = local
 SDCSUPP_DBUS_NEW_SERVICE = fi.w1.wpa_supplicant1
 
-SDCSUPP_DEPENDENCIES = host-pkgconf dbus libnl openssl sdcsdk
+SDCSUPP_DEPENDENCIES = host-pkgconf dbus libnl openssl
 SDCSUPP_TARGET_DIR = $(TARGET_DIR)
 SDCSUPP_MAKE_ENV = PKG_CONFIG="$(HOST_DIR)"/usr/bin/pkg-config
 
