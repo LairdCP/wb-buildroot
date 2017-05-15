@@ -5,7 +5,7 @@
 #############################################################
 
 OPENSSL_FIPS_VERSION = 2.0.10
-OPENSSL_FIPS_SITE = $(DL_DIR)/
+OPENSSL_FIPS_SITE = $(DL_DIR)
 OPENSSL_FIPS_SITE_METHOD = file
 #
 # This is a certified source tarball from local archive only!!!
