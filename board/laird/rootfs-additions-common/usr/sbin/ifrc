@@ -817,9 +817,11 @@ then
     { read -r zz < ${ifrc_Lfp}/$dev.dd; } 2>/dev/null \
     && { kill ${zz%%:*}; rm -f ${ifrc_Lfp}/$dev.dd ]; }
 
+    cdt pre_cfg_do
+    cdt pre_cfg6_do
+
     if [ "${IFRC_METHOD/*f6=dhcp*/dhcp}" == "dhcp" ] || [ "${IFRC_METHOD/*f6=auto*/auto}" == "auto" ]
     then
-      cdt pre_cfg6_do
       if $phy80211
       then
         # this is likely a 'reconnect' or 'roam' related event
@@ -829,6 +831,7 @@ then
 	# renew failure is handled via re-up config...
 	usr/sbin/dhclient6.sh renew $dev
       cdt post_cfg6_do
+      break
     fi
 
     ## handle dhcp ip-cfg renew/refresh
@@ -836,7 +839,6 @@ then
     then
       if mkdir ${ifrc_Lfp}/$dev.dhcp 2>/dev/null
       then
-	cdt pre_cfg_do
         if $phy80211
         then
           # this is likely a 'reconnect' or 'roam' related event
@@ -845,13 +847,16 @@ then
         fi
         # renew failure is handled via re-up config...
         ifrc_dhcp_client renew && IFRC_ACTION=xx
-        cdt post_cfg_do &
       else
         msg1 "dhcp client lock exists, no act"
         IFRC_ACTION=xx
       fi
+      cdt post_cfg_do &
       break
     fi
+
+    cdt post_cfg6_do
+    cdt post_cfg_do &
     break
   done
 else #!via ifnl
@@ -1043,12 +1048,6 @@ case $IFRC_ACTION in
 
     fi
 
-    if [ "${methvia/*cfg*/cfg}" != "cfg" -a ! -n "$re" ]
-    then
-      cdt pre_cfg6_do
-      cdt pre_cfg_do &
-    fi
-
     # Ensure that iface is up and the netlink daemon is active.
     fn ip link set dev $dev up
     if [ -z "$ifnl_s" ]
@@ -1066,11 +1065,6 @@ case $IFRC_ACTION in
     #
     . $ifrc_Lfp/ifrcmp || { rv=$?; msg "ifrcmp error: $dev"; exit $rv; }
 
-    if [ "${methvia/*cfg*/cfg}" != "cfg" -a ! -n "$re" ]
-    then
-      cdt post_cfg6_do
-      cdt post_cfg_do &
-    fi
     rmdir ${ifrc_Lfp}/$dev.cfg 2>/dev/null || :
     ;;
 
