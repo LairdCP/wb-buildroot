@@ -1,0 +1,6 @@
+config BR2_PACKAGE_WL_FMAC
+	bool "wl fmac"
+	select BR2_PACKAGE_LIBNL
+	help
+	  wl for fmac
+

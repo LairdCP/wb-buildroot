@@ -10,6 +10,7 @@ source "package/lrd-closed-source/llagent/Config.in"
 source "package/lrd-closed-source/smartbasic/Config.in"
 source "package/lrd-closed-source/web_lcm_gatwick/Config.in"
 source "package/lrd-closed-source/laird_firmware/Config.in"
+source "package/lrd-closed-source/wl_fmac/Config.in"
 
 menu "Bluetopia"
 	source "package/lrd-closed-source/libbluetopia/Config.in"
