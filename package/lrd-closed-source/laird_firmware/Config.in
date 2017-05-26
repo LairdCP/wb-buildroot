@@ -67,3 +67,9 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_BT
 	bool "Bluetopia"
 	help
 	  Install bluetopia patchram for the 50.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_AR9271
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "AR9271"
+	help
+		Install Atheros AR9271 firmware.  Used by TP-Link TL-WN722N
