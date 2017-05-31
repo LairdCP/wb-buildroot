@@ -105,4 +105,12 @@ fi
 
 mkdir -p $TARGETDIR/etc/NetworkManager/system-connections
 
+# Deprecated tools link
+( cd $TARGETDIR \
+  && ln -sf /usr/sbin/deprecated_tools sbin/ifconfig \
+  && ln -sf /usr/sbin/deprecated_tools usr/sbin/ifrc \
+  && ln -sf /usr/sbin/deprecated_tools usr/bin/sdc_cli \
+  && ln -sf /usr/sbin/deprecated_tools sbin/wireless \
+  && ln -sf /usr/sbin/deprecated_tools sbin/wireless.sh )
+
 echo "COMMON POST BUILD script: done."

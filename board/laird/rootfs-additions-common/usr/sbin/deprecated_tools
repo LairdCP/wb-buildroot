@@ -1,0 +1,71 @@
+#!/usr/bin/env ash
+
+# Copyright (c) 2017, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+#list of deprecated tools
+tools="ifconfig ifrc sdc_cli wireless wireless.sh"
+
+#set the positional parameters to this argument
+set -- $tools
+
+act=`basename $0`
+message="$act has been deprecated and removed from this device."
+
+nm_message(){
+	echo $message
+	echo "It has been replaced by Network Manager"
+	echo "Replacement example: nmcli device status"
+	nmcli device status
+}
+
+case $act in
+	$1)
+		echo $message
+		echo "It has been replaced by the 'ip' tool."
+		echo "http://www.tty1.net/blog/2010/ifconfig-ip-comparison_en.html"
+		echo "Replacement example: ip addr"
+		ip addr
+		;;
+
+	$2)
+		nm_message
+		;;
+
+	$3)
+		nm_message
+		;;
+
+	$4)
+		nm_message
+		;;
+
+	$5)
+		nm_message
+		;;
+
+	*)
+		#walk through and print all tools that are deprecated
+		echo "This script is used to describe tools and utilites that have been deprecated."
+		echo "Deprecated tools:"
+		while [ -n "$1" ]; do
+			echo -e "\t$1"
+			shift
+		done
+		;;
+
+esac
+
+#exit with error code in case deprecated tool is used in script
+exit 1
