@@ -10,7 +10,7 @@ LRD_NETWORK_MANAGER_SITE_METHOD = local
 LRD_NETWORK_MANAGER_INSTALL_STAGING = YES
 LRD_NETWORK_MANAGER_DEPENDENCIES = host-pkgconf udev dbus-glib libnl gnutls \
 	libgcrypt wireless_tools util-linux host-intltool readline libndp libgudev
-LRD_NETWORK_MANAGER_LICENSE = GPLv2+ (app), LGPLv2+ (libnm-util)
+LRD_NETWORK_MANAGER_LICENSE = GPL-2.0+ (app), LGPL-2.0+ (libnm-util)
 LRD_NETWORK_MANAGER_LICENSE_FILES = COPYING libnm-util/COPYING
 
 LRD_NETWORK_MANAGER_AUTORECONF = YES
@@ -23,9 +23,7 @@ LRD_NETWORK_MANAGER_CONF_ENV = \
 	ac_cv_file__etc_redhat_release=no \
 	ac_cv_file__etc_SuSE_release=no
 
-
 LRD_NETWORK_MANAGER_CONF_OPTS = \
-	--mandir=$(STAGING_DIR)/usr/man/ \
 	--disable-tests \
 	--disable-qt \
 	--disable-more-warnings \
@@ -33,8 +31,21 @@ LRD_NETWORK_MANAGER_CONF_OPTS = \
 	--with-crypto=gnutls \
 	--with-iptables=/usr/sbin/iptables \
 	--disable-ifupdown \
-	--disable-ifnet \
-	--disable-json-validation
+	--disable-ifnet
+
+ifeq ($(BR2_PACKAGE_OFONO),y)
+LRD_NETWORK_MANAGER_DEPENDENCIES += ofono
+LRD_NETWORK_MANAGER_CONF_OPTS += --with-ofono
+else
+LRD_NETWORK_MANAGER_CONF_OPTS += --without-ofono
+endif
+
+ifeq ($(BR2_PACKAGE_LIBCURL),y)
+LRD_NETWORK_MANAGER_DEPENDENCIES += libcurl
+LRD_NETWORK_MANAGER_CONF_OPTS += --enable-concheck
+else
+NETWORK_MANAGER_CONF_OPTS += --disable-concheck
+endif
 
 ifeq ($(BR2_PACKAGE_LRD_NETWORK_MANAGER_TUI),y)
 LRD_NETWORK_MANAGER_DEPENDENCIES += newt
