@@ -44,7 +44,7 @@ ifeq ($(BR2_PACKAGE_LIBCURL),y)
 LRD_NETWORK_MANAGER_DEPENDENCIES += libcurl
 LRD_NETWORK_MANAGER_CONF_OPTS += --enable-concheck
 else
-NETWORK_MANAGER_CONF_OPTS += --disable-concheck
+LRD_NETWORK_MANAGER_CONF_OPTS += --disable-concheck
 endif
 
 ifeq ($(BR2_PACKAGE_LRD_NETWORK_MANAGER_TUI),y)
