@@ -51,8 +51,8 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997),y)
 define LAIRD_FW_LRDMWL_SD8997_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
-	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/88W8997_sdio-*.bin $(TARGET_DIR)/lib/firmware/lrdmwl/
-	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_sdio-*.bin 88W8997_sdio.bin
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/88W8997_sdio_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl/
+	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_sdio_sdio*.bin 88W8997_sdio.bin
 endef
 endif
 
