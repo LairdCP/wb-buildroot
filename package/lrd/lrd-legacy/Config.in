@@ -13,6 +13,8 @@ config BR2_PACKAGE_LRD_LEGACY_APPS
 	select BR2_PACKAGE_SDCCLI
 	select BR2_PACKAGE_SDCSUPP
 	select BR2_PACKAGE_SDC2U
+	select BR2_PACKAGE_PHP_SDK
+	select BR2_PACKAGE_WEB_LCM
 	select BR2_PACKAGE_LAIRD_FIRMWARE
 	help
 	  Selects legacy Laird software to be built from source
