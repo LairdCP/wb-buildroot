@@ -1,0 +1,40 @@
+config BR2_PACKAGE_LRD_LEGACY
+	bool "lrd-legacy"
+	select BR2_PACKAGE_DCAS
+	help
+	  Laird legacy software
+
+if BR2_PACKAGE_LRD_LEGACY
+config BR2_PACKAGE_LRD_LEGACY_APPS
+	bool "Build Laird Binaries from source"
+	depends on !BR2_PACKAGE_MSD_BINARIES #do not build source when installing from binaries
+	select BR2_PACKAGE_EVENTMON
+	select BR2_PACKAGE_SDCSDK
+	select BR2_PACKAGE_SDCCLI
+	select BR2_PACKAGE_SDCSUPP
+	select BR2_PACKAGE_SDC2U
+	select BR2_PACKAGE_LAIRD_FIRMWARE
+	help
+	  Selects legacy Laird software to be built from source
+endif
+
+if BR2_PACKAGE_LRD_LEGACY_APPS
+config BR2_PACKAGE_LRD_LEGACY_45_APPS
+	bool "Include Laird 45 specific items"
+	select BR2_PACKAGE_LAIRD_FIRMWARE_AR6003
+	select BR2_PACKAGE_SMARTBASIC
+	select BR2_PACKAGE_LIBBLUETOPIA
+	help
+	  Selects legacy Laird 45 specific software to be installed
+endif
+
+if BR2_PACKAGE_LRD_LEGACY_APPS
+config BR2_PACKAGE_LRD_LEGACY_50_APPS
+	bool "Include Laird 50 specific items"
+	select BR2_PACKAGE_LAIRD_FIRMWARE_AR6004
+	select BR2_PACKAGE_LAIRD_FIRMWARE_BT
+	select BR2_PACKAGE_SMARTBASIC
+	select BR2_PACKAGE_LIBBLUETOPIA
+	help
+	  Selects legacy Laird 50 specific software to be installed
+endif
