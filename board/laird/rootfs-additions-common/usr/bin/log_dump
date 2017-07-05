@@ -25,7 +25,7 @@ LOGLOCALE=/tmp
 
 LOGFILE=${LOGLOCALE}/log_dump.txt
 
-LOG_DUMP_VERSION=20160305
+LOG_DUMP_VERSION=20170705
 
 command_exists () {
     command -v "$1" > /dev/null  2>&1;
@@ -83,7 +83,8 @@ if [ "$wb" = "yes" ]; then
 	fw_printenv >> $LOGFILE
 fi
 
-if command_exists sdc_cli ; then
+sdc_cli exit > /dev/null 2>&1;
+if [ $? -eq 0 ]; then
 	sdc_cli >> $LOGFILE << \
 	--sdc_cli_info--
 	!echo "-----sdc_cli version-----" >> $LOGFILE
@@ -93,9 +94,24 @@ if command_exists sdc_cli ; then
 	!echo "-----sdc_cli profile list-----" >> $LOGFILE
 	profile list
 	profile dumpall
---sdc_cli_info--
-else
-	echo "Could not find sdc_cli in path" >> $LOGFILE
+	--sdc_cli_info--
+fi
+
+if command_exists nmcli ; then
+	echo "-----nmcli-----" >> $LOGFILE
+	nmcli >> $LOGFILE
+	echo "-----nmcli version-----" >> $LOGFILE
+	nmcli -v >> $LOGFILE
+	echo "-----nmcli device status-----" >> $LOGFILE
+	nmcli device status >> $LOGFILE
+	echo "-----nmcli connection show-----" >> $LOGFILE
+	nmcli connection show >> $LOGFILE
+	for i in `ls /etc/NetworkManager/system-connections/`; do
+		echo "-----system-connection $i-----" >> $LOGFILE
+		nmcli con show $i >> $LOGFILE
+	done
+	echo "-----NetworkManager.conf-----" >> $LOGFILE
+	cat /etc/NetworkManager/NetworkManager.conf >> $LOGFILE
 fi
 
 if grep -Fq "Workgroup Bridge 50N" /proc/device-tree/model
@@ -135,18 +151,23 @@ done
 fi
 
 if [ "$wb" = "yes" ]; then
-	echo "-----ifrc -v wlan0-----" >> $LOGFILE
-	ifrc -v wlan0 >> $LOGFILE
-	echo "-----ifrc -v-----" >> $LOGFILE
-	ifrc -v >> $LOGFILE
-	echo "-----bridge staus------" >> $LOGFILE
-	{ ifrc -v br0 && ifrc br0 status; } >> $LOGFILE
+	ifrc > /dev/null 2>&1;
+	if [ $? -eq 0 ]; then
+		echo "-----ifrc -v wlan0-----" >> $LOGFILE
+		ifrc -v wlan0 >> $LOGFILE
+		echo "-----ifrc -v-----" >> $LOGFILE
+		ifrc -v >> $LOGFILE
+		echo "-----bridge staus------" >> $LOGFILE
+		{ ifrc -v br0 && ifrc br0 status; } >> $LOGFILE
+		echo "-----ifrc log-----" >> $LOGFILE
+		cat /var/log/ifrc/wlan0 >> $LOGFILE
+	fi
 	echo "----image info-----" >> $LOGFILE
 	fw_select --show >> $LOGFILE
+	echo "-----ip addr-----" >> $LOGFILE
+	ip addr >> $LOGFILE
 	echo "-----route info-----" >> $LOGFILE
 	ip route show >> $LOGFILE
-	echo "-----ifrc log-----" >> $LOGFILE
-	cat /var/log/ifrc/wlan0 >> $LOGFILE
 fi
 
 if command_exists top ; then
