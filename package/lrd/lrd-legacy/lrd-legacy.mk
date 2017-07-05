@@ -15,6 +15,8 @@ define LRD_LEGACY_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 package/lrd/externals/lrd-legacy/rootfs-additions/usr/sbin/* $(TARGET_DIR)/usr/sbin/
 	mkdir -p $(TARGET_DIR)/sbin/
 	$(INSTALL) -D -m 755 package/lrd/externals/lrd-legacy/rootfs-additions/sbin/* $(TARGET_DIR)/sbin/
+	mkdir -p $(TARGET_DIR)/bin/
+	$(INSTALL) -D -m 755 package/lrd/externals/lrd-legacy/rootfs-additions/bin/* $(TARGET_DIR)/bin/
 endef
 
 $(eval $(generic-package))
