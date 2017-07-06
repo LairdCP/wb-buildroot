@@ -433,21 +433,16 @@ then
     || exit_error "no response from server: $host"
 
   # an optional notify-server-address-port
-  # may be appended to the url as:
-  #     ?nsap=<host>[:<port>]
+  # may be appended to the url as: ?nsap=<host>:<port>
   nsap=${url#*\?nsap=}; nsap=${nsap##*$host*}; nsap=${nsap:-$host:$NS_PORT}
-
-  # cleanup/format the host url[:port]
-  url=${url%%\?*}; url=${url%:[^\/]*}
-  port=${url#${url%:[^\/]*}}
-  url=${url%$port}
+  url=${url%%\?*}
 
   test fwul == "${url/*.txt/fwul}" \
     || exit_error "firmware-update-list required, try '--usage'"
 
   verbose "Downloading '${url##*/}' from $host to $FWUL"
   rm -f $FWUL
-  wget $url$port -O $FWUL \
+  wget $url -O $FWUL \
     || exit_error "could not retrieve \"${url##*/}\""
 
 else
@@ -644,14 +639,14 @@ assert_image() {
     #==> SIZE kernel.bin ... 1782232 .....ftp method
     #Length: 24133632 (23M) [application/octet-stream] .....http method
     #
-    wget --spider $src$port #2>>fwu.err
+    wget --spider $src #2>>fwu.err
     sz=$( sed -n 's/.*SIZE.* \([0-9]*\)/\1/p;s/Length: \([0-9]*\)\ .*/\1/p' \
                                                                   /tmp/fwu.err )
     if [ -z "$sz" ] \
-    && wget -q -O - $src$port |grep -q .....
+    && wget -q -O - $src |grep -q .....
     then
-      # try reading file when length n/a via spider as a last resort
-      eval let sz=\$${1}_LEN || sz=$( wget -q -O - $src$port |wc -c )
+      # try reading file when length n/a via spider
+      eval let sz=\$${1}_LEN || sz=$( wget -q -O - $src |wc -c )
     fi
   else
     # method local
@@ -720,9 +715,9 @@ flash_image() {
   case $1 in
     *://*) ## using a transfer protocol
     txt="image download/flash interrupted"
-    wget $1$port -O /tmp/fwu.fifo
+    wget $1 -O /tmp/fwu.fifo
     ;;
-    *) ## assume local copy
+    *) ## assume local copy 
     txt="image copy/flash failed"
     copy $1 -O /tmp/fwu.fifo
   esac
