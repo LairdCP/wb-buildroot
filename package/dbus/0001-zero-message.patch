@@ -1,7 +1,7 @@
-diff -uar dbus-1.8.16-orig/dbus/dbus-message.c dbus-1.8.16-new/dbus/dbus-message.c
---- dbus-1.8.16-orig/dbus/dbus-message.c	2015-02-03 10:47:02.000000000 -0500
-+++ dbus-1.8.16-new/dbus/dbus-message.c	2017-04-10 13:07:58.212513773 -0400
-@@ -4250,7 +4250,8 @@
+diff -uar dbus-1.10.16-orig/dbus/dbus-message.c dbus-1.10.16-new/dbus/dbus-message.c
+--- dbus-1.10.16-orig/dbus/dbus-message.c	2016-10-07 16:27:14.000000000 -0400
++++ dbus-1.10.16-new/dbus/dbus-message.c	2017-07-05 17:00:41.175134864 -0400
+@@ -4327,7 +4327,8 @@
        goto failed;
      }
  
@@ -11,10 +11,10 @@ diff -uar dbus-1.8.16-orig/dbus/dbus-message.c dbus-1.8.16-new/dbus/dbus-message
  
    /* don't waste more than 2k of memory */
    _dbus_string_compact (&loader->data, 2048);
-diff -uar dbus-1.8.16-orig/dbus/dbus-string.c dbus-1.8.16-new/dbus/dbus-string.c
---- dbus-1.8.16-orig/dbus/dbus-string.c	2015-02-03 10:47:02.000000000 -0500
-+++ dbus-1.8.16-new/dbus/dbus-string.c	2017-04-10 13:06:06.732513773 -0400
-@@ -1185,6 +1185,50 @@
+diff -uar dbus-1.10.16-orig/dbus/dbus-string.c dbus-1.10.16-new/dbus/dbus-string.c
+--- dbus-1.10.16-orig/dbus/dbus-string.c	2015-09-30 10:48:40.000000000 -0400
++++ dbus-1.10.16-new/dbus/dbus-string.c	2017-07-05 17:00:41.175134864 -0400
+@@ -1203,6 +1203,50 @@
    delete (real, start, len);
  }
  
@@ -65,10 +65,10 @@ diff -uar dbus-1.8.16-orig/dbus/dbus-string.c dbus-1.8.16-new/dbus/dbus-string.c
  static dbus_bool_t
  copy (DBusRealString *source,
        int             start,
-diff -uar dbus-1.8.16-orig/dbus/dbus-string.h dbus-1.8.16-new/dbus/dbus-string.h
---- dbus-1.8.16-orig/dbus/dbus-string.h	2015-02-03 10:47:02.000000000 -0500
-+++ dbus-1.8.16-new/dbus/dbus-string.h	2017-04-10 13:06:08.060513773 -0400
-@@ -173,6 +173,10 @@
+diff -uar dbus-1.10.16-orig/dbus/dbus-string.h dbus-1.10.16-new/dbus/dbus-string.h
+--- dbus-1.10.16-orig/dbus/dbus-string.h	2015-09-30 10:48:40.000000000 -0400
++++ dbus-1.10.16-new/dbus/dbus-string.h	2017-07-05 17:09:55.379134864 -0400
+@@ -220,6 +220,10 @@
  void          _dbus_string_delete                (DBusString        *str,
                                                    int                start,
                                                    int                len);
@@ -76,6 +76,6 @@ diff -uar dbus-1.8.16-orig/dbus/dbus-string.h dbus-1.8.16-new/dbus/dbus-string.h
 +void          _dbus_string_zero_delete           (DBusString        *str,
 +                                                  int                start,
 +                                                  int                len);
+ DBUS_PRIVATE_EXPORT
  dbus_bool_t   _dbus_string_move                  (DBusString        *source,
                                                    int                start,
-                                                   DBusString        *dest,
