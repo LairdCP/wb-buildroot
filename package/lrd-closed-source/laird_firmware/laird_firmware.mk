@@ -51,16 +51,16 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997),y)
 define LAIRD_FW_LRDMWL_SD8997_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
-	rm -r $(TARGET_DIR)/lib/firmware/lrdmwl/*
-	cp -r $(@D)/lrdmwl/ $(TARGET_DIR)/lib/firmware/
+	rm -r -f $(TARGET_DIR)/lib/firmware/lrdmwl/*
+	cp -r $(@D)/lrdmwl/ $(TARGET_DIR)/lib/firmware
 endef
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_MRVL_SD8997),y)
 define LAIRD_FW_MRVL_SD8997_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/mrvl
-	rm -r $(TARGET_DIR)/lib/firmware/mrvl/*
-	cp -r $(@D)/mrvl/ $(TARGET_DIR)/lib/firmware/
+	rm -r -f $(TARGET_DIR)/lib/firmware/mrvl/*
+	cp -r $(@D)/mrvl/ $(TARGET_DIR)/lib/firmware
 endef
 endif
 
