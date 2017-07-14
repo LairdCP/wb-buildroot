@@ -21,7 +21,7 @@ ifneq ($(BR2_PACKAGE_OPENSSL_FIPS),)
 SDCSUPP_FIPS = CONFIG_FIPS=y
 endif
 
-ifeq ($(BR2_PACKAGE_LRD_LEGACY_APPS),y)
+ifeq ($(BR2_PACKAGE_LRD_LEGACY),y)
     SDCSUPP_CONFIG = $(SDCSUPP_D)/config_legacy
 else
     SDCSUPP_DEPENDENCIES += dbus
@@ -38,7 +38,7 @@ define SDCSUPP_BUILD_CMDS
     #(cd $(SDCSUPP_D) && CROSS_COMPILE=arm-sdc-linux-gnueabi ./sdc-build-linux.sh 4 1 2 3 1)
 endef
 
-ifneq ($(BR2_PACKAGE_LRD_LEGACY_APPS),y)
+ifneq ($(BR2_PACKAGE_LRD_LEGACY),y)
 define SDCSUPP_INSTALL_DBUS_NEW
 	$(INSTALL) -m 0644 -D \
 		$(SDCSUPP_D)/dbus/$(SDCSUPP_DBUS_NEW_SERVICE).service \
@@ -52,7 +52,7 @@ define SDCSUPP_INSTALL_WPA_CLI
 endef
 endif
 
-ifneq ($(BR2_PACKAGE_LRD_LEGACY_APPS),y)
+ifneq ($(BR2_PACKAGE_LRD_LEGACY),y)
 define SDCSUPP_INSTALL_DBUS
 	$(INSTALL) -m 0644 -D \
 		$(SDCSUPP_D)/dbus/dbus-wpa_supplicant.conf \
