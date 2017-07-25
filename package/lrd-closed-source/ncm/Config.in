@@ -1,5 +1,6 @@
 config BR2_PACKAGE_NCM
 	bool "NCM"
+	select BR2_PACKAGE_MSD_BINARIES
 	help
 	  NCM
 
