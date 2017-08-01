@@ -10,7 +10,7 @@ else ifeq ($(BR2_PACKAGE_MSD_BINARIES),y)
 	$(error "ERROR: Expected BR2_LRD_PLATFORM to be wb50n, or wb45n.")
 endif
 
-MSD_BINARIES_SITE = http://devops.lairdtech.com/share/builds/linux/$(MSD_BINARIES_PLATFORM)/$(MSD_BINARIES_COMPANY_PROJECT)/$(MSD_BINARIES_VERSION)
+MSD_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/raw/master
 
 MSD_BINARIES_SOURCE = $(MSD_BINARIES_PLATFORM)-$(MSD_BINARIES_COMPANY_PROJECT)-$(MSD_BINARIES_VERSION).tar.bz2
 MSD_BINARIES_DEPENDENCIES =
