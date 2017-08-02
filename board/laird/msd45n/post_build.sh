@@ -8,6 +8,7 @@ echo "MSD45n POST BUILD script: starting..."
 set -x -e
 
 # cleanup
+rm -rf -- $TARGETDIR/dev
 rm -f  -- $TARGETDIR/lib64 $TARGETDIR/usr/lib64
 rm -rf -- $TARGETDIR/var/cache
 rm -f -- $TARGETDIR/etc/ld.*
