@@ -1,7 +1,0 @@
-config BR2_PACKAGE_LIBBLUETOPIA
-	bool "libbluetopia"
-	help
-	  Bluetopia is the Bluetooth Protocol Stack by StoneStreet One.
-	  It provides a software architecture that encapsulates the 
-	  upper functionality of the Bluetooth Protocol Stack. The 
-	  package libbluetopia includes the Bluetopia library files.  
