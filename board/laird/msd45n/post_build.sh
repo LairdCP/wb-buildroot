@@ -16,12 +16,8 @@ rm -f -- $TARGETDIR/etc/os-release
 rm -rf -- $TARGETDIR/etc/libnl
 rm -rf -- $TARGETDIR/etc/ssl
 rm -rf -- $TARGETDIR/etc/wireless-regdb
-mkdir -p  $TARGETDIR/usr/smartBASICTemp
-mv        $TARGETDIR/usr/share/smartBASIC $TARGETDIR/usr/smartBASICTemp
 rm -rf -- $TARGETDIR/usr/share
 mkdir -p  $TARGETDIR/usr/share
-mv        $TARGETDIR/usr/smartBASICTemp/smartBASIC $TARGETDIR/usr/share
-rm -rf -- $TARGETDIR/usr/smartBASICTemp
 rm -rf -- $TARGETDIR/usr/sbin/nl* $TARGETDIR/usr/sbin/genl*
 rm -f  -- $TARGETDIR/sbin/regdbdump
 rm -f  -- $TARGETDIR/usr/lib/libstdc++*
