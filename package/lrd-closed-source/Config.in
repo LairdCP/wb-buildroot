@@ -7,13 +7,5 @@ source "package/lrd-closed-source/ar6kl-tools/Config.in"
 source "package/lrd-closed-source/web_lcm/Config.in"
 source "package/lrd-closed-source/ncm/Config.in"
 source "package/lrd-closed-source/llagent/Config.in"
-source "package/lrd-closed-source/smartbasic/Config.in"
 source "package/lrd-closed-source/web_lcm_gatwick/Config.in"
 source "package/lrd-closed-source/laird_firmware/Config.in"
-
-menu "Bluetopia"
-	source "package/lrd-closed-source/libbluetopia/Config.in"
-	if BR2_PACKAGE_LIBBLUETOPIA
-		source "package/lrd-closed-source/bluetopia_samples/Config.in"
-	endif
-endmenu

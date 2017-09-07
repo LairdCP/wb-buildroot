@@ -1,5 +1,0 @@
-config BR2_PACKAGE_SMARTBASIC
-	bool "smartbasic"
-	help
-	  smartBASIC is an implementation of a structured BASIC programming language 
-	  optimised for use on low-cost embedded systems.

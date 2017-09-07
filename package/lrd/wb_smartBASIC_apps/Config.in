@@ -1,4 +1,0 @@
-config BR2_PACKAGE_WB_SMARTBASIC_APPS
-	bool "wb_smartBASIC_apps"
-	help
-	  Laird smartBASIC applications
