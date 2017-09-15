@@ -18,6 +18,7 @@ tar --transform "s,^,$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING/," -cf "$TARFILE" -C
 tar --transform "s,^,$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING/," -f "$TARFILE" -C "$STAGING_DIR/usr" -u include/sdc_sdk.h
 tar --transform "s,^,$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING/,"  -f "$TARFILE" -C "$STAGING_DIR/usr" -u include/sdc_events.h
 tar --transform "s,^,$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING/,"  -f "$TARFILE" -C "$STAGING_DIR/usr" -u include/lrd_sdk_pil.h
+tar --transform "s,^,$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING/," -f "$TARFILE" -C "$STAGING_DIR/usr" -u include/lrd_sdk_eni.h
 bzip2 -f "$TARFILE"
 
 echo "MSD-x86 POST IMAGE script: done."
