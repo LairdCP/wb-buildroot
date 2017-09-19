@@ -88,25 +88,6 @@ endef
 	MSD_BINARIES_POST_INSTALL_TARGET_HOOKS += MSD_BINARIES_SDCSDK_INSTALL_TARGET
 	MSD_BINARIES_POST_INSTALL_STAGING_HOOKS += MSD_BINARIES_SDCSDK_STAGING_TARGET
 
-define MSD_BINARIES_SMARTBASIC_INSTALL_TARGET
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/smartSS $(TARGET_DIR)/usr/bin/smartSS
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/smartBASIC $(TARGET_DIR)/usr/bin/smartBASIC
-	$(INSTALL) -D -m 755 $(@D)/etc/init.d/S95bluetooth $(TARGET_DIR)/etc/init.d/S95bluetooth
-endef
-ifeq ($(BR2_MSD_BINARIES_SMARTBASIC),y)
-	MSD_BINARIES_POST_INSTALL_TARGET_HOOKS += MSD_BINARIES_SMARTBASIC_INSTALL_TARGET
-endif
-
-define MSD_BINARIES_SMARTBASIC_APPS_INSTALL_TARGET
-	mkdir -p $(TARGET_DIR)/usr/share/smartBASIC/apps
-	mkdir -p $(TARGET_DIR)/usr/share/smartBASIC/apps/lib
-	$(INSTALL) -D -m 755 $(@D)/usr/share/smartBASIC/apps/*.sb $(TARGET_DIR)/usr/share/smartBASIC/apps/
-	$(INSTALL) -D -m 755 $(@D)/usr/share/smartBASIC/apps/lib/*.sblib $(TARGET_DIR)/usr/share/smartBASIC/apps/lib/
-endef
-ifeq ($(BR2_MSD_BINARIES_SMARTBASIC_APPS),y)
-	MSD_BINARIES_POST_INSTALL_TARGET_HOOKS += MSD_BINARIES_SMARTBASIC_APPS_INSTALL_TARGET
-endif
-
 define MSD_BINARIES_LLAGENT_INSTALL_TARGET
 	$(INSTALL) -D -m 755 $(@D)/usr/bin/llagent $(TARGET_DIR)/usr/bin/llagent
 	$(INSTALL) -D -m 755 $(@D)/etc/init.d/opt/S99agent $(TARGET_DIR)/etc/init.d/opt/S99agent
