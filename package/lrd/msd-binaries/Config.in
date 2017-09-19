@@ -43,20 +43,6 @@ config BR2_MSD_BINARIES_SDCSUPP
 	help
 	  Install the SDC Supplicant from the MSD package.
 
-config BR2_MSD_BINARIES_SMARTBASIC
-	bool "Laird smartBASIC"
-    default y
-	help
-	  Install the smartBASIC from the MSD package.
-
-if BR2_MSD_BINARIES_SMARTBASIC
-config BR2_MSD_BINARIES_SMARTBASIC_APPS
-	bool "Laird smartBASIC apps"
-    default y
-	help
-	  Install the smartBASIC apps from the MSD package.
-endif
-
 config BR2_MSD_BINARIES_LLAGENT
 	bool "Laird Link agent"
     default y
