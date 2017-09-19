@@ -1,0 +1,90 @@
+#!/bin/sh
+
+# Copyright (c) 2015, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+# bluetooth init
+# wb45n: BlueZ manages BT service via ss1btusb driver
+# wb50n: BlueZ manages BT service via serial connection to the CSR chip
+
+await_interface() {
+  # args: <class/iface> [<milliseconds>]
+  let n=0 w=${2:-0}
+  while : wait increments of 10ms for address
+  do
+    { mac=; read -rs mac </sys/class/${1}/address; } 2>/dev/null
+    test "${mac/??:??:??:??:??:??/up}" == "up" && break
+    test $n -lt $w && let n+=10 && usleep 9999 || break
+  done
+  test $n -ge 10 && echo -en "  ...waited ${n}ms${mac:+\n}"
+  test -n "$mac" && rv=0 || rv=1
+  return $rv
+}
+
+start()
+{
+  echo "Starting bluetooth"
+  modprobe ohci-at91 ohci-hcd
+
+  # load driver if necessary and available
+  if [ -f /lib/modules/`uname -r`/kernel/drivers/bluetooth/btusb.ko ]
+  then
+    if ! grep -sq 'btusb' /proc/modules
+    then
+      echo "  loading btusb driver"
+      modprobe btusb
+    fi
+  else
+    # wait for all interfaces (wifi) to come up during bootup
+    # this is due to the Bluetooth clock being fed from the WiFi chip
+    [ -n "rcS_" ] && eval $rcS_awaitscript && rcS_awaitscript network
+
+    echo 133 > /sys/class/gpio/export
+    echo out > /sys/class/gpio/pioE5/direction
+    echo 1 > /sys/class/gpio/pioE5/value
+    bccmd -t bcsp -d /dev/ttyS4 -b 115200 psload -r /lib/firmware/bluetopia/DWM-W311.psr 2>&1 >/dev/null
+    hciattach -p /dev/ttyS4 bcsp 115200 2>&1 >/dev/null &
+  fi
+
+  # must wait for ohci enumeration, or will get hci init error
+  await_interface bluetooth/hci0 2000 \
+  || { echo "  ...error, host control interface n/a"; return; }
+
+  hciconfig hci0 up 2>&1 >/dev/null
+  rv=$?
+
+}
+
+stop()
+{
+  echo "Stopping bluetooth"
+}
+
+
+case $1 in
+  stop)
+    stop
+    ;;
+  start)
+    start
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  *)
+    echo "Usage: $0 {stop|start|restart}"
+    exit 1
+esac
+
