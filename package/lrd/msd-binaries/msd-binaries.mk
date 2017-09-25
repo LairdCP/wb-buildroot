@@ -82,6 +82,7 @@ define MSD_BINARIES_SDCSDK_STAGING_TARGET
 	$(INSTALL) -D -m 0644 $(@D)/include/sdc_sdk.h \
 		$(@D)/include/sdc_events.h \
 		$(@D)/include/lrd_sdk_pil.h \
+		$(@D)/include/lrd_sdk_eni.h \
 		$(STAGING_DIR)/usr/include/
 endef
 	MSD_BINARIES_POST_INSTALL_TARGET_HOOKS += MSD_BINARIES_SDCSDK_INSTALL_TARGET
