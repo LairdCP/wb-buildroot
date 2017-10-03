@@ -234,6 +234,20 @@ int main(int argc, char **argv)
 		return 2;
 	}
 
+
+#ifndef CONFIG_REMOVE_LAIRD
+	/* Laird: pass through command line args unmodified to base toolchain */
+	/* copy only the path variable and continue below to copy input args */
+	/* see BZ10856 for details */
+	if ((env_debug = getenv("BR2_PASSTHRU_WRAPPER"))) {
+		debug = atoi(env_debug);
+		if (debug > 0) {
+			*cur++ = path;
+			goto PASSTHRU_CONTINUE;
+		}
+	}
+#endif /* CONFIG_REMOVE_LAIRD */
+
 	/* start with predefined args */
 	memcpy(cur, predef_args, sizeof(predef_args));
 	cur += sizeof(predef_args) / sizeof(predef_args[0]);
@@ -299,6 +313,10 @@ int main(int argc, char **argv)
 				check_unsafe_path(argv[i], argv[i] + opt->len, paranoid, 1);
 		}
 	}
+
+#ifndef CONFIG_REMOVE_LAIRD
+PASSTHRU_CONTINUE:
+#endif /* CONFIG_REMOVE_LAIRD */
 
 	/* append forward args */
 	memcpy(cur, &argv[1], sizeof(char *) * (argc - 1));
