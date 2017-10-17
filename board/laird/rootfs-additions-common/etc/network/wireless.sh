@@ -223,6 +223,10 @@ wifi_start() {
   # dynamic wait for socket args: <socket> <interval>
   await() { n=27; until [ -e $1 ] || ! let n--; do msg -n .; $usleep $2; done; }
 
+  # disable wifi for systems that are configured for dcas' ssh_disable
+  CONF_FILE=/etc/dcas.conf
+  [ -s $CONF_FILE ] && [ `grep ^ssh_disable $CONF_FILE` ] && $SDC_CLI disable
+
   # choose to run either hostapd or the supplicant (default)
   # check the /e/n/i wifi_dev stanza(s)
   stanza="/^iface ${WIFI_DEV} inet/,/^$/"
