@@ -30,15 +30,14 @@ endef
 
 define DCAS_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/dcas $(TARGET_DIR)/usr/bin/dcas
-	mkdir -p $(TARGET_DIR)/etc/dcas
-	cp -v $(@D)/test/ssh_host_* $(TARGET_DIR)/etc/dcas
-	install -D -m 755 $(@D)/support/S99dcas $(TARGET_DIR)/etc/init.d/opt/S99dcas
+	$(INSTALL) -D -m 755 $(@D)/support/etc/init.d/S99dcas $(TARGET_DIR)/etc/init.d/S99dcas
+	$(INSTALL) -D -m 755 $(@D)/support/etc/dcas.conf $(TARGET_DIR)/etc/dcas.conf
 endef
 
 define DCAS_UNINSTALL_TARGET_CMDS
 	rm $(TARGET_DIR)/usr/bin/dcas
-	rm -rf $(TARGET_DIR)/etc/dcas
-	rm $(TARGET_DIR)/etc/init.d/opt/S99dcas
+	rm $(TARGET_DIR)/etc/dcas.conf
+	rm $(TARGET_DIR)/etc/init.d/S99dcas
 endef
 
 $(eval $(generic-package))
