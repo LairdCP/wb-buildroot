@@ -3,7 +3,7 @@
 # FLATCC
 #
 ################################################################################
-FLATCC_VERSION = v0.3.3
+FLATCC_VERSION = v0.4.3
 FLATCC_SITE =$(call github,dvidelabs,flatcc,$(FLATCC_VERSION))
 FLATCC_LICENSE = Apache-2.0
 FLATCC_LICENSE_FILES = LICENSE
@@ -19,11 +19,11 @@ endef
 
 # Need to force flatcc to do static or shared or both libraries
 ifeq ($(BR2_STATIC_LIBS),y)
-FLATCC_CONF_OPTS += -DFLATCC_WITH_SHARED=OFF -DFLATCC_WITH_STATIC=ON
+FLATCC_CONF_OPTS += -DBUILD_SHARED_LIBS=OFF -DFLATCC_RTONLY=ON
 else ifeq ($(BR2_SHARED_STATIC_LIBS),y)
-FLATCC_CONF_OPTS += -DFLATCC_WITH_SHARED=ON -DFLATCC_WITH_STATIC=ON
+FLATCC_CONF_OPTS += -DBUILD_SHARED_LIBS=ON -DFLATCC_RTONLY=ON
 else ifeq ($(BR2_SHARED_LIBS),y)
-FLATCC_CONF_OPTS += -DFLATCC_WITH_SHARED=ON -DFLATCC_WITH_STATIC=OFF
+FLATCC_CONF_OPTS += -DBUILD_SHARED_LIBS=ON -DFLATCC_RTONLY=OFF
 endif
 
 # flatcc's cmake build doesn't include install targets, so we need to manually
