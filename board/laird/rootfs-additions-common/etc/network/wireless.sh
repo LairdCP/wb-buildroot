@@ -133,6 +133,7 @@ wifi_fips_mode() {
     mknod /dev/sdc2u0 c $major $minor || return 1
     # launch daemon to perform crypto operations
     sdcu >/var/log/sdcu.log 2>&1 &
+    cat /var/log/sdcu.log | logger
   else
     msg "configuring non-FIPS mode"
     WIFI_FIPS=
