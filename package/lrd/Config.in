@@ -11,4 +11,5 @@ source "package/lrd/dcas/Config.in"
 source "package/lrd/lrd-network-manager/Config.in"
 source "package/lrd/lora-packet-forwarder/Config.in"
 source "package/lrd/ttn-forwarder/Config.in"
+source "package/lrd/lora-gateway-bridge/Config.in"
 
