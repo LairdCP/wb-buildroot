@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PHP_VERSION = 7.1.1
+PHP_VERSION = 7.1.7
 PHP_SITE = http://www.php.net/distributions
 PHP_SOURCE = php-$(PHP_VERSION).tar.xz
 PHP_INSTALL_STAGING = YES
@@ -12,7 +12,7 @@ PHP_INSTALL_STAGING_OPTS = INSTALL_ROOT=$(STAGING_DIR) install
 PHP_INSTALL_TARGET_OPTS = INSTALL_ROOT=$(TARGET_DIR) install
 PHP_DEPENDENCIES = host-pkgconf
 HOST_PHP_DEPENDENCIES = host-pkgconf host-libxml2 host-openssl
-PHP_LICENSE = PHP
+PHP_LICENSE = PHP-3.01
 PHP_LICENSE_FILES = LICENSE
 PHP_CONF_OPTS = \
 	--mandir=/usr/share/man \
