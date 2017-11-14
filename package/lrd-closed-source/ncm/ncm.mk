@@ -8,7 +8,7 @@ NCM_VERSION = local
 NCM_SITE = package/lrd-closed-source/externals/ncm
 NCM_SITE_METHOD = local
 
-NCM_DEPENDENCIES = libnl sdcsdk libedit protobuf openssl
+NCM_DEPENDENCIES = libnl msd-binaries libedit protobuf openssl
 NCM_MAKE_ENV = CC="$(TARGET_CC)" \
                   CXX="$(TARGET_CXX)" \
                   CROSS="" \

@@ -43,19 +43,21 @@ OPENSSL_TARGET_ARCH = generic32 386
 endif
 
 define OPENSSL_FIPS_CONFIGURE_CMDS
+endef
+
+# BZ10856: set BR2_PASSTHRU_WRAPPER=1 to use base toolchain cross-compiler
+define OPENSSL_FIPS_BUILD_CMDS
 	( cd $(@D); \
+	  export BR2_PASSTHRU_WRAPPER=1; \
 	  export MACHINE=$(OPENSSL_TARGET_ARCH); \
 	  export RELEASE=4.x; \
 	  export SYSTEM=Linux; \
 	  export BUILD=Laird; \
 	  export CROSS_COMPILE=$(TARGET_CROSS); \
 	  export HOSTCC=gcc; \
-	  ./config \
+	  ./config; \
+	  make \
 	)
-endef
-
-define OPENSSL_FIPS_BUILD_CMDS
-	$(MAKE1) -C $(@D)
 endef
 
 define OPENSSL_FIPS_INSTALL_STAGING_CMDS
