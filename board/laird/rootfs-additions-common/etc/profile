@@ -48,4 +48,6 @@ do
   fi
 done
 
+# set shell history to /tmp so that it is not writting it to flash
+export HISTFILE=/tmp/$USER.ash_history
 
