@@ -12,6 +12,8 @@ UBOOT_LICENSE_FILES = Licenses/gpl-2.0.txt
 
 UBOOT_INSTALL_IMAGES = YES
 
+UBOOT_INSTALL_STAGING = YES
+
 ifeq ($(UBOOT_VERSION),custom)
 # Handle custom U-Boot tarballs as specified by the configuration
 UBOOT_TARBALL = $(call qstrip,$(BR2_TARGET_UBOOT_CUSTOM_TARBALL_LOCATION))
@@ -232,6 +234,11 @@ define UBOOT_INSTALL_IMAGES_CMDS
 		install -m 0644 -D $(@D)/tools/env/fw_env.config $(TARGET_DIR)/etc
 		install -m 0755 -D $(@D)/tools/env/fw_printenv $(TARGET_DIR)/usr/sbin
 		ln -sf fw_printenv $(TARGET_DIR)/usr/sbin/fw_setenv )
+endef
+
+define UBOOT_INSTALL_STAGING_CMDS
+	$(INSTALL) -D -m 0755 $(@D)/tools/env/lib.a $(STAGING_DIR)/usr/lib/libubootenv.a
+	$(INSTALL) -D -m 0644 $(@D)/tools/env/fw_env.h $(STAGING_DIR)/usr/include/fw_env.h
 endef
 
 define UBOOT_INSTALL_OMAP_IFT_IMAGE
