@@ -19,6 +19,7 @@ TARFILE="$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.tar"
 
 # generate tar.bz2 to be inserted in script
 tar -cvf $IMAGESDIR/$TARFILE --directory="$TARGET_DIR/usr/bin" .
+tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/usr/sbin/" .
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/etc/ar6kl-tools/dbgParser/include/" .
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/" "$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.manifest"
 bzip2 -f "$IMAGESDIR/$TARFILE"
