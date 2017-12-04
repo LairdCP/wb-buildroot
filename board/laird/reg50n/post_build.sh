@@ -13,6 +13,11 @@ echo "/usr/bin/athtestcmd" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 echo "/usr/bin/wmiconfig" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 echo "/etc/ar6kl-tools/dbgParser/include/dbglog.h" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 echo "/etc/ar6kl-tools/dbgParser/include/dbglog_id.h" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
+echo "/usr/sbin/smu_cli" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
+
+# remove unneeded bins
+rm -f $TARGET_DIR/usr/bin/sdc_cli
+rm -f $TARGET_DIR/usr/bin/dhcp_injector
 
 # make sure board script is not in target directory and copy it from rootfs-additions
 rm -f $TARGET_DIR/reg_tools.sh
