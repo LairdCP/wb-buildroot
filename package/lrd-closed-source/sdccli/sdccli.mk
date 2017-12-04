@@ -20,9 +20,15 @@ define SDCCLI_BUILD_CMDS
 	$(SDCCLI_MAKE_ENV) $(MAKE) -C $(@D)
 endef
 
+ifeq ($(BR2_PACKAGE_SDCCLI_SMU_CLI),y)
+define SDCCLI_INSTALL_SMU_CLI
+	$(INSTALL) -D -m 755 $(@D)/bin/smu_cli $(TARGET_DIR)/usr/sbin/smu_cli
+endef
+endif
+
 define SDCCLI_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/bin/sdc_cli $(TARGET_DIR)/usr/bin/sdc_cli
-	$(INSTALL) -D -m 755 $(@D)/bin/smu_cli $(TARGET_DIR)/usr/sbin/smu_cli
+	$(SDCCLI_INSTALL_SMU_CLI)
 endef
 
 define SDCCLI_UNINSTALL_TARGET_CMDS
