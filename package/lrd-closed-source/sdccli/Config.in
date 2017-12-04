@@ -3,3 +3,12 @@ config BR2_PACKAGE_SDCCLI
 	select BR2_PACKAGE_LIBNL
 	help
 	  SDC CLI
+
+if BR2_PACKAGE_SDCCLI
+
+config BR2_PACKAGE_SDCCLI_SMU_CLI
+	bool "Install smu_cli binary"
+	help
+	  Install smu_cli command line utility
+
+endif
