@@ -27,7 +27,7 @@ fi
 	 sort -r >todel1.txt;
  tar --file=rootfs.tar --delete `cat todel1.txt`;
  tar -tf rootfs.tar | \
-	 egrep -v '/$|wpa_|libcrypto|libssl' | \
+	 egrep -v '/$|wpa_|libcrypto|libssl|libdbus-[1-9]' | \
 	 sort -r >todel2.txt; \
  tar --file=rootfs.tar --delete `cat todel2.txt`;
  rm todel1.txt todel2.txt)
