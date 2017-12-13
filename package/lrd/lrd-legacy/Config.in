@@ -24,8 +24,6 @@ if BR2_PACKAGE_LRD_LEGACY_APPS
 config BR2_PACKAGE_LRD_LEGACY_45_APPS
 	bool "Include Laird 45 specific items"
 	select BR2_PACKAGE_LAIRD_FIRMWARE_AR6003
-	select BR2_PACKAGE_SMARTBASIC
-	select BR2_PACKAGE_LIBBLUETOPIA
 	help
 	  Selects legacy Laird 45 specific software to be installed
 endif
@@ -35,8 +33,6 @@ config BR2_PACKAGE_LRD_LEGACY_50_APPS
 	bool "Include Laird 50 specific items"
 	select BR2_PACKAGE_LAIRD_FIRMWARE_AR6004
 	select BR2_PACKAGE_LAIRD_FIRMWARE_BT
-	select BR2_PACKAGE_SMARTBASIC
-	select BR2_PACKAGE_LIBBLUETOPIA
 	help
 	  Selects legacy Laird 50 specific software to be installed
 endif
