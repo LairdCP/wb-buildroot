@@ -31,10 +31,4 @@ if cd "$IMAGESDIR"; then
   cd - >/dev/null
 fi
 
-cp board/laird/$BR2_LRD_PRODUCT/configs/sw-description "$IMAGESDIR/"
-if cd "$IMAGESDIR"; then
-	$TOPDIR/board/laird/sw_image_generator.sh "$IMAGESDIR"
-fi
-
-
 echo "COMMON POST IMAGE script: done."
