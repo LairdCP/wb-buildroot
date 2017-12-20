@@ -1,0 +1,130 @@
+software =
+{
+	version = "0.1.0";
+
+	stable = {
+		main-a: {
+			images: (
+				{
+					filename = "kernel.bin";
+					device = "mtd4";
+					type = "flash";
+				},
+				{
+					filename = "rootfs.ubifs";
+					volume = "rootfs";
+					installed-directly = true;
+				}
+			);
+
+			uboot: (
+				{
+					name = "bootargs";
+					value = "console=ttyS0,115200 loglevel=4 rw noinitrd mem=64M rootfstype=ubifs root=ubi0:rootfs ubi.mtd=6";
+				},
+				{
+					name = "bootcmd";
+					value = "nand read 0x22000000 0x000E0000 0x00500000; bootm";
+				}
+			);
+		}
+
+		main-b: {
+			images: (
+				{
+					filename = "kernel.bin";
+					device = "mtd5";
+					type = "flash";
+				},
+				{
+					filename = "rootfs.ubifs";
+					volume = "rootfs";
+					installed-directly = true;
+				}
+			);
+
+			uboot: (
+				{
+					name = "bootargs";
+					value = "console=ttyS0,115200 loglevel=4 rw noinitrd mem=64M rootfstype=ubifs root=ubi0:rootfs ubi.mtd=7";
+				},
+				{
+					name = "bootcmd";
+					value = "nand read 0x22000000 0x005E0000 0x00500000; bootm";
+				}
+			);
+		}
+
+		full-a: {
+			images: (
+				{
+					filename = "at91bs.bin";
+					device = "mtd0";
+					type = "flash";
+				},
+				{
+					filename = "u-boot.bin";
+					device = "mtd1";
+					type = "flash";
+				},
+				{
+					filename = "kernel.bin";
+					device = "mtd4";
+					type = "flash";
+				},
+				{
+					filename = "rootfs.ubifs";
+					volume = "rootfs";
+					installed-directly = true;
+				}
+			);
+
+			uboot: (
+				{
+					name = "bootargs";
+					value = "console=ttyS0,115200 loglevel=4 rw noinitrd mem=64M rootfstype=ubifs root=ubi0:rootfs ubi.mtd=6";
+				},
+				{
+					name = "bootcmd";
+					value = "nand read 0x22000000 0x000E0000 0x00500000; bootm";
+				}
+			);
+		}
+
+		full-b: {
+			images: (
+				{
+					filename = "at91bs.bin";
+					device = "mtd0";
+					type = "flash";
+				},
+				{
+					filename = "u-boot.bin";
+					device = "mtd1";
+					type = "flash";
+				},
+				{
+					filename = "kernel.bin";
+					device = "mtd5";
+					type = "flash";
+				},
+				{
+					filename = "rootfs.ubifs";
+					volume = "rootfs";
+					installed-directly = true;
+				}
+			);
+
+			uboot: (
+				{
+					name = "bootargs";
+					value = "console=ttyS0,115200 loglevel=4 rw noinitrd mem=64M rootfstype=ubifs root=ubi0:rootfs ubi.mtd=7";
+				},
+				{
+					name = "bootcmd";
+					value = "nand read 0x22000000 0x005E0000 0x00500000; bootm";
+				}
+			);
+		}
+	};
+}
