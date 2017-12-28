@@ -42,7 +42,7 @@ ifneq ($(BR2_PACKAGE_LRD_LEGACY),y)
 define SDCSUPP_INSTALL_DBUS_NEW
 	$(INSTALL) -m 0644 -D \
 		$(SDCSUPP_D)/dbus/$(SDCSUPP_DBUS_NEW_SERVICE).service \
-		$(TARGET_DIR)/usr/share/dbus-1/system-services/$(SDCSUPP_DBUS_NEW_SERVICE).service
+		$(TARGET_DIR)/usr/share/dbus-1/system-services/summit.$(SDCSUPP_DBUS_NEW_SERVICE).service
 endef
 endif
 

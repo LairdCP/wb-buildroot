@@ -129,7 +129,9 @@ WPA_SUPPLICANT_CONFIG_ENABLE += CONFIG_CTRL_IFACE_DBUS_NEW
 define WPA_SUPPLICANT_INSTALL_DBUS_NEW
 	$(INSTALL) -m 0644 -D \
 		$(@D)/wpa_supplicant/dbus/$(WPA_SUPPLICANT_DBUS_NEW_SERVICE).service \
-		$(TARGET_DIR)/usr/share/dbus-1/system-services/$(WPA_SUPPLICANT_DBUS_NEW_SERVICE).service
+		$(TARGET_DIR)/usr/share/dbus-1/system-services/sterling.$(WPA_SUPPLICANT_DBUS_NEW_SERVICE).service
+        ln -s sterling.$(WPA_SUPPLICANT_DBUS_NEW_SERVICE).service \
+        $(TARGET_DIR)/usr/share/dbus-1/system-services/$(WPA_SUPPLICANT_DBUS_NEW_SERVICE).service
 endef
 endif
 
