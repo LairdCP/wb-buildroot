@@ -13,12 +13,6 @@ config BR2_MSD_BINARIES_COMPANY_PROJECT
 	  Specify the middle string of a msd name tag. I.e. company/project.
 	  E.g. laird
 
-config BR2_MSD_BINARIES_VERSION
-	string "Laird Binaries version"
-	help
-	  Specify the version of sdcbins to use.
-	  E.g. alpha.0.2
-
 config BR2_MSD_BINARIES_WEBLCM
 	bool "Laird webLCM"
     default y
