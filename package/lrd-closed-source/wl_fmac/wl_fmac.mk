@@ -13,6 +13,7 @@ WL_FMAC_MAKE_ENV += CC="$(TARGET_CC)" \
                   ARCH="$(KERNEL_ARCH)" \
                   TARGETARCH="$(ARCH)" \
                   PKG_CONFIG="$(HOST_DIR)/usr/bin/pkg-config" \
+                  CFLAGS="-I$(@D)/include/uapi/"
                   NL80211=1 \
                   APPLY_PREFIX=false
 
