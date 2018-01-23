@@ -32,11 +32,25 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343
 	  Install Laird's firmware, calibration data and Bluetooth firmware
 	  for the LWB-Sterling radio.
 
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343_MFG
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB MFG"
+	help
+	  Install Laird's firmware, manufacturing test firmware
+	  for the LWB-Sterling radio.
+
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5"
 	help
 	  Install Laird's firmware, calibration data and Bluetooth firmware
+	  for the LWB5-Sterling radio.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339_MFG
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB5 MFG"
+	help
+	  Install Laird's firmware, manufacturing test firmware
 	  for the LWB5-Sterling radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_MRVL_SD8997
