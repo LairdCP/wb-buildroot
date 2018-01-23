@@ -8,6 +8,8 @@ set -x -e
 
 # generate manifest file
 echo "/usr/bin/wl" >"$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
+echo "/lib/firmware/brcm/bcm4339/brcmfmac4339-sdio-mfg.bin" >>"$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
+echo "/lib/firmware/brcm/bcm4339/brcmfmac4339-sdio.bin" >>"$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 # make sure board script is not in target directory and copy it from rootfs-additions
 rm -f $TARGET_DIR/reg_tools.sh
 cp board/laird/reglwb/rootfs-additions/reg_tools.sh $TARGET_DIR
