@@ -1,6 +1,6 @@
 #############################################################
 #
-# LMU
+# 60 Series Manufacturing Utilities
 #
 #############################################################
 MFG60N_VERSION = local
@@ -15,15 +15,18 @@ MFG60N_MAKE_ENV += $(TARGET_MAKE_ENV) \
 
 define MFG60N_BUILD_CMDS
 	$(MFG60N_MAKE_ENV) $(MAKE) $(MFG60N_MAKE_OPTS) -C $(@D)/lmu
+	$(MFG60N_MAKE_ENV) $(MAKE) $(MFG60N_MAKE_OPTS) -C $(@D)/lru
 	$(MFG60N_MAKE_ENV) $(MAKE) $(MFG60N_MAKE_OPTS) -C $(@D)/wow
 endef
 
 define MFG60N_INSTALL_TARGET_CMDS
+	$(INSTALL) -D -m 755 $(@D)/lru/bin/lru $(TARGET_DIR)/usr/bin/lru
 	$(INSTALL) -D -m 755 $(@D)/lmu/bin/lmu $(TARGET_DIR)/usr/bin/lmu
 endef
 
 define MFG60N_UNINSTALL_TARGET_CMDS
 	rm -f $(TARGET_DIR)/usr/bin/lmu
+	rm -f $(TARGET_DIR)/usr/bin/lru
 endef
 
 $(eval $(generic-package))

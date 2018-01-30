@@ -76,7 +76,15 @@ ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997),y)
 define LAIRD_FW_LRDMWL_SD8997_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
 	rm -r -f $(TARGET_DIR)/lib/firmware/lrdmwl/*
-	cp -r $(@D)/lrdmwl/ $(TARGET_DIR)/lib/firmware
+	cp $(@D)/lrdmwl/*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
+endef
+endif
+
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997_MFG),y)
+define LAIRD_FW_LRDMWL_SD8997_MFG_INSTALL_TARGET_CMDS
+	rm -r -f $(TARGET_DIR)/lib/firmware/lrdmwl/mfg/*
+	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	cp $(@D)/lrdmwl/mfg/* $(TARGET_DIR)/lib/firmware/lrdmwl
 endef
 endif
 
@@ -118,6 +126,7 @@ define LAIRD_FIRMWARE_INSTALL_TARGET_CMDS
 	$(LAIRD_FW_BCM4339_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4339_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_SD8997_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_LRDMWL_SD8997_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_MRVL_SD8997_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_WL18XX_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BT50_INSTALL_TARGET_CMDS)

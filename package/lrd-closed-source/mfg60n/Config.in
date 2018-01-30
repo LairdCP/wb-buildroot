@@ -1,5 +1,7 @@
 config BR2_PACKAGE_MFG60N
-	bool "LMU"
+	bool "60 Series Manufacuring Utilities"
 	select BR2_PACKAGE_LIBNL
+	select BR2_PACKAGE_LAIRD_FIRMWARE
+	select BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997_MFG
 	help
 		Laird Manufacturing and Regulatory Tools

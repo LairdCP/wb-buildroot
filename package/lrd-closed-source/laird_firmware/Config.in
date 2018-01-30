@@ -67,6 +67,13 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997
 	  Install Laird's SD8997 firmware for the thin-MAC lrdwifi driver.
 	  This supports Laird 60 series radios.
 
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997_MFG
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird 60-series MFG"
+	help
+	  Install Laird's SD8997 manufacturing test firmware for the 
+	  thin-MAC lrdwifi driver.
+
 config BR2_PACKAGE_LAIRD_FIRMWARE_WL18XX
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "TI WL18XX"
