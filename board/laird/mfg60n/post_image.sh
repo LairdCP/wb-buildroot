@@ -1,6 +1,8 @@
 IMAGESDIR="$1"
 
 export BR2_LRD_PRODUCT=mfg60n
+export BR2_LRD_MFG_FW=lib/firmware/lrdmwl
+export BR2_LRD_MFG_VERSION=16.205.153.252.bin
 
 # enable tracing and exit on errors
 set -x -e
@@ -19,6 +21,11 @@ TARFILE="$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.tar"
 # generate tar.bz2 to be inserted in script
 tar -cvf $IMAGESDIR/$TARFILE --directory="$TARGET_DIR/usr/bin" .
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/" "$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.manifest"
+tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" "88W8997_mfg_sdio_sdio_v""$BR2_LRD_MFG_VERSION"
+tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" "88W8997_mfg_sdio_uart_v""$BR2_LRD_MFG_VERSION"
+tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" "88W8997_mfg_pcie_uart_v""$BR2_LRD_MFG_VERSION"
+tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" "88W8997_mfg_pcie_usb_v""$BR2_LRD_MFG_VERSION"
+
 bzip2 -f "$IMAGESDIR/$TARFILE"
 
 # generate sha to valitage package
