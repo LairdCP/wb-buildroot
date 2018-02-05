@@ -19,6 +19,7 @@
 /package/lrd-closed-source/externals/kernel/drivers/net/wireless/laird/lrdmwl
 /package/lrd-devel/at91bootstrap3
 /package/lrd-devel/u-boot
+/package/lrd-customers/*
 /board/laird/customers/*
 !/board/laird/customers/README
 
