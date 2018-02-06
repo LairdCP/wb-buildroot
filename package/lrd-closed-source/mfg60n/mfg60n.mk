@@ -6,7 +6,7 @@
 MFG60N_VERSION = local
 MFG60N_SITE = package/lrd-closed-source/externals/mfg60n
 MFG60N_SITE_METHOD = local
-MFG60N_DEPENDENCIES = host-pkgconf libnl
+MFG60N_DEPENDENCIES = host-pkgconf libnl libedit
 MFG60N_MAKE_OPTS = CXX="$(TARGET_CXX)" CC="$(TARGET_CC)" LD="$(TARGET_LD)" LDFLAGS="$(TARGET_LDFLAGS)"
 MFG60N_MAKE_ENV += $(TARGET_MAKE_ENV) \
 	PKG_CONFIG="$(HOST_DIR)/usr/bin/pkg-config" \
