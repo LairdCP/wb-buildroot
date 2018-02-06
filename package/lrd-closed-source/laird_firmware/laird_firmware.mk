@@ -76,7 +76,7 @@ ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997),y)
 define LAIRD_FW_LRDMWL_SD8997_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
 	rm -r -f $(TARGET_DIR)/lib/firmware/lrdmwl/*
-	cp $(@D)/lrdmwl/*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
+	cp -P $(@D)/lrdmwl/*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 endef
 endif
 

@@ -2,6 +2,7 @@ IMAGESDIR="$1"
 
 export BR2_LRD_PRODUCT=mfg60n
 export BR2_LRD_MFG_FW=lib/firmware/lrdmwl
+export BR2_LRD_LIBEDIT=usr/lib
 export BR2_LRD_MFG_VERSION=16.205.153.252.bin
 
 # enable tracing and exit on errors
@@ -25,6 +26,7 @@ tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" "88W8
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" "88W8997_mfg_sdio_uart_v""$BR2_LRD_MFG_VERSION"
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" "88W8997_mfg_pcie_uart_v""$BR2_LRD_MFG_VERSION"
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" "88W8997_mfg_pcie_usb_v""$BR2_LRD_MFG_VERSION"
+tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_LIBEDIT" "libedit.lrd.so.0.0.53"
 
 bzip2 -f "$IMAGESDIR/$TARFILE"
 
@@ -42,4 +44,5 @@ chmod +x "$IMAGESDIR/$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.sh"
 rm "$IMAGESDIR/$TARFILE.bz2"
 tar -cvf "$IMAGESDIR/$TARFILE" --directory="$IMAGESDIR" "$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.sh"
 tar --append --file="$IMAGESDIR/$TARFILE" --directory="$IMAGESDIR" "$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.sha"
+
 bzip2 -f "$IMAGESDIR/$TARFILE"
