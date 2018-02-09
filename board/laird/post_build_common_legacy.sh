@@ -78,6 +78,10 @@ tar c --exclude=.svn --exclude=.empty -C board/laird/rootfs-additions-common/ . 
 ( cd $TARGETDIR/usr/lib \
   && ln -sf libsdc_sdk.so.1.0 libsdc_sdk.so.1 )
 
+# wireless.sh won't be able to create this with the ro filesystem
+( cd $TARGETDIR \
+  && ln -sf /etc/network/wireless.sh sbin/wireless )
+
 # Services to disable by default
 [ -f $TARGETDIR/etc/init.d/S??lighttpd ] \
 && chmod a-x $TARGETDIR/etc/init.d/S??lighttpd
