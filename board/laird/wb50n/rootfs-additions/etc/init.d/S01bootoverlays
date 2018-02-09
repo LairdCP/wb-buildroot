@@ -20,22 +20,18 @@
 case $1 in
 
   stop)
-    if ! touch /etc/read-only 2>/dev/null
+    if ! touch /.rw 2>/dev/null
     then
 	umount /home
-	umount /usr
     fi
     ;;
 
   start)
-    if ! touch /etc/read-only 2>/dev/null
+    if ! touch /.rw 2>/dev/null
     then
 	mkdir -p /mnt/home-upperdir
         mkdir -p /mnt/home-workdir
-        mkdir -p /mnt/usr-upperdir
-        mkdir -p /mnt/usr-workdir
         mount -t overlay -olowerdir=/home,upperdir=/mnt/home-upperdir,workdir=/mnt/home-workdir overlayfs /home
-        mount -t overlay -olowerdir=/usr,upperdir=/mnt/usr-upperdir,workdir=/mnt/usr-workdir overlayfs /usr
      fi
     ;;
 esac
