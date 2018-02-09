@@ -29,6 +29,8 @@ AT91BS_IMG=at91bs.bin
 U_BOOT_IMG=u-boot.bin
 KERNEL_IMG=kernel.bin
 ROOTFS_IMG=rootfs.bin
+SQROOT_IMG=sqroot.bin
+USERFS_IMG=userfs.bin
 
 # update-list file
 FWUL=/tmp/fw.txt
@@ -514,6 +516,18 @@ then
   test -n "${2}" && [ "${2:0:1}" != "/" -a "${2/*:*/:}" != ":" ] \
     && ROOTFS_URL=${isl:-${url%/*}}/${2/^.\/}
 
+  ## parse md5, name, length and check if absolute url/path or convert
+  set -- $( sed -n "/^[^#] *[0-9a-f]\{32\}\ .*${SQROOT_IMG}/p" $FWUL )
+  eval SQROOT_MD5=$1 SQROOT_URL=$2 SQROOT_LEN=${3:-0}
+  test -n "${2}" && [ "${2:0:1}" != "/" -a "${2/*:*/:}" != ":" ] \
+    && SQROOT_URL=${isl:-${url%/*}}/${2/^.\/}
+
+  ## parse md5, name, length and check if absolute url/path or convert
+  set -- $( sed -n "/^[^#] *[0-9a-f]\{32\}\ .*${USERFS_IMG}/p" $FWUL )
+  eval USERFS_MD5=$1 USERFS_URL=$2 USERFS_LEN=${3:-0}
+  test -n "${2}" && [ "${2:0:1}" != "/" -a "${2/*:*/:}" != ":" ] \
+    && USERFS_URL=${isl:-${url%/*}}/${2/^.\/}
+
   ## parse other options
   shell=$( sed -n '/^ *sh[ell]* /{s/.*sh[ell]* //p;q}' $FWUL )
 
@@ -579,7 +593,7 @@ then
     echo -e "Reverting rootfs-a/b swap\n  ...\c"
     [ $rootfs != a ] && $fw_select rootfs-a || $fw_select rootfs-b
   fi
-  eval at91bs= u_boot= kernel= rootfs=
+  eval at91bs= u_boot= kernel= rootfs= userfs=
 fi
 
 bootcmd_x() {
@@ -858,8 +872,8 @@ let rip_a=$RIP
 let rip_b=$RIP+1
 case `rootfs_x` in
   # target alt rootfs partition
-  $rip_a) tp=mtd${rip_b}; ab=b;;
-  $rip_b) tp=mtd${rip_a}; ab=a;;
+  $rip_a) tp=mtd${rip_b}; mtdnum=${rip_b}; ab=b;;
+  $rip_b) tp=mtd${rip_a}; mtdnum=${rip_a}; ab=a;;
 esac
 image=${ROOTFS_IMG%%.*}-$ab ubifs=${UBIFS:-true}
 if assert_image ROOTFS "Root Filesystem"
@@ -871,9 +885,38 @@ then
       if $fw_setenv md5_$image $ROOTFS_MD5
       then
         rootfs=$ab
-        bootargs=$( $fw_printenv -n bootargs \
-                  |sed "s/ubi.mtd=./ubi.mtd=${tp##*mtd}/" )
+	bootargs="console=ttyS0,115200 loglevel=4 rw noinitrd mem=64M rootfstype=ubifs root=ubi0:rootfs ubi.mtd=$mtdnum"
       fi
+    fi
+  fi
+fi
+
+image=${SQROOT_IMG%%.*}-$ab
+if assert_image SQROOT "Squashed Root Filesystem"
+then
+  if flash_image $SQROOT_URL
+  then
+    if $fw_setenv md5_$image $SQROOT_MD5
+    then
+      rootfs=$ab
+      bootargs="console=ttyS0,115200 loglevel=4 ro noinitrd mem=64M rootfstype=squashfs ubi.block=0,0 root=/dev/ubiblock0_0 ubi.mtd=$mtdnum"
+    fi
+  fi
+fi
+
+tp=mtd8
+image=${USERFS_IMG%%.*} ubifs=${UBIFS:-true}
+if assert_image USERFS "User Filesystem"
+then
+  umount /mnt
+  umount /etc
+  umount /home
+  ubidetach -m 8
+  if flash_image $USERFS_URL
+  then
+    if $fw_setenv md5_$image $USERFS_MD5
+    then
+      userfs=x
     fi
   fi
 fi
@@ -902,6 +945,7 @@ $fw_setenv updated_% \
      ${u_boot:+u_boot=$u_boot} \
      ${kernel:+kernel=$kernel} \
      ${rootfs:+rootfs=$rootfs} \
+     ${userfs:+userfs=$userfs} \
      ${nsap:+nsap=$nsap}
 
 test -n "$rootfs" -a -n "$bootargs" \
