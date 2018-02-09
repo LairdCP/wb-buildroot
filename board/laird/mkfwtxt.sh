@@ -15,8 +15,9 @@ url=${1%/}
 image1=#at91bs.bin
 image2=#u-boot.bin
 image3=kernel.bin
-image4=rootfs.bin
-
+image4=#rootfs.bin
+image5=sqroot.bin
+image6=userfs.bin
 
 # write target-build description
 if [ -n "$LAIRD_RELEASE_STRING" ]
@@ -27,7 +28,7 @@ else
 fi
 
 # write update-list
-for n in 1 2 3 4
+for n in 1 2 3 4 5 6
 do
   # construct image var
   eval name=\$image$n \
@@ -70,7 +71,7 @@ cat $fwul
 echo >>$fwul
 echo >>$fwul
 echo "# old format..." >>$fwul
-for n in 1 2 3 4
+for n in 1 2 3 4 5 6
 do
   # construct image var
   eval name=\$image$n \
