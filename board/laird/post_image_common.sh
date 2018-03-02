@@ -6,12 +6,9 @@ echo "COMMON POST IMAGE script: starting..."
 # enable tracing and exit on errors
 set -x -e
 
-if [ -e "$IMAGESDIR/uImage.$BR2_LRD_PLATFORM"  ]
+if [ -e "$IMAGESDIR/uImage.at91-$BR2_LRD_PRODUCT"  ]
 then
-	cp "$IMAGESDIR/uImage.$BR2_LRD_PLATFORM"  "$IMAGESDIR/kernel.bin"
-elif [ -e "$IMAGESDIR/uImage.$BR2_LRD_PRODUCT"  ]
-then
-	cp "$IMAGESDIR/uImage.$BR2_LRD_PRODUCT"  "$IMAGESDIR/kernel.bin"
+	cp "$IMAGESDIR/uImage.at91-$BR2_LRD_PRODUCT"  "$IMAGESDIR/kernel.bin"
 else
 	cp "$IMAGESDIR/uImage"                    "$IMAGESDIR/kernel.bin"
 fi
