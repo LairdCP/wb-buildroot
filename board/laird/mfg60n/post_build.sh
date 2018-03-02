@@ -5,8 +5,9 @@ export BR2_LRD_MFG_VERSION=16.205.153.252.bin
 set -x -e
 
 # generate manifest file
-echo "/usr/bin/lmu" >  "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
-echo "/usr/bin/lru" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
+echo "/usr/bin/lmu"   >  "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
+echo "/usr/bin/lru"   >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
+echo "/usr/bin/btlru" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 echo "/usr/lib/libedit.lrd.so.0.0.53"  >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 echo "/lib/firmware/lrdmwl/88W8997_mfg_pcie_uart_v""$BR2_LRD_MFG_VERSION" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 echo "/lib/firmware/lrdmwl/88W8997_mfg_pcie_usb_v""$BR2_LRD_MFG_VERSION"  >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
