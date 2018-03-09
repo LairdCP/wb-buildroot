@@ -3,6 +3,9 @@ menu "Laird"
     choice
         prompt "Board"
 
+        config BR2_LRD_PLATFORM_SOM60
+            bool "SOM60"
+
         config BR2_LRD_PLATFORM_WB50N
             bool "WB50N"
 
@@ -12,6 +15,7 @@ menu "Laird"
 
     config BR2_LRD_PLATFORM
         string
+        default "som60"   if BR2_LRD_PLATFORM_SOM60
         default "wb50n"   if BR2_LRD_PLATFORM_WB50N
         default "wb45n"   if BR2_LRD_PLATFORM_WB45N
 

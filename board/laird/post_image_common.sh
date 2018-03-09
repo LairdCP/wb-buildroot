@@ -13,10 +13,16 @@ else
 	cp "$IMAGESDIR/uImage"                    "$IMAGESDIR/kernel.bin"
 fi
 cp "$IMAGESDIR/rootfs.ubi"                       "$IMAGESDIR/rootfs.bin"
+
+
+if [ -e "$IMAGESDIR/at91bootstrap.bin"  ]
+then
 cp "$IMAGESDIR/at91bootstrap.bin"                "$IMAGESDIR/at91bs.bin"
 
+# fw_update only needed for legacy boards which also build at91bs
 cp board/laird/rootfs-additions-common/usr/sbin/fw_select "$IMAGESDIR/"
 cp board/laird/rootfs-additions-common/usr/sbin/fw_update "$IMAGESDIR/"
+fi
 
 if [ -z "$LAIRD_FW_TXT_URL" ]; then
   LAIRD_FW_TXT_URL="http://`hostname`/$BR2_LRD_PRODUCT"

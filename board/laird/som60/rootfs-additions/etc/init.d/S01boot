@@ -1,0 +1,45 @@
+#!/bin/sh
+
+# Copyright (c) 2018, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+# overlay - mount the OverlayFS .
+#
+
+case $1 in
+
+  stop)
+    #Check for read only filesystem and mount an overlayfs if found
+    if ! touch /etc/read-only 2>/dev/null
+    then
+        umount /etc
+	umount /mnt
+	ubidetach /dev/mtd8
+    fi
+    ;;
+
+  start)
+    #Check for read only filesystem and mount an overlayfs if found
+    if ! touch /etc/read-only 2>/dev/null
+    then
+	ubiattach -p /dev/mtd8
+	mount -t ubifs ubi1:user /mnt
+	mkdir -p /mnt/etc-upperdir
+	mkdir -p /mnt/etc-workdir
+	mount -t overlay -olowerdir=/etc,upperdir=/mnt/etc-upperdir,workdir=/mnt/etc-workdir overlayfs /etc
+    fi
+    ;;
+esac
+exit 0
+
