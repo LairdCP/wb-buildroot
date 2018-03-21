@@ -4,10 +4,10 @@
 #
 ################################################################################
 
-LZ4_VERSION = r131
-LZ4_SITE = $(call github,Cyan4973,lz4,$(LZ4_VERSION))
+LZ4_VERSION = v1.7.5
+LZ4_SITE = $(call github,lz4,lz4,$(LZ4_VERSION))
 LZ4_INSTALL_STAGING = YES
-LZ4_LICENSE = BSD-2c (library), GPLv2+ (programs)
+LZ4_LICENSE = BSD-2-Clause (library), GPL-2.0+ (programs)
 LZ4_LICENSE_FILES = lib/LICENSE programs/COPYING
 
 ifeq ($(BR2_STATIC_LIBS),y)
@@ -22,7 +22,7 @@ define HOST_LZ4_BUILD_CMDS
 endef
 
 define HOST_LZ4_INSTALL_CMDS
-	$(HOST_MAKE_ENV) $(HOST_CONFIGURE_OPTS) $(MAKE) PREFIX=$(HOST_DIR)/usr \
+	$(HOST_MAKE_ENV) $(HOST_CONFIGURE_OPTS) $(MAKE) PREFIX=$(HOST_DIR) \
 		install -C $(@D)
 endef
 
