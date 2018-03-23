@@ -24,6 +24,8 @@ LRD_NETWORK_MANAGER_CONF_ENV = \
 	ac_cv_file__etc_SuSE_release=no
 
 LRD_NETWORK_MANAGER_CONF_OPTS = \
+	--enable-ovs=no \
+	--enable-ifcfg_rh=no \
 	--disable-tests \
 	--disable-qt \
 	--disable-more-warnings \
