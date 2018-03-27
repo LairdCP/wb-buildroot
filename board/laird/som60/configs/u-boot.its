@@ -1,0 +1,54 @@
+/*
+ * Copyright (C) 2018 Laird
+ *
+ * Minimal dts for a SPL FIT image payload.
+ *
+ * SPDX-License-Identifier: GPL-2.0+  X11
+ */
+
+/dts-v1/;
+
+/ {
+	description = "FIT image with U-Boot, DTB";
+	#address-cells = <1>;
+
+	images {
+		uboot {
+			description = "U-Boot";
+			data = /incbin/("u-boot-nodtb.bin");
+			type = "firmware";
+			os = "U-Boot";
+			arch = "arm";
+			compression = "none";
+			load = <0x23f00000>;
+			firmware-version = <1>;
+			hash {
+				algo = "sha256";
+			};
+		};
+		fdt {
+			description = "SOM60 flat device-tree";
+			data = /incbin/("u-boot.dtb");
+			type = "flat_dt";
+			compression = "none";
+			fdt-version = <1>;
+			hash {
+				algo = "sha256";
+			};
+		};
+	};
+
+	configurations {
+		default = "conf";
+		conf {
+			description = "Laird SOM60";
+			firmware = "uboot";
+			fdt = "fdt";
+			signature {
+				algo = "sha256,rsa2048";
+				key-name-hint = "dev";
+				sign-images = "fdt", "firmware";
+			};
+		};
+	};
+};
