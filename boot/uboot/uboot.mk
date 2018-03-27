@@ -85,7 +85,7 @@ UBOOT_MAKE_TARGET += u-boot.img
 endif
 
 ifeq ($(BR2_TARGET_UBOOT_FORMAT_ITB),y)
-UBOOT_BINS += u-boot.itb
+UBOOT_BINS += u-boot.itb u-boot.dtb u-boot-nodtb.bin
 UBOOT_MAKE_TARGET += u-boot.itb
 endif
 

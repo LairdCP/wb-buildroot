@@ -15,7 +15,7 @@
 			entry = <0x22000000>;
 			kernel-version = <1>;
 			hash@1 {
-				algo = "sha1";
+				algo = "sha256";
 			};
 		};
 		fdt@1 {
@@ -25,13 +25,13 @@
 			compression = "none";
 			fdt-version = <1>;
 			hash@1 {
-				algo = "sha1";
+				algo = "sha256";
 			};
 		};
 	};
 	configurations {
-		default = "conf@1";
-		conf@1 {
+		default = "config@1";
+		config@1 {
 			kernel = "kernel@1";
 			fdt = "fdt@1";
 			signature@1 {
