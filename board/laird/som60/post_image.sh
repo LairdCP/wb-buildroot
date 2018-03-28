@@ -10,25 +10,28 @@ echo "SOM60 POST IMAGE script: starting..."
 set -x -e
 
 BOARD_DIR="$(dirname $0)"
+GENIMAGE_CFG="${BOARD_DIR}/configs/genimage.cfg"
+GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
 
 # Tooling checks
 mkimage=$HOST_DIR/bin/mkimage
-ubinize=$HOST_DIR/sbin/ubinize
-mkfs_ubifs=$HOST_DIR/usr/sbin/mkfs.ubifs
 atmel_pmecc_params=$BUILD_DIR/uboot-custom/tools/atmel_pmecc_params
 openssl=$HOST_DIR/usr/bin/openssl
+genimage=$HOST_DIR/bin/genimage
+veritysetup=$HOST_DIR/sbin/veritysetup
 
 die() { echo "$@" >&2; exit 1; }
 test -x $mkimage || \
 	die "No mkimage found (host-uboot-tools has not been built?)"
-test -x $ubinize || \
-	die "no ubinize found (host-mtd has not been built?)"
-test -x $mkfs_ubifs || \
-	die "no mkfs_ubifs found (mkfs has not been built?)"
 test -x $atmel_pmecc_params || \
 	die "no atmel_pmecc_params found (uboot has not been built?)"
 test -x $openssl || \
 	die "no openssl found (host-openssl has not been built?)"
+test -x $veritysetup || \
+	die "No veritysetup found (host-cryptsetup has not been built?)"
+test -x $genimage || \
+	die "No genimage found (host-genimage has not been built?)"
+
 
 # Generate dev keys if needed
 if [ ! -f $BINARIES_DIR/keys/dev.key ]; then
@@ -61,21 +64,20 @@ cat $BINARIES_DIR/u-boot-spl-nodtb.bin $BINARIES_DIR/u-boot-spl.dtb > $BINARIES_
 $mkimage -T atmelimage -n $($atmel_pmecc_params) -d $BINARIES_DIR/u-boot-spl.bin $BINARIES_DIR/boot.bin
 
 
+# Generate the hash table for squashfs
+$veritysetup format $BINARIES_DIR/rootfs.squashfs $BINARIES_DIR/rootfs.verity > $BINARIES_DIR/rootfs.verity.header
+# Get the hash
+HASH="$(awk '/Root hash:/ {print $3}' $BINARIES_DIR/rootfs.verity.header)"
+SALT="$(awk '/Salt:/ {print $2}' $BINARIES_DIR/rootfs.verity.header)"
 
-
-#Create the user filesystem
-$mkfs_ubifs -d $TARGET_DIR/mnt -e 0x1f000 -c 955 -m 0x800 -x lzo  -o $BINARIES_DIR/user.ubifs
-
-#Ubinize the user and squash filesystems, requires .cfg to be present
-cp $BOARD_DIR/user-ubinize.cfg $BINARIES_DIR/user-ubinize.cfg
-echo "# entering $BINARIES_DIR for the next command"
-(cd $BINARIES_DIR && $ubinize -o user.ubi -m 0x800 -p 0x20000 user-ubinize.cfg) || exit 1
-cp $BINARIES_DIR/user.ubi $BINARIES_DIR/userfs.bin
-
-echo "# entering $BINARIES_DIR for the next command"
-cp $BOARD_DIR/squashfs-ubinize.cfg $BINARIES_DIR/squashfs-ubinize.cfg
-(cd $BINARIES_DIR && $ubinize -o sqroot.ubi -m 0x800 -p 0x20000 squashfs-ubinize.cfg) || exit 1
-cp $BINARIES_DIR/sqroot.ubi $BINARIES_DIR/sqroot.bin
+# Build the UBI
+rm -rf "${GENIMAGE_TMP}"
+$genimage                          \
+	--rootpath "${TARGET_DIR}"     \
+	--tmppath "${GENIMAGE_TMP}"    \
+	--inputpath "${BINARIES_DIR}"  \
+	--outputpath "${BINARIES_DIR}" \
+	--config "${GENIMAGE_CFG}"
 
 # generate SWUpdate .swu image
 cp $BOARD_DIR/configs/sw-description "$IMAGESDIR/"
