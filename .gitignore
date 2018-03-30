@@ -40,4 +40,5 @@
 !/configs/wb50n_rdvk_devel_defconfig
 !/configs/reglwb_defconfig
 !/configs/reglwb5_defconfig
+!/configs/imx6_defconfig
 # note the above is necessary to avoid customer configs.
