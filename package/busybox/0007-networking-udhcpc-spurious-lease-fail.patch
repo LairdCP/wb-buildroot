@@ -1,0 +1,32 @@
+diff --git a/networking/udhcp/dhcpc.c b/networking/udhcp/dhcpc.c
+index 1a66c61..5c24fb7 100644
+--- a/networking/udhcp/dhcpc.c
++++ b/networking/udhcp/dhcpc.c
+@@ -1284,6 +1284,7 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
+ 	unsigned opt;
+ 	IF_FEATURE_UDHCPC_ARPING(unsigned arpping_ms;)
+ 	int retval;
++	bool show_leasefail = true;
+ 
+ 	setup_common_bufsiz();
+ 
+@@ -1503,7 +1504,10 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
+ 					continue;
+ 				}
+  leasefail:
+-				udhcp_run_script(NULL, "leasefail");
++				if (show_leasefail) {
++					show_leasefail = false;
++					udhcp_run_script(NULL, "leasefail");
++				}
+ #if BB_MMU /* -b is not supported on NOMMU */
+ 				if (opt & OPT_b) { /* background if no lease */
+ 					bb_error_msg("no lease, forking to background");
+@@ -1783,6 +1787,7 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
+ 				}
+ #endif
+ 				/* enter bound state */
++				show_leasefail = true;
+ 				temp_addr.s_addr = packet.yiaddr;
+ 				bb_error_msg("lease of %s obtained, lease time %u",
+ 					inet_ntoa(temp_addr), (unsigned)lease_seconds);
