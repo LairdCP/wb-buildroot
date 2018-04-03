@@ -15,6 +15,16 @@ HOST_LIBOPENSSL_DEPENDENCIES = host-zlib
 LIBOPENSSL_TARGET_ARCH = generic32
 LIBOPENSSL_CFLAGS = $(TARGET_CFLAGS)
 LIBOPENSSL_PROVIDES = openssl
+
+# require openssl-fips built firstly
+ifneq ($(BR2_PACKAGE_OPENSSL_FIPS),)
+LIBOPENSSL_DEPENDENCIES += openssl-fips
+LIBOPENSSL_FIPS_CFG = fips
+LIBOPENSSL_FIPS_OPT = FIPSDIR=$(STAGING_DIR)/usr/local/ssl/fips-2.0 \
+                   FIPS_SIG=$(STAGING_DIR)/usr/local/ssl/fips-2.0/bin/incore
+LIBOPENSSL_FIPS_MAKE_OPT = FIPS_SIG=$(STAGING_DIR)/usr/local/ssl/fips-2.0/bin/incore
+endif
+
 LIBOPENSSL_PATCH = \
 	https://gitweb.gentoo.org/repo/gentoo.git/plain/dev-libs/openssl/files/openssl-1.0.2d-parallel-build.patch?id=c8abcbe8de5d3b6cdd68c162f398c011ff6e2d9d \
 	https://gitweb.gentoo.org/repo/gentoo.git/plain/dev-libs/openssl/files/openssl-1.0.2a-parallel-obj-headers.patch?id=c8abcbe8de5d3b6cdd68c162f398c011ff6e2d9d \
@@ -76,6 +86,7 @@ define LIBOPENSSL_CONFIGURE_CMDS
 	(cd $(@D); \
 		$(TARGET_CONFIGURE_ARGS) \
 		$(TARGET_CONFIGURE_OPTS) \
+		$(LIBOPENSSL_FIPS_OPT) \
 		./Configure \
 			linux-$(LIBOPENSSL_TARGET_ARCH) \
 			--prefix=/usr \
@@ -89,6 +100,7 @@ define LIBOPENSSL_CONFIGURE_CMDS
 			enable-tlsext \
 			$(if $(BR2_STATIC_LIBS),zlib,zlib-dynamic) \
 			$(if $(BR2_STATIC_LIBS),no-dso) \
+			$(LIBOPENSSL_FIPS_CFG) \
 	)
 	$(SED) "s#-march=[-a-z0-9] ##" -e "s#-mcpu=[-a-z0-9] ##g" $(@D)/Makefile
 	$(SED) "s#-O[0-9]#$(LIBOPENSSL_CFLAGS)#" $(@D)/Makefile
@@ -104,23 +116,23 @@ LIBOPENSSL_POST_CONFIGURE_HOOKS += LIBOPENSSL_FIXUP_STATIC_MAKEFILE
 endif
 
 define HOST_LIBOPENSSL_BUILD_CMDS
-	$(HOST_MAKE_ENV) $(MAKE) -C $(@D)
+	$(HOST_MAKE_ENV) $(MAKE) $(LIBOPENSSL_FIPS_MAKE_OPT) -C $(@D)
 endef
 
 define LIBOPENSSL_BUILD_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)
+	$(TARGET_MAKE_ENV) $(MAKE) $(LIBOPENSSL_FIPS_MAKE_OPT) -C $(@D)
 endef
 
 define LIBOPENSSL_INSTALL_STAGING_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) INSTALL_PREFIX=$(STAGING_DIR) install
+	$(TARGET_MAKE_ENV) $(MAKE) $(LIBOPENSSL_FIPS_MAKE_OPT) -C $(@D) INSTALL_PREFIX=$(STAGING_DIR) install
 endef
 
 define HOST_LIBOPENSSL_INSTALL_CMDS
-	$(HOST_MAKE_ENV) $(MAKE) -C $(@D) install
+	$(HOST_MAKE_ENV) $(MAKE) $(LIBOPENSSL_FIPS_MAKE_OPT) -C $(@D) install
 endef
 
 define LIBOPENSSL_INSTALL_TARGET_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) INSTALL_PREFIX=$(TARGET_DIR) install
+	$(TARGET_MAKE_ENV) $(MAKE) $(LIBOPENSSL_FIPS_MAKE_OPT) -C $(@D) INSTALL_PREFIX=$(TARGET_DIR) install
 	rm -rf $(TARGET_DIR)/usr/lib/ssl
 	rm -f $(TARGET_DIR)/usr/bin/c_rehash
 endef
