@@ -40,6 +40,20 @@ if [ ! -f $BINARIES_DIR/keys/dev.key ]; then
 	$openssl req -batch -new -x509 -key $BINARIES_DIR/keys/dev.key -out $BINARIES_DIR/keys/dev.crt
 fi
 
+# Generate the hash table for squashfs
+rm -f $BINARIES_DIR/rootfs.verity
+$veritysetup format $BINARIES_DIR/rootfs.squashfs $BINARIES_DIR/rootfs.verity > $BINARIES_DIR/rootfs.verity.header
+# Get the hash
+HASH="$(awk '/Root hash:/ {print $3}' $BINARIES_DIR/rootfs.verity.header)"
+SALT="$(awk '/Salt:/ {print $2}' $BINARIES_DIR/rootfs.verity.header)"
+BLOCKS="$(awk '/Data blocks:/ {print $3}' $BINARIES_DIR/rootfs.verity.header)"
+SIZE=$((${BLOCKS} * 8))
+
+# Generate the boot.scr for uboot
+cp $BOARD_DIR/configs/boot.scr $BINARIES_DIR/boot.scr
+sed -i -e "s/SALT/${SALT}/g" -e "s/HASH/${HASH}/g" -e "s/BLOCKS/${BLOCKS}/g" -e "s/SIZE/${SIZE}/g" $BINARIES_DIR/boot.scr
+
+
 # Generate kernel FIT
 # kernel.its references zImage and at91-dvk_som60.dtb, and all three
 # files must be in current directory for mkimage.
@@ -63,12 +77,6 @@ cat $BINARIES_DIR/u-boot-spl-nodtb.bin $BINARIES_DIR/u-boot-spl.dtb > $BINARIES_
 # Regenerate Atmel PMECC boot.bin
 $mkimage -T atmelimage -n $($atmel_pmecc_params) -d $BINARIES_DIR/u-boot-spl.bin $BINARIES_DIR/boot.bin
 
-
-# Generate the hash table for squashfs
-$veritysetup format $BINARIES_DIR/rootfs.squashfs $BINARIES_DIR/rootfs.verity > $BINARIES_DIR/rootfs.verity.header
-# Get the hash
-HASH="$(awk '/Root hash:/ {print $3}' $BINARIES_DIR/rootfs.verity.header)"
-SALT="$(awk '/Salt:/ {print $2}' $BINARIES_DIR/rootfs.verity.header)"
 
 # Build the UBI
 rm -rf "${GENIMAGE_TMP}"
