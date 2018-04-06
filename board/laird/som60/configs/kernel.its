@@ -28,16 +28,26 @@
 				algo = "sha256";
 			};
 		};
+		script@1 {
+			data = /incbin/("boot.scr");
+			type = "script";
+			arch = "arm";
+			compression = "none";
+			hash@1 {
+				algo = "sha256";
+			};
+		};
 	};
 	configurations {
 		default = "config@1";
 		config@1 {
 			kernel = "kernel@1";
 			fdt = "fdt@1";
+			loadables = "script@1";
 			signature@1 {
 				algo = "sha256,rsa2048";
 				key-name-hint = "dev";
-				sign-images = "fdt", "kernel";
+				sign-images = "loadables", "fdt", "kernel";
 			};
 		};
 	};

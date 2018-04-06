@@ -1,0 +1,6 @@
+setenv bootargs ''
+
+rootfs="ubi.block=0,rootfs ubi.block=0,rootfs_verity"
+dm_table="vroot,,ro,0 SIZE verity 1 /dev/ubiblock0_0 /dev/ubiblock0_1 4096 4096 BLOCKS 1 sha256 HASH SALT"
+
+setenv bootargs "ubi.mtd=6 ${rootfs} dm=\"${dm_table}\" root=/dev/dm-0 rootfstype=squashfs ro"
