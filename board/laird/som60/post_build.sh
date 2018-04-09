@@ -26,4 +26,7 @@ chmod a+x $TARGETDIR/etc/init.d/S??lighttpd
 # Fixup and add debugfs to fstab
 echo 'nodev /sys/kernel/debug   debugfs   defaults   0  0' >> $TARGETDIR/etc/fstab
 
+# The full / is overlayed with a ubifs store
+rm -f $TARGETDIR/etc/init.d/S01bootoverlays
+
 echo "SOM60 POST BUILD script: done."

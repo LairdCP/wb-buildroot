@@ -19,27 +19,36 @@
 
 case $1 in
 
-  stop)
-    #Check for read only filesystem and mount an overlayfs if found
-    if ! touch /etc/read-only 2>/dev/null
-    then
-        umount /etc
-	umount /mnt
-	ubidetach /dev/mtd8
-    fi
-    ;;
+	stop)
+		#Check for mounted overlayfs filesystem and unmount and cleanup
+		if mountpoint -q /overlay 2>/dev/null
+		then
+			# Unmount the backing data store
+			umount /overlay
+		fi
+		;;
 
-  start)
-    #Check for read only filesystem and mount an overlayfs if found
-    if ! touch /etc/read-only 2>/dev/null
-    then
-	ubiattach -p /dev/mtd8
-	mount -t ubifs ubi1:user /mnt
-	mkdir -p /mnt/etc-upperdir
-	mkdir -p /mnt/etc-workdir
-	mount -t overlay -olowerdir=/etc,upperdir=/mnt/etc-upperdir,workdir=/mnt/etc-workdir overlayfs /etc
-    fi
-    ;;
+	start)
+		#Check for read only filesystem and mount an overlayfs if found
+		if ! touch /etc/read-only 2>/dev/null
+		then
+			# Get the RW up in place
+			mount -o noatime -t ubifs ubi0:rootfs_data /overlay
+
+			# Get the overlay running
+			mkdir -p /overlay/upper
+			mkdir -p /overlay/work
+			mount -o noatime,lowerdir=/,upperdir=/overlay/upper,workdir=/overlay/work -t overlay overlayfs:/overlay /mnt
+
+			# Pivot the system
+			mount -o noatime,move /proc /mnt/proc
+			pivot_root /mnt /mnt/rom
+			mount -o noatime,move /rom/sys /sys
+			mount -o noatime,move /rom/dev /dev
+			mount -o noatime,move /rom/tmp /tmp
+			mount -o noatime,move /rom/overlay /overlay
+		fi
+		;;
 esac
 exit 0
 
