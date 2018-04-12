@@ -48,10 +48,14 @@ HASH="$(awk '/Root hash:/ {print $3}' $BINARIES_DIR/rootfs.verity.header)"
 SALT="$(awk '/Salt:/ {print $2}' $BINARIES_DIR/rootfs.verity.header)"
 BLOCKS="$(awk '/Data blocks:/ {print $3}' $BINARIES_DIR/rootfs.verity.header)"
 SIZE=$((${BLOCKS} * 8))
+OFFSET=$((${BLOCKS} + 1))
+
+# Generate a combined rootfs
+cat $BINARIES_DIR/rootfs.squashfs $BINARIES_DIR/rootfs.verity > $BINARIES_DIR/rootfs.bin
 
 # Generate the boot.scr for uboot
 cp $BOARD_DIR/configs/boot.scr $BINARIES_DIR/boot.scr
-sed -i -e "s/SALT/${SALT}/g" -e "s/HASH/${HASH}/g" -e "s/BLOCKS/${BLOCKS}/g" -e "s/SIZE/${SIZE}/g" $BINARIES_DIR/boot.scr
+sed -i -e "s/SALT/${SALT}/g" -e "s/HASH/${HASH}/g" -e "s/BLOCKS/${BLOCKS}/g" -e "s/SIZE/${SIZE}/g" -e "s/OFFSET/${OFFSET}/g" $BINARIES_DIR/boot.scr
 
 
 # Generate kernel FIT

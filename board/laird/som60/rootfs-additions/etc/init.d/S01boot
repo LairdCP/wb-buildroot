@@ -32,8 +32,12 @@ case $1 in
 		#Check for read only filesystem and mount an overlayfs if found
 		if ! touch /etc/read-only 2>/dev/null
 		then
+			# Find our running ubiblock
+			BLOCK=$(ls /dev/ubiblock*)
+			OVERLAY=$((${BLOCK#*_} + 1))
+
 			# Get the RW up in place
-			mount -o noatime -t ubifs ubi0:rootfs_data /overlay
+			mount -o noatime -t ubifs ubi0_${OVERLAY} /overlay
 
 			# Get the overlay running
 			mkdir -p /overlay/upper
