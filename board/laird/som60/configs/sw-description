@@ -6,25 +6,21 @@ software =
 		main-a: {
 			images: (
 				{
-					filename = "kernel.bin";
-					device = "mtd4";
-					type = "flash";
+					filename = "kernel.itb";
+					volume = "kernel_a";
+					installed-directly = true;
 				},
 				{
-					filename = "rootfs.ubifs";
-					volume = "rootfs";
+					filename = "rootfs.bin";
+					volume = "rootfs_a";
 					installed-directly = true;
 				}
 			);
 
-			uboot: (
+			bootenv: (
 				{
-					name = "bootargs";
-					value = "rw noinitrd rootfstype=ubifs root=ubi0:rootfs ubi.mtd=6";
-				},
-				{
-					name = "bootcmd";
-					value = "nand read 0x22000000 0x000E0000 0x00800000; bootm";
+					name = "bootside";
+					value = "a";
 				}
 			);
 		}
@@ -32,25 +28,21 @@ software =
 		main-b: {
 			images: (
 				{
-					filename = "kernel.bin";
-					device = "mtd5";
-					type = "flash";
+					filename = "kernel.itb";
+					volume = "kernel_b";
+					installed-directly = true;
 				},
 				{
-					filename = "rootfs.ubifs";
-					volume = "rootfs";
+					filename = "rootfs.bin";
+					volume = "rootfs_b";
 					installed-directly = true;
 				}
 			);
 
-			uboot: (
+			bootenv: (
 				{
-					name = "bootargs";
-					value = "rw noinitrd rootfstype=ubifs root=ubi0:rootfs ubi.mtd=7";
-				},
-				{
-					name = "bootcmd";
-					value = "nand read 0x22000000 0x008E0000 0x00800000; bootm";
+					name = "bootside";
+					value = "b";
 				}
 			);
 		}
@@ -63,30 +55,26 @@ software =
 					type = "flash";
 				},
 				{
-					filename = "u-boot.bin";
+					filename = "u-boot.itb";
 					device = "mtd1";
 					type = "flash";
 				},
 				{
-					filename = "kernel.bin";
-					device = "mtd4";
-					type = "flash";
+					filename = "kernel.itb";
+					volume = "kernel_a";
+					installed-directly = true;
 				},
 				{
-					filename = "rootfs.ubifs";
-					volume = "rootfs";
+					filename = "rootfs.bin";
+					volume = "rootfs_a";
 					installed-directly = true;
 				}
 			);
 
-			uboot: (
+			bootenv: (
 				{
-					name = "bootargs";
-					value = "rw noinitrd rootfstype=ubifs root=ubi0:rootfs ubi.mtd=6";
-				},
-				{
-					name = "bootcmd";
-					value = "nand read 0x22000000 0x000E0000 0x00800000; bootm";
+					name = "bootside";
+					value = "a";
 				}
 			);
 		}
@@ -99,30 +87,26 @@ software =
 					type = "flash";
 				},
 				{
-					filename = "u-boot.bin";
+					filename = "u-boot.itb";
 					device = "mtd1";
 					type = "flash";
 				},
 				{
-					filename = "kernel.bin";
-					device = "mtd5";
-					type = "flash";
+					filename = "kernel.itb";
+					volume = "kernel_b";
+					installed-directly = true;
 				},
 				{
-					filename = "rootfs.ubifs";
-					volume = "rootfs";
+					filename = "rootfs.bin";
+					volume = "rootfs_b";
 					installed-directly = true;
 				}
 			);
 
-			uboot: (
+			bootenv: (
 				{
-					name = "bootargs";
-					value = "rw noinitrd rootfstype=ubifs root=ubi0:rootfs ubi.mtd=7";
-				},
-				{
-					name = "bootcmd";
-					value = "nand read 0x22000000 0x008E0000 0x00800000; bootm";
+					name = "bootside";
+					value = "b";
 				}
 			);
 		}
