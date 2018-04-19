@@ -40,4 +40,5 @@
 !/configs/reglwb_defconfig
 !/configs/reglwb5_defconfig
 !/configs/bdimx6_defconfig
+!/configs/backports_defconfig
 # note the above is necessary to avoid customer configs.

@@ -109,7 +109,7 @@ $$($(2)_DIR)/$$($(2)_KCONFIG_DOTCONFIG): | $(1)-patch
 # The exact rules are specified by the package .mk file.
 define $(2)_FIXUP_DOT_CONFIG
 	$$($(2)_KCONFIG_FIXUP_CMDS)
-	$$($(2)_REGEN_DOT_CONFIG)
+	$(if $(filter LINUX_BACKPORT,$(2)),$$($(2)_REGEN_DOT_CONFIG), @echo Not Needed for Linux backports)
 	$$(Q)touch $$($(2)_DIR)/.stamp_kconfig_fixup_done
 endef
 
