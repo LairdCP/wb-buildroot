@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-LINUX_BACKPORTS_VERSION = 0.0.0.0
+LINUX_BACKPORTS_VERSION = 3.5.5.78
 
 LINUX_BACKPORTS_SOURCE = backports-laird-$(LINUX_BACKPORTS_VERSION).tar.bz2
 BR_NO_CHECK_HASH_FOR += $(LINUX_BACKPORTS_SOURCE)
