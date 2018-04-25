@@ -1,0 +1,114 @@
+software =
+{
+	version = "0.1.0";
+
+	stable = {
+		main-a: {
+			images: (
+				{
+					filename = "kernel.itb";
+					volume = "kernel_a";
+					installed-directly = true;
+				},
+				{
+					filename = "rootfs.bin";
+					volume = "rootfs_a";
+					installed-directly = true;
+				}
+			);
+
+			bootenv: (
+				{
+					name = "bootside";
+					value = "a";
+				}
+			);
+		}
+
+		main-b: {
+			images: (
+				{
+					filename = "kernel.itb";
+					volume = "kernel_b";
+					installed-directly = true;
+				},
+				{
+					filename = "rootfs.bin";
+					volume = "rootfs_b";
+					installed-directly = true;
+				}
+			);
+
+			bootenv: (
+				{
+					name = "bootside";
+					value = "b";
+				}
+			);
+		}
+
+		full-a: {
+			images: (
+				{
+					filename = "boot.bin";
+					device = "mtd0";
+					type = "flash";
+				},
+				{
+					filename = "u-boot.itb";
+					device = "mtd1";
+					type = "flash";
+				},
+				{
+					filename = "kernel.itb";
+					volume = "kernel_a";
+					installed-directly = true;
+				},
+				{
+					filename = "rootfs.bin";
+					volume = "rootfs_a";
+					installed-directly = true;
+				}
+			);
+
+			bootenv: (
+				{
+					name = "bootside";
+					value = "a";
+				}
+			);
+		}
+
+		full-b: {
+			images: (
+				{
+					filename = "boot.bin";
+					device = "mtd0";
+					type = "flash";
+				},
+				{
+					filename = "u-boot.itb";
+					device = "mtd1";
+					type = "flash";
+				},
+				{
+					filename = "kernel.itb";
+					volume = "kernel_b";
+					installed-directly = true;
+				},
+				{
+					filename = "rootfs.bin";
+					volume = "rootfs_b";
+					installed-directly = true;
+				}
+			);
+
+			bootenv: (
+				{
+					name = "bootside";
+					value = "b";
+				}
+			);
+		}
+	};
+}
