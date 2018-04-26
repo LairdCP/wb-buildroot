@@ -57,6 +57,7 @@ cat >>$fwul<<TRANSFER-LIST
   /etc/ssl
   /root/.ssh
   /etc/dcas.conf
+  /etc/NetworkManager/system-connections
 
 TRANSFER-LIST
 
