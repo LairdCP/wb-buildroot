@@ -18,6 +18,11 @@ image3=kernel.bin
 image4=#rootfs.bin
 image5=sqroot.bin
 image6=userfs.bin
+if [ ! -f $image5 ]
+then
+	# builds without sqroot should have rootfs.bin enabled
+	image4=rootfs.bin
+fi
 
 # write target-build description
 if [ -n "$LAIRD_RELEASE_STRING" ]
