@@ -4,10 +4,8 @@ MSD_BINARIES_COMPANY_PROJECT = $(call qstrip,$(BR2_MSD_BINARIES_COMPANY_PROJECT)
 MSD_BINARIES_WB_PLATFORM := $(call qstrip,$(BR2_LRD_PLATFORM))
 ifeq ($(MSD_BINARIES_WB_PLATFORM),wb50n)
 	MSD_BINARIES_PLATFORM = msd50n
-else ifeq ($(MSD_BINARIES_WB_PLATFORM),wb45n)
-	MSD_BINARIES_PLATFORM = msd45n
 else ifeq ($(BR2_PACKAGE_MSD_BINARIES),y)
-	$(error "ERROR: Expected BR2_LRD_PLATFORM to be wb50n, or wb45n.")
+	$(error "ERROR: Expected BR2_LRD_PLATFORM to be wb50n.")
 endif
 
 MSD_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/raw/master

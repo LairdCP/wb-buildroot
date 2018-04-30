@@ -43,13 +43,6 @@ config BR2_MSD_BINARIES_LLAGENT
 	help
 	  Install the Laird Link agent from the MSD package.
 
-config BR2_MSD_BINARIES_LAIRD_FIRMWARE_AR6003
-	bool "Laird 45-series"
-	default n
-	help
-	  Install Laird's AR6003 firmware and calibration data for the 45
-	  series radios.
-
 config BR2_MSD_BINARIES_LAIRD_FIRMWARE_AR6004
 	bool "Laird 50-series"
 	default n

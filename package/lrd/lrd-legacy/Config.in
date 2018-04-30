@@ -21,14 +21,6 @@ config BR2_PACKAGE_LRD_LEGACY_APPS
 endif
 
 if BR2_PACKAGE_LRD_LEGACY_APPS
-config BR2_PACKAGE_LRD_LEGACY_45_APPS
-	bool "Include Laird 45 specific items"
-	select BR2_PACKAGE_LAIRD_FIRMWARE_AR6003
-	help
-	  Selects legacy Laird 45 specific software to be installed
-endif
-
-if BR2_PACKAGE_LRD_LEGACY_APPS
 config BR2_PACKAGE_LRD_LEGACY_50_APPS
 	bool "Include Laird 50 specific items"
 	select BR2_PACKAGE_LAIRD_FIRMWARE_AR6004

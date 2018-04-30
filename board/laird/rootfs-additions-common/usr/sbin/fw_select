@@ -14,7 +14,7 @@
 #
 # contact: ews-support@lairdtech.com
 
-# Firmware Select Utility for WB40n/WB45n/WB50n
+# Firmware Select Utility for WB50n
 #
 VERSION=2.17
 SELF=${0##*/}
@@ -161,12 +161,6 @@ ls -l /bin/ash |grep -qo busybox || exit_error "busybox-ash required"
 x=$( grep -s 'Workgroup Bridge' /proc/device-tree/model \
   || sed -n 's/Hardware[ \t:]*\(.*\)/\1/p' /proc/cpuinfo )
 case $x in
-  *'Workgroup Bridge 40N'*) ### arch/arm/mach-at91/board-wb40n.c
-    wb=wb40n
-    ;;
-  *'Workgroup Bridge 45N'*) ### arch/arm/mach-at91/board-dt.c
-    wb=wb45n
-    ;;
   *'Workgroup Bridge 50N'*) ### arch/arm/boot/dts/wb50n.dts
     wb=wb50n
     ;;
@@ -452,10 +446,7 @@ case $1 in
         ask -p"  Are you sure? [y/N ..5s]" -t5 -n1 a
         [ "$a" != "y" ] && exit_error aborted
         case $wb in
-          wb40n) ### erase
-            $flash_erase -q /dev/mtd2 0 0
-            ;;
-          wb45n) ### erase procedure for redundant u-boot_env
+          wb50n) ### erase procedure for redundant u-boot_env
             $flash_erase -q /dev/mtd3 0 0 && $flash_erase -q /dev/mtd2 0 0
             ;;
         esac

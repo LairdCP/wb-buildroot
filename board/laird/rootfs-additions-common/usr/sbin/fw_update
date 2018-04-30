@@ -14,7 +14,7 @@
 #
 # contact: ews-support@lairdtech.com
 
-# Firmware Update Utility for WB40n/WB45n/WB50n
+# Firmware Update Utility for WB50n
 #
 VERSION=2.17
 SELF=${0##*/}
@@ -137,8 +137,8 @@ Format of ${FWUL##*/}:
     flags <cmdline flags to apply>
 
 Example ${FWUL##*/}:
-  # wb45n-laird_fips-3.4.1.105
-  # example of a wb45n update with bootstrap disabled
+  # wb50n-laird_fips-3.4.1.105
+  # example of a wb50n update with bootstrap disabled
   # ab8d615dac1be37e71b42d1c29f10a9d  at91bs.bin  11444
     0da1ebd394521581857702facf305129  u-boot.bin  359028
     06ea0dfeb5b0d9215ac74c0da2b18af1  kernel.bin  2150318
@@ -238,14 +238,6 @@ ls -l /bin/ash |grep -qo busybox || exit_error "busybox-ash required"
 x=$( grep -s 'Workgroup Bridge' /proc/device-tree/model \
   || sed -n 's/Hardware[ \t:]*\(.*\)/\1/p' /proc/cpuinfo )
 case $x in
-  *'Workgroup Bridge 40N'*) ### arch/arm/mach-at91/board-wb40n.c
-    wb=wb40n
-    NWBPS=1250000
-    ;;
-  *'Workgroup Bridge 45N'*) ### arch/arm/mach-at91/board-dt.c
-    wb=wb45n
-    NWBPS=2000000
-    ;;
   *'Workgroup Bridge 50N'*) ### arch/arm/boot/dts/wb50n.dts
     wb=wb50n
     NWBPS=4000000
@@ -484,7 +476,7 @@ fi
 if [ -s "$FWUL" ]
 then
   ## confirm target wb?? match to update upon given version-tag
-  vt=$( sed -n '1s/^[# ]*\([^ ]*wb[45][05][^ ]\+\)/\1/p' $FWUL )
+  vt=$( sed -n '1s/^[# ]*\([^ ]*wb50[^ ]\+\)/\1/p' $FWUL )
   if [ -n "$vt" ]
   then
     test yes == "${vt/*$wb*/yes}" \

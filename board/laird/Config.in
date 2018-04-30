@@ -9,15 +9,12 @@ menu "Laird"
         config BR2_LRD_PLATFORM_WB50N
             bool "WB50N"
 
-        config BR2_LRD_PLATFORM_WB45N
-            bool "WB45N"
     endchoice
 
     config BR2_LRD_PLATFORM
         string
         default "som60"   if BR2_LRD_PLATFORM_SOM60
         default "wb50n"   if BR2_LRD_PLATFORM_WB50N
-        default "wb45n"   if BR2_LRD_PLATFORM_WB45N
 
     menu "Packages"
         source "package/lrd/Config.in"

@@ -15,7 +15,6 @@
 # contact: ews-support@lairdtech.com
 
 # bluetooth init
-# wb45n: BlueZ manages BT service via ss1btusb driver
 # wb50n: BlueZ manages BT service via serial connection to the CSR chip
 
 await_interface() {

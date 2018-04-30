@@ -32,11 +32,6 @@ then
         FW_PATH=/lib/firmware/ath6k/AR6004/hw3.0
         CHIPSET=ar6004
         ATH6K_SDIO_PARAMS="reset_pwd_gpio=131"
-elif grep -Fq "Workgroup Bridge 45N" /proc/device-tree/model
-then
-        FW_PATH=/lib/firmware/ath6k/AR6003/hw2.1.1
-        CHIPSET=ar6003
-        ATH6K_SDIO_PARAMS="reset_pwd_gpio=28"
 else
         echo "Unsupported platform"
         return 0

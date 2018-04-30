@@ -118,10 +118,6 @@ if grep -Fq "Workgroup Bridge 50N" /proc/device-tree/model
 then
         FW_PATH=/lib/firmware/ath6k/AR6004/hw3.0
         FW_LINK=fw-5.bin
-elif grep -Fq "Workgroup Bridge 45N" /proc/device-tree/model
-then
-        FW_PATH=/lib/firmware/ath6k/AR6003/hw2.1.1
-        FW_LINK=fw-4.bin
 else
         echo "Unsupported platform"
         return 0
