@@ -13,7 +13,7 @@ echo "$BR2_LRD_PRODUCT\n"
 echo "$LAIRD_RELEASE_STRING\n"
 echo "Destination: ${IMAGESDIR}/${BR2_LRD_PLATFORM}_${LAIRD_RELEASE_STRING// /_}.swu\n"
 
-FILES="sw-description at91bs.bin boot.bin u-boot.bin rootfs.ubifs kernel.bin"
+FILES="sw-description $2"
 for i in $FILES; do
 	if [ -f $i ]; then
 		echo $i
