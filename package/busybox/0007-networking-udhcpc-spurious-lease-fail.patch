@@ -1,16 +1,16 @@
 diff --git a/networking/udhcp/dhcpc.c b/networking/udhcp/dhcpc.c
-index 0e23626..1c3c582 100644
+index 1a66c61..5c24fb7 100644
 --- a/networking/udhcp/dhcpc.c
 +++ b/networking/udhcp/dhcpc.c
 @@ -1284,6 +1284,7 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
- 	int max_fd;
+ 	unsigned opt;
+ 	IF_FEATURE_UDHCPC_ARPING(unsigned arpping_ms;)
  	int retval;
- 	fd_set rfds;
 +	bool show_leasefail = true;
  
  	setup_common_bufsiz();
  
-@@ -1501,7 +1502,10 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
+@@ -1503,7 +1504,10 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
  					continue;
  				}
   leasefail:
@@ -22,7 +22,7 @@ index 0e23626..1c3c582 100644
  #if BB_MMU /* -b is not supported on NOMMU */
  				if (opt & OPT_b) { /* background if no lease */
  					bb_error_msg("no lease, forking to background");
-@@ -1781,6 +1785,7 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
+@@ -1783,6 +1787,7 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
  				}
  #endif
  				/* enter bound state */
