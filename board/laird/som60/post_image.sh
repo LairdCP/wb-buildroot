@@ -94,7 +94,7 @@ $genimage                          \
 # generate SWUpdate .swu image
 cp $BOARD_DIR/configs/sw-description "$IMAGESDIR/"
 if cd "$IMAGESDIR"; then
-	$TOPDIR/board/laird/sw_image_generator.sh "$IMAGESDIR"
+	$TOPDIR/board/laird/sw_image_generator.sh "$IMAGESDIR" "boot.bin u-boot.itb kernel.itb rootfs.bin"
 fi
 
 echo "SOM60 POST IMAGE script: done."
