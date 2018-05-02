@@ -29,9 +29,9 @@ if cd "$TOPDIR"; then
 fi
 
 # generate SWUpdate .swu image
-cp $TOPDIR/board/laird/$BR2_LRD_PRODUCT/configs/sw-description "$IMAGESDIR/" "at91bs.bin boot.bin u-boot.bin rootfs.ubifs kernel.bin"
+cp $TOPDIR/board/laird/$BR2_LRD_PRODUCT/configs/sw-description "$IMAGESDIR/"
 if cd "$IMAGESDIR"; then
-	$TOPDIR/board/laird/sw_image_generator.sh "$IMAGESDIR"
+	$TOPDIR/board/laird/sw_image_generator.sh "$IMAGESDIR" "at91bs.bin boot.bin u-boot.bin rootfs.ubifs kernel.bin"
 fi
 
 
