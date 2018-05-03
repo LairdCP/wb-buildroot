@@ -16,7 +16,7 @@
 
 # Firmware Update Utility for WB40n/WB45n/WB50n
 #
-VERSION=2.17
+VERSION=2.18
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
@@ -413,7 +413,7 @@ ping_server() {
   # extract host from given url
   set -- ${1##*//}
   host=${1%%/*}
-  o_ping \
+  $o_ping \
     || return 0
   ping -W4 -c1 $host >$X
 } 2>>/tmp/fwu.err
