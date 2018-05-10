@@ -1,0 +1,58 @@
+config BR2_PACKAGE_FIRMWARE_BINARIES
+	bool "FIRMWARE Installer"
+	help
+      Extracts the Laird wireless firmware binaries from an firmware release and install them on the target.
+
+if BR2_PACKAGE_FIRMWARE_BINARIES
+
+config BR2_FIRMWARE_BINARIES_COMPANY_PROJECT
+	string "Firmware Binaries company/project string"
+	help
+	  Specify the middle string of a firmware name tag. I.e. company/project.
+	  E.g. laird
+
+config BR2_FIRMWARE_BINARIES_480_0079
+	bool "Sterling-LWB FCC"
+    default y
+
+config BR2_FIRMWARE_BINARIES_480_0080
+	bool "Sterling-LWB ETSI"
+    default y
+
+config BR2_FIRMWARE_BINARIES_480_0081
+	bool "Sterling-LWB5 FCC"
+    default y
+
+config BR2_FIRMWARE_BINARIES_480_0082
+	bool "Sterling-LWB5 ETSI"
+    default y
+
+config BR2_FIRMWARE_BINARIES_480_0094
+	bool "Sterling-LWB5 IC"
+    default y
+
+config BR2_FIRMWARE_BINARIES_480_0095
+	bool "Sterling-LWB5 JP"
+    default y
+
+config BR2_FIRMWARE_BINARIES_480_0116
+	bool "Sterling-LWB JP"
+    default y
+
+config BR2_FIRMWARE_BINARIES_480_0108
+	bool "Sterling-LWB-MFG"
+    default y
+
+config BR2_FIRMWARE_BINARIES_480_0109
+	bool "Sterling-LWB5-MFG"
+    default y
+
+config BR2_FIRMWARE_BINARIES_930_0081
+	bool "WL-FMAC"
+    default y
+
+config BR2_FIRMWARE_BINARIES_STERLING_60
+	bool "Sterling-60"
+    default y
+
+endif
