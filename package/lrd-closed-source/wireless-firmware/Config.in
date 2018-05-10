@@ -1,0 +1,4 @@
+config BR2_PACKAGE_WIRELESS_FIRMWARE
+	bool "wireless-firmware"
+	help
+	  Firmwares for wireless drivers.
