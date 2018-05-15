@@ -1,6 +1,8 @@
 # Creates a package of required firmware and board support files for the
 # Sterling series radios.
 
+
+WIRELESS_FIRMWARE_VERSION = 3.5.5.89
 WIRELESS_FIRMWARE_LICENSE = GPL-2.0
 WIRELESS_FIRMWARE_LICENSE_FILES = COPYING
 WIRELESS_FIRMWARE_SITE = $(TOPDIR)/package/lrd-closed-source/externals/firmware
@@ -8,9 +10,9 @@ WIRELESS_FIRMWARE_SITE_METHOD = local
 
 ST_OUT := $(BASE_DIR)/images
 
-LAIRD_RELEASE_STRING ?= $(shell date +%Y%m%d)
+LAIRD_RELEASE_STRING ?= $(WIRELESS_FIRMWARE_VERSION)
 
-MAKE_STERLING_FAM_PROD_FW_PKG := $(MAKE) -C $(TOPDIR)/package/lrd-closed-source/wireless-firmware -f sterling-family-prod-fw-pkg.mk FW_REPO_DIR=$(BUILD_DIR)/wireless-firmware TAR_DIR=$(TARGET_DIR)
+MAKE_STERLING_FAM_PROD_FW_PKG := $(MAKE) -C $(TOPDIR)/package/lrd-closed-source/wireless-firmware -f sterling-family-prod-fw-pkg.mk FW_REPO_DIR=$(BUILD_DIR)/wireless-firmware-$(LAIRD_RELEASE_STRING) TAR_DIR=$(TARGET_DIR)
 MAKE_LWB_FAM_PROD_FW_PKG := $(MAKE) -C $(TOPDIR)/package/lrd-closed-source/wireless-firmware -f lwb-family-prod-fw-pkg.mk BUD_DIR=$(BUILD_DIR) TAR_DIR=$(TARGET_DIR) BA_DIR=$(BASE_DIR)
 
 480_0079_PARAMS := FW_PKG_LSR_PN=480-0079 BRCMFMAC_CHIP_ID=43430 CHIP_NAME=4343w REGION=fcc  OUT_FILE=$(ST_OUT)/480-0079-$(LAIRD_RELEASE_STRING).zip
@@ -23,8 +25,8 @@ MAKE_LWB_FAM_PROD_FW_PKG := $(MAKE) -C $(TOPDIR)/package/lrd-closed-source/wirel
 
 LWB_PARAMS      := RELEASE_STRING=$(LAIRD_RELEASE_STRING) lwb-mfg
 LWB5_PARAMS     := RELEASE_STRING=$(LAIRD_RELEASE_STRING) lwb5-mfg
-60_PARAMS		:= 60
-WL_PARAMS		:= wl T_DIR=$(TOPDIR)
+60_PARAMS		:= RELEASE_STRING=$(LAIRD_RELEASE_STRING) 60
+WL_PARAMS		:= RELEASE_STRING=$(LAIRD_RELEASE_STRING) wl T_DIR=$(TOPDIR)
 
 define WIRELESS_FIRMWARE_CONFIGURE_TARGET_CMDS
 
