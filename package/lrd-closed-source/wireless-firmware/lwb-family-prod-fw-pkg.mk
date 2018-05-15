@@ -12,32 +12,37 @@ LWB_MFG_OUT := $(TAR_DIR)/root/$(LWB_MFG_NAME)
 LWB5_MFG_OUT := $(TAR_DIR)/root/$(LWB5_MFG_NAME)
 60_OUT := $(TAR_DIR)/root/$(60_NAME)
 
-ST_BRCM_DIR := $(BUD_DIR)/wireless-firmware/brcm
-ST_LRDMWL_DIR := $(BUD_DIR)/wireless-firmware/lrdmwl
+ST_BRCM_DIR := $(BUD_DIR)/wireless-firmware-$(RELEASE_STRING)/brcm
+ST_LRDMWL_DIR := $(BUD_DIR)/wireless-firmware-$(RELEASE_STRING)/lrdmwl
 
 ZIP := zip
 TAR_CJF := tar --owner=root --group=root -cjf
 
 $(LWB_MFG_OUT):
+	rm $(LWB_MFG_OUT) -fr
 	mkdir -p $(LWB_MFG_OUT)
 
 $(LWB5_MFG_OUT):
+	rm $(LWB5_MFG_OUT) -fr
 	mkdir -p $(LWB5_MFG_OUT)
 
 $(60_OUT):
+	rm $(60_OUT)  -fr
 	mkdir -p $(60_OUT)
 
-$(TMP_DIR)/$(LWB_MFG_NAME).tar.bz2: lwb-mfg-staging
-	cd $(LWB_MFG_OUT); $(TAR_CJF) $@ lib
+$(ST_IMAGE_DIR)/$(LWB_MFG_NAME).tar.bz2: lwb-mfg-staging
+	cd $(LWB_MFG_OUT); $(TAR_CJF) $(@F) lib
+	cp $(LWB_MFG_OUT)/$(@F) $(ST_IMAGE_DIR)/
 
-$(ST_IMAGE_DIR)/480-0108-$(RELEASE_STRING).zip: $(TMP_DIR)/$(LWB_MFG_NAME).tar.bz2
-	cd $(TMP_DIR); zip $@ $(LWB_MFG_NAME).tar.bz2
+$(ST_IMAGE_DIR)/480-0108-$(RELEASE_STRING).zip: $(ST_IMAGE_DIR)/$(LWB_MFG_NAME).tar.bz2
+	cd $(ST_IMAGE_DIR); zip $@ $(LWB_MFG_NAME).tar.bz2
 
-$(TMP_DIR)/$(LWB5_MFG_NAME).tar.bz2: lwb5-mfg-staging
-	cd $(LWB5_MFG_OUT); $(TAR_CJF) $@ lib
+$(ST_IMAGE_DIR)/$(LWB5_MFG_NAME).tar.bz2: lwb5-mfg-staging
+	cd $(LWB5_MFG_OUT); $(TAR_CJF) $(@F) lib
+	cp $(LWB5_MFG_OUT)/$(@F) $(ST_IMAGE_DIR)/
 
-$(ST_IMAGE_DIR)/480-0109-$(RELEASE_STRING).zip: $(TMP_DIR)/$(LWB5_MFG_NAME).tar.bz2
-	cd $(TMP_DIR) ; zip $@ $(LWB5_MFG_NAME).tar.bz2
+$(ST_IMAGE_DIR)/480-0109-$(RELEASE_STRING).zip: $(ST_IMAGE_DIR)/$(LWB5_MFG_NAME).tar.bz2
+	cd $(ST_IMAGE_DIR) ; zip $@ $(LWB5_MFG_NAME).tar.bz2
 
 $(ST_IMAGE_DIR)/$(60_NAME).tar.bz2: 60-staging
 	cd $(60_OUT) ; $(TAR_CJF) $@ lib
@@ -79,9 +84,9 @@ lwb5-mfg-staging:$(LWB5_MFG_OUT)
 $(TMP_DIR)/$(WL_FMAC_930_0081_NAME).zip: $(T_DIR)/package/lrd-closed-source/externals/wl_fmac/bin/930-0081/wl_fmac
 	zip --junk-paths $@ $^
 
-lwb-mfg: $(ST_IMAGE_DIR)/480-0108-$(RELEASE_STRING).zip
+lwb-mfg: $(ST_IMAGE_DIR)/480-0108-$(RELEASE_STRING).zip $(ST_IMAGE_DIR)/$(LWB_MFG_NAME).tar.bz2
 
-lwb5-mfg: $(ST_IMAGE_DIR)/480-0109-$(RELEASE_STRING).zip
+lwb5-mfg: $(ST_IMAGE_DIR)/480-0109-$(RELEASE_STRING).zip $(ST_IMAGE_DIR)/$(LWB5_MFG_NAME).tar.bz2
 
 60: $(ST_IMAGE_DIR)/$(60_NAME).tar.bz2
 
