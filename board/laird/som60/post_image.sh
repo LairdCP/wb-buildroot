@@ -64,7 +64,7 @@ sed -i -e "s/SALT/${SALT}/g" -e "s/HASH/${HASH}/g" -e "s/BLOCKS/${BLOCKS}/g" -e 
 cp $BOARD_DIR/configs/kernel.its $BINARIES_DIR/kernel.its || exit 1
 echo "# entering $BINARIES_DIR for the next command"
 (cd $BINARIES_DIR && $mkimage -f kernel.its kernel.itb) || exit 1
-(cd $BINARIES_DIR && $mkimage -F -K u-boot.dtb -k keys kernel.itb) || exit 1
+(cd $BINARIES_DIR && $mkimage -F -K u-boot.dtb -k keys -r kernel.itb) || exit 1
 rm -f $BINARIES_DIR/kernel.its
 
 # Re-generate u-boot FIT with Keys
@@ -74,7 +74,7 @@ cp $BOARD_DIR/configs/u-boot.its $BINARIES_DIR/u-boot.its || exit 1
 # Then update uboot dtb with keys & sign kernel
 # Then build uboot FIT
 echo "# entering $BINARIES_DIR for the next command"
-(cd $BINARIES_DIR && $mkimage -f u-boot.its -K u-boot-spl.dtb -k keys u-boot.itb) || exit 1
+(cd $BINARIES_DIR && $mkimage -f u-boot.its -K u-boot-spl.dtb -k keys -r u-boot.itb) || exit 1
 
 # Then update SPL with appended keyed DTB
 cat $BINARIES_DIR/u-boot-spl-nodtb.bin $BINARIES_DIR/u-boot-spl.dtb > $BINARIES_DIR/u-boot-spl.bin
