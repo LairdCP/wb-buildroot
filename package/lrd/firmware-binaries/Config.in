@@ -5,12 +5,6 @@ config BR2_PACKAGE_FIRMWARE_BINARIES
 
 if BR2_PACKAGE_FIRMWARE_BINARIES
 
-config BR2_FIRMWARE_BINARIES_COMPANY_PROJECT
-	string "Firmware Binaries company/project string"
-	help
-	  Specify the middle string of a firmware name tag. I.e. company/project.
-	  E.g. laird
-
 config BR2_FIRMWARE_BINARIES_480_0079
 	bool "Sterling-LWB FCC"
     default y
