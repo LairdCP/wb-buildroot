@@ -13,6 +13,9 @@ BOARD_DIR="$(dirname $0)"
 GENIMAGE_CFG="${BOARD_DIR}/configs/genimage.cfg"
 GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
 
+# Copy mksdcard.sh to images
+cp $BOARD_DIR/mksdcard.sh $IMAGESDIR/
+
 # Tooling checks
 mkimage=$HOST_DIR/bin/mkimage
 atmel_pmecc_params=$BUILD_DIR/uboot-custom/tools/atmel_pmecc_params

@@ -10,6 +10,12 @@ then
     exit
 fi
 
+if [ ! -f rootfs.tar ]; then
+    echo "Could not find required rootfs.tar file. This script only works"
+    echo "if the build was done for the som60sd target."
+    exit
+fi
+
 OPT=${ARG::-1}
 
 if [[ ( ! -z $OPT ) && ( "$OPT" == "sd" ) ]]
