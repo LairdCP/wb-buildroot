@@ -7,7 +7,7 @@
 # sudo apt-get install libncurses-dev
 #    Note that libncurses-dev is required by the WB build, so you probably already have it
 
-BACKPORTS_VERSION = 5.0.1.3
+BACKPORTS_VERSION = 5.0.1.4
 BACKPORTS_LICENSE = GPL-2.0
 BACKPORTS_LICENSE_FILES = COPYING
 BACKPORTS_SITE = $(TOPDIR)/package/lrd/externals/backports
