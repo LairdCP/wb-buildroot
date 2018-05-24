@@ -69,28 +69,3 @@ TRANSFER-LIST
 # display file
 echo $fwul:
 cat $fwul
-
-
-#####################################
-# duplicate update-list in old-format
-# for backwards compatibility
-echo >>$fwul
-echo >>$fwul
-echo "# old format..." >>$fwul
-for n in 1 2 3 4 5 6
-do
-  # construct image var
-  eval name=\$image$n \
-    && image=${name#\#}
-
-  # skip non-existant files
-  [ -f $image ] || continue
-
-  # set line prefix as hash or space
-  [ $image != $name ] && x='#' || x=' '
-
-  # write image line: <{url/}name>  <md5>
-  md5sum $image |sed "s,^\(.*[^ ]\)[ ]\+\(.*\),$x ${url:+$url/}\2  \1," >>$fwul
-done
-echo >>$fwul
-
