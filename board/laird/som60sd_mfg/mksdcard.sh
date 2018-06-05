@@ -1,15 +1,33 @@
 #!/usr/bin/env bash
 
 DRIVE=$1
+ARG=${1##*/}
 
-if [[ -z $DRIVE ]]
+if [[ ( -z $DRIVE ) || ( -z $ARG ) ]]
 then
     echo "mksdcard.sh <device>"
     echo "  <device> is the SD card to be programmed (e.g., /dev/sdc)"
     exit
 fi
 
-echo "All data on "$DRIVE" now will be destroyed! Continue? [y/n]"
+OPT=${ARG::-1}
+
+if [[ ( ! -z $OPT ) && ( "$OPT" == "sd" ) ]]
+then
+    PART_1="$DRIVE"1
+    PART_2="$DRIVE"2
+elif [[ ( ! -z $OPT ) && ( "$OPT" == "mmcblk" ) ]]
+then
+    PART_1="$DRIVE"p1
+    PART_2="$DRIVE"p2
+else
+    echo "Invalid device name: $ARG"
+    exit
+fi
+
+echo "*************************************************************************"
+echo "WARNING: All data on "$DRIVE" now will be destroyed! Continue? [y/n]"
+echo "*************************************************************************"
 read ans
 if ! [ $ans == 'y' ]
 then
@@ -37,19 +55,19 @@ EOF
 
 echo "[Making filesystems...]"
 
-mkfs.vfat -F 16 -n boot "$DRIVE"1 &> /dev/null
-mkfs.ext4 -L rootfs "$DRIVE"2 &> /dev/null
+mkfs.vfat -F 16 -n boot "$PART_1" &> /dev/null
+mkfs.ext4 -L rootfs "$PART_2" &> /dev/null
 
 echo "[Copying files...]"
 
-mount "$DRIVE"1 /mnt
+mount "$PART_1" /mnt
 cp u-boot-spl.bin /mnt/boot.bin
 cp u-boot.itb /mnt
 cp kernel.itb /mnt
 sync
 umount /mnt
 
-mount "$DRIVE"2 /mnt
+mount "$PART_2" /mnt
 tar xf rootfs.tar -C /mnt
 sync
 umount /mnt

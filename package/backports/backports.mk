@@ -7,6 +7,7 @@
 # sudo apt-get install libncurses-dev
 #    Note that libncurses-dev is required by the WB build, so you probably already have it
 
+BACKPORTS_VERSION = 0.0.0.0
 BACKPORTS_LICENSE = GPL-2.0
 BACKPORTS_LICENSE_FILES = COPYING
 BACKPORTS_SITE = $(TOPDIR)/package/lrd/externals/backports
@@ -16,7 +17,7 @@ BP_OUT := $(BINARIES_DIR)
 PATH := $(PATH):$(HOST_DIR)/bin
 BP_COCCINELLE_URL = https://github.com/coccinelle/coccinelle.git
 SPATCH_PATH := /usr/local/bin/spatch
-BP_TREE :=  $(BP_OUT)/laird-backport-tree
+BP_TREE :=  $(BP_OUT)/laird-backport-tree-$(BACKPORTS_VERSION)
 BP_TREE_WORKING :=  $(BP_OUT)/laird-backport-tree-working
 BP_LINUX_DIR :=  $(TOPDIR)/package/lrd/externals/kernel
 BP_LRDMWL_DIR := $(BP_LINUX_DIR)/drivers/net/wireless/laird/lrdmwl
@@ -44,7 +45,7 @@ endef
 
 
 define HOST_BACKPORTS_INSTALL_CMDS
-	cd $(BP_TREE) && tar -cj --transform "s,^,laird-backport/," -f ../laird-backport.tar.bz2 .
+	cd $(BP_TREE) && tar -cj --transform "s,^,laird-backport-$(BACKPORTS_VERSION)/," -f ../laird-backport-$(BACKPORTS_VERSION).tar.bz2 .
 endef
 
 $(eval $(host-generic-package))
