@@ -1,6 +1,6 @@
 #!/bin/ash
 
-# Copyright (c) 2015, Laird
+# Copyright (c) 2018, Laird
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
@@ -15,7 +15,7 @@
 # contact: ews-support@lairdtech.com
 
 # network - init script for all network interface devices
-# 20120522/20160224
+# 20120522/20180604
 #
 # This init-script serves to stop/start/restart all "auto" enabled interfaces
 # by checking the '/etc/network/interfaces' (/e/n/i) file.
@@ -139,6 +139,8 @@ iface() {
       $tm $wifi $3 $4 || fail
       $up && $tm $ifrc $1 $2 $4 &
       $dn && wait
+      $up && ip6tables -t nat -S POSTROUTING 1 | grep -q MASQUERADE \
+        && echo 0 > /proc/sys/net/ipv6/conf/wlan0/forwarding
       ;;
 
     br*) ## bridge-mode support
