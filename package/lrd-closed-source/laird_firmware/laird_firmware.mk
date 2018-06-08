@@ -33,18 +33,20 @@ define LAIRD_FW_BCM4343_INSTALL_TARGET_CMDS
 	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/4343w.hcd 4343w.hcd
 	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/brcmfmac43430-sdio.bin brcmfmac43430-sdio.bin
 	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/brcmfmac43430-sdio.txt brcmfmac43430-sdio.txt
+	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/brcmfmac43430-sdio.clm_blob brcmfmac43430-sdio.clm_blob
 endef
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343_MFG),y)
 define LAIRD_FW_BCM4343_MFG_INSTALL_TARGET_CMDS
-    mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/brcm
-    cp -rad $(@D)/brcm/bcm4343w $(TARGET_DIR)/lib/firmware/brcm/
-    find $(TARGET_DIR)/lib/firmware/brcm/bcm4343w -type d | xargs chmod 0755
-    find $(TARGET_DIR)/lib/firmware/brcm/bcm4343w -type f | xargs chmod 0644
-    cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/4343w.hcd 4343w.hcd
-    cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf  brcmfmac43430-sdio-mfg.bin ./bcm4343w/brcmfmac43430-sdio.bin
-    cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/brcmfmac43430-sdio.txt brcmfmac43430-sdio.txt
+	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/brcm
+	cp -rad $(@D)/brcm/bcm4343w $(TARGET_DIR)/lib/firmware/brcm/
+	find $(TARGET_DIR)/lib/firmware/brcm/bcm4343w -type d | xargs chmod 0755
+	find $(TARGET_DIR)/lib/firmware/brcm/bcm4343w -type f | xargs chmod 0644
+	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/4343w.hcd 4343w.hcd
+	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf  brcmfmac43430-sdio-mfg.bin ./bcm4343w/brcmfmac43430-sdio.bin
+	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/brcmfmac43430-sdio.txt brcmfmac43430-sdio.txt
+	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/brcmfmac43430-sdio.clm_blob brcmfmac43430-sdio.clm_blob
 endef
 endif
 
