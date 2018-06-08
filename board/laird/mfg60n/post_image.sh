@@ -19,8 +19,10 @@ sed -i "1i#$LAIRD_RELEASE_STRING" "$TARGET_DIR/$BR2_LRD_PRODUCT-$LAIRD_RELEASE_S
 
 TARFILE="$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.tar"
 
+MFG60N_APPS="lru lmu btlru"
+
 # generate tar.bz2 to be inserted in script
-tar -cvf $IMAGESDIR/$TARFILE --directory="$TARGET_DIR/usr/bin" .
+tar -cvf $IMAGESDIR/$TARFILE --directory="$TARGET_DIR/usr/bin" $MFG60N_APPS
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/" "$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.manifest"
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" "88W8997_mfg_sdio_sdio_v""$BR2_LRD_MFG_VERSION"
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" "88W8997_mfg_sdio_uart_v""$BR2_LRD_MFG_VERSION"
