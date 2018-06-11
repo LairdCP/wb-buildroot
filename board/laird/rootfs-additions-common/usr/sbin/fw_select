@@ -1,6 +1,6 @@
 #!/bin/ash
 
-# Copyright (c) 2015, Laird
+# Copyright (c) 2018, Laird
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
@@ -16,7 +16,7 @@
 
 # Firmware Select Utility for WB50n
 #
-VERSION=2.17
+VERSION=2.18
 SELF=${0##*/}
 X=/dev/null
 
@@ -303,6 +303,13 @@ alt_rootfs() {
       grep -q $ALT_ROOTFS_MOUNT /proc/mounts \
       && { umount $ALT_ROOTFS_MOUNT && x="unmounted" || rv=1; }
 
+      # remove read-only block device
+      test -e /dev/ubiblock[2]_0 \
+      && { ubiblock -r /dev/ubi2_0 && x="$x (ubi2 block device detached)" || rv=1; }
+
+      test -e /dev/ubi[2]_0 \
+      && { ubidetach -p /dev/mtd${rip} && x="$x (ubi2 detached)" || rv=1; }
+
       test -e /dev/ubi[1]_0 \
       && { ubidetach -p /dev/mtd${rip} && x="$x (ubi1 detached)" || rv=1; }
 
@@ -319,10 +326,24 @@ alt_rootfs() {
         n=$( ubiattach -p /dev/mtd${rip} |sed 's/.*ice number \([123]\).*/\1/' )
         usleep 200000
         if [ -n "$n" ] \
-        && ubinfo /dev/ubi${n} |grep -q "^Present volumes: *0" \
-        && mount -t ubifs /dev/ubi${n}_0 $ALT_ROOTFS_MOUNT
+        && ubinfo /dev/ubi${n} |grep -q "^Present volumes: *0"
         then
-          echo "mounted /dev/mtd${rip} at $ALT_ROOTFS_MOUNT"
+          if mount -t ubifs /dev/ubi${n}_0 $ALT_ROOTFS_MOUNT 2>$X
+            then
+              echo "mounted /dev/mtd${rip} at $ALT_ROOTFS_MOUNT"
+            else # try to mount as read-only
+              if ubiblock -c /dev/ubi${n}_0
+                then
+                  if mount -t squashfs -r /dev/ubiblock${n}_0  $ALT_ROOTFS_MOUNT
+                    then
+                      echo "mounted read only /dev/mtd${rip} at $ALT_ROOTFS_MOUNT"
+                    else
+                      echo "  ...unable to mount read only /dev/mtd${rip}"
+                  fi
+                else
+                  echo "  ...unable to create ubiblock from /dev/ubi${n}_0"
+              fi
+          fi
         else
           [ -n "$n" ] && ubidetach -p /dev/mtd${rip}
           echo "  ...unable to mount /dev/mtd${rip}"
@@ -487,7 +508,13 @@ case $1 in
     ;;
 
   --show) ## flash memory layout and images detected
+    if grep -q "\sro[\s,]" /proc/mounts ## check if read only filesystem
+    then
+      romode="configured for read-only"
+    fi
     let kip=0+`kernel_x` rip=0+`rootfs_x` addr=0
+    test -e /dev/ubi[1]_1 \
+    && overlay=`cat /sys/class/ubi/ubi1_1/name` ## check if user is mounted
     echo $wb - flash memory
     echo "  mtd     address     size      description"
     for x in `grep -l nand /sys/class/mtd/*/type`
@@ -497,6 +524,7 @@ case $1 in
       let size=`cat $mtd/size`
       mtd=${mtd##/sys/class/mtd/mtd}
       [ $mtd -gt 0 ] && [ $mtd -eq $kip -o $mtd -eq $rip ] && ap='->' || ap='  '
+      [ $mtd -eq 8 ] && [ "user" == "${overlay}" ] && ap='->' ## tag user partion as active
       printf " $ap% 2d:  0x%08x  0x%08x  %-13s?\b" $mtd $addr $size "$name"
       mtd=/dev/mtd${mtd}
       vers=' '
@@ -515,7 +543,12 @@ case $1 in
                                         -e'/^Linux-.*/{s/Linux-//p;q}' \
                                         -e'/^[0-9]\.[0-9]\+.*/{s/ .*//;p;q}'`;;
         rootfs*)
-          vers=`strings -n8 < $mtd |sed -n \
+          [ "${ap}" == "->" ] && [ ! -z "$romode" ] && vers="$romode" \
+                                        || vers=`strings -n8 < $mtd |sed -n \
+                                        -e'/Laird Linux/{s/.* //p;q}' \
+                                        -e'/SDC Linux Release/{s/.* //p;q}'`;;
+        user )
+          [ "${overlay}" == "user" ] && vers=`sed /etc/laird-release -n \
                                         -e'/Laird Linux/{s/.* //p;q}' \
                                         -e'/SDC Linux Release/{s/.* //p;q}'`;;
       esac
