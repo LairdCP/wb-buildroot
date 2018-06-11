@@ -42,6 +42,8 @@
 !/configs/reglwb5_defconfig
 !/configs/bdimx6_defconfig
 !/configs/backports_defconfig
+!/configs/som60_defconfig
+!/configs/som60sd_defconfig
 !/configs/som60sd_mfg_defconfig
 !/configs/firmware_defconfig
 # note the above is necessary to avoid customer configs.
