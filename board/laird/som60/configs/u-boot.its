@@ -20,7 +20,7 @@
 			os = "U-Boot";
 			arch = "arm";
 			compression = "none";
-			load = <0x23f00000>;
+			load = <0x26f00000>;
 			firmware-version = <1>;
 			hash {
 				algo = "sha256";
