@@ -16,7 +16,7 @@
 
 # Firmware Select Utility for WB40n/WB45n/WB50n
 #
-VERSION=2.18
+VERSION=2.19
 SELF=${0##*/}
 X=/dev/null
 
@@ -40,10 +40,12 @@ show_usage_info() {
 This utility is mainly useful to:
 
 a.) Switch the kernel-a/b and/or rootfs-a/b images to use upon boot.
-  Example usage: [kernel|rootfs]-{a|b}
+  Example usage: [kernel|rootfs]-{a|b} [rootfs|squashfs]
     fw_select                          (..see the current settings)
     fw_select -a                 (..set both kernel-a and rootfs-a)
     fw_select rootfs-b                        (..set just rootfs-b)
+    fw_select -a rootfs          (..sets both and configures rootfs-a for booting read/write filesystem)
+    fw_select -b squashfs        (..sets both and configures rootfs-b for booting read-only filesystem)
 
 b.) Copy select files between the alternate rootfs and a current rootfs-a/b.
   Files or paths may be read from a list-file or via the command-line.
@@ -424,6 +426,25 @@ transfer_system_files() {
   alt_rootfs u
 }
 
+switch_bootargs(){
+  case $1 in
+    rootfs) # read/write filesystem mounting
+      bootargs=$( $fw_printenv -n bootargs |sed "s/rootfstype=.*\ /rootfstype=ubifs\ root=ubi0:rootfs\ /" |sed "s/ro/rw/" )
+      $fw_setenv bootargs $bootargs
+      ;;
+    squashfs) # read-only filesystem mounting
+      bootargs=$( $fw_printenv -n bootargs |sed "s/rootfstype=.*\ /rootfstype=squashfs\ ubi.block=0,0\ root=\/dev\/ubiblock0_0\/ /" |sed "s/rw/ro/" )
+      $fw_setenv bootargs $bootargs
+      ;;
+    --help|-h|?)
+      echo "Options:"
+      echo "rootfs - will update bootargs to boot read/write filesystem"
+      echo "squashfs - will update bootargs to boot read-only filesystem"
+      ;;
+    *) # do nothing
+      ;;
+  esac
+}
 
 # main
 case $1 in
@@ -588,6 +609,7 @@ case $1 in
       bootargs=$( $fw_printenv -n bootargs |sed "s/ubi.mtd=./ubi.mtd=$mtd/" )
       $fw_setenv bootargs $bootargs \
         && echo set rootfs-a
+      switch_bootargs $2
     fi
     ;;
 
@@ -606,6 +628,7 @@ case $1 in
       bootargs=$( $fw_printenv -n bootargs |sed "s/ubi.mtd=./ubi.mtd=$mtd/" )
       $fw_setenv bootargs $bootargs \
         && echo set rootfs-b
+      switch_bootargs $2
     fi
     ;;
 
