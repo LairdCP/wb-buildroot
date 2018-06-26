@@ -1,0 +1,5 @@
+config BR2_PACKAGE_IGPROVD
+	bool "igprovd"
+	help
+	  Laird Industrial Gateway Provisioning Service
+	depends on BR2_PACKAGE_PYTHON

@@ -1,0 +1,27 @@
+#!/bin/sh
+
+[ -x /usr/bin/ggconf ] || exit 0
+[ -f /usr/bin/igprovd ] || exit 0
+
+case "$1" in
+        start)
+                printf "Starting igprovd: "
+		python /usr/bin/igprovd
+                [ $? = 0 ] && echo "OK" || echo "FAIL"
+                ;;
+        stop)
+                printf "Stopping igprovd: "
+		kill `ps -o user,pid,args | grep -v grep | grep igprovd | awk '{ print $2 }'`
+                [ $? = 0 ] && echo "OK" || echo "FAIL"
+                ;;
+        restart|reload)
+                $0 stop
+                $0 start
+                ;;
+        *)
+                echo "Usage: $0 {start|stop|restart}"
+                exit 1
+esac
+
+exit 0
+
