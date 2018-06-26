@@ -1,0 +1,4 @@
+config BR2_PACKAGE_GGSUPPORT
+	bool "ggsupport"
+	help
+	  Laird Industrial Gateway Greengrass Support

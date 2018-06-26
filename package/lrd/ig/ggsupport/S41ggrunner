@@ -1,0 +1,25 @@
+#!/bin/bash
+
+GGRUNNER=/usr/bin/ggrunner
+
+case "$1" in
+        start)
+                echo "Starting ggrunner daemon..."
+                daemon -n ggrunnerd -o user.notice -- dbus-triggerd --system --exec ${GGRUNNER} "type='signal',interface='org.freedesktop.NetworkManager',member='StateChanged'"
+                ;;
+
+	stop)
+		echo "Stopping ggrunner daemon..."
+		daemon -n ggrunnerd --stop
+		;;
+
+	restart)
+		echo "Restarting ggrunner daemon..."
+		daemon -n ggrunnerd --restart
+		;;
+
+        *)
+                echo "usage: $0 {start|stop|restart}"
+                ;;
+esac
+exit 0
