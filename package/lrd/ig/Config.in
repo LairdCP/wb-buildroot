@@ -1,0 +1,5 @@
+menu "Industrial Gateway"
+    source "package/lrd/ig/igprovd/Config.in"
+    source "package/lrd/ig/igconfd/Config.in"
+    source "package/lrd/ig/ggsupport/Config.in"
+endmenu
