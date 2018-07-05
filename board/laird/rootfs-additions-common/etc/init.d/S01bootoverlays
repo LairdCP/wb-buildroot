@@ -29,14 +29,9 @@ case $1 in
   start)
     if ! touch /.rw 2>/dev/null
     then
-        #/home folder
-        mkdir -p /mnt/home-upperdir
+	mkdir -p /mnt/home-upperdir
         mkdir -p /mnt/home-workdir
         mount -t overlay -olowerdir=/home,upperdir=/mnt/home-upperdir,workdir=/mnt/home-workdir overlayfs /home
-        #/root folder
-        mkdir -p /mnt/root-upperdir
-        mkdir -p /mnt/root-workdir
-        mount -t overlay -olowerdir=/root,upperdir=/mnt/root-upperdir,workdir=/mnt/root-workdir overlayfs /root
      fi
     ;;
 esac
