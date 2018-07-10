@@ -1,9 +1,4 @@
 FIRMWARE_BINARIES_VERSION = 5.0.0.28
-FIRMWARE_BINARIES_COMPANY_PROJECT = $(call qstrip,$(BR2_FIRMWARE_BINARIES_COMPANY_PROJECT))
-FIRMWARE_BINARIES_SOURCE = firmware-binaries-$(FIRMWARE_BINARIES_COMPANY_PROJECT)-$(FIRMWARE_BINARIES_VERSION).tar.bz2
-FIRMWARE_BINARIES_LICENSE = GPL-2.0
-FIRMWARE_BINARIES_LICENSE_FILES = COPYING
-FIRMWARE_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/raw/master
 
 STERLING-LWB-FCC=480-0079
 STERLING-LWB-ETSI=480-0080
@@ -17,8 +12,26 @@ LWB5-MFG=480-0109
 WL-FMAC=930-0081
 LRD-MWL=laird-sterling-60
 
+FIRMWARE_BINARIES_SOURCE = $(LRD-MWL)-$(FIRMWARE_BINARIES_VERSION).tar.bz2
+FIRMWARE_BINARIES_EXTRA_DOWNLOADS = $(STERLING-LWB-FCC)-$(FIRMWARE_BINARIES_VERSION).zip \
+									$(STERLING-LWB-ETSI)-$(FIRMWARE_BINARIES_VERSION).zip \
+									$(STERLING-LWB5-FCC)-$(FIRMWARE_BINARIES_VERSION).zip \
+									$(STERLING-LWB5-ETSI)-$(FIRMWARE_BINARIES_VERSION).zip \
+									$(STERLING-LWB5-IC)-$(FIRMWARE_BINARIES_VERSION).zip \
+									$(STERLING-LWB5-JP)-$(FIRMWARE_BINARIES_VERSION).zip \
+									$(LWB-MFG)-$(FIRMWARE_BINARIES_VERSION).zip \
+									$(LWB5-MFG)-$(FIRMWARE_BINARIES_VERSION).zip \
+									$(STERLING-LWB-JP)-$(FIRMWARE_BINARIES_VERSION).zip \
+									$(WL-FMAC)-$(FIRMWARE_BINARIES_VERSION).zip \
+									laird-lwb-firmware-mfg-$(FIRMWARE_BINARIES_VERSION).tar.bz2 \
+									laird-lwb5-firmware-mfg-$(FIRMWARE_BINARIES_VERSION).tar.bz2
+FIRMWARE_BINARIES_LICENSE = GPL-2.0
+FIRMWARE_BINARIES_LICENSE_FILES = COPYING
+FIRMWARE_BINARIES_SITE = http://devops.lairdtech.com/share/builds/linux/firmware/$(FIRMWARE_BINARIES_VERSION)
+
+
 define FIRMWARE_BINARIES_EXTRACT_CMDS
-	$(TAR) -C "$(@D)" -xjf $(BR2_DL_DIR)/$(FIRMWARE_BINARIES_SOURCE)
+
 endef
 
 define FIRMWARE_BINARIES_CONFIGURE_CMDS
@@ -27,7 +40,7 @@ endef
 
 define install-firmware-func
 	rm $(@D)/lib -fr;
-	test -f $(@D)/$(1)-*.zip && cd $(@D) && unzip -u $(1)-*.zip;
+	cd $(@D) && unzip -u $(BR2_DL_DIR)/$(1)-$(FIRMWARE_BINARIES_VERSION).zip  -d . ;
 	cd $(@D) && tar -xjf $(1).tar.bz2;
 	cp $(@D)/lib/firmware/* $(TARGET_DIR)/lib/firmware/ -dprf;
 endef
@@ -84,8 +97,8 @@ endif
 
 define FIRMWARE_BINARIES_480_0108_INSTALL_TARGET
 	rm $(@D)/lib -fr;
-	test -f $(@D)/$(LWB-MFG)-*.zip && cd $(@D) && unzip -u $(LWB-MFG)-*.zip;
-	cd $(@D) && tar -xjf laird-lwb-firmware-mfg-*.tar.bz2;
+	cd $(@D) && unzip -u $(BR2_DL_DIR)/$(LWB-MFG)-$(FIRMWARE_BINARIES_VERSION).zip -d .;
+	cd $(@D) && tar -xjf laird-lwb-firmware-mfg-$(FIRMWARE_BINARIES_VERSION).tar.bz2;
 	cp $(@D)/lib/firmware/* $(TARGET_DIR)/lib/firmware/ -dprf;
 endef
 ifeq ($(BR2_FIRMWARE_BINARIES_480_0108),y)
@@ -94,8 +107,8 @@ endif
 
 define FIRMWARE_BINARIES_480_0109_INSTALL_TARGET
 	rm $(@D)/lib -fr;
-	test -f $(@D)/$(LWB5-MFG)-*.zip && cd $(@D) && unzip -u $(LWB5-MFG)-*.zip;
-	cd $(@D) && tar -xjf laird-lwb5-firmware-mfg-*.tar.bz2;
+	cd $(@D) && unzip -u $(BR2_DL_DIR)/$(LWB5-MFG)-$(FIRMWARE_BINARIES_VERSION).zip -d .;
+	cd $(@D) && tar -xjf laird-lwb5-firmware-mfg-$(FIRMWARE_BINARIES_VERSION).tar.bz2;
 	cp $(@D)/lib/firmware/* $(TARGET_DIR)/lib/firmware/ -dprf;
 endef
 ifeq ($(BR2_FIRMWARE_BINARIES_480_0109),y)
@@ -104,7 +117,7 @@ endif
 
 define FIRMWARE_BINARIES_930_0081_INSTALL_TARGET
 	rm $(@D)/wl_fmac -fr
-	test -f $(@D)/$(WL-FMAC)-*.zip && cd $(@D) && unzip -u $(WL-FMAC)-*.zip;
+	cd $(@D) && unzip -u $(BR2_DL_DIR)/$(WL-FMAC)-$(FIRMWARE_BINARIES_VERSION).zip -d .;
 	cp $(@D)/wl_fmac $(TARGET_DIR)/usr/bin/ -f;
 endef
 ifeq ($(BR2_FIRMWARE_BINARIES_930_0081),y)
@@ -113,7 +126,7 @@ endif
 
 define FIRMWARE_BINARIES_STERLING_60_INSTALL_TARGET
 	rm $(@D)/lib/ -fr;
-	test -f $(@D)/$(LRD-MWL)-*.tar.bz2 && cd $(@D) && tar -xjf $(LRD-MWL)-*.tar.bz2;
+	tar -xjf $(BR2_DL_DIR)/$(LRD-MWL)-$(FIRMWARE_BINARIES_VERSION).tar.bz2 -C $(@D);
 	cp $(@D)/lib/firmware/* $(TARGET_DIR)/lib/firmware/ -dprf;
 endef
 ifeq ($(BR2_FIRMWARE_BINARIES_STERLING_60),y)

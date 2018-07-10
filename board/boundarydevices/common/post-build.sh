@@ -7,6 +7,9 @@
 
 BOARD_DIR="$(dirname $0)"
 
+# Copy the product specific rootfs additions
+tar c --exclude=.svn --exclude=.empty -C board/boundarydevices/common/rootfs-additions/ . | tar x -C $TARGET_DIR/
+
 # bd u-boot looks for bootscript here
 $HOST_DIR/usr/bin/mkimage -A arm -O linux -T script -C none -a 0 -e 0 \
 -n "boot script" -d $BOARD_DIR/6x_bootscript.txt $TARGET_DIR/6x_bootscript
