@@ -7,6 +7,9 @@
 
 BOARD_DIR="$(dirname $0)"
 
+# Copy the product specific rootfs additions
+tar c --exclude=.svn --exclude=.empty -C board/boundarydevices/common/rootfs-additions/ . | tar x -C $TARGET_DIR/
+
 # bd u-boot looks for standard bootscript
 install -m 0644 -D $BINARIES_DIR/boot.scr $TARGET_DIR/boot/
 # legacy 6x_bootscript script
