@@ -155,9 +155,9 @@ LINUX_IMAGE_NAME = zImage.epapr
 else ifeq ($(BR2_LINUX_KERNEL_APPENDED_ZIMAGE),y)
 LINUX_IMAGE_NAME = zImage
 else ifeq ($(BR2_LINUX_KERNEL_CUIMAGE),y)
-LINUX_IMAGE_NAME = cuImage.$(KERNEL_DTS_NAME)
+LINUX_IMAGE_NAME = cuImage.$(firstword $(KERNEL_DTS_NAME))
 else ifeq ($(BR2_LINUX_KERNEL_SIMPLEIMAGE),y)
-LINUX_IMAGE_NAME = simpleImage.$(KERNEL_DTS_NAME)
+LINUX_IMAGE_NAME = simpleImage.$(firstword $(KERNEL_DTS_NAME))
 else ifeq ($(BR2_LINUX_KERNEL_IMAGE),y)
 LINUX_IMAGE_NAME = Image
 else ifeq ($(BR2_LINUX_KERNEL_LINUX_BIN),y)
@@ -235,7 +235,14 @@ LINUX_KCONFIG_FILE = $(call qstrip,$(BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE))
 endif
 LINUX_KCONFIG_FRAGMENT_FILES = $(call qstrip,$(BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES))
 LINUX_KCONFIG_EDITORS = menuconfig xconfig gconfig nconfig
-LINUX_KCONFIG_OPTS = $(LINUX_MAKE_FLAGS)
+
+# LINUX_MAKE_FLAGS overrides HOSTCC to allow the kernel build to find our
+# host-openssl and host-libelf. However, this triggers a bug in the kconfig
+# build script that causes it to build with /usr/include/ncurses.h (which is
+# typically wchar) but link with $(HOST_DIR)/lib/libncurses.so (which is not).
+# We don't actually need any host-package for kconfig, so remove the HOSTCC
+# override again.
+LINUX_KCONFIG_OPTS = $(LINUX_MAKE_FLAGS) HOSTCC="$(HOSTCC)"
 
 # If no package has yet set it, set it from the Kconfig option
 LINUX_NEEDS_MODULES ?= $(BR2_LINUX_NEEDS_MODULES)
