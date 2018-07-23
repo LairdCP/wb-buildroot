@@ -16,46 +16,53 @@ BLOB_FILE := $(shell [ -e $(FW_REPO_DIR)/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC
 
 
 $(OUT_FILE): $(TMP_DIR)/$(FW_PKG_LSR_PN).zip | $(OUT_DIR) $(HINT_FILE)
-	cp -f $< $@
+	$(CP_F) $< $@
 
 $(HINT_FILE): $(OUT_DIR)
 	touch $@
 
 $(TMP_DIR)/$(FW_PKG_LSR_PN).zip: $(TMP_DIR)/$(FW_PKG_LSR_PN).tar.bz2
-	cd $(TMP_DIR); $(ZIP) $@ $(FW_PKG_LSR_PN).tar.bz2
+	$(ZIP) -j $@ $<
 
-$(TMP_DIR)/$(FW_PKG_LSR_PN).tar.bz2: $(ARCHIVE_ROOT)/lib/firmware/brcm/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.bin $(ARCHIVE_ROOT)/lib/firmware/brcm/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.txt $(ARCHIVE_ROOT)/lib/firmware/brcm/$(CHIP_NAME).hcd $(BLOB_FILE) | $(OUT_DIR)
-	cd $(ARCHIVE_ROOT); $(TAR_F) $@ lib
+$(TMP_DIR)/$(FW_PKG_LSR_PN).tar.bz2: $(ARCHIVE_ROOT)/lib/firmware/brcm/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.bin $(ARCHIVE_ROOT)/lib/firmware/brcm/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.txt $(ARCHIVE_ROOT)/lib/firmware/brcm/$(CHIP_NAME).hcd $(BLOB_FILE) $(ARCHIVE_ROOT)/lib/firmware/regulatory.db | $(OUT_DIR)
+	$(TAR_F) $@ -C $(ARCHIVE_ROOT) lib
 
 $(ARCHIVE_ROOT)/lib/firmware/brcm/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.bin: $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.bin
-	cd $(@D); ln -sf ./bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.bin $(@F)
+	ln -rsf $< $@
 
 $(ARCHIVE_ROOT)/lib/firmware/brcm/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.clm_blob: $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.clm_blob
-	cd $(@D); ln -sf ./bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.clm_blob $(@F)
+	ln -rsf $< $@
 
 $(ARCHIVE_ROOT)/lib/firmware/brcm/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.txt: $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.txt
-	cd $(@D); ln -sf ./bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.txt $(@F)
+	ln -rsf $< $@
 
 $(ARCHIVE_ROOT)/lib/firmware/brcm/$(CHIP_NAME).hcd: $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)/$(CHIP_NAME).hcd
-	cd $(@D); ln -sf ./bcm$(CHIP_NAME)/$(CHIP_NAME).hcd $(@F)
+	ln -rsf $< $@
 
 $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.bin: $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio-prod.bin
-	cd $(@D); ln -sf ./brcmfmac$(BRCMFMAC_CHIP_ID)-sdio-prod.bin $(@F)
+	ln -rsf $< $@
 
 $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.txt: $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio-$(REGION).txt
-	cd $(@D); ln -sf ./brcmfmac$(BRCMFMAC_CHIP_ID)-sdio-$(REGION).txt $(@F)
+	ln -rsf $< $@
 
 $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio-prod.bin: $(FW_REPO_DIR)/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio-prod.bin | $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)
-	$(CP_F) $(FW_REPO_DIR)/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio-prod.bin $@
+	$(CP_F) $< $@
 
 $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.clm_blob: $(FW_REPO_DIR)/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.clm_blob | $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)
-	$(CP_F) $(FW_REPO_DIR)/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio.clm_blob $@
+	$(CP_F) $< $@
 
 $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio-$(REGION).txt: $(FW_REPO_DIR)/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio-$(REGION).txt | $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)
-	$(CP_F) $(FW_REPO_DIR)/brcm/bcm$(CHIP_NAME)/brcmfmac$(BRCMFMAC_CHIP_ID)-sdio-$(REGION).txt $@
+	$(CP_F) $< $@
 
 $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)/$(CHIP_NAME).hcd: $(FW_REPO_DIR)/brcm/bcm$(CHIP_NAME)/$(CHIP_NAME).hcd | $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME)
-	$(CP_F) $(FW_REPO_DIR)/brcm/bcm$(CHIP_NAME)/$(CHIP_NAME).hcd $@
+	$(CP_F) $< $@
 
 $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME):
 	mkdir -p $@
+
+$(ARCHIVE_ROOT)/lib/firmware/regulatory.db:
+	$(CP_F) $(TAR_DIR)/lib/firmware/regulatory_$(REGION).db $(ARCHIVE_ROOT)/lib/firmware
+	ln -rsf $(ARCHIVE_ROOT)/lib/firmware/regulatory_$(REGION).db $(ARCHIVE_ROOT)/lib/firmware/regulatory.db
+	mkdir -p $(ARCHIVE_ROOT)/usr/lib/crda
+	$(CP_F) $(TAR_DIR)/usr/lib/crda/regulatory_$(REGION).bin $(ARCHIVE_ROOT)/usr/lib/crda
+	ln -rsf $(ARCHIVE_ROOT)/usr/lib/crda/regulatory_$(REGION).bin $(ARCHIVE_ROOT)/usr/lib/crda/regulatory.bin

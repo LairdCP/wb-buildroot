@@ -31,26 +31,24 @@ $(60_OUT):
 	mkdir -p $(60_OUT)
 
 $(ST_IMAGE_DIR)/$(LWB_MFG_NAME).tar.bz2: lwb-mfg-staging
-	cd $(LWB_MFG_OUT); $(TAR_CJF) $(@F) lib
-	cp $(LWB_MFG_OUT)/$(@F) $(ST_IMAGE_DIR)/
+	$(TAR_CJF) $@ -C $(LWB_MFG_OUT) lib
 
 $(ST_IMAGE_DIR)/480-0108-$(RELEASE_STRING).zip: $(ST_IMAGE_DIR)/$(LWB_MFG_NAME).tar.bz2
-	cd $(ST_IMAGE_DIR); zip $@ $(LWB_MFG_NAME).tar.bz2
+	zip -j $@ $<
 
 $(ST_IMAGE_DIR)/$(LWB5_MFG_NAME).tar.bz2: lwb5-mfg-staging
-	cd $(LWB5_MFG_OUT); $(TAR_CJF) $(@F) lib
-	cp $(LWB5_MFG_OUT)/$(@F) $(ST_IMAGE_DIR)/
+	$(TAR_CJF) $@ -C $(LWB5_MFG_OUT) lib
 
 $(ST_IMAGE_DIR)/480-0109-$(RELEASE_STRING).zip: $(ST_IMAGE_DIR)/$(LWB5_MFG_NAME).tar.bz2
-	cd $(ST_IMAGE_DIR) ; zip $@ $(LWB5_MFG_NAME).tar.bz2
+	zip -j $@ $<
 
 $(ST_IMAGE_DIR)/$(60_NAME).tar.bz2: 60-staging
-	cd $(60_OUT) ; $(TAR_CJF) $@ lib
+	$(TAR_CJF) $@ -C $(60_OUT) lib
 
 $(ST_IMAGE_DIR)/$(WL_FMAC_930_0081_NAME).zip:$(TMP_DIR)/$(WL_FMAC_930_0081_NAME).zip
 	cp -f $^ $@
 
-lwb-mfg-staging:$(LWB_MFG_OUT)
+lwb-mfg-staging: $(LWB_MFG_OUT)
 	mkdir -p $(LWB_MFG_OUT)/lib/firmware/brcm/bcm4343w
 	cd $(LWB_MFG_OUT)/lib/firmware/brcm/bcm4343w ; \
 	cp $(ST_BRCM_DIR)/bcm4343w/brcmfmac43430-sdio-*.bin . ; \
@@ -62,8 +60,13 @@ lwb-mfg-staging:$(LWB_MFG_OUT)
 	ln -sf ./bcm4343w/brcmfmac43430-sdio.bin . ; \
 	ln -sf ./bcm4343w/brcmfmac43430-sdio.txt . ; \
 	ln -sf ./bcm4343w/4343w.hcd .
+	cp $(TAR_DIR)/lib/firmware/regulatory.db $(LWB_MFG_OUT)/lib/firmware/regulatory_default.db
+	ln -rsf $(LWB_MFG_OUT)/lib/firmware/regulatory_default.db $(LWB_MFG_OUT)/lib/firmware/regulatory.db
+	mkdir -p $(LWB_MFG_OUT)/usr/lib/crda
+	cp $(TAR_DIR)/usr/lib/crda/regulatory.bin $(LWB_MFG_OUT)/usr/lib/crda/regulatory_default.bin
+	ln -rsf $(LWB_MFG_OUT)/usr/lib/crda/regulatory_default.bin $(LWB_MFG_OUT)/usr/lib/crda/regulatory.bin
 
-lwb5-mfg-staging:$(LWB5_MFG_OUT)
+lwb5-mfg-staging: $(LWB5_MFG_OUT)
 	mkdir -p $(LWB5_MFG_OUT)/lib/firmware/brcm/bcm4339
 	cd $(LWB5_MFG_OUT)/lib/firmware/brcm/bcm4339 ; \
 	cp $(ST_BRCM_DIR)/bcm4339/brcmfmac4339-sdio-*.bin . ; \
@@ -75,14 +78,24 @@ lwb5-mfg-staging:$(LWB5_MFG_OUT)
 	ln -sf ./bcm4339/brcmfmac4339-sdio.bin . ; \
 	ln -sf ./bcm4339/brcmfmac4339-sdio.txt . ; \
 	ln -sf ./bcm4339/4339.hcd .
+	cp $(TAR_DIR)/lib/firmware/regulatory.db $(LWB_MFG_OUT)/lib/firmware/regulatory_default.db
+	ln -rsf $(LWB5_MFG_OUT)/lib/firmware/regulatory_default.db $(LWB5_MFG_OUT)/lib/firmware/regulatory.db
+	mkdir -p $(LWB5_MFG_OUT)/usr/lib/crda
+	cp $(TAR_DIR)/usr/lib/crda/regulatory.bin $(LWB_MFG_OUT)/usr/lib/crda/regulatory_default.bin
+	ln -rsf $(LWB5_MFG_OUT)/usr/lib/crda/regulatory_default.bin $(LWB5_MFG_OUT)/usr/lib/crda/regulatory.bin
 
 60-staging: $(60_OUT)
 	mkdir -p $(60_OUT)/lib/firmware/
 	mkdir -p $(60_OUT)/lib/firmware/lrdmwl
 	cp -d $(ST_LRDMWL_DIR)/*.bin $(60_OUT)/lib/firmware/lrdmwl
+	cp $(TAR_DIR)/lib/firmware/regulatory_st60.db $(60_OUT)/lib/firmware
+	ln -rsf $(60_OUT)/lib/firmware/regulatory_st60.db $(60_OUT)/lib/firmware/regulatory.db
+	mkdir -p $(60_OUT)/usr/lib/crda
+	cp $(TAR_DIR)/usr/lib/crda/regulatory_st60.bin $(60_OUT)/usr/lib/crda
+	ln -rsf $(60_OUT)/usr/lib/crda/regulatory_st60.bin $(60_OUT)/usr/lib/crda/regulatory.bin
 
 $(TMP_DIR)/$(WL_FMAC_930_0081_NAME).zip: $(T_DIR)/package/lrd-closed-source/externals/wl_fmac/bin/930-0081/wl_fmac
-	zip --junk-paths $@ $^
+	zip -j $@ $^
 
 lwb-mfg: $(ST_IMAGE_DIR)/480-0108-$(RELEASE_STRING).zip $(ST_IMAGE_DIR)/$(LWB_MFG_NAME).tar.bz2
 
