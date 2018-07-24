@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-LINUX_BACKPORTS_VERSION = 6.0.2.7
+LINUX_BACKPORTS_VERSION = 6.0.2.8
 
 LINUX_BACKPORTS_SOURCE = backports-laird-$(LINUX_BACKPORTS_VERSION).tar.bz2
 BR_NO_CHECK_HASH_FOR += $(LINUX_BACKPORTS_SOURCE)
