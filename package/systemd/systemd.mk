@@ -48,7 +48,8 @@ SYSTEMD_CONF_OPTS += \
 	-Dkexec-path=/usr/sbin/kexec \
 	-Dsulogin-path=/usr/sbin/sulogin \
 	-Dmount-path=/usr/bin/mount \
-	-Dumount-path=/usr/bin/umount
+	-Dumount-path=/usr/bin/umount \
+	-Dnobody-group=nogroup
 
 ifeq ($(BR2_PACKAGE_ACL),y)
 SYSTEMD_DEPENDENCIES += acl
@@ -265,6 +266,7 @@ endif
 
 ifeq ($(BR2_PACKAGE_SYSTEMD_POLKIT),y)
 SYSTEMD_CONF_OPTS += -Dpolkit=true
+SYSTEMD_DEPENDENCIES += polkit
 else
 SYSTEMD_CONF_OPTS += -Dpolkit=false
 endif
