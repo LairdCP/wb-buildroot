@@ -18,6 +18,12 @@ define WEB_LCM_GATWICK_BUILD_CMDS
 		$(HOST_NPM) run ng -- build --prod \
 		--sourcemap $(if $(BR2_WEB_LCM_GATWICK_SOURCEMAP),true,false) \
 		--aot $(if $(BR2_WEB_LCM_GATWICK_AOT),true,false)
+
+	cd $(@D); \
+		PATH=$(BR_PATH) \
+		$(HOST_DIR)/usr/bin/php $(HOST_DIR)/usr/bin/composer install --no-dev --ignore-platform-reqs --no-suggest --prefer-dist \
+		$(if $(BR2_WEB_LCM_GATWICK_OPTIMIZE_AUTOLOADER),--optimize-autoloader)
+
 endef
 
 define WEB_LCM_GATWICK_INSTALL_TARGET_CMDS
