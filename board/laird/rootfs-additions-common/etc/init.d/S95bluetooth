@@ -35,7 +35,6 @@ await_interface() {
 start()
 {
   echo "Starting bluetooth"
-  modprobe ohci-at91 ohci-hcd
 
   # load driver if necessary and available
   if [ -f /lib/modules/`uname -r`/kernel/drivers/bluetooth/btusb.ko ]
@@ -43,7 +42,7 @@ start()
     if ! grep -sq 'btusb' /proc/modules
     then
       echo "  loading btusb driver"
-      modprobe btusb
+      modprobe ohci-at91 ohci-hcd btusb
     fi
   else
     # wait for all interfaces (wifi) to come up during bootup
