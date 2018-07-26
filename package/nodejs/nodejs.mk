@@ -42,6 +42,15 @@ ifneq ($(BR2_PACKAGE_NODEJS_NPM),y)
 NODEJS_CONF_OPTS += --without-npm
 endif
 
+# Define HOST_NPM for other packages to use
+HOST_NPM = $(HOST_CONFIGURE_OPTS) \
+	npm_config_build_from_source=true \
+	npm_config_nodedir=$(BUILD_DIR)/host-nodejs-$(NODEJS_VERSION) \
+	npm_config_prefix=$(HOST_DIR)/usr \
+	npm_config_cache=$(@D)/.npm \
+	npm_config_userconfig=$(@D)/.npmrc \
+	$(HOST_DIR)/bin/npm
+
 # nodejs build system is based on python, but only support python-2.6 or
 # python-2.7. So, we have to enforce PYTHON interpreter to be python2.
 define HOST_NODEJS_CONFIGURE_CMDS
@@ -70,7 +79,7 @@ endef
 
 define HOST_NODEJS_BUILD_CMDS
 	$(HOST_MAKE_ENV) PYTHON=$(HOST_DIR)/bin/python2 \
-		$(MAKE) -C $(@D) \
+		$(MAKE1) -C $(@D) \
 		$(HOST_CONFIGURE_OPTS) \
 		NO_LOAD=cctest.target.mk \
 		PATH=$(@D)/bin:$(BR_PATH)
