@@ -27,6 +27,7 @@ config BR2_MSD_BINARIES_EVENTMON
 
 config BR2_MSD_BINARIES_SDCCLI
 	bool "Laird SDC CLI"
+	select BR2_PACKAGE_LIBEDIT
     default y
 	help
 	  Install the SDC CLI from the MSD package.
