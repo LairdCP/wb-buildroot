@@ -46,7 +46,7 @@ config BR2_FIRMWARE_BINARIES_930_0081
     default n
 
 config BR2_FIRMWARE_BINARIES_60
-	bool "60"
+	bool "laird 60 radio firmware"
     default n
 
 endif

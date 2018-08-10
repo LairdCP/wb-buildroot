@@ -5,7 +5,7 @@ RELEASE_STRING ?= $(shell date +%Y%m%d)
 
 LWB_MFG_NAME := laird-lwb-firmware-mfg-$(RELEASE_STRING)
 LWB5_MFG_NAME := laird-lwb5-firmware-mfg-$(RELEASE_STRING)
-60_NAME := 60-$(RELEASE_STRING)
+60_NAME := laird-60-radio-firmware-$(RELEASE_STRING)
 WL_FMAC_930_0081_NAME := 930-0081-$(RELEASE_STRING)
 
 LWB_MFG_OUT := $(TAR_DIR)/root/$(LWB_MFG_NAME)
