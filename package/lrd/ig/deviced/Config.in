@@ -1,0 +1,5 @@
+config BR2_PACKAGE_DEVICED
+	bool "deviced"
+	depends on BR2_PACKAGE_PYTHON
+	help
+	  Laird Industrial Gateway Device Service
