@@ -26,6 +26,7 @@ null::sysinit:/bin/hostname -F /etc/hostname
 
 # Put a getty on the first serial port and invoke login
 ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100
+tty0::respawn:/bin/login -f root
 
 # Stuff to do for the 3-finger salute
 ::ctrlaltdel:/sbin/reboot
