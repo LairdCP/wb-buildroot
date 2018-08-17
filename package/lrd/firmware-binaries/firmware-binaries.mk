@@ -29,20 +29,8 @@ FIRMWARE_BINARIES_LICENSE = GPL-2.0
 FIRMWARE_BINARIES_LICENSE_FILES = COPYING
 FIRMWARE_BINARIES_SITE = http://devops.lairdtech.com/share/builds/linux/firmware/$(FIRMWARE_BINARIES_VERSION)
 
-
-define FIRMWARE_BINARIES_EXTRACT_CMDS
-
-endef
-
-define FIRMWARE_BINARIES_CONFIGURE_CMDS
-
-endef
-
 define install-firmware-func
-	rm $(@D)/lib -fr;
-	cd $(@D) && unzip -u $(BR2_DL_DIR)/$(1)-$(FIRMWARE_BINARIES_VERSION).zip  -d . ;
-	cd $(@D) && tar -xjf $(1).tar.bz2;
-	cp $(@D)/lib/firmware/* $(TARGET_DIR)/lib/firmware/ -dprf;
+	unzip -p $(DL_DIR)/$(1)-$(FIRMWARE_BINARIES_VERSION).zip | tar -xjf - -C $(TARGET_DIR) --overwrite
 endef
 
 
@@ -96,43 +84,31 @@ ifeq ($(BR2_FIRMWARE_BINARIES_480_0116),y)
 endif
 
 define FIRMWARE_BINARIES_480_0108_INSTALL_TARGET
-	rm $(@D)/lib -fr;
-	cd $(@D) && unzip -u $(BR2_DL_DIR)/$(LWB-MFG)-$(FIRMWARE_BINARIES_VERSION).zip -d .;
-	cd $(@D) && tar -xjf laird-lwb-firmware-mfg-$(FIRMWARE_BINARIES_VERSION).tar.bz2;
-	cp $(@D)/lib/firmware/* $(TARGET_DIR)/lib/firmware/ -dprf;
+	$(call install-firmware-func,$(LWB-MFG))
 endef
 ifeq ($(BR2_FIRMWARE_BINARIES_480_0108),y)
 	FIRMWARE_BINARIES_POST_INSTALL_TARGET_HOOKS += FIRMWARE_BINARIES_480_0108_INSTALL_TARGET
 endif
 
 define FIRMWARE_BINARIES_480_0109_INSTALL_TARGET
-	rm $(@D)/lib -fr;
-	cd $(@D) && unzip -u $(BR2_DL_DIR)/$(LWB5-MFG)-$(FIRMWARE_BINARIES_VERSION).zip -d .;
-	cd $(@D) && tar -xjf laird-lwb5-firmware-mfg-$(FIRMWARE_BINARIES_VERSION).tar.bz2;
-	cp $(@D)/lib/firmware/* $(TARGET_DIR)/lib/firmware/ -dprf;
+	$(call install-firmware-func,$(LWB5-MFG))
 endef
 ifeq ($(BR2_FIRMWARE_BINARIES_480_0109),y)
 	FIRMWARE_BINARIES_POST_INSTALL_TARGET_HOOKS += FIRMWARE_BINARIES_480_0109_INSTALL_TARGET
 endif
 
 define FIRMWARE_BINARIES_930_0081_INSTALL_TARGET
-	rm $(@D)/wl_fmac -fr
-	cd $(@D) && unzip -u $(BR2_DL_DIR)/$(WL-FMAC)-$(FIRMWARE_BINARIES_VERSION).zip -d .;
-	cp $(@D)/wl_fmac $(TARGET_DIR)/usr/bin/ -f;
+	unzip -uo $(DL_DIR)/$(WL-FMAC)-$(FIRMWARE_BINARIES_VERSION).zip -d $(TARGET_DIR)/usr/bin/
 endef
 ifeq ($(BR2_FIRMWARE_BINARIES_930_0081),y)
 	FIRMWARE_BINARIES_POST_INSTALL_TARGET_HOOKS += FIRMWARE_BINARIES_930_0081_INSTALL_TARGET
 endif
 
 define FIRMWARE_BINARIES_60_INSTALL_TARGET
-	rm $(@D)/lib/ -fr;
-	tar -xjf $(BR2_DL_DIR)/$(LRD-MWL)-$(FIRMWARE_BINARIES_VERSION).tar.bz2 -C $(@D);
-	cp $(@D)/lib/firmware/* $(TARGET_DIR)/lib/firmware/ -dprf;
+	tar -xjf $(DL_DIR)/$(LRD-MWL)-$(FIRMWARE_BINARIES_VERSION).tar.bz2 -C $(TARGET_DIR) --overwrite
 endef
 ifeq ($(BR2_FIRMWARE_BINARIES_60),y)
 	FIRMWARE_BINARIES_POST_INSTALL_TARGET_HOOKS += FIRMWARE_BINARIES_60_INSTALL_TARGET
 endif
-
-FIRMWARE_BINARIES_DEPENDENCIES += linux
 
 $(eval $(generic-package))
