@@ -6,9 +6,6 @@ WEB_LCM_GATWICK_DEPENDENCIES = host-nodejs host-composer php_sdk
 define WEB_LCM_GATWICK_BUILD_CMDS
 	cd $(@D); cp $(TARGET_DIR)/var/www/docs/lrd_php_sdk.php $(@D)/api/lib/
 
-	cd $(@D); $(HOST_DIR)/usr/bin/php $(HOST_DIR)/usr/bin/composer install --no-dev --ignore-platform-reqs --prefer-dist \
-		$(if $(BR2_WEB_LCM_GATWICK_OPTIMIZE_AUTOLOADER),--optimize-autoloader)
-
 	cd $(@D); \
 		PATH=$(BR_PATH) \
 		$(HOST_NPM) install $(@D)
