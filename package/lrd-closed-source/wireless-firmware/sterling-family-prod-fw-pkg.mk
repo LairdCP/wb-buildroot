@@ -61,6 +61,7 @@ $(ARCHIVE_ROOT)/lib/firmware/brcm/bcm$(CHIP_NAME):
 	mkdir -p $@
 
 $(ARCHIVE_ROOT)/lib/firmware/regulatory.db:
+	mkdir -p $(ARCHIVE_ROOT)/lib/firmware/
 	$(CP_F) $(TAR_DIR)/lib/firmware/regulatory_$(REGION).db $(ARCHIVE_ROOT)/lib/firmware/
 	ln -rsf $(ARCHIVE_ROOT)/lib/firmware/regulatory_$(REGION).db $(ARCHIVE_ROOT)/lib/firmware/regulatory.db
 	mkdir -p $(ARCHIVE_ROOT)/usr/lib/crda
