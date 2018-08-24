@@ -46,7 +46,15 @@ config BR2_FIRMWARE_BINARIES_930_0081
     default n
 
 config BR2_FIRMWARE_BINARIES_60
-	bool "laird 60 radio firmware"
+	bool "Laird 60 radio firmware"
+    default n
+
+config BR2_FIRMWARE_BINARIES_ATH6K_6003
+	bool "Laird ath6k AR6003 radio firmware"
+    default n
+
+config BR2_FIRMWARE_BINARIES_ATH6K_6004
+	bool "Laird ath6k AR6004 radio firmware"
     default n
 
 endif

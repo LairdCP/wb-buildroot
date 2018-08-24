@@ -1,4 +1,5 @@
 config BR2_PACKAGE_WIRELESS_FIRMWARE
 	bool "wireless-firmware"
+	select BR2_PACKAGE_WIRELESS_REGDB
 	help
 	  Firmwares for wireless drivers.
