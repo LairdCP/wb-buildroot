@@ -77,7 +77,6 @@ lwb5-mfg-staging:$(LWB5_MFG_OUT)
 	ln -sf ./bcm4339/4339.hcd .
 
 60-staging: $(60_OUT)
-	mkdir -p $(60_OUT)/lib/firmware/
 	mkdir -p $(60_OUT)/lib/firmware/lrdmwl
 	cp -d $(ST_LRDMWL_DIR)/*.bin $(60_OUT)/lib/firmware/lrdmwl
 
