@@ -13,8 +13,9 @@ BOARD_DIR="$(dirname $0)"
 GENIMAGE_CFG="${BOARD_DIR}/configs/genimage.cfg"
 GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
 
-# Copy mksdcard.sh to images
-cp $BOARD_DIR/mksdcard.sh $IMAGESDIR/
+# Copy mksdcard.sh and mksdimg.sh to images
+cp $BOARD_DIR/../scripts-common/mksdcard.sh $IMAGESDIR/
+cp $BOARD_DIR/../scripts-common/mksdimg.sh $IMAGESDIR/
 
 # Tooling checks
 mkimage=$HOST_DIR/bin/mkimage
