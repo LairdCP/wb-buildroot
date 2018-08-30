@@ -21,6 +21,7 @@
 /package/lrd-devel/u-boot
 /package/lrd-customers/*
 /board/laird/customers/*
+!/board/boundarydevices/common/etc/*
 !/board/laird/customers/README
 
 # ignore configs directory, except for the files we want:
