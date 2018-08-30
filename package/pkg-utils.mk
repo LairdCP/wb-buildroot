@@ -95,3 +95,14 @@ define legal-license-file # pkgname, pkgname-pkgver, pkgdir, filename, file-full
 	} && \
 	cp $(5) $(LICENSE_FILES_DIR_$(6))/$(2)/$(4)
 endef
+
+#
+# sbom-gen helper functions
+#
+define csv-to-txt # legal-info-csv-host, legal-info-csv-target, sbom-host, sbom-target
+    support/scripts/csv-to-txt $(1) $(2) $(3) $(4)
+endef
+
+define legal-info-to-sbom # legal-info-dir, sbom-target-dir
+	support/scripts/legal-info-to-sbom $(1) $(2)
+endef

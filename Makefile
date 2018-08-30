@@ -231,6 +231,14 @@ LEGAL_MANIFEST_CSV_HOST = $(LEGAL_INFO_DIR)/host-manifest.csv
 LEGAL_WARNINGS = $(LEGAL_INFO_DIR)/.warnings
 LEGAL_REPORT = $(LEGAL_INFO_DIR)/README
 
+ifeq ($(O),$(CURDIR)/output)
+SBOM_TARGET = $(BINARIES_DIR)/target-sbom.txt
+SBOM_HOST = $(BINARIES_DIR)/host-sbom.txt
+else
+TARGET_NAME =  $(notdir $(O))
+SBOM_TARGET = $(BINARIES_DIR)/$(TARGET_NAME)-target-sbom.txt
+SBOM_HOST = $(BINARIES_DIR)/$(TARGET_NAME)-host-sbom.txt
+endif
 ################################################################################
 #
 # staging and target directories do NOT list these as
@@ -803,6 +811,11 @@ legal-info: dirs legal-info-clean legal-info-prepare $(foreach p,$(PACKAGES),$(p
 			>.legal-info.sha256; \
 		mv .legal-info.sha256 legal-info.sha256)
 	@echo "Legal info produced in $(LEGAL_INFO_DIR)"
+
+.PHONY: sbom
+sbom-gen: legal-info
+	@$(call csv-to-txt,$(LEGAL_MANIFEST_CSV_HOST),$(LEGAL_MANIFEST_CSV_TARGET),$(SBOM_HOST),$(SBOM_TARGET))
+	@$(call legal-info-to-sbom,$(LEGAL_INFO_DIR),$(SBOM_TARGET))
 
 .PHONY: show-targets
 show-targets:
