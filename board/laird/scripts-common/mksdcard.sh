@@ -34,11 +34,10 @@ fi
 echo "*************************************************************************"
 echo "WARNING: All data on "$DRIVE" now will be destroyed! Continue? [y/n]"
 echo "*************************************************************************"
-read ans
-if ! [ $ans == 'y' ]
-then
-    exit
-fi
+read -n 1 -s ans
+[ $ans == 'y' ] || exit
+
+umount $DRIVE?
 
 echo "[Partitioning $DRIVE...]"
 
