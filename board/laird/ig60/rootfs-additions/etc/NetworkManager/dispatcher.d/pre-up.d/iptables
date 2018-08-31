@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if [ "$1" = lo ]; then
+        echo "$0: ignoring $1 for \`$2'"
+        exit 0
+fi
+
+case "$2" in
+        pre-up)
+                echo "$0: restoring iptables rules for $1"
+                /usr/sbin/iptables-restore /etc/network/iptables.up.rules
+                /usr/sbin/ip6tables-restore /etc/network/ip6tables.up.rules
+                ;;
+        *)
+                echo "$0: nothing to do with $1 for \`$2'"
+                ;;
+esac
+
+exit 0
