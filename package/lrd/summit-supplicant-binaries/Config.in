@@ -1,0 +1,4 @@
+config BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES
+	bool "Summit Supplicant ARM Binaries Installer"
+	help
+      Extracts sdcsupp, wpa_cli binaries from summit_supplicant-arm release and install them on the target.
