@@ -4,4 +4,5 @@ menu "Industrial Gateway"
     source "package/lrd/ig/ggsupport/Config.in"
     source "package/lrd/ig/igupd/Config.in"
     source "package/lrd/ig/deviced/Config.in"
+    source "package/lrd/ig/dbproxysvc/Config.in"
 endmenu

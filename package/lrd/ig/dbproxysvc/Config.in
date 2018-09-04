@@ -1,0 +1,5 @@
+config BR2_PACKAGE_DBPROXYSVC
+	bool "dbproxysvc"
+	help
+	  DBus Proxy Service
+	depends on BR2_PACKAGE_PYTHON

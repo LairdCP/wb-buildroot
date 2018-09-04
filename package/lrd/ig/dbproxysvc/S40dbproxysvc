@@ -1,0 +1,26 @@
+#!/bin/sh
+
+[ -f /usr/bin/dbproxysvc ] || exit 0
+
+case "$1" in
+        start)
+                printf "Starting dbproxysvc: "
+		python /usr/bin/dbproxysvc
+                [ $? = 0 ] && echo "OK" || echo "FAIL"
+                ;;
+        stop)
+                printf "Stopping dbproxysvc: "
+		kill `ps -o user,pid,args | grep -v grep | grep dbproxysvc | awk '{ print $2 }'`
+                [ $? = 0 ] && echo "OK" || echo "FAIL"
+                ;;
+        restart|reload)
+                $0 stop
+                $0 start
+                ;;
+        *)
+                echo "Usage: $0 {start|stop|restart}"
+                exit 1
+esac
+
+exit 0
+
