@@ -42,17 +42,17 @@ endef
 
 ifneq ($(BR2_PACKAGE_LRD_LEGACY),y)
 ifeq ($(BR2_PACKAGE_WPA_SUPPLICANT),y)
-    # both wpa_supplicant and sdcsupp installed, prefix to avoid collision
-    SDCSUPP_DBUS_SERVICE_PREFIX = summit.
+    # both wpa_supplicant and sdcsupp installed, postfix to avoid collision
+    SDCSUPP_DBUS_SERVICE_POSTFIX = .summit
 else
-	# only sdcsupp installed, no prefix needed
-    SDCSUPP_DBUS_SERVICE_PREFIX =
+	# only sdcsupp installed, no postfix needed
+    SDCSUPP_DBUS_SERVICE_POSTFIX =
 endif
 
 define SDCSUPP_INSTALL_DBUS_NEW
 	$(INSTALL) -m 0644 -D \
 		$(SDCSUPP_D)/dbus/$(SDCSUPP_DBUS_NEW_SERVICE).service \
-		$(TARGET_DIR)/usr/share/dbus-1/system-services/$(SDCSUPP_DBUS_SERVICE_PREFIX)$(SDCSUPP_DBUS_NEW_SERVICE).service
+		$(TARGET_DIR)/usr/share/dbus-1/system-services/$(SDCSUPP_DBUS_NEW_SERVICE).service$(SDCSUPP_DBUS_SERVICE_POSTFIX)
 endef
 endif
 
