@@ -52,11 +52,13 @@ define DROPBEAR_DISABLE_STANDALONE
 endef
 
 define DROPBEAR_INSTALL_INIT_SYSTEMD
-	$(INSTALL) -D -m 644 package/dropbear/dropbear.service \
-		$(TARGET_DIR)/usr/lib/systemd/system/dropbear.service
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -fs ../../../../usr/lib/systemd/system/dropbear.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/dropbear.service
+	$(INSTALL) -D -m 644 package/dropbear/dropbear@.service \
+		$(TARGET_DIR)/usr/lib/systemd/system/dropbear@.service
+	$(INSTALL) -m 0644 -D package/dropbear/dropbear.socket \
+		$(TARGET_DIR)/usr/lib/systemd/system/dropbear.socket
+	mkdir -p $(TARGET_DIR)/etc/systemd/system/sockets.target.wants
+	ln -fs ../../../../usr/lib/systemd/system/dropbear.socket \
+		$(TARGET_DIR)/etc/systemd/system/sockets.target.wants/dropbear.socket
 endef
 
 ifeq ($(BR2_USE_MMU),y)

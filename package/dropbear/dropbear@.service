@@ -20,8 +20,10 @@ if [ -L /etc/dropbear \
     fi; \
 fi'
 EnvironmentFile=-/etc/default/dropbear
-ExecStart=/usr/sbin/dropbear -F -R $DROPBEAR_ARGS
+ExecStart=/usr/sbin/dropbear -i -R $DROPBEAR_ARGS
 ExecReload=/bin/kill -HUP $MAINPID
+StandardInput=socket
+KillMode=process
 
 [Install]
 WantedBy=multi-user.target
