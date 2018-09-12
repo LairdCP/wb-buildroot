@@ -9,7 +9,7 @@ echo "SOM60 POST IMAGE script: starting..."
 # enable tracing and exit on errors
 set -x -e
 
-BOARD_DIR="$(dirname $0)"
+BOARD_DIR="$(dirname $0)/../som60"
 GENIMAGE_CFG="${BOARD_DIR}/configs/genimage.cfg"
 GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
 
@@ -61,11 +61,12 @@ cat $BINARIES_DIR/rootfs.squashfs $BINARIES_DIR/rootfs.verity > $BINARIES_DIR/ro
 cp $BOARD_DIR/configs/boot.scr $BINARIES_DIR/boot.scr
 sed -i -e "s/SALT/${SALT}/g" -e "s/HASH/${HASH}/g" -e "s/BLOCKS/${BLOCKS}/g" -e "s/SIZE/${SIZE}/g" -e "s/OFFSET/${OFFSET}/g" $BINARIES_DIR/boot.scr
 
-
 # Generate kernel FIT
 # kernel.its references zImage and at91-dvk_som60.dtb, and all three
 # files must be in current directory for mkimage.
-cp $BOARD_DIR/configs/kernel.its $BINARIES_DIR/kernel.its || exit 1
+DTB="$(sed -n 's/^BR2_LINUX_KERNEL_INTREE_DTS_NAME="\(.*\)"$/\1/p' ${BR2_CONFIG})"
+sed "s/at91-dvk_som60/$DTB/g" $BOARD_DIR/configs/kernel.its > $BINARIES_DIR/kernel.its || exit 1
+
 echo "# entering $BINARIES_DIR for the next command"
 (cd $BINARIES_DIR && $mkimage -f kernel.its kernel.itb) || exit 1
 (cd $BINARIES_DIR && $mkimage -F -K u-boot.dtb -k keys -r kernel.itb) || exit 1
