@@ -1,6 +1,6 @@
 IMAGESDIR="$1"
 
-export BR2_LRD_PLATFORM=summit_supplicant-arm
+export BR2_LRD_PLATFORM=summit_supplicant-arm-eabi
 
 echo "$BR2_LRD_PLATFORM POST IMAGE script: starting..."
 
