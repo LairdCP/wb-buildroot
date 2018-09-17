@@ -1,8 +1,8 @@
 TARGETDIR=$1
 
-export BR2_LRD_PLATFORM=summit_supplicant-arm-eabi
+export BR2_LRD_PLATFORM=summit_supplicant-arm
 
-echo "summit_supplicant-arm-eabi POST BUILD script: starting..."
+echo "summit_supplicant-arm POST BUILD script: starting..."
 
 # enable tracing and exit on errors
 set -x -e
@@ -39,4 +39,4 @@ rm -rf -- $TARGETDIR/usr/local
 rm -f  -- $TARGETDIR/lib/modules/*/modules*
 rm -rf -- $TARGETDIR/lib/modules/*/kernel
 
-echo "summit_supplicant-arm-eabi POST BUILD script: done."
+echo "summit_supplicant-arm POST BUILD script: done."
