@@ -1,0 +1,58 @@
+#!/bin/sh
+
+# Copyright (c) 2018, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+# igproc - Additional boot processing for Industrial Gateway
+#
+
+NM_SYSTEM_CONN_DIR='/etc/NetworkManager/system-connections'
+RODATA_DEV='/dev/ubi0_6'
+RODATA_DIR='/rodata'
+GG_ROOT_DEV='/dev/ubi0_7'
+GG_ROOT_DIR='/gg'
+ENCDATA='encdata'
+
+case $1 in
+
+	stop)
+		#Remove mounts
+		if mountpoint -q ${NM_SYSTEM_CONN_DIR} 2>/dev/null
+		then
+			umount ${NM_SYSTEM_CONN_DIR}
+		fi
+		#Remove fs key
+		keyctl unlink `keyctl search @us logon fscrypt:ffffffffffffffff`
+		;;
+
+	start)
+		#Mount IG partitions
+		mkdir -p ${RODATA_DIR}
+		mount -o ro -t ubifs ${RODATA_DEV} ${RODATA_DIR}
+		mkdir -p ${GG_ROOT_DIR}
+		mount -o noatime -t ubifs ${GG_ROOT_DEV} ${GG_ROOT_DIR}
+		#Load the fs key into the user session keyring
+		keyctl search %:_builtin_fs_keys logon fscrypt:ffffffffffffffff @us > /dev/null
+		#Create directory for runtime encrypted data
+		#NOTE: Use hardware-enabled AES algorithms for performance
+		mkdir -p ${GG_ROOT_DIR}/${ENCDATA}
+		fscryptctl set_policy --contents=AES-128-CBC --filenames=AES-128-CTS ffffffffffffffff ${GG_ROOT_DIR}/${ENCDATA}
+		#Create directory for NetworkManager connection data & mount it
+		mkdir -p ${GG_ROOT_DIR}/${ENCDATA}/nm-system-connections
+		chmod 600 ${GG_ROOT_DIR}/${ENCDATA}/nm-system-connections
+		mount -o bind ${GG_ROOT_DIR}/${ENCDATA}/nm-system-connections ${NM_SYSTEM_CONN_DIR}
+		;;
+esac
+exit 0
+

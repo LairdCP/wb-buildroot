@@ -52,9 +52,6 @@ case $1 in
 			mount -o noatime,move /rom/tmp /tmp
 			mount -o noatime,move /rom/overlay /overlay
 		fi
-		#Mount the Greengrass partition
-		mkdir -p /gg
-		mount -o noatime -t ubifs /dev/ubi0_6 /gg
 		;;
 esac
 exit 0
