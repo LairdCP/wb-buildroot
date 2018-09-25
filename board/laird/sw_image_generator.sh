@@ -13,7 +13,12 @@ echo "$BR2_LRD_PRODUCT\n"
 echo "$LAIRD_RELEASE_STRING\n"
 echo "Destination: ${IMAGESDIR}/${BR2_LRD_PLATFORM}_${LAIRD_RELEASE_STRING// /_}.swu\n"
 
-FILES="sw-description $2"
+if [ "$BR2_LRD_PLATFORM" = "ig60" ]; then
+	FILES="sw-description sw-description.sig $2"
+else
+	FILES="sw-description $2"
+fi
+
 for i in $FILES; do
 	if [ -f $i ]; then
 		echo $i

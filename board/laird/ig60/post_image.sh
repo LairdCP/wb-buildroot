@@ -92,8 +92,22 @@ $genimage                          \
 	--outputpath "${BINARIES_DIR}" \
 	--config "${GENIMAGE_CFG}"
 
-# generate SWUpdate .swu image
+
+# Generate Hash for each component, sign and generate SWUpdate .swu image
+SWU_COMPONENT=(boot.bin u-boot.itb kernel.itb rootfs.bin)
+
 cp $BOARD_DIR/configs/sw-description "$IMAGESDIR/"
+
+for i in ${SWU_COMPONENT[@]}
+do
+	hash_value=`sha256sum $IMAGESDIR/$i | awk '{print $1}'`
+	component=@$i
+    sed -i -e "s/$component/$hash_value/g" $IMAGESDIR/sw-description
+done
+
+$openssl cms -sign -in $IMAGESDIR/sw-description -out $IMAGESDIR/sw-description.sig \
+    -signer $IMAGESDIR/keys/dev.crt -inkey $IMAGESDIR/keys/dev.key -outform DER -nosmimecap -binary
+
 if cd "$IMAGESDIR"; then
 	$TOPDIR/board/laird/sw_image_generator.sh "$IMAGESDIR" "boot.bin u-boot.itb kernel.itb rootfs.bin"
 fi

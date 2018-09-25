@@ -9,11 +9,14 @@ software =
 					filename = "kernel.itb";
 					volume = "kernel_a";
 					installed-directly = true;
+					sha256 = "@kernel.itb";
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_a";
 					installed-directly = true;
+					sha256 = "@rootfs.bin";
+
 				}
 			);
 
@@ -31,11 +34,13 @@ software =
 					filename = "kernel.itb";
 					volume = "kernel_b";
 					installed-directly = true;
+					sha256 = "@kernel.itb";
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
 					installed-directly = true;
+					sha256 = "@rootfs.bin";
 				}
 			);
 
@@ -53,21 +58,25 @@ software =
 					filename = "boot.bin";
 					device = "mtd0";
 					type = "flash";
+					sha256 = "@boot.bin"
 				},
 				{
 					filename = "u-boot.itb";
 					device = "mtd1";
 					type = "flash";
+					sha256 = "@u-boot.itb"
 				},
 				{
 					filename = "kernel.itb";
 					volume = "kernel_a";
 					installed-directly = true;
+					sha256 = "@kernel.itb"
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_a";
 					installed-directly = true;
+					sha256 = "@rootfs.bin"
 				}
 			);
 
@@ -85,21 +94,25 @@ software =
 					filename = "boot.bin";
 					device = "mtd0";
 					type = "flash";
+					sha256 = "@boot.bin"
 				},
 				{
 					filename = "u-boot.itb";
 					device = "mtd1";
 					type = "flash";
+					sha256 = "@u-boot.itb"
 				},
 				{
 					filename = "kernel.itb";
 					volume = "kernel_b";
 					installed-directly = true;
+					sha256 = "@kernel.itb"
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
 					installed-directly = true;
+					sha256 = "@rootfs.bin"
 				}
 			);
 
