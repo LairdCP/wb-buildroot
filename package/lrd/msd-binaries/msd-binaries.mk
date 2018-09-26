@@ -73,7 +73,7 @@ ifeq ($(BR2_MSD_BINARIES_SDCCLI),y)
 endif
 
 define MSD_BINARIES_SDCSUPP_INSTALL_TARGET
-	$(INSTALL) -D -m 755 $(@D)/usr/bin/sdcsupp $(TARGET_DIR)/usr/bin/sdcsupp
+	$(INSTALL) -D -m 755 $(@D)/usr/sbin/sdcsupp $(TARGET_DIR)/usr/sbin/sdcsupp
 endef
 ifeq ($(BR2_MSD_BINARIES_SDCSUPP),y)
 	MSD_BINARIES_POST_INSTALL_TARGET_HOOKS += MSD_BINARIES_SDCSUPP_INSTALL_TARGET
