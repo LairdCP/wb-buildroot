@@ -14,6 +14,7 @@ mv $TARGETDIR/etc/init.d/S40wifi $TARGETDIR/etc/init.d/opt/
 tar c --exclude=.svn --exclude=.empty -C board/laird/wb50n_rdvk/rootfs-additions/ . | tar x -C $TARGETDIR/
 
 # Fixup and add debugfs to fstab
-echo 'nodev /sys/kernel/debug   debugfs   defaults   0  0' >> $TARGETDIR/etc/fstab
+grep -q "/sys/kernel/debug" $TARGETDIR/etc/fstab ||\
+	echo 'nodev /sys/kernel/debug   debugfs   defaults   0  0' >> $TARGETDIR/etc/fstab
 
 echo "WB50n RDVK POST BUILD script: done."
