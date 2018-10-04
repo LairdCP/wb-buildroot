@@ -26,6 +26,8 @@
 
 # ignore configs directory, except for the files we want:
 /configs/*
+!/configs/ig60sd_mfg_defconfig
+!/configs/ig60_defconfig
 !/configs/msd40n_defconfig
 !/configs/msd45n_defconfig
 !/configs/msd45n_fips_defconfig
