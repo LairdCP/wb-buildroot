@@ -44,6 +44,9 @@ create_gadgets () {
 		echo "RNDIS" > os_desc/interface.rndis/compatible_id
 		echo "5162001" > os_desc/interface.rndis/sub_compatible_id
 
+		echo "DE:AD:BE:EF:00:00" > dev_addr
+		echo "DE:AD:BE:EF:01:00" > host_addr
+
 		cd ../..
 
 		ln -s functions/rndis.usb$counter configs/c.1

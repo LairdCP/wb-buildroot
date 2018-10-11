@@ -44,22 +44,28 @@ if [ ! -f $BINARIES_DIR/keys/dev.key ]; then
 	$openssl req -batch -new -x509 -key $BINARIES_DIR/keys/dev.key -out $BINARIES_DIR/keys/dev.crt
 fi
 
-# Generate the hash table for squashfs
-rm -f $BINARIES_DIR/rootfs.verity
-$veritysetup format $BINARIES_DIR/rootfs.squashfs $BINARIES_DIR/rootfs.verity > $BINARIES_DIR/rootfs.verity.header
-# Get the hash
-HASH="$(awk '/Root hash:/ {print $3}' $BINARIES_DIR/rootfs.verity.header)"
-SALT="$(awk '/Salt:/ {print $2}' $BINARIES_DIR/rootfs.verity.header)"
-BLOCKS="$(awk '/Data blocks:/ {print $3}' $BINARIES_DIR/rootfs.verity.header)"
-SIZE=$((${BLOCKS} * 8))
-OFFSET=$((${BLOCKS} + 1))
+DEFCONFIG="$(sed -n 's/^BR2_DEFCONFIG="\(.*\)"$/\1/p' ${BR2_CONFIG})"
 
-# Generate a combined rootfs
-cat $BINARIES_DIR/rootfs.squashfs $BINARIES_DIR/rootfs.verity > $BINARIES_DIR/rootfs.bin
-
-# Generate the boot.scr for uboot
+# Copy the boot.scr for uboot
 cp $BOARD_DIR/configs/boot.scr $BINARIES_DIR/boot.scr
-sed -i -e "s/SALT/${SALT}/g" -e "s/HASH/${HASH}/g" -e "s/BLOCKS/${BLOCKS}/g" -e "s/SIZE/${SIZE}/g" -e "s/OFFSET/${OFFSET}/g" $BINARIES_DIR/boot.scr
+
+if [[ $DEFCONFIG != *"60sd"* ]] ; then
+	# Generate the hash table for squashfs
+	rm -f $BINARIES_DIR/rootfs.verity
+	$veritysetup format $BINARIES_DIR/rootfs.squashfs $BINARIES_DIR/rootfs.verity > $BINARIES_DIR/rootfs.verity.header
+	# Get the hash
+	HASH="$(awk '/Root hash:/ {print $3}' $BINARIES_DIR/rootfs.verity.header)"
+	SALT="$(awk '/Salt:/ {print $2}' $BINARIES_DIR/rootfs.verity.header)"
+	BLOCKS="$(awk '/Data blocks:/ {print $3}' $BINARIES_DIR/rootfs.verity.header)"
+	SIZE=$((${BLOCKS} * 8))
+	OFFSET=$((${BLOCKS} + 1))
+
+	# Generate a combined rootfs
+	cat $BINARIES_DIR/rootfs.squashfs $BINARIES_DIR/rootfs.verity > $BINARIES_DIR/rootfs.bin
+
+	# Generate the boot.scr for uboot
+	sed -i -e "s/SALT/${SALT}/g" -e "s/HASH/${HASH}/g" -e "s/BLOCKS/${BLOCKS}/g" -e "s/SIZE/${SIZE}/g" -e "s/OFFSET/${OFFSET}/g" $BINARIES_DIR/boot.scr
+fi
 
 # Generate kernel FIT
 # kernel.its references zImage and at91-dvk_som60.dtb, and all three
@@ -83,23 +89,25 @@ echo "# entering $BINARIES_DIR for the next command"
 
 # Then update SPL with appended keyed DTB
 cat $BINARIES_DIR/u-boot-spl-nodtb.bin $BINARIES_DIR/u-boot-spl.dtb > $BINARIES_DIR/u-boot-spl.bin
-# Regenerate Atmel PMECC boot.bin
-$mkimage -T atmelimage -n $($atmel_pmecc_params) -d $BINARIES_DIR/u-boot-spl.bin $BINARIES_DIR/boot.bin
 
+if [[ $DEFCONFIG != *"60sd"* ]] ; then
+	# Regenerate Atmel PMECC boot.bin
+	$mkimage -T atmelimage -n $($atmel_pmecc_params) -d $BINARIES_DIR/u-boot-spl.bin $BINARIES_DIR/boot.bin
 
-# Build the UBI
-rm -rf "${GENIMAGE_TMP}"
-$genimage                          \
-	--rootpath "${TARGET_DIR}"     \
-	--tmppath "${GENIMAGE_TMP}"    \
-	--inputpath "${BINARIES_DIR}"  \
-	--outputpath "${BINARIES_DIR}" \
-	--config "${GENIMAGE_CFG}"
+	# Build the UBI
+	rm -rf "${GENIMAGE_TMP}"
+	$genimage                          \
+		--rootpath "${TARGET_DIR}"     \
+		--tmppath "${GENIMAGE_TMP}"    \
+		--inputpath "${BINARIES_DIR}"  \
+		--outputpath "${BINARIES_DIR}" \
+		--config "${GENIMAGE_CFG}"
 
-# generate SWUpdate .swu image
-cp $BOARD_DIR/configs/sw-description "$IMAGESDIR/"
-if cd "$IMAGESDIR"; then
-	$TOPDIR/board/laird/sw_image_generator.sh "$IMAGESDIR" "boot.bin u-boot.itb kernel.itb rootfs.bin"
+	# generate SWUpdate .swu image
+	cp $BOARD_DIR/configs/sw-description "$IMAGESDIR/"
+	if cd "$IMAGESDIR"; then
+		$TOPDIR/board/laird/sw_image_generator.sh "$IMAGESDIR" "boot.bin u-boot.itb kernel.itb rootfs.bin"
+	fi
 fi
 
 echo "SOM60 POST IMAGE script: done."
