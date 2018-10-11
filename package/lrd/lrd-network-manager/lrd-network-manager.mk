@@ -75,7 +75,7 @@ LRD_NETWORK_MANAGER_CONF_OPTS += --with-dhclient=/sbin/dhclient
 endif
 
 ifeq ($(BR2_PACKAGE_DHCPCD),y)
-LRD_NETWORK_MANAGER_CONF_OPTS += --with-dhcpcd=/sbin/dhcpcd
+LRD_NETWORK_MANAGER_CONF_OPTS += --with-dhcpcd=/sbin/dhcpcd --with-dhcpcd-supports-ipv6=yes
 endif
 
 # uClibc by default doesn't have backtrace support, so don't use it
