@@ -81,14 +81,18 @@ rm -f $BINARIES_DIR/kernel.its
 # Re-generate u-boot FIT with Keys
 rm -f $BINARIES_DIR/u-boot.itb
 cp $BOARD_DIR/configs/u-boot.its $BINARIES_DIR/u-boot.its || exit 1
+cp "$BINARIES_DIR/u-boot-spl.dtb" "$BINARIES_DIR/u-boot-spl-key.dtb"
+
 # First check for local keys, generate own if not
 # Then update uboot dtb with keys & sign kernel
 # Then build uboot FIT
 echo "# entering $BINARIES_DIR for the next command"
-(cd $BINARIES_DIR && $mkimage -f u-boot.its -K u-boot-spl.dtb -k keys -r u-boot.itb) || exit 1
+(cd "$BINARIES_DIR" && "$mkimage" -f u-boot.its -K u-boot-spl-key.dtb -k keys -r u-boot.itb) || exit 1
 
 # Then update SPL with appended keyed DTB
-cat $BINARIES_DIR/u-boot-spl-nodtb.bin $BINARIES_DIR/u-boot-spl.dtb > $BINARIES_DIR/u-boot-spl.bin
+cat "$BINARIES_DIR/u-boot-spl-nodtb.bin" "$BINARIES_DIR/u-boot-spl-key.dtb" > "$BINARIES_DIR/u-boot-spl.bin"
+
+rm -f "$BINARIES_DIR/u-boot-spl-key.dtb"
 
 if [[ $DEFCONFIG != *"60sd"* ]] ; then
 	# Regenerate Atmel PMECC boot.bin
