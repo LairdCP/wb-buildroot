@@ -15,7 +15,7 @@ config BR2_PACKAGE_CRDA
 	  query and apply the regulatory domain settings wireless
 	  devices may operate within for a given location.
 
-	  http://linuxwireless.org/en/developers/Regulatory/CRDA
+	  https://wireless.wiki.kernel.org/en/developers/regulatory/crda
 
 if BR2_PACKAGE_CRDA
 
