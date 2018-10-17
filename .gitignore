@@ -51,4 +51,5 @@
 !/configs/summit_supplicant-arm-eabi_defconfig
 !/configs/summit_supplicant-arm-eabihf_defconfig
 !/configs/mfg60n-arm-eabi_defconfig
+!/configs/mfg60n-arm-eabihf_defconfig
 # note the above is necessary to avoid customer configs.
