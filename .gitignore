@@ -48,4 +48,5 @@
 !/configs/som60sd_mfg_defconfig
 !/configs/firmware_defconfig
 !/configs/mfg60n-x86_defconfig
+!/configs/mfg60n-arm-eabi_defconfig
 # note the above is necessary to avoid customer configs.

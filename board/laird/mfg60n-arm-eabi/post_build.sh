@@ -1,4 +1,4 @@
-export BR2_LRD_PRODUCT=mfg60n
+export BR2_LRD_PRODUCT=mfg60n-arm-eabi
 export BR2_LRD_MFG_VERSION=16.205.153.252.bin
 
 # enable tracing and exit on errors
@@ -19,5 +19,5 @@ echo "/lib/firmware/lrdmwl/88W8997_mfg_sdio_uart_v""$BR2_LRD_MFG_VERSION" >> "$T
 
 # make sure board script is not in target directory and copy it from rootfs-additions
 rm -f $TARGET_DIR/reg_tools.sh
-cp board/laird/mfg60n/rootfs-additions/reg_tools.sh $TARGET_DIR
+cp board/laird/mfg60n-arm-eabi/rootfs-additions/reg_tools.sh $TARGET_DIR
 cp "$TARGET_DIR/usr/lib/$LIBEDIT" "$TARGET_DIR/usr/lib/$LIBEDITLRD"
