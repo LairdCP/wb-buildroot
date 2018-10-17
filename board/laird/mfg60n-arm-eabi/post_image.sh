@@ -1,6 +1,6 @@
 IMAGESDIR="$1"
 
-export BR2_LRD_PRODUCT=mfg60n
+export BR2_LRD_PRODUCT=mfg60n-arm-eabi
 export BR2_LRD_MFG_FW=lib/firmware/lrdmwl
 export BR2_LRD_LIBEDIT=usr/lib
 export BR2_LRD_MFG_VERSION=16.205.153.252.bin
