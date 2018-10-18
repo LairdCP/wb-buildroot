@@ -63,6 +63,7 @@ menu "Audio and video applications"
 endmenu
 
 menu "Compressors and decompressors"
+	source "package/brotli/Config.in"
 	source "package/bzip2/Config.in"
 	source "package/gzip/Config.in"
 	source "package/lz4/Config.in"
@@ -1173,6 +1174,7 @@ menu "Graphics"
 	source "package/waylandpp/Config.in"
 	source "package/webkitgtk/Config.in"
 	source "package/webp/Config.in"
+	source "package/woff2/Config.in"
 	source "package/zbar/Config.in"
 	source "package/zxing-cpp/Config.in"
 endmenu
