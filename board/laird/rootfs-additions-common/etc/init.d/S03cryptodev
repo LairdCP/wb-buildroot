@@ -21,12 +21,12 @@ case $1 in
 
   stop)
     echo "Unloading cryptodev"
-    modprobe -r cryptodev 2>null
+    modprobe -rq cryptodev
     ;;
 
   start)
     echo "Loading cryptodev"
-    modprobe cryptodev 2>null
+    modprobe -q cryptodev
     ;;
 
   restart)
