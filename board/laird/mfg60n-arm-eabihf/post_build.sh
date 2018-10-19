@@ -19,5 +19,5 @@ echo "/lib/firmware/lrdmwl/88W8997_mfg_sdio_uart_v""$BR2_LRD_MFG_VERSION" >> "$T
 
 # make sure board script is not in target directory and copy it from rootfs-additions
 rm -f $TARGET_DIR/reg_tools.sh
-cp board/laird/mfg60n-arm-eabihf/rootfs-additions/reg_tools.sh $TARGET_DIR
+cp board/laird/$BR2_LRD_PRODUCT/rootfs-additions/reg_tools.sh $TARGET_DIR
 cp "$TARGET_DIR/usr/lib/$LIBEDIT" "$TARGET_DIR/usr/lib/$LIBEDITLRD"
