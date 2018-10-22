@@ -79,6 +79,7 @@ lwb5-mfg-staging:$(LWB5_MFG_OUT)
 60-staging: $(60_OUT)
 	mkdir -p $(60_OUT)/lib/firmware/lrdmwl
 	cp -d $(ST_LRDMWL_DIR)/*.bin $(60_OUT)/lib/firmware/lrdmwl
+	cp -d $(ST_LRDMWL_DIR)/../COPYING $(60_OUT)/lib
 
 $(TMP_DIR)/$(WL_FMAC_930_0081_NAME).zip: $(T_DIR)/package/lrd-closed-source/externals/wl_fmac/bin/930-0081/wl_fmac
 	zip --junk-paths $@ $^
