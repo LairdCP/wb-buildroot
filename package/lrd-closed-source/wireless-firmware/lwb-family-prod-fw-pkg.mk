@@ -87,6 +87,7 @@ lwb5-mfg-staging: $(LWB5_MFG_OUT)
 60-staging: $(60_OUT)
 	mkdir -p $(60_OUT)/lib/firmware/lrdmwl
 	cp -d $(ST_LRDMWL_DIR)/*.bin $(60_OUT)/lib/firmware/lrdmwl
+	cp -d $(ST_LRDMWL_DIR)/../COPYING $(60_OUT)/lib
 	cp $(TAR_DIR)/lib/firmware/regulatory_st60.db $(60_OUT)/lib/firmware
 	ln -rsf $(60_OUT)/lib/firmware/regulatory_st60.db $(60_OUT)/lib/firmware/regulatory.db
 	mkdir -p $(60_OUT)/usr/lib/crda
