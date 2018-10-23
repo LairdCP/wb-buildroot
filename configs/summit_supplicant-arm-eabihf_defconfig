@@ -18,8 +18,9 @@ BR2_INIT_NONE=y
 BR2_ROOTFS_DEVICE_CREATION_STATIC=y
 BR2_ROOTFS_DEVICE_TABLE=""
 BR2_ROOTFS_STATIC_DEVICE_TABLE=""
-BR2_ROOTFS_POST_BUILD_SCRIPT="board/laird/summit_supplicant-arm-eabihf/post_build.sh"
-BR2_ROOTFS_POST_IMAGE_SCRIPT="board/laird/summit_supplicant-arm-eabihf/post_image.sh"
+BR2_ROOTFS_POST_BUILD_SCRIPT="board/laird/summit_supplicant/post_build.sh"
+BR2_ROOTFS_POST_IMAGE_SCRIPT="board/laird/summit_supplicant/post_image.sh"
+BR2_ROOTFS_POST_SCRIPT_ARGS="summit_supplicant-arm-eabihf"
 # BR2_PACKAGE_BUSYBOX is not set
 BR2_PACKAGE_DBUS=y
 BR2_PACKAGE_DBUS_GLIB=y
