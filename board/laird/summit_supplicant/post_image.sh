@@ -1,6 +1,6 @@
 IMAGESDIR="$1"
 
-export BR2_LRD_PLATFORM=summit_supplicant-arm-eabihf
+BR2_LRD_PLATFORM="$2"
 
 echo "$BR2_LRD_PLATFORM POST IMAGE script: starting..."
 
@@ -15,11 +15,11 @@ if [ -z "$LAIRD_RELEASE_STRING" ]; then
 fi
 
 (cd "$IMAGESDIR"; \
- mkdir -p tmp_$BR2_LRD_PRODUCT; \
+ mkdir -p "tmp_$BR2_LRD_PRODUCT"; \
  tar -tf rootfs.tar | egrep 'bin[/](wpa_|sdcsupp)' > tokeep.txt; \
- tar -xf rootfs.tar -C tmp_$BR2_LRD_PRODUCT $(cat tokeep.txt); \
- tar --transform "s,tmp_$BR2_LRD_PRODUCT,$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING," -cf "$TARFILE" tmp_$BR2_LRD_PRODUCT; \
- rm -fr tokeep.txt tmp_$BR2_LRD_PRODUCT; \
+ tar -xf rootfs.tar -C "tmp_$BR2_LRD_PRODUCT" $(cat tokeep.txt); \
+ tar --transform "s,tmp_$BR2_LRD_PRODUCT,$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING," -cf "$TARFILE" "tmp_$BR2_LRD_PRODUCT"; \
+ rm -fr tokeep.txt "tmp_$BR2_LRD_PRODUCT"; \
 )
 
 bzip2 -f "$TARFILE"
