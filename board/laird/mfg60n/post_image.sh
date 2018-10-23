@@ -1,9 +1,8 @@
-IMAGESDIR="$1"
 
-export BR2_LRD_PRODUCT=mfg60n-arm-eabi
-export BR2_LRD_MFG_FW=lib/firmware/lrdmwl
-export BR2_LRD_LIBEDIT=usr/lib
-export BR2_LRD_MFG_VERSION=16.205.153.252.bin
+IMAGESDIR="$1"
+BR2_LRD_PRODUCT="$2"
+BR2_LRD_MFG_FW=lib/firmware/lrdmwl
+BR2_LRD_LIBEDIT=usr/lib
 
 # enable tracing and exit on errors
 set -x -e
@@ -24,11 +23,11 @@ MFG60N_APPS="lru lmu btlru"
 
 # generate tar.bz2 to be inserted in script
 tar -cvf $IMAGESDIR/$TARFILE --directory="$TARGET_DIR/usr/bin" $MFG60N_APPS
+
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/" "$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.manifest"
-tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" "88W8997_mfg_sdio_sdio_v""$BR2_LRD_MFG_VERSION"
-tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" "88W8997_mfg_sdio_uart_v""$BR2_LRD_MFG_VERSION"
-tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" "88W8997_mfg_pcie_uart_v""$BR2_LRD_MFG_VERSION"
-tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" "88W8997_mfg_pcie_usb_v""$BR2_LRD_MFG_VERSION"
+for f in $TARGET_DIR/lib/firmware/lrdmwl/88W8997_mfg_*; do
+	tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_MFG_FW" $(basename $f)
+done
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/$BR2_LRD_LIBEDIT" "${LIBEDIT/#*\/}"
 
 bzip2 -f "$IMAGESDIR/$TARFILE"
