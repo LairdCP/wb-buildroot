@@ -9,11 +9,9 @@ EASYCWMP_DEPENDENCIES = libcurl libubox ubus openssl libuci microxml
 
 EASYCWMP_AUTORECONF = YES
 
-TARGET_CFLAGS += \
-	-D_GNU_SOURCE
-
-TARGET_LDFLAGS += \
-	-Wl,-rpath-link=$(STAGING_DIR)/usr/lib
+EASYCWMP_CONF_ENV = \
+	CFLAGS="$(TARGET_CFLAGS) -D_GNU_SOURCE" \
+	LDFLAGS="$(TARGET_LDFLAGS) -Wl,-rpath-link=$(STAGING_DIR)/usr/lib"
 
 EASYCWMP_CONF_OPTS += \
 	--with-uci-include-path=$(STAGING_DIR)/usr/include \
