@@ -39,8 +39,8 @@ endif
 
 define DCAL_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/api/libdcal.so.1.0 $(TARGET_DIR)/usr/lib/libdcal.so.1.0
-	ln -fs $(TARGET_DIR)/usr/lib/libdcal.so.1.0 $(TARGET_DIR)/usr/lib/libdcal.so.1
-	ln -fs $(TARGET_DIR)/usr/lib/libdcal.so.1.0 $(TARGET_DIR)/usr/lib/libdcal.so
+	cd $(TARGET_DIR)/usr/lib && ln -fs libdcal.so.1.0 libdcal.so.1
+	cd $(TARGET_DIR)/usr/lib && ln -fs libdcal.so.1.0 libdcal.so
 	$(INSTALL_EXAMPLE_APPS)
 endef
 
