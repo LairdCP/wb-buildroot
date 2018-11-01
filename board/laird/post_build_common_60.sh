@@ -19,13 +19,12 @@ echo "$LOCRELSTR" > $TARGETDIR/etc/issue
 LOCVER="$LAIRD_RELEASE_STRING"
 [ -z "$LOCVER" ] && LOCVER="$(date +%Y%m%d)"
 
-( \
-    echo "NAME=Laird Linux"; \
-    echo "VERSION=$LOCRELSTR"; \
-    echo "ID=buildroot"; \
-    echo "VERSION_ID=$LOCVER"; \
-    echo "PRETTY_NAME=\"$LOCRELSTR\"" \
-) >  $TARGETDIR/usr/lib/os-release
+echo -ne \
+"NAME=Laird Linux\n"\
+"VERSION=$LOCRELSTR\n"\
+"ID=buildroot\n"\
+"VERSION_ID=$LOCVER\n"\
+"PRETTY_NAME=\"$LOCRELSTR\""\
+>  $TARGETDIR/usr/lib/os-release
 
 mkdir -p $TARGETDIR/etc/NetworkManager/system-connections
-rm -f $TARGETDIR/etc/systemd/system/multi-user.target.wants/dhcpcd.service

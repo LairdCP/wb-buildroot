@@ -1,10 +1,10 @@
 IMAGESDIR="$1"
 TOPDIR="`pwd`"
 
-export BR2_LRD_PLATFORM=som60
+export BR2_LRD_PLATFORM="$2"
 export BR2_LRD_PRODUCT=dvk_som60
 
-echo "SOM60 POST IMAGE script: starting..."
+echo "${BR2_LRD_PLATFORM^^} POST IMAGE script: starting..."
 
 # enable tracing and exit on errors
 set -x -e
@@ -36,7 +36,6 @@ test -x $veritysetup || \
 test -x $genimage || \
 	die "No genimage found (host-genimage has not been built?)"
 
-
 # Generate dev keys if needed
 if [ ! -f $BINARIES_DIR/keys/dev.key ]; then
 	mkdir -p $BINARIES_DIR/keys
@@ -44,12 +43,10 @@ if [ ! -f $BINARIES_DIR/keys/dev.key ]; then
 	$openssl req -batch -new -x509 -key $BINARIES_DIR/keys/dev.key -out $BINARIES_DIR/keys/dev.crt
 fi
 
-DEFCONFIG="$(sed -n 's/^BR2_DEFCONFIG="\(.*\)"$/\1/p' ${BR2_CONFIG})"
-
 # Copy the boot.scr for uboot
 cp $BOARD_DIR/configs/boot.scr $BINARIES_DIR/boot.scr
 
-if [[ $DEFCONFIG != *"60sd"* ]] ; then
+if [[ $BR2_LRD_PLATFORM != *"60sd"* ]] ; then
 	# Generate the hash table for squashfs
 	rm -f $BINARIES_DIR/rootfs.verity
 	$veritysetup format $BINARIES_DIR/rootfs.squashfs $BINARIES_DIR/rootfs.verity > $BINARIES_DIR/rootfs.verity.header
@@ -94,7 +91,7 @@ cat "$BINARIES_DIR/u-boot-spl-nodtb.bin" "$BINARIES_DIR/u-boot-spl-key.dtb" > "$
 
 rm -f "$BINARIES_DIR/u-boot-spl-key.dtb"
 
-if [[ $DEFCONFIG != *"60sd"* ]] ; then
+if [[ $BR2_LRD_PLATFORM != *"60sd"* ]] ; then
 	# Regenerate Atmel PMECC boot.bin
 	$mkimage -T atmelimage -n $($atmel_pmecc_params) -d $BINARIES_DIR/u-boot-spl.bin $BINARIES_DIR/boot.bin
 
@@ -114,4 +111,4 @@ if [[ $DEFCONFIG != *"60sd"* ]] ; then
 	fi
 fi
 
-echo "SOM60 POST IMAGE script: done."
+echo "${BR2_LRD_PLATFORM^^} POST IMAGE script: done."
