@@ -209,6 +209,10 @@ ifneq ($(BR2_CCACHE_DIR),)
 BR_CACHE_DIR := $(BR2_CCACHE_DIR)
 endif
 
+ifneq ($(BR2_CVE_LIST_DIR),)
+CVE_LIST_DIR := $(BR2_CVE_LIST_DIR)
+endif
+
 # Need that early, before we scan packages
 # Avoids doing the $(or...) everytime
 BR_GRAPH_OUT := $(or $(BR2_GRAPH_OUT),pdf)
@@ -234,13 +238,17 @@ LEGAL_MANIFEST_CSV_HOST = $(LEGAL_INFO_DIR)/host-manifest.csv
 LEGAL_WARNINGS = $(LEGAL_INFO_DIR)/.warnings
 LEGAL_REPORT = $(LEGAL_INFO_DIR)/README
 
-ifeq ($(O),$(CURDIR)/output)
-SBOM_TARGET = $(BINARIES_DIR)/target-sbom.txt
-SBOM_HOST = $(BINARIES_DIR)/host-sbom.txt
+SBOM_TARGET = $(BINARIES_DIR)/target-sbom
+SBOM_HOST = $(BINARIES_DIR)/host-sbom
+CVE_TARGET = $(BINARIES_DIR)/target-cve.xml
+CVE_HOST = $(BINARIES_DIR)/host-cve.xml
+
+ifneq ($(CVE_LIST_DIR),)
+SKIP_LIST=$(CVE_LIST_DIR)/skip_list
+PASS_LIST=$(CVE_LIST_DIR)/pass_list
 else
-TARGET_NAME =  $(notdir $(O))
-SBOM_TARGET = $(BINARIES_DIR)/$(TARGET_NAME)-target-sbom.txt
-SBOM_HOST = $(BINARIES_DIR)/$(TARGET_NAME)-host-sbom.txt
+SKIP_LIST=$(BR2_CVE_LIST_DIR)/skip_list
+PASS_LIST=$(BR2_CVE_LIST_DIR)/pass_list
 endif
 
 BR2_CONFIG = $(CONFIG_DIR)/.config
@@ -811,10 +819,22 @@ legal-info: dirs legal-info-clean legal-info-prepare $(foreach p,$(PACKAGES),$(p
 		mv .legal-info.sha256 legal-info.sha256)
 	@echo "Legal info produced in $(LEGAL_INFO_DIR)"
 
-.PHONY: sbom
+.PHONY:sbom-gen
 sbom-gen: legal-info
 	@$(call csv-to-txt,$(LEGAL_MANIFEST_CSV_HOST),$(LEGAL_MANIFEST_CSV_TARGET),$(SBOM_HOST),$(SBOM_TARGET))
 	@$(call legal-info-to-sbom,$(LEGAL_INFO_DIR),$(SBOM_TARGET))
+
+
+.PHONY: cve-check
+cve-check: sbom-gen
+	@$(call update-dbs,$(DL_DIR))|| ( echo "Updating NVD-CVE Database [Failed] [Error $$?]"; exit 1 )
+	@echo "Performing CVE-Check for Host [ Started ]"
+	@./support/scripts/cli.py -f rpm $(SBOM_HOST) $(DL_DIR)/dbs $(lastword $(subst /, , $(BASE_DIR)))\
+		 -a 0 -i $(SKIP_LIST) -x $(PASS_LIST) -o $(CVE_HOST)
+	@echo "Performing CVE-Check for Target [ Started ]"
+	@./support/scripts/cli.py -f rpm $(SBOM_TARGET) $(DL_DIR)/dbs $(lastword $(subst /, , $(BASE_DIR)))\
+		 -a 0 -i $(SKIP_LIST) -x $(PASS_LIST) -o $(CVE_TARGET)
+	@echo "Finished CVE-Check [ Done ]"
 
 .PHONY: show-targets
 show-targets:

@@ -110,7 +110,7 @@ done
 }
 
 #####Main body of script
-echo "Creating SBOM for $TARGET_NAME.."
-echo $BR2_LRD_PLATFORM
+echo
+echo "Generating SBOM for $TARGET_NAME [ Started ]"
 read_packages
-echo "SBOM created in $BINARIES_DIR"
+echo "SBOM Generated $BINARIES_DIR [ Done ]"

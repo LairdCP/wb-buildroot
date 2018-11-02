@@ -104,5 +104,12 @@ define csv-to-txt # legal-info-csv-host, legal-info-csv-target, sbom-host, sbom-
 endef
 
 define legal-info-to-sbom # legal-info-dir, sbom-target-dir
-	support/scripts/legal-info-to-sbom $(1) $(2)
+    support/scripts/legal-info-to-sbom $(1) $(2)
+endef
+
+#
+# cve-check helper functions
+#
+define update-dbs # dl_dir
+    support/scripts/update-dbs $(1)
 endef
