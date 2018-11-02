@@ -3,7 +3,7 @@ Description=Create USB Gadgets
 
 [Service]
 RemainAfterExit=yes
-ExecStart=/usr/bin/usb-gadget.sh start
+ExecStart=/usr/bin/usb-gadget.sh start %I
 ExecStop=/usr/bin/usb-gadget.sh stop
 
 [Install]
