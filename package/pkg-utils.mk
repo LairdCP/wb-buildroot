@@ -149,3 +149,21 @@ define legal-license-file # pkg, filename, file-fullpath, {HOST|TARGET}
 	mkdir -p $(LICENSE_FILES_DIR_$(4))/$(1)/$(dir $(2)) && \
 	cp $(3) $(LICENSE_FILES_DIR_$(4))/$(1)/$(2)
 endef
+
+#
+# sbom-gen helper functions
+#
+define csv-to-txt # legal-info-csv-host, legal-info-csv-target, sbom-host, sbom-target
+    support/scripts/csv-to-txt $(1) $(2) $(3) $(4)
+endef
+
+define legal-info-to-sbom # legal-info-dir, sbom-target-dir
+    support/scripts/legal-info-to-sbom $(1) $(2)
+endef
+
+#
+# cve-check helper functions
+#
+define update-dbs # dl_dir
+    support/scripts/update-dbs $(1)
+endef
