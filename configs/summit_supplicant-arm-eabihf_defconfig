@@ -5,7 +5,6 @@ BR2_DL_DIR="$(TOPDIR)/../archive"
 BR2_JLEVEL=16
 BR2_CCACHE=y
 BR2_CCACHE_DIR="$(BR2_DL_DIR)/.buildroot-ccache"
-BR2_PACKAGE_OVERRIDE_FILE="$(TOPDIR)/board/laird/summit_supplicant-arm-eabihf/summit_supplicant-arm-local.mk"
 BR2_TOOLCHAIN_EXTERNAL=y
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="arm-buildroot-linux-gnueabihf"
 BR2_TOOLCHAIN_EXTERNAL_GCC_6=y
