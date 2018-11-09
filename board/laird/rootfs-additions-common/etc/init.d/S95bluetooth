@@ -22,12 +22,11 @@ await_interface() {
   let n=0 w=${2:-0}
   while : wait increments of 10ms for address
   do
-    { mac=; read -rs mac </sys/class/${1}/address; } 2>/dev/null
-    test "${mac/??:??:??:??:??:??/up}" == "up" && break
+    test -e /sys/class/${1} && break
     test $n -lt $w && let n+=10 && usleep 9999 || break
   done
-  test $n -ge 10 && echo -en "  ...waited ${n}ms${mac:+\n}"
-  test -n "$mac" && rv=0 || rv=1
+  test $n -ge 10 && echo -en "  ...waited ${n}ms"
+  test rv=0 || rv=1
   return $rv
 }
 
@@ -62,6 +61,11 @@ start()
   hciconfig hci0 up 2>&1 >/dev/null
   rv=$?
 
+  # turn the bluetooth daemon on if available
+  if [ -x /usr/libexec/bluetooth/bluetoothd ]
+  then
+    /usr/libexec/bluetooth/bluetoothd &
+  fi
 }
 
 stop()
