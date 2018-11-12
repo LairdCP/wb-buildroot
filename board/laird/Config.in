@@ -1,5 +1,13 @@
 menu "Laird"
 
+	config BR2_LRD_DEVEL_BUILD
+	string
+	option env="BR2_LRD_DEVEL_BUILD"
+	help
+	  Developers at Laird can access the closed source repositories,
+	  so they should set this flag to directly build from the closed
+	  source repositories under package/lrd-closed-source/externals.
+
     choice
         prompt "Board"
 

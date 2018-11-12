@@ -1,5 +1,6 @@
 config BR2_PACKAGE_FIRMWARE_BINARIES
 	bool "FIRMWARE Installer"
+	select BR2_PACKAGE_LAIRD_FIRMWARE if BR2_LRD_DEVEL_BUILD="y"
 	help
       Extracts the Laird wireless firmware binaries from an firmware release and install them on the target.
 
@@ -8,53 +9,66 @@ if BR2_PACKAGE_FIRMWARE_BINARIES
 config BR2_FIRMWARE_BINARIES_480_0079
 	bool "Sterling-LWB FCC"
     default n
+	select BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343 if BR2_LRD_DEVEL_BUILD="y"
 
 config BR2_FIRMWARE_BINARIES_480_0080
 	bool "Sterling-LWB ETSI"
     default n
+	select BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343 if BR2_LRD_DEVEL_BUILD="y"
 
 config BR2_FIRMWARE_BINARIES_480_0081
 	bool "Sterling-LWB5 FCC"
     default n
+	select BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339 if BR2_LRD_DEVEL_BUILD="y"
 
 config BR2_FIRMWARE_BINARIES_480_0082
 	bool "Sterling-LWB5 ETSI"
     default n
+	select BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339 if BR2_LRD_DEVEL_BUILD="y"
 
 config BR2_FIRMWARE_BINARIES_480_0094
 	bool "Sterling-LWB5 IC"
     default n
+	select BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339 if BR2_LRD_DEVEL_BUILD="y"
 
 config BR2_FIRMWARE_BINARIES_480_0095
 	bool "Sterling-LWB5 JP"
     default n
+	select BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339 if BR2_LRD_DEVEL_BUILD="y"
 
 config BR2_FIRMWARE_BINARIES_480_0116
 	bool "Sterling-LWB JP"
     default n
+	select BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343 if BR2_LRD_DEVEL_BUILD="y"
 
 config BR2_FIRMWARE_BINARIES_480_0108
 	bool "Sterling-LWB-MFG"
     default n
+	select BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343_MFG if BR2_LRD_DEVEL_BUILD="y"
 
 config BR2_FIRMWARE_BINARIES_480_0109
 	bool "Sterling-LWB5-MFG"
     default n
+	select BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339_MFG if BR2_LRD_DEVEL_BUILD="y"
 
 config BR2_FIRMWARE_BINARIES_930_0081
 	bool "WL-FMAC"
     default n
+	select BR2_PACKAGE_WL_FMAC if BR2_LRD_DEVEL_BUILD="y"
 
 config BR2_FIRMWARE_BINARIES_60
 	bool "Laird 60 radio firmware"
     default n
+	select BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997 if BR2_LRD_DEVEL_BUILD="y"
 
 config BR2_FIRMWARE_BINARIES_ATH6K_6003
 	bool "Laird ath6k AR6003 radio firmware"
     default n
+	select BR2_PACKAGE_LAIRD_FIRMWARE_AR6003 if BR2_LRD_DEVEL_BUILD="y"
 
 config BR2_FIRMWARE_BINARIES_ATH6K_6004
 	bool "Laird ath6k AR6004 radio firmware"
     default n
+	select BR2_PACKAGE_LAIRD_FIRMWARE_AR6004 if BR2_LRD_DEVEL_BUILD="y"
 
 endif

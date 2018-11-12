@@ -1,3 +1,5 @@
+ifeq ($(BR2_LRD_DEVEL_BUILD),y)
+else
 FIRMWARE_BINARIES_VERSION = 0.0.0.0
 
 STERLING-LWB-FCC=480-0079
@@ -17,7 +19,7 @@ ATH6K-6004=laird-ath6k-6004-firmware
 FIRMWARE_BINARIES_SOURCE =
 FIRMWARE_BINARIES_LICENSE = GPL-2.0
 FIRMWARE_BINARIES_LICENSE_FILES = COPYING
-FIRMWARE_BINARIES_SITE = http://devops.lairdtech.com/share/builds/linux/firmware/$(FIRMWARE_BINARIES_VERSION)
+FIRMWARE_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/raw/master
 
 define install-firmware-lwb-func
 	unzip -p $(DL_DIR)/$(1)-$(FIRMWARE_BINARIES_VERSION).zip | tar -xjf - -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir
@@ -129,6 +131,7 @@ endef
 ifeq ($(BR2_FIRMWARE_BINARIES_ATH6K_6004),y)
 	FIRMWARE_BINARIES_EXTRA_DOWNLOADS += $(ATH6K-6004)-$(FIRMWARE_BINARIES_VERSION).tar.bz2
 	FIRMWARE_BINARIES_POST_INSTALL_TARGET_HOOKS += FIRMWARE_BINARIES_ATH6K_6004_INSTALL_TARGET
+endif
 endif
 
 $(eval $(generic-package))
