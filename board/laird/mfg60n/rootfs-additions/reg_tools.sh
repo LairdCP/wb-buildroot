@@ -46,17 +46,16 @@ case $1 in
 		else
 			echo "Computed checksums did NOT match"
 		fi
-		break
 		;;
 	"install")
 		# make directory to store files
 		mkdir -p $ROOTNAME
 		#decompress tar.bz2
-		tail -n +$SKIP $THIS | tar -xzj -C $ROOTNAME
+		tail -n +$SKIP $THIS | tar -xj -C $ROOTNAME
 		# read manifest
 		while read line; do
 			BIN=`echo $line | sed 's/.*\///'`
-			if [[ ${line:0:1} != '#' ]]
+			if [ $(echo $line | cut -c1-1) != '#' ]
 			then
 				# check for forced
 				if [ "$2" == "-f" ]
@@ -66,7 +65,7 @@ case $1 in
 					cp "$ROOTNAME/$BIN" "$line"
 				else
 					# check if file exists
-					if [[ -e "$line" ]]
+					if [ -e "$line" ]
 					then
 						echo "File $line already exists, skipping..."
 					else
@@ -78,34 +77,30 @@ case $1 in
 			fi
 		done < `find $ROOTNAME/. -name '*.manifest'`
 		rm -rf $ROOTNAME
-		break
 		;;
 	"uninstall")
 		# make directory to store files
 		mkdir -p $ROOTNAME
 		# decompress tar.bz2
-		tail -n +$SKIP $THIS | tar -xzj -C $ROOTNAME
+		tail -n +$SKIP $THIS | tar -xj -C $ROOTNAME
 		# read manifest
 		while read line; do
 			BIN=`echo $line | sed 's/.*\///'`
-			if [[ ${line:0:1} != '#' ]]
+			if [ $(echo $line | cut -c1-1) != '#' ]
 			then
-				if [[ -e "$line" ]]
+				if [ -e "$line" ]
 				then
 					rm -f "$ROOTNAME/$BIN" "$line"
 				fi
 			fi
 		done < `find $ROOTNAME/. -name '*.manifest'`
 		rm -rf $ROOTNAME
-		break
 		;;
 	"tar")
 		tail -n +$SKIP $THIS > "$ROOTNAME.tar.bz2"
-		break
 		;;
 	"version")
 		sed -n 2,2p $0 | sed 's/.*#//'
-		break
 		;;
 	*)
 		help_text
