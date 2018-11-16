@@ -24,37 +24,21 @@ SDCSUPP_FIPS = CONFIG_FIPS=y
 endif
 
 ifeq ($(BR2_PACKAGE_LRD_LEGACY),y)
-    SDCSUPP_CONFIG = $(SDCSUPP_D)/config_legacy
+	SDCSUPP_CONFIG = $(SDCSUPP_D)/config_legacy
 else
-    SDCSUPP_DEPENDENCIES += dbus
-    SDCSUPP_CONFIG = $(SDCSUPP_D)/config_openssl
+	SDCSUPP_DEPENDENCIES += dbus
+	SDCSUPP_CONFIG = $(SDCSUPP_D)/config_openssl
 endif
 
 define SDCSUPP_BUILD_CMDS
-    cp $(SDCSUPP_CONFIG) $(SDCSUPP_D)/.config
-    $(MAKE) -C $(SDCSUPP_D) clean
-    CFLAGS="-I$(STAGING_DIR)/usr/include/libnl3 $(TARGET_CFLAGS) -MMD -Wall -g" \
-        $(SDCSUPP_MAKE_ENV) $(MAKE) -C $(SDCSUPP_D) V=1 NEED_TLS_LIBDL=1 $(SDCSUPP_FIPS) \
-            $(SDCSUPP_RADIO_FLAGS) CROSS_COMPILE="$(TARGET_CROSS)" BINDIR=$(SDCSUPP_BINDIR)
-    $(TARGET_CROSS)objcopy -S $(SDCSUPP_D)/wpa_supplicant $(SDCSUPP_D)/sdcsupp
-    #(cd $(SDCSUPP_D) && CROSS_COMPILE=arm-sdc-linux-gnueabi ./sdc-build-linux.sh 4 1 2 3 1)
+	cp $(SDCSUPP_CONFIG) $(SDCSUPP_D)/.config
+	$(MAKE) -C $(SDCSUPP_D) clean
+	CFLAGS="-I$(STAGING_DIR)/usr/include/libnl3 $(TARGET_CFLAGS) -MMD -Wall -g" \
+		$(SDCSUPP_MAKE_ENV) $(MAKE) -C $(SDCSUPP_D) V=1 NEED_TLS_LIBDL=1 $(SDCSUPP_FIPS) \
+			$(SDCSUPP_RADIO_FLAGS) CROSS_COMPILE="$(TARGET_CROSS)" BINDIR=$(SDCSUPP_BINDIR)
+	$(TARGET_CROSS)objcopy -S $(SDCSUPP_D)/wpa_supplicant $(SDCSUPP_D)/sdcsupp
+	#(cd $(SDCSUPP_D) && CROSS_COMPILE=arm-sdc-linux-gnueabi ./sdc-build-linux.sh 4 1 2 3 1)
 endef
-
-ifneq ($(BR2_PACKAGE_LRD_LEGACY),y)
-ifeq ($(BR2_PACKAGE_WPA_SUPPLICANT),y)
-    # both wpa_supplicant and sdcsupp installed, postfix to avoid collision
-    SDCSUPP_DBUS_SERVICE_POSTFIX = .summit
-else
-	# only sdcsupp installed, no postfix needed
-    SDCSUPP_DBUS_SERVICE_POSTFIX =
-endif
-
-define SDCSUPP_INSTALL_DBUS_NEW
-	$(INSTALL) -m 0644 -D \
-		$(SDCSUPP_D)/dbus/$(SDCSUPP_DBUS_NEW_SERVICE).service \
-		$(TARGET_DIR)/usr/share/dbus-1/system-services/$(SDCSUPP_DBUS_NEW_SERVICE).service$(SDCSUPP_DBUS_SERVICE_POSTFIX)
-endef
-endif
 
 ifeq ($(BR2_PACKAGE_SDCSUPP_WPA_CLI),y)
 define SDCSUPP_INSTALL_WPA_CLI
@@ -63,12 +47,28 @@ endef
 endif
 
 ifneq ($(BR2_PACKAGE_LRD_LEGACY),y)
+
+ifeq ($(BR2_PACKAGE_WPA_SUPPLICANT),y)
+	# both wpa_supplicant and sdcsupp installed, postfix to avoid collision
+	SDCSUPP_DBUS_SERVICE_POSTFIX = .summit
+else
+	# only sdcsupp installed, no postfix needed
+	SDCSUPP_DBUS_SERVICE_POSTFIX =
+endif
+
+define SDCSUPP_INSTALL_DBUS_NEW
+	$(INSTALL) -m 0644 -D \
+		$(SDCSUPP_D)/dbus/$(SDCSUPP_DBUS_NEW_SERVICE).service \
+		$(TARGET_DIR)/usr/share/dbus-1/system-services/$(SDCSUPP_DBUS_NEW_SERVICE).service$(SDCSUPP_DBUS_SERVICE_POSTFIX)
+endef
+
 define SDCSUPP_INSTALL_DBUS
 	$(INSTALL) -m 0644 -D \
 		$(SDCSUPP_D)/dbus/dbus-wpa_supplicant.conf \
 		$(TARGET_DIR)/etc/dbus-1/system.d/wpa_supplicant.conf
 	$(SDCSUPP_INSTALL_DBUS_NEW)
 endef
+
 endif
 
 define SDCSUPP_INSTALL_TARGET_CMDS
@@ -87,6 +87,10 @@ define SDCSUPP_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -m 0644 -D $(SDCSUPP_D)/systemd/wpa_supplicant-wired@.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/wpa_supplicant-wired@.service
 endef
+
+ifeq ($(BR2_INIT_NONE),y)
+SDCSUPP_POST_INSTALL_TARGET_HOOKS += SDCSUPP_INSTALL_INIT_SYSTEMD
+endif
 
 define SDCSUPP_UNINSTALL_TARGET_CMDS
 	rm -f $(SDCSUPP_TARGET_DIR)$(SDCSUPP_BINDIR)/sdcsupp
