@@ -233,4 +233,8 @@ define WPA_SUPPLICANT_INSTALL_INIT_SYSTEMD
 		$(TARGET_DIR)/usr/lib/systemd/system/wpa_supplicant-wired@.service
 endef
 
+ifeq ($(BR2_INIT_NONE),y)
+WPA_SUPPLICANT_POST_INSTALL_TARGET_HOOKS += WPA_SUPPLICANT_INSTALL_INIT_SYSTEMD
+endif
+
 $(eval $(generic-package))
