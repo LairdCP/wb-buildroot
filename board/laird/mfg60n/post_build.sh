@@ -1,8 +1,13 @@
-
 BR2_LRD_PRODUCT="$2";
 
 # enable tracing and exit on errors
 set -x -e
+
+#lrt and other vendor mfg tools are mutually exclusive
+if [ -f $TARGET_DIR/usr/bin/lrt ]; then
+	#LRT exists, no need to do further processing
+	exit 0
+fi
 
 LIBEDIT=$(readlink $TARGET_DIR/usr/lib/libedit.so)
 LIBEDITLRD=${LIBEDIT/libedit./libedit.lrd.}

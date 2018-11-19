@@ -1,4 +1,3 @@
-
 IMAGESDIR="$1"
 BR2_LRD_PRODUCT="$2"
 BR2_LRD_MFG_FW=lib/firmware/lrdmwl
@@ -6,6 +5,11 @@ BR2_LRD_LIBEDIT=usr/lib
 
 # enable tracing and exit on errors
 set -x -e
+
+if [ -f $TARGET_DIR/usr/bin/lrt ]; then
+	#LRT exists, no need to do further processing
+	exit 0
+fi
 
 if [ -z "$LAIRD_RELEASE_STRING" ]; then
   LAIRD_RELEASE_STRING=$(date +%Y%m%d)
