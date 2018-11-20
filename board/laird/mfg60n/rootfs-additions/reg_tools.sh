@@ -40,7 +40,7 @@ case $1 in
 		fi
 		TAR_SHA=`tail -n +$SKIP $THIS | sha256sum | sed -e 's/\s.*$//'`
 		FILE_SHA=`cat $2 | sed -e 's/\s.*$//'`
-		if [ "$TAR_SHA" == "$FILE_SHA" ]
+		if [ "$TAR_SHA" = "$FILE_SHA" ]
 		then
 			echo "Computed checksums match"
 		else
@@ -58,7 +58,7 @@ case $1 in
 			if [ $(echo $line | cut -c1-1) != '#' ]
 			then
 				# check for forced
-				if [ "$2" == "-f" ]
+				if [ "$2" = "-f" ]
 				then
 					mkdir -p `echo $line | sed "s/$BIN//g"`
 					echo "Forced install of $BIN to $line"
