@@ -2,7 +2,9 @@ config BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird Firmware"
 	help
 	  Allow installation of Laird firmware or public Linux firmware
-	  supported by the Laird RDVK from the Laird firmware repository.
+	  from the Laird firmware repository.
+
+if BR2_PACKAGE_LAIRD_FIRMWARE
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_AR6003
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
@@ -60,12 +62,71 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_MRVL_SD8997
 	  Install public linux-firmware SD8997 firmware for the full-MAC
 	  mwifiex driver.
 
-config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_SDIO_UART
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird 60-series"
+	bool "Laird Sterling 60 SDIO-UART"
 	help
-	  Install Laird's SD8997 firmware for the thin-MAC lrdwifi driver.
-	  This supports Laird 60 series radios.
+	  Install firmware for Laird's Sterling 60 SDIO WiFi-UART BT combo radio.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_SDIO_SDIO
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird Sterling 60 SDIO-SDIO"
+	help
+	  Install firmware for Laird's Sterling 60 SDIO WiFi-SDIO BT combo radio.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_PCIE_UART
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird Sterling 60 PCIE-UART"
+	help
+	  Install firmware for Laird's Sterling 60 PCIE WiFi-UART BT combo radio.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_PCIE_USB
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird Sterling 60 PCIE-USB"
+	help
+	  Install firmware for Laird's Sterling 60 PCIE WiFi-USB BT combo radio.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_USB_UART
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird Sterling 60 USB-UART"
+	help
+	  Install firmware for Laird's Sterling 60 USB WiFi-UART BT combo radio.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_SDIO_UART
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird Summit 60 SDIO-UART"
+	help
+	  Install firmware for Laird's Summit 60 SDIO WiFi-UART BT combo radio.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_SDIO_SDIO
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird Summit 60 SDIO-SDIO"
+	help
+	  Install firmware for Laird's Summit 60 SDIO WiFi-SDIO BT combo radio.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_PCIE_UART
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird Summit 60 PCIE-UART"
+	help
+	  Install firmware for Laird's Summit 60 PCIE WiFi-UART BT combo radio.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_PCIE_USB
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird Summit 60 PCIE-USB"
+	help
+	  Install firmware for Laird's Summit 60 PCIE WiFi-USB BT combo radio.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_USB_UART
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird Summit 60 USB-UART"
+	help
+	  Install firmware for Laird's Summit 60 USB WiFi-UART BT combo radio.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM60
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird SOM60"
+	help
+	  Install firmware for the Laird SOM60's SDIO WiFi-UART BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997_MFG
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
@@ -94,3 +155,5 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_AR9271
 	bool "AR9271"
 	help
 		Install Atheros AR9271 firmware.  Used by TP-Link TL-WN722N
+
+endif

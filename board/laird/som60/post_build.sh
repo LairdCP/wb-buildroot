@@ -19,10 +19,4 @@ for f in "$TARGETDIR/etc/NetworkManager/system-connections/*" ; do
     chmod 600 $f
 done
 
-# Correct symlink for the FW we need to load
-for f in "$TARGETDIR/lib/firmware/lrdmwl/88W8997_sdio_uart_*" ; do
-    ln -rsf  $f "$TARGETDIR/lib/firmware/lrdmwl/88W8997_sdio.bin"
-    break
-done
-
 echo "${BR2_LRD_PLATFORM^^} POST BUILD script: done."
