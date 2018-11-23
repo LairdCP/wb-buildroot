@@ -5,12 +5,10 @@ RELEASE_STRING ?= $(shell date +%Y%m%d)
 
 LWB_MFG_NAME := laird-lwb-firmware-mfg-$(RELEASE_STRING)
 LWB5_MFG_NAME := laird-lwb5-firmware-mfg-$(RELEASE_STRING)
-60_NAME := laird-60-radio-firmware-$(RELEASE_STRING)
 WL_FMAC_930_0081_NAME := 930-0081-$(RELEASE_STRING)
 
 LWB_MFG_OUT := $(TAR_DIR)/root/$(LWB_MFG_NAME)
 LWB5_MFG_OUT := $(TAR_DIR)/root/$(LWB5_MFG_NAME)
-60_OUT := $(TAR_DIR)/root/$(60_NAME)
 
 ST_BRCM_DIR := $(BUD_DIR)/wireless-firmware-$(RELEASE_STRING)/brcm
 ST_LRDMWL_DIR := $(BUD_DIR)/wireless-firmware-$(RELEASE_STRING)/lrdmwl
@@ -26,10 +24,6 @@ $(LWB5_MFG_OUT):
 	rm $(LWB5_MFG_OUT) -fr
 	mkdir -p $(LWB5_MFG_OUT)
 
-$(60_OUT):
-	rm $(60_OUT)  -fr
-	mkdir -p $(60_OUT)
-
 $(ST_IMAGE_DIR)/$(LWB_MFG_NAME).tar.bz2: lwb-mfg-staging
 	$(TAR_CJF) $@ -C $(LWB_MFG_OUT) lib
 
@@ -41,9 +35,6 @@ $(ST_IMAGE_DIR)/$(LWB5_MFG_NAME).tar.bz2: lwb5-mfg-staging
 
 $(ST_IMAGE_DIR)/480-0109-$(RELEASE_STRING).zip: $(ST_IMAGE_DIR)/$(LWB5_MFG_NAME).tar.bz2
 	zip -j $@ $<
-
-$(ST_IMAGE_DIR)/$(60_NAME).tar.bz2: 60-staging
-	$(TAR_CJF) $@ -C $(60_OUT) lib
 
 $(ST_IMAGE_DIR)/$(WL_FMAC_930_0081_NAME).zip:$(TMP_DIR)/$(WL_FMAC_930_0081_NAME).zip
 	cp -f $^ $@
@@ -84,23 +75,11 @@ lwb5-mfg-staging: $(LWB5_MFG_OUT)
 	cp $(TAR_DIR)/usr/lib/crda/regulatory.bin $(LWB_MFG_OUT)/usr/lib/crda/regulatory_default.bin
 	ln -rsf $(LWB5_MFG_OUT)/usr/lib/crda/regulatory_default.bin $(LWB5_MFG_OUT)/usr/lib/crda/regulatory.bin
 
-60-staging: $(60_OUT)
-	mkdir -p $(60_OUT)/lib/firmware/lrdmwl
-	cp -d $(ST_LRDMWL_DIR)/*.bin $(60_OUT)/lib/firmware/lrdmwl
-	cp -d $(ST_LRDMWL_DIR)/../COPYING $(60_OUT)/lib
-	cp $(TAR_DIR)/lib/firmware/regulatory_st60.db $(60_OUT)/lib/firmware
-	ln -rsf $(60_OUT)/lib/firmware/regulatory_st60.db $(60_OUT)/lib/firmware/regulatory.db
-	mkdir -p $(60_OUT)/usr/lib/crda
-	cp $(TAR_DIR)/usr/lib/crda/regulatory_st60.bin $(60_OUT)/usr/lib/crda
-	ln -rsf $(60_OUT)/usr/lib/crda/regulatory_st60.bin $(60_OUT)/usr/lib/crda/regulatory.bin
-
 $(TMP_DIR)/$(WL_FMAC_930_0081_NAME).zip: $(T_DIR)/package/lrd-closed-source/externals/wl_fmac/bin/930-0081/wl_fmac
 	zip -j $@ $^
 
 lwb-mfg: $(ST_IMAGE_DIR)/480-0108-$(RELEASE_STRING).zip $(ST_IMAGE_DIR)/$(LWB_MFG_NAME).tar.bz2
 
 lwb5-mfg: $(ST_IMAGE_DIR)/480-0109-$(RELEASE_STRING).zip $(ST_IMAGE_DIR)/$(LWB5_MFG_NAME).tar.bz2
-
-60: $(ST_IMAGE_DIR)/$(60_NAME).tar.bz2
 
 wl: $(ST_IMAGE_DIR)/$(WL_FMAC_930_0081_NAME).zip
