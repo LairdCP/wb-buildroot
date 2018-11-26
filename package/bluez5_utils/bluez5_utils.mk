@@ -120,10 +120,12 @@ define BLUEZ5_UTILS_INSTALL_INIT_SYSTEMD
 		$(TARGET_DIR)/etc/systemd/system/dbus-org.bluez.service
 endef
 
+ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS_CLIENT),y)
 define BLUEZ5_UTILS_INSTALL_BTMGMT
 	cd $(@D) && cp ./tools/btmgmt $(TARGET_DIR)/usr/bin/ -fr
 endef
 
 BLUEZ5_UTILS_POST_INSTALL_TARGET_HOOKS += BLUEZ5_UTILS_INSTALL_BTMGMT
+endif
 
 $(eval $(autotools-package))
