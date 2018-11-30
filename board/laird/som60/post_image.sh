@@ -16,6 +16,7 @@ GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
 # Copy mksdcard.sh and mksdimg.sh to images
 cp $BOARD_DIR/../scripts-common/mksdcard.sh $IMAGESDIR/
 cp $BOARD_DIR/../scripts-common/mksdimg.sh $IMAGESDIR/
+cp $BOARD_DIR/configs/uboot-env.txt $IMAGESDIR/
 
 # Tooling checks
 mkimage=$HOST_DIR/bin/mkimage
@@ -23,6 +24,7 @@ atmel_pmecc_params=$BUILD_DIR/uboot-custom/tools/atmel_pmecc_params
 openssl=$HOST_DIR/usr/bin/openssl
 genimage=$HOST_DIR/bin/genimage
 veritysetup=$HOST_DIR/sbin/veritysetup
+mkenvimage=$HOST_DIR/bin/mkenvimage
 
 die() { echo "$@" >&2; exit 1; }
 test -x $mkimage || \
@@ -35,6 +37,10 @@ test -x $veritysetup || \
 	die "No veritysetup found (host-cryptsetup has not been built?)"
 test -x $genimage || \
 	die "No genimage found (host-genimage has not been built?)"
+test -x $mkenvimage || \
+	die "No mkenvimage found (host-uboot-tools has not been built?)"
+
+$mkenvimage -s 0x20000 -o $IMAGESDIR/uboot-env.bin $IMAGESDIR/uboot-env.txt -r
 
 # Generate dev keys if needed
 if [ ! -f $BINARIES_DIR/keys/dev.key ]; then
@@ -107,7 +113,7 @@ if [[ $BR2_LRD_PLATFORM != *"60sd"* ]] ; then
 	# generate SWUpdate .swu image
 	cp $BOARD_DIR/configs/sw-description "$IMAGESDIR/"
 	if cd "$IMAGESDIR"; then
-		$TOPDIR/board/laird/sw_image_generator.sh "$IMAGESDIR" "boot.bin u-boot.itb kernel.itb rootfs.bin"
+		$TOPDIR/board/laird/sw_image_generator.sh "$IMAGESDIR" "boot.bin u-boot.itb kernel.itb rootfs.bin uboot-env.bin"
 	fi
 fi
 
