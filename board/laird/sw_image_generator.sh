@@ -11,11 +11,11 @@ fi
 echo "$BR2_LRD_PLATFORM\n"
 echo "$BR2_LRD_PRODUCT\n"
 echo "$LAIRD_RELEASE_STRING\n"
-echo "Destination: ${IMAGESDIR}/${BR2_LRD_PLATFORM}_${LAIRD_RELEASE_STRING// /_}.swu\n"
+echo "Destination: ${IMAGESDIR}/${BR2_LRD_PRODUCT}.swu\n"
 
 FILES="sw-description $2"
 for i in $FILES; do
 	if [ -f $i ]; then
 		echo $i
 	fi
-done | cpio -ov -H crc > ${IMAGESDIR}/${BR2_LRD_PLATFORM}_${LAIRD_RELEASE_STRING// /_}.swu
+done | cpio -ov -H crc > ${IMAGESDIR}/${BR2_LRD_PRODUCT}.swu
