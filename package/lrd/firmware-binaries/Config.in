@@ -1,6 +1,7 @@
 config BR2_PACKAGE_FIRMWARE_BINARIES
 	bool "FIRMWARE Installer"
 	select BR2_PACKAGE_LAIRD_FIRMWARE if BR2_LRD_DEVEL_BUILD="y"
+	select BR2_PACKAGE_LRD_WIRELESS_REGDB if BR2_LRD_DEVEL_BUILD="y"
 	help
       Extracts the Laird wireless firmware binaries from an firmware release and install them on the target.
 

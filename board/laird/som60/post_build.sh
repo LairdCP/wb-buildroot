@@ -19,4 +19,6 @@ for f in "$TARGETDIR/etc/NetworkManager/system-connections/*" ; do
     chmod 600 $f
 done
 
+ln -sfr $TARGETDIR/lib/firmware/regulatory_summit60.db $TARGETDIR/lib/firmware/regulatory.db
+
 echo "${BR2_LRD_PLATFORM^^} POST BUILD script: done."
