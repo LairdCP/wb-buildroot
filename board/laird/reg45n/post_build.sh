@@ -15,6 +15,10 @@ echo "/etc/ar6kl-tools/dbgParser/include/dbglog.h" >> "$TARGET_DIR/$BR2_LRD_PROD
 echo "/etc/ar6kl-tools/dbgParser/include/dbglog_id.h" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 echo "/usr/sbin/smu_cli" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 
+# move tcmd.sh into package and add to manifest
+cp board/laird/reg45n/rootfs-additions/tcmd.sh $TARGET_DIR/usr/bin
+echo "/usr/bin/tcmd.sh" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
+
 # remove unneeded bins
 rm -f $TARGET_DIR/usr/bin/sdc_cli
 rm -f $TARGET_DIR/usr/bin/dhcp_injector
