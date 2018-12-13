@@ -1,6 +1,6 @@
 
 ST_IMAGE_DIR := $(BA_DIR)/images
-TMP_DIR := $(TAR_DIR)/tmp
+TMP_DIR := $(TAR_DIR)
 RELEASE_STRING ?= $(shell date +%Y%m%d)
 
 LWB_MFG_NAME := laird-lwb-firmware-mfg-$(RELEASE_STRING)
