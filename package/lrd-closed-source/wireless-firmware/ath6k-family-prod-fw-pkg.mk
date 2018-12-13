@@ -1,6 +1,6 @@
 
 ST_IMAGE_DIR := $(BA_DIR)/images
-TMP_DIR := $(TAR_DIR)
+TMP_DIR := $(TAR_DIR)/tmp
 RELEASE_STRING ?= $(shell date +%Y%m%d)
 
 6003_NAME := laird-ath6k-6003-firmware-$(RELEASE_STRING)

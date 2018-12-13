@@ -1,7 +1,7 @@
 
 OUT_DIR := $(dir $(OUT_FILE))
 ARCHIVE_ROOT := $(TAR_DIR)/root/$(FW_PKG_LSR_PN)
-TMP_DIR := $(TAR_DIR)
+TMP_DIR := $(TAR_DIR)/tmp
 HINT_FILE := $(OUT_FILE)-$(CHIP_NAME)-$(REGION).hint
 
 ZIP := zip
