@@ -111,4 +111,47 @@ tar -cjf "$IMAGESDIR/laird-som60-radio-firmware-$LAIRD_RELEASE_STRING.tar.bz2" \
 	./lib/firmware/regulatory_summit60.db ./lib/firmware/regulatory.db
 fi
 
+ln -rsf $FW_DIR/regulatory_default.db $FW_DIR/regulatory.db
+ln -rsf $FW_DIR/brcm/bcm4343w/brcmfmac43430-sdio-mfg.bin $FW_DIR/brcm/brcmfmac43430-sdio.bin;
+ln -rsf $FW_DIR/brcm/bcm4343w/brcmfmac43430-sdio-fcc.txt $FW_DIR/brcm/brcmfmac43430-sdio.txt;
+ln -rsf $FW_DIR/brcm/bcm4343w/4343w.hcd $FW_DIR/brcm/4343w.hcd;
+ln -rsf $FW_DIR/brcm/bcm4343w/brcmfmac43430-sdio.clm_blob $FW_DIR/brcm/brcmfmac43430-sdio.clm_blob;
+tar -cjf "$IMAGESDIR/laird-lwb-firmware-mfg-$LAIRD_RELEASE_STRING.tar.bz2" \
+	./lib/firmware/regulatory_default.db ./lib/firmware/regulatory.db	\
+	./lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio-mfg.bin \
+	./lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio-fcc.txt \
+	./lib/firmware/brcm/brcmfmac43430-sdio.txt \
+	./lib/firmware/brcm/brcmfmac43430-sdio.bin \
+	./lib/firmware/brcm/4343w.hcd \
+	./lib/firmware/brcm/bcm4343w/4343w.hcd \
+	./lib/firmware/brcm/brcmfmac43430-sdio.clm_blob \
+	./lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio.clm_blob \
+	./lib/firmware/regulatory_default.db ./lib/firmware/regulatory.db
+zip -j $IMAGESDIR/480-0108-$LAIRD_RELEASE_STRING.zip $IMAGESDIR/laird-lwb-firmware-mfg-$LAIRD_RELEASE_STRING.tar.bz2
+
+ln -rsf $FW_DIR/regulatory_default.db $FW_DIR/regulatory.db
+ln -rsf $FW_DIR/brcm/bcm4339/brcmfmac4339-sdio-mfg.bin $FW_DIR/brcm/brcmfmac4339-sdio.bin;
+ln -rsf $FW_DIR/brcm/bcm4339/brcmfmac4339-sdio-fcc.txt $FW_DIR/brcm/brcmfmac4339-sdio.txt;
+ln -rsf $FW_DIR/brcm/bcm4339/4339.hcd $FW_DIR/brcm/4339.hcd;
+tar -cjf "$IMAGESDIR/laird-lwb5-firmware-mfg-$LAIRD_RELEASE_STRING.tar.bz2" \
+	./lib/firmware/regulatory_default.db ./lib/firmware/regulatory.db	\
+	./lib/firmware/brcm/bcm4339/brcmfmac4339-sdio-mfg.bin \
+	./lib/firmware/brcm/bcm4339/brcmfmac4339-sdio-fcc.txt \
+	./lib/firmware/brcm/brcmfmac4339-sdio.bin \
+	./lib/firmware/brcm/brcmfmac4339-sdio.txt \
+	./lib/firmware/brcm/4339.hcd	\
+	./lib/firmware/brcm/bcm4339/4339.hcd	\
+	./lib/firmware/regulatory_default.db ./lib/firmware/regulatory.db
+zip -j $IMAGESDIR/480-0109-$LAIRD_RELEASE_STRING.zip $IMAGESDIR/laird-lwb5-firmware-mfg-$LAIRD_RELEASE_STRING.tar.bz2
+
+ln -rsf $FW_DIR/regulatory_default.db $FW_DIR/regulatory.db
+tar -cjf "$IMAGESDIR/ath6k-6003-$LAIRD_RELEASE_STRING.tar.bz2" \
+	./lib/firmware/ath6k/AR6003 \
+	./lib/firmware/regulatory_default.db ./lib/firmware/regulatory.*
+
+ln -rsf $FW_DIR/regulatory_default.db $FW_DIR/regulatory.db
+tar -cjf "$IMAGESDIR/ath6k-6004-$LAIRD_RELEASE_STRING.tar.bz2" \
+	./lib/firmware/ath6k/AR6004 \
+	./lib/firmware/regulatory_default.db ./lib/firmware/regulatory.*
+
 echo "$BR2_LRD_PLATFORM POST IMAGE script: done."
