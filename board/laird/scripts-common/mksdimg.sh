@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
+#********************************************ENTER IN IMAGE SIZES IN MiB******************************************
 
+echo "IMAGE SIZES ARE IN MiB!!"
 IMGFILE=$1
+IMGUSERSIZE=$2
 BLKSIZE=512
-
-let IMGSIZE=200*1024*1024
-let IMGBLKS=${IMGSIZE}/${BLKSIZE}
 
 if [[ ( -z $IMGFILE ) ]]
 then
-    echo "mksdimg.sh <file>"
-    echo "  Make SD card image, where <file> is the file to contain the SD card image"
+    echo "mksdimg.sh <output filename> [optional output file size in MiB]"
     exit
 fi
 
@@ -19,44 +18,76 @@ if [ ! -f rootfs.tar ]; then
     exit
 fi
 
+DYNAMICFILESIZE=$(stat -c%s "rootfs.tar")
+MiBCONVERTER=$((1024*1024))
+DYNAMICFILESIZE=$((DYNAMICFILESIZE / MiBCONVERTER))
+
+if [[ ( $IMGUSERSIZE ) ]]
+then
+   ISNUMBER='^[0-9]+$'
+
+	if ! [[ $IMGUSERSIZE =~ $ISNUMBER ]] ; 
+	then
+		echo "error: Not a number" >&2; exit 1
+	fi
+
+    echo "[Setting filesystem to user defined size...]"
+    let IMGSIZE=$IMGUSERSIZE*1024*1024
+    let	CHECKSIZE=$((DYNAMICFILESIZE + 80))*1024*1024
+
+	if [[ $IMGSIZE < $CHECKSIZE ]]
+	then
+		echo "Warning image size ($((CHECKSIZE / MiBCONVERTER)) MiB) size smaller than recommend size ($((CHECKSIZE / MiBCONVERTER))) MiB"
+	fi
+fi
+
+if [[ (-z $IMGUSERSIZE ) ]]
+then
+	let IMGSIZE=$((DYNAMICFILESIZE +80))*1024*1024
+fi
+
+let IMGBLKS=${IMGSIZE}/${BLKSIZE}
+
 echo "[Creating image file...]"
 dd if=/dev/zero of=${IMGFILE} bs=${BLKSIZE} count=${IMGBLKS}
-losetup /dev/loop0 ${IMGFILE}
+LOOPNAME=$(losetup -f)
+losetup $LOOPNAME ${IMGFILE}
 
 echo "[Partitioning block device...]"
-SIZE=`fdisk -l /dev/loop0 | grep Disk | awk '{print $5}'`
+SIZE=`fdisk -l $LOOPNAME | grep Disk | awk '{print $5}'`
 
 echo DISK SIZE - $SIZE bytes
 
-sfdisk /dev/loop0 << EOF
+sfdisk $LOOPNAME << EOF
 1M,48M,0xE,*
 49M,,,-
 EOF
 
 echo "[Making filesystems...]"
 # IMPORTANT: These offsets must match the partitions created above!
-losetup -o 1048576 /dev/loop1 /dev/loop0
-losetup -o 51380224 /dev/loop2 /dev/loop0
+LOOPNAME1=$(losetup -f)
+losetup -o 1048576 $LOOPNAME1 $LOOPNAME
+LOOPNAME2=$(losetup -f)
+losetup -o 51380224 $LOOPNAME2 $LOOPNAME
 
-mkfs.vfat -F 16 -n boot /dev/loop1 &> /dev/null
-mkfs.ext4 -L rootfs /dev/loop2 &> /dev/null
+mkfs.vfat -F 16 -n boot $LOOPNAME1 &> /dev/null
+mkfs.ext4 -L rootfs $LOOPNAME2 &> /dev/null
 
 echo "[Copying files...]"
-
-mount /dev/loop1 /mnt
-cp u-boot-spl.bin /mnt/boot.bin
+mount -t vfat $LOOPNAME1 /mnt
+cp u-boot-spl.bin /mnt/boot.bin || echo "Script failed, check image size recommend: $((CHECKSIZE / MiBCONVERTER)) MiB"
 cp u-boot.itb /mnt
 cp kernel.itb /mnt
 sync
 umount /mnt
 
-mount /dev/loop2 /mnt
-tar xf rootfs.tar -C /mnt
+mount $LOOPNAME2 /mnt
+tar xf rootfs.tar -C /mnt ||  echo "Script failed, check image size recommend: $((CHECKSIZE / MiBCONVERTER)) MiB"
 sync
 umount /mnt
 
-losetup -d /dev/loop2
-losetup -d /dev/loop1
-losetup -d /dev/loop0
+losetup -d $LOOPNAME1
+losetup -d $LOOPNAME2
+losetup -d $LOOPNAME
 
 echo "[Done]"
