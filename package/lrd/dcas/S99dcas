@@ -1,0 +1,126 @@
+#!/bin/ash
+
+# Copyright (c) 2017, Laird
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+# OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+#
+# contact: ews-support@lairdtech.com
+
+# dcas - Device Control API Server
+# # This init-script will create ssh keys if they do not exist
+#
+# Usage:
+# ./S??dcas {stop|start|restart}
+#
+# Invocation:
+# ./S??dcas start
+#
+
+# USER modifiable variables should be modified in CONF_FILE.  If conf file can
+# not be found, these defaults will be used
+CONF_FILE=/etc/dcas/dcas.conf
+DEFAULT_HOST_KEYS_DIR=/etc/ssh
+DEFAULT_AUTH_DIR=~/.ssh/
+DEFAULT_PORT=2222
+
+#parse a key=value pair
+#usage value=$(parse key file)
+parse() {
+	if [ -e $2 ]
+	then
+		echo `sed -n -e 's/^\s*'"$1"'s*=\s*//p' "$2" | sed 's/ *\r//' `
+	fi
+}
+
+verify_host_ssh_keys() {
+  # Make sure the ssh-keygen progam exists
+  [ -x /usr/bin/ssh-keygen ] || { echo "  ...missing ssh-keygen"; return 1; }
+
+  host_keys_dir=$(parse dcas_host_keys_dir $CONF_FILE)
+  [ -z "$host_keys_dir" ] && host_keys_dir="$DEFAULT_HOST_KEYS_DIR"
+
+  DSA_KEY="$host_keys_dir/ssh_host_dsa_key"
+
+  if [ ! -s "$DSA_KEY" ]
+  then
+    echo Generating DSA key... \(may take awhile - only done once\)
+    mkdir -p $host_keys_dir
+    /usr/bin/ssh-keygen -t dsa -f "$DSA_KEY"dcas -C '' -N ''
+    mv -f "$DSA_KEY"dcas.pub "$DSA_KEY".pub
+    mv -f "$DSA_KEY"dcas "$DSA_KEY"
+  fi
+
+  RSA_KEY="$host_keys_dir/ssh_host_rsa_key"
+
+  if [ ! -s "$RSA_KEY" ]
+  then
+    echo Generating RSA key... \(may take awhile - only done once\)
+    mkdir -p $host_keys_dir
+    /usr/bin/ssh-keygen -t rsa -f "$RSA_KEY"dcas -C '' -N ''
+    mv -f "$RSA_KEY"dcas.pub "$RSA_KEY".pub
+    mv -f "$RSA_KEY"dcas "$RSA_KEY"
+  fi
+
+}
+
+
+start() {
+
+    verify_host_ssh_keys
+
+    auth_keys_dir=$(parse dcas_auth_dir $CONF_FILE)
+    [ -z "$auth_keys_dir" ] && auth_keys_dir="$DEFAULT_AUTH_DIR"
+
+    dcas_port=$(parse dcas_port $CONF_FILE)
+    [ -z "$dcas_port" ] && dcas_port="$DEFAULT_PORT"
+
+    [ `grep ^ssh_disable $CONF_FILE` ] && ssh_disable="-s" || ssh_disable=
+
+    username=$(parse username $CONF_FILE)
+    [ ! -z "$username" ] && username="-u ${username}"
+
+    password=$(parse password $CONF_FILE)
+    [ ! -z "$password" ] && password="-P ${password}"
+
+    echo "Starting dcas"
+    /usr/bin/dcas -k $host_keys_dir -a $auth_keys_dir -p $dcas_port $ssh_disable $username $password 2>&1 | logger &
+}
+
+stop() {
+    echo "Stopping dcas"
+    killall dcas 2>/dev/null
+  true
+}
+
+case $1 in
+  stop)
+    stop
+    ;;
+
+  start)
+    start
+    ;;
+
+  restart)
+    stop
+    start
+    ;;
+
+  check) ## required for S??inetd pre-checking
+    true
+    ;;
+
+  *)
+    echo "Usage: ${0##*/} {stop|start|restart|check}"
+    false
+esac
+
+exit $?

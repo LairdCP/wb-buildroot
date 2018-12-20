@@ -1,0 +1,12 @@
+[Unit]
+Description=dcas server
+After=syslog.target network.target auditd.service sshd.service
+
+[Service]
+Type=forking
+ExecStart=/etc/dcas/S99dcas start
+ExecReload=/etc/dcas/S99dcas restart
+ExecStop=/etc/dcas/S99dcas stop
+
+[Install]
+WantedBy=multi-user.target

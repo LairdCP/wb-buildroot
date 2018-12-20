@@ -32,7 +32,7 @@ chmod 700 $TARGETDIR/etc/.ssh
 chmod 600 $TARGETDIR/etc/.ssh/authorized_keys
 
 # adjust DCAS SSH location
-sed -i "s/dcas_auth_dir.*/dcas_auth_dir=\/etc\/.ssh/" $TARGETDIR/etc/dcas.conf
+sed -i "s/dcas_auth_dir.*/dcas_auth_dir=\/etc\/.ssh/" $TARGETDIR/etc/dcas/dcas.conf
 sed -i "s/DEFAULT_AUTH_DIR=.*/DEFAULT_AUTH_DIR=\/etc\/.ssh/" $TARGETDIR/etc/init.d/S99dcas
 
 # Fixup and add debugfs to fstab
