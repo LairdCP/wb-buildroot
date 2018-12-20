@@ -1,5 +1,6 @@
 config BR2_PACKAGE_SDCSDK
 	bool "SDC SDK"
 	select BR2_PACKAGE_LIBNL
+	depends on !BR2_LRD_PLATFORM_SOM60
 	help
-	  Summit SDK
+	  WB SDK
