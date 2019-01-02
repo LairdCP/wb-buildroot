@@ -166,6 +166,7 @@ tar -cjf "$IMAGESDIR/laird-som60-radio-firmware-$LAIRD_RELEASE_STRING.tar.bz2" \
 	./lib/firmware/regulatory_summit60.db ./lib/firmware/regulatory.db
 fi
 
+if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343_MFG=y" ${BR2_CONFIG}; then
 ln -rsf $FW_DIR/regulatory_default.db $FW_DIR/regulatory.db
 ln -rsf $FW_DIR/brcm/bcm4343w/brcmfmac43430-sdio-mfg.bin $FW_DIR/brcm/brcmfmac43430-sdio.bin;
 ln -rsf $FW_DIR/brcm/bcm4343w/brcmfmac43430-sdio-fcc.txt $FW_DIR/brcm/brcmfmac43430-sdio.txt;
@@ -183,11 +184,13 @@ tar -cjf "$IMAGESDIR/laird-lwb-firmware-mfg-$LAIRD_RELEASE_STRING.tar.bz2" \
 	./lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio.clm_blob \
 	./lib/firmware/regulatory_default.db ./lib/firmware/regulatory.db
 zip -j $IMAGESDIR/480-0108-$LAIRD_RELEASE_STRING.zip $IMAGESDIR/laird-lwb-firmware-mfg-$LAIRD_RELEASE_STRING.tar.bz2
+fi
 
 create_bcm4343w_firmware_zipfile fcc  480-0079
 create_bcm4343w_firmware_zipfile etsi 480-0080
 create_bcm4343w_firmware_zipfile jp   480-0116
 
+if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339_MFG=y" ${BR2_CONFIG}; then
 ln -rsf $FW_DIR/regulatory_default.db $FW_DIR/regulatory.db
 ln -rsf $FW_DIR/brcm/bcm4339/brcmfmac4339-sdio-mfg.bin $FW_DIR/brcm/brcmfmac4339-sdio.bin;
 ln -rsf $FW_DIR/brcm/bcm4339/brcmfmac4339-sdio-fcc.txt $FW_DIR/brcm/brcmfmac4339-sdio.txt;
@@ -202,20 +205,25 @@ tar -cjf "$IMAGESDIR/laird-lwb5-firmware-mfg-$LAIRD_RELEASE_STRING.tar.bz2" \
 	./lib/firmware/brcm/bcm4339/4339.hcd	\
 	./lib/firmware/regulatory_default.db ./lib/firmware/regulatory.db
 zip -j $IMAGESDIR/480-0109-$LAIRD_RELEASE_STRING.zip $IMAGESDIR/laird-lwb5-firmware-mfg-$LAIRD_RELEASE_STRING.tar.bz2
+fi
 
 create_bcm4339_firmware_zipfile fcc  480-0081
 create_bcm4339_firmware_zipfile etsi 480-0082
 create_bcm4339_firmware_zipfile ic   480-0094
 create_bcm4339_firmware_zipfile jp   480-0095
 
+if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_AR6003=y" ${BR2_CONFIG}; then
 ln -rsf $FW_DIR/regulatory_default.db $FW_DIR/regulatory.db
 tar -cjf "$IMAGESDIR/ath6k-6003-$LAIRD_RELEASE_STRING.tar.bz2" \
 	./lib/firmware/ath6k/AR6003 \
 	./lib/firmware/regulatory_default.db ./lib/firmware/regulatory.*
+fi
 
+if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_AR6004=y" ${BR2_CONFIG}; then
 ln -rsf $FW_DIR/regulatory_default.db $FW_DIR/regulatory.db
 tar -cjf "$IMAGESDIR/ath6k-6004-$LAIRD_RELEASE_STRING.tar.bz2" \
 	./lib/firmware/ath6k/AR6004 \
 	./lib/firmware/regulatory_default.db ./lib/firmware/regulatory.*
+fi
 
 echo "$BR2_LRD_PLATFORM POST IMAGE script: done."
