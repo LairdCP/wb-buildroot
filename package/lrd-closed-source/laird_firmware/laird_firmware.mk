@@ -1,6 +1,7 @@
 LAIRD_FIRMWARE_VERSION = local
 LAIRD_FIRMWARE_SITE = package/lrd-closed-source/externals/firmware
 LAIRD_FIRMWARE_SITE_METHOD = local
+LAIRD_ADD_SOM_SYMLINK = y
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_AR6003),y)
 define LAIRD_FW_6003_INSTALL_TARGET_CMDS
@@ -155,11 +156,27 @@ endef
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM60),y)
+#if building MFG SOM and ST or SU fw included, don't set symlink to point to SOM
+ifeq ($(findstring som60sd_mfg, $(BR2_DEFCONFIG)),som60sd_mfg)
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_SDIO_UART),y)
+	LAIRD_ADD_SOM_SYMLINK = n
+else ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_SDIO_UART),y)
+	LAIRD_ADD_SOM_SYMLINK = n
+endif
+endif
+
+ifeq ($(LAIRD_ADD_SOM_SYMLINK),y)
 define LAIRD_FW_LRDMWL_SOM60_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/SOM/88W8997_SOM_sdio_uart_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_SOM_sdio_uart_*.bin 88W8997_sdio.bin
 endef
+else
+define LAIRD_FW_LRDMWL_SOM60_INSTALL_TARGET_CMDS
+	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	cp -P $(@D)/lrdmwl/SOM/88W8997_SOM_sdio_uart_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
+endef
+endif
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997_MFG),y)
