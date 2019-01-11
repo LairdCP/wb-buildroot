@@ -7,6 +7,8 @@ Type=forking
 ExecStart=/etc/dcas/S99dcas start
 ExecReload=/etc/dcas/S99dcas restart
 ExecStop=/etc/dcas/S99dcas stop
+Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
