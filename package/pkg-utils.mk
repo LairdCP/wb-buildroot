@@ -111,5 +111,6 @@ endef
 # cve-check helper functions
 #
 define update-dbs # dl_dir
-    support/scripts/update-dbs $(1)
+		[ -d $(1)/dbs ] || mkdir -p $(1)/dbs
+    flock -e $(1)/dbs -c "support/scripts/update-dbs $(1)/dbs"
 endef
