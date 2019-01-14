@@ -1,47 +1,32 @@
 #! /bin/bash
 # Script to generate downlaod NVD-CVE database
 
-CACHE_DBS=$1/dbs
-year=`date +"%Y"`
-NIST_URL=https://nvd.nist.gov/download
-
-#download nvd-cve files
-download_files(){
- if [ -f "$CACHE_DBS/nvdcve-$1.xml.gz" ]; then
-	  curl -sOz "$(date -u +%a,\ %d\ %b\ %Y\ %H:%M:%S\ GMT -r $CACHE_DBS/nvdcve-$1.xml.gz)" "$NIST_URL/nvdcve-$1.xml.gz"
- else
-	  curl -sO "$NIST_URL/nvdcve-$1.xml.gz"
- fi
-
- if [ $? -ne 0 ]; then
-		echo " [ Download Failed nvdcve-$1.xml.gz ]"
-		if [ -f "$CACHE_DBS/nvdcve-$1.xml" ]; then
-			 echo " [ Download Failed: File does exists in Cache nvdcve-$1.xml: continue... ]"
-		   return
-		else
-			 echo " [ Download Failed: File does not exists in Cache nvdcve-$1.xml: exiting... ]"
-			 exit 1
-		fi
- fi
-
- gunzip --quiet --keep --force  $CACHE_DBS/nvdcve-$1.xml.gz
-}
-
-update_dbs(){
-echo -n "[ "
-#check if dir exist
-	if [ ! -d $CACHE_DBS ] ; then
-		mkdir -p $CACHE_DBS
-  fi
-
-	cd $CACHE_DBS
-
-  for i in $(seq -f "%04g" 2002 $year); do
-			download_files $i
-			echo -n "#"
-	done
-	echo " ] [ Done ]"
-}
+CACHE_DBS=$1
+BUILD_CVE_DBS=$2
+year=$(date +"%Y")
+NIST_URL=https://nvd.nist.gov/download/nvdcve-{2002..$year}.xml.zip
+NIST_FILE=$CACHE_DBS/nvdcve-{2002..$year}.xml.zip
 
 echo "Caching NVD-CVE Database Files [ Started ]"
-update_dbs && echo "Finished NVD-CVE Database [ Done ]"
+
+wget -N --tries=3 --connect-timeout=10 --quiet --directory-prefix=$CACHE_DBS $(eval "echo $NIST_URL")
+
+if [ $? -ne 0 ]; then
+  for i in $(eval "echo $NIST_FILE"); do
+    if [ ! -f $i ]; then
+      echo " [ Download Failed $i ]"
+      exit 1
+    else
+      echo "[ Download Failed $i, using cached file ]"
+    fi
+  done
+fi
+
+unzip -qod $BUILD_CVE_DBS "$CACHE_DBS/nvdcve-*.xml.zip"
+
+if [ $? -ne 0 ]; then
+  echo " [ Unzip Failed nvdcve-*.xml.zip ]"
+  exit 1
+fi
+
+echo "Finished NVD-CVE Database [ Done ]"
