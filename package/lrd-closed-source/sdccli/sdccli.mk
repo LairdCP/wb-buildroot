@@ -8,11 +8,7 @@ SDCCLI_VERSION = local
 SDCCLI_SITE = package/lrd-closed-source/externals/sdc_cli
 SDCCLI_SITE_METHOD = local
 
-ifeq ($(BR2_LRD_PLATFORM_SOM60),y)
-	SDCCLI_DEPENDENCIES = libnl sdcsdk_nm libedit
-else
-	SDCCLI_DEPENDENCIES = libnl sdcsdk libedit
-endif
+SDCCLI_DEPENDENCIES = libnl sdcsdk libedit
 
 SDCCLI_MAKE_ENV += CC="$(TARGET_CC)" \
                   CXX="$(TARGET_CXX)" \

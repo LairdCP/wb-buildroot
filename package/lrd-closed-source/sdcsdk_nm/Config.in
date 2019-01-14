@@ -1,7 +1,0 @@
-config BR2_PACKAGE_SDCSDK_NM
-	bool "SDC SDK"
-	select BR2_PACKAGE_LIBNL
-	select BR2_PACKAGE_LRD_NETWORK_MANAGER
-	depends on BR2_LRD_PLATFORM_SOM60
-	help
-	  Summit SDK
