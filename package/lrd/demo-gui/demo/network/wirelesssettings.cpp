@@ -8,6 +8,13 @@
 
 #include "wirelesssettings.h"
 
+//#define Grey QColor(200,200,200)
+//#define Blue QColor(0,255,0)
+//#define SetRowBackgroundColor(row, color) \
+//    tableWidget_aplist->item(row, 0)->setBackgroundColor(color); \
+//    tableWidget_aplist->item(row, 1)->setBackgroundColor(color);
+    
+
 QString WirelessSettings::ap_security_flag_to_string(int flags, int wpaFlags)
 {
     QStringList s;

@@ -2,7 +2,7 @@
 #define WPAENTERPRISEINPUTDLG_H
 
 #include <QWidget>
-#include <QLineEdit>
+
 #include "keyboard/keyboard.h"
 
 namespace Ui {
