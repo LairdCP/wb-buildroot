@@ -13,8 +13,8 @@ define WEB_LCM_GATWICK_BUILD_CMDS
 	cd $(@D); \
 		PATH=$(BR_PATH) \
 		$(HOST_NPM) run ng -- build --prod \
-		--sourcemap $(if $(BR2_WEB_LCM_GATWICK_SOURCEMAP),true,false) \
-		--aot $(if $(BR2_WEB_LCM_GATWICK_AOT),true,false)
+		--sourceMap=$(if $(BR2_WEB_LCM_GATWICK_SOURCEMAP),true,false) \
+		--aot=$(if $(BR2_WEB_LCM_GATWICK_AOT),true,false)
 
 	cd $(@D); \
 		PATH=$(BR_PATH) \
