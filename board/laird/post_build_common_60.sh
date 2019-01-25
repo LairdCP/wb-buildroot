@@ -12,18 +12,17 @@ rm -f $TARGETDIR/etc/resolv.conf
 # Create default firmware description file.
 # This may be overwritten by a proper release file.
 LOCRELSTR="$LAIRD_RELEASE_STRING"
-[ -z "$LOCRELSTR" ] && LOCRELSTR="Laird Linux development build $(date +%Y%m%d)"
+if [ -z "$LOCRELSTR" ] || [ "$LOCRELSTR" == "0.0.0.0" ]; then
+	LOCRELSTR="Laird Linux development build $(date +%Y%m%d)"
+fi
 echo "$LOCRELSTR" > $TARGETDIR/etc/laird-release
 echo "$LOCRELSTR" > $TARGETDIR/etc/issue
-
-LOCVER="$LAIRD_RELEASE_STRING"
-[ -z "$LOCVER" ] && LOCVER="$(date +%Y%m%d)"
 
 echo -ne \
 "NAME=Laird Linux\n"\
 "VERSION=$LOCRELSTR\n"\
 "ID=buildroot\n"\
-"VERSION_ID=$LOCVER\n"\
+"VERSION_ID=${LOCRELSTR##* }\n"\
 "PRETTY_NAME=\"$LOCRELSTR\""\
 >  $TARGETDIR/usr/lib/os-release
 
