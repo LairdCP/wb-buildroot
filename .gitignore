@@ -26,30 +26,14 @@
 
 # ignore configs directory, except for the files we want:
 /configs/*
-!/configs/msd40n_defconfig
-!/configs/msd45n_defconfig
-!/configs/msd45n_fips_defconfig
-!/configs/msd45n-x86_defconfig
-!/configs/wb40n_defconfig
-!/configs/wb40n_devel_defconfig
-!/configs/wb45n_defconfig
-!/configs/wb45n_devel_defconfig
-!/configs/msd50n_defconfig
-!/configs/wb50n_defconfig
-!/configs/wb50n_devel_defconfig
-!/configs/wb50n_rdvk_defconfig
-!/configs/wb50n_rdvk_devel_defconfig
-!/configs/reglwb_defconfig
-!/configs/reglwb5_defconfig
+!/configs/msd*_defconfig
+!/configs/wb*_defconfig
+!/configs/reglwb*_defconfig
 !/configs/bdimx6_defconfig
 !/configs/backports_defconfig
-!/configs/som60_defconfig
-!/configs/som60sd_defconfig
-!/configs/som60sd_mfg_defconfig
+!/configs/som60*_defconfig
 !/configs/firmware_defconfig
-!/configs/mfg60n-x86_defconfig
-!/configs/summit_supplicant-arm-eabi_defconfig
-!/configs/summit_supplicant-arm-eabihf_defconfig
-!/configs/mfg60n-arm-eabi_defconfig
-!/configs/mfg60n-arm-eabihf_defconfig
+!/configs/summit_supplicant*_defconfig
+!/configs/sterling_supplicant*_defconfig
+!/configs/mfg*_defconfig
 # note the above is necessary to avoid customer configs.
