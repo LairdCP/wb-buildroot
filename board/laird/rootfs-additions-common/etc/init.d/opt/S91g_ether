@@ -39,19 +39,29 @@ await_interface() {
 
 start() {
   echo "Enabling USB gadget ethernet"
- 
-  modprobe atmel_usba_udc
-  modprobe g_ether
-  
-  await_interface net/$iface 1200 up \
-  || { echo "  Error: g_ether $iface n/a?"; return; }
 
   # store the dev_addr created by driver if not set
   if ! grep -sq 'dev_addr=' /etc/modprobe.d/g_ether.conf
   then
-    echo "  storing g_ether randomized device address"
-    echo "options g_ether dev_addr=$mac" >>/etc/modprobe.d/g_ether.conf
+    default_local_mac=de:ad:be:ef:00:01
+
+    echo "  storing g_ether default device address"
+    echo "options g_ether dev_addr=$default_local_mac" >>/etc/modprobe.d/g_ether.conf
   fi
+
+  if ! grep -sq 'host_addr=' /etc/modprobe.d/g_ether.conf
+  then
+    default_remote_mac=de:ad:be:ef:00:02
+
+    echo "  storing g_ether default host device address"
+    echo "options g_ether host_addr=$default_remote_mac" >>/etc/modprobe.d/g_ether.conf
+  fi
+
+  modprobe atmel_usba_udc
+  modprobe g_ether
+
+  await_interface net/$iface 1200 up \
+  || { echo "  Error: g_ether $iface n/a?"; return; }
 
   ip link set dev $iface up
   rv=$?
