@@ -11,6 +11,7 @@ LIBGUDEV_INSTALL_STAGING = YES
 LIBGUDEV_DEPENDENCIES = host-pkgconf udev libglib2
 LIBGUDEV_LICENSE = LGPL-2.1+
 LIBGUDEV_LICENSE_FILES = COPYING
-LIBGUDEV_CONF_OPTS = --disable-umockdev
+LIBGUDEV_CONF_OPTS= --disable-umockdev \
+		    --enable-introspection=no
 
 $(eval $(autotools-package))
