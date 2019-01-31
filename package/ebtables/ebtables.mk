@@ -32,6 +32,8 @@ define EBTABLES_INSTALL_TARGET_CMDS
 	done
 	$(INSTALL) -m 0755 -D $(@D)/$(EBTABLES_SUBDIR)/ebtables \
 		$(TARGET_DIR)/sbin/ebtables
+	$(INSTALL) -m 0755 -D $(@D)/$(EBTABLES_SUBDIR)/ebtables-restore \
+		$(TARGET_DIR)/sbin/ebtables-restore
 	$(INSTALL) -m 0644 -D $(@D)/ethertypes $(TARGET_DIR)/etc/ethertypes
 endef
 endif
