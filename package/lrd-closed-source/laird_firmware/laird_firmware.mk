@@ -25,7 +25,7 @@ define LAIRD_FW_6004_PUBLIC_INSTALL_TARGET_CMDS
 endef
 endif
 
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343),y)
+ifneq ($(filter y,$(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343) $(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343_MFG)),)
 define LAIRD_FW_BCM4343_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/brcm
 	cp -rad $(@D)/brcm/bcm4343w $(TARGET_DIR)/lib/firmware/brcm/
@@ -38,20 +38,7 @@ define LAIRD_FW_BCM4343_INSTALL_TARGET_CMDS
 endef
 endif
 
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343_MFG),y)
-define LAIRD_FW_BCM4343_MFG_INSTALL_TARGET_CMDS
-	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/brcm
-	cp -rad $(@D)/brcm/bcm4343w $(TARGET_DIR)/lib/firmware/brcm/
-	find $(TARGET_DIR)/lib/firmware/brcm/bcm4343w -type d | xargs chmod 0755
-	find $(TARGET_DIR)/lib/firmware/brcm/bcm4343w -type f | xargs chmod 0644
-	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/4343w.hcd 4343w.hcd
-	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf  brcmfmac43430-sdio-mfg.bin ./bcm4343w/brcmfmac43430-sdio.bin
-	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/brcmfmac43430-sdio.txt brcmfmac43430-sdio.txt
-	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4343w/brcmfmac43430-sdio.clm_blob brcmfmac43430-sdio.clm_blob
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339),y)
+ifneq ($(filter y,$(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339) $(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339_MFG)),)
 define LAIRD_FW_BCM4339_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/brcm
 	cp -rad $(@D)/brcm/bcm4339 $(TARGET_DIR)/lib/firmware/brcm/
@@ -59,18 +46,6 @@ define LAIRD_FW_BCM4339_INSTALL_TARGET_CMDS
 	find $(TARGET_DIR)/lib/firmware/brcm/bcm4339 -type f | xargs chmod 0644
 	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4339/4339.hcd 4339.hcd
 	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4339/brcmfmac4339-sdio.bin brcmfmac4339-sdio.bin
-	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4339/brcmfmac4339-sdio.txt brcmfmac4339-sdio.txt
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339_MFG),y)
-define LAIRD_FW_BCM4339_MFG_INSTALL_TARGET_CMDS
-	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/brcm
-	cp -rad $(@D)/brcm/bcm4339 $(TARGET_DIR)/lib/firmware/brcm/
-	find $(TARGET_DIR)/lib/firmware/brcm/bcm4339 -type d | xargs chmod 0755
-	find $(TARGET_DIR)/lib/firmware/brcm/bcm4339 -type f | xargs chmod 0644
-	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4339/4339.hcd 4339.hcd
-	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf  brcmfmac4339-sdio-mfg.bin ./bcm4339/brcmfmac4339-sdio.bin
 	cd $(TARGET_DIR)/lib/firmware/brcm/ && ln -sf ./bcm4339/brcmfmac4339-sdio.txt brcmfmac4339-sdio.txt
 endef
 endif
@@ -221,9 +196,7 @@ define LAIRD_FIRMWARE_INSTALL_TARGET_CMDS
 	$(LAIRD_FW_6004_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_6004_PUBLIC_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4343_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4343_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4339_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4339_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_UART_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_SDIO_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_PCIE_UART_INSTALL_TARGET_CMDS)
