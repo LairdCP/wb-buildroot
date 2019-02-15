@@ -23,7 +23,7 @@ create_bcm4343w_firmware_zipfile()
 	ln -rsf $FW_DIR/brcm/bcm4343w/brcmfmac43430-sdio.clm_blob $FW_DIR/brcm/brcmfmac43430-sdio.clm_blob;
 	ln -rsf $FW_DIR/brcm/bcm4343w/4343w.hcd $FW_DIR/brcm/4343w.hcd;
 
-	tar -cjf "$IMAGESDIR/$FIRMWARE-$LAIRD_RELEASE_STRING.tar.bz2" \
+	tar -cjf "$IMAGESDIR/$FIRMWARE.tar.bz2" \
 	./lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio-prod.bin \
 	./lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio.bin \
 	./lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio.txt \
@@ -51,7 +51,7 @@ create_bcm4339_firmware_zipfile()
 	ln -rsf $FW_DIR/brcm/bcm4339/brcmfmac4339-sdio-$DOMAIN.txt $FW_DIR/brcm/brcmfmac4339-sdio.txt;
 	ln -rsf $FW_DIR/brcm/bcm4339/4339.hcd $FW_DIR/brcm/4339.hcd;
 
-	tar -cjf "$IMAGESDIR/$FIRMWARE-$LAIRD_RELEASE_STRING.tar.bz2" \
+	tar -cjf "$IMAGESDIR/$FIRMWARE.tar.bz2" \
 	./lib/firmware/brcm/bcm4339/brcmfmac4339-sdio-prod.bin \
 	./lib/firmware/brcm/bcm4339/brcmfmac4339-sdio.bin \
 	./lib/firmware/brcm/bcm4339/brcmfmac4339-sdio.txt \
@@ -218,14 +218,14 @@ fi
 
 if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_AR6003=y" ${BR2_CONFIG}; then
 ln -rsf $FW_DIR/regulatory_default.db $FW_DIR/regulatory.db
-tar -cjf "$IMAGESDIR/laird-ath6k-6003-$LAIRD_RELEASE_STRING.tar.bz2" \
+tar -cjf "$IMAGESDIR/laird-ath6k-6003-firmware-$LAIRD_RELEASE_STRING.tar.bz2" \
 	./lib/firmware/ath6k/AR6003 \
 	./lib/firmware/regulatory_default.db ./lib/firmware/regulatory.*
 fi
 
 if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_AR6004=y" ${BR2_CONFIG}; then
 ln -rsf $FW_DIR/regulatory_default.db $FW_DIR/regulatory.db
-tar -cjf "$IMAGESDIR/laird-ath6k-6004-$LAIRD_RELEASE_STRING.tar.bz2" \
+tar -cjf "$IMAGESDIR/laird-ath6k-6004-firmware-$LAIRD_RELEASE_STRING.tar.bz2" \
 	./lib/firmware/ath6k/AR6004 \
 	./lib/firmware/bluetopia \
 	./lib/firmware/regulatory_default.db ./lib/firmware/regulatory.*
