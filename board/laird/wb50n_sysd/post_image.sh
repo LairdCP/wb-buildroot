@@ -1,7 +1,7 @@
 BOARD_DIR="$(dirname $0)"
 
 export BR2_LRD_PLATFORM="$2"
-export BR2_LRD_PRODUCT=som60
+export BR2_LRD_PRODUCT=wb50n
 
 echo "${BR2_LRD_PLATFORM^^} POST IMAGE script: starting..."
 

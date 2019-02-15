@@ -56,12 +56,12 @@ software =
 				},
 				{
 						name = "rootfs_a";
-						size = 85983232;
+						size = 38928384;
 						device = "mtd4"
 				},
 				{
 						name = "rootfs_data_a";
-						size = 31457280;
+						size = 15466496;
 						device = "mtd4"
 				},
 				{
@@ -71,12 +71,12 @@ software =
 				},
 				{
 						name = "rootfs_b";
-						size = 85983232;
+						size = 38928384;
 						device = "mtd4"
 				},
 				{
 						name = "rootfs_data_b";
-						size = 31457280;
+						size = 15466496;
 						device = "mtd4"
 				}
 			);
@@ -121,12 +121,12 @@ software =
 				},
 				{
 						name = "rootfs_a";
-						size = 85983232;
+						size = 38928384;
 						device = "mtd4"
 				},
 				{
 						name = "rootfs_data_a";
-						size = 31457280;
+						size = 15466496;
 						device = "mtd4"
 				},
 				{
@@ -136,16 +136,15 @@ software =
 				},
 				{
 						name = "rootfs_b";
-						size = 85983232;
+						size = 38928384;
 						device = "mtd4"
 				},
 				{
 						name = "rootfs_data_b";
-						size = 31457280;
+						size = 15466496;
 						device = "mtd4"
 				}
 			);
-
 			images: (
 				{
 					filename = "boot.bin";
