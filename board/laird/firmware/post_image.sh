@@ -214,14 +214,14 @@ create_bcm4339_firmware_zipfile jp   480-0095
 
 if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_AR6003=y" ${BR2_CONFIG}; then
 ln -rsf $FW_DIR/regulatory_default.db $FW_DIR/regulatory.db
-tar -cjf "$IMAGESDIR/ath6k-6003-$LAIRD_RELEASE_STRING.tar.bz2" \
+tar -cjf "$IMAGESDIR/laird-ath6k-6003-$LAIRD_RELEASE_STRING.tar.bz2" \
 	./lib/firmware/ath6k/AR6003 \
 	./lib/firmware/regulatory_default.db ./lib/firmware/regulatory.*
 fi
 
 if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_AR6004=y" ${BR2_CONFIG}; then
 ln -rsf $FW_DIR/regulatory_default.db $FW_DIR/regulatory.db
-tar -cjf "$IMAGESDIR/ath6k-6004-$LAIRD_RELEASE_STRING.tar.bz2" \
+tar -cjf "$IMAGESDIR/laird-ath6k-6004-$LAIRD_RELEASE_STRING.tar.bz2" \
 	./lib/firmware/ath6k/AR6004 \
 	./lib/firmware/regulatory_default.db ./lib/firmware/regulatory.*
 fi
