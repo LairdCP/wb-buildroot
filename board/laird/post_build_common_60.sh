@@ -37,5 +37,7 @@ mkdir -p $TARGET_DIR/etc/NetworkManager/system-connections
 
 # Make sure connection files have proper attributes
 for f in "$TARGET_DIR/etc/NetworkManager/system-connections/*" ; do
-    chmod 600 $f
+	if [ -f $f ] ; then
+		chmod 600 $f
+	fi
 done
