@@ -35,8 +35,8 @@ create_bcm4343w_firmware_zipfile()
 	./lib/firmware/brcm/brcmfmac43430-sdio.clm_blob \
 	./lib/firmware/brcm/4343w.hcd	\
 	./lib/firmware/regulatory_$DOMAIN.db ./lib/firmware/regulatory.db
-	zip -j $IMAGESDIR/$FIRMWARE-$LAIRD_RELEASE_STRING.zip $IMAGESDIR/$FIRMWARE-$LAIRD_RELEASE_STRING.tar.bz2
-	rm $IMAGESDIR/$FIRMWARE-$LAIRD_RELEASE_STRING.tar.bz2 -fr
+	zip -j $IMAGESDIR/$FIRMWARE-$LAIRD_RELEASE_STRING.zip $IMAGESDIR/$FIRMWARE.tar.bz2
+	rm $IMAGESDIR/$FIRMWARE.tar.bz2 -fr
 }
 
 create_bcm4339_firmware_zipfile()
@@ -61,8 +61,8 @@ create_bcm4339_firmware_zipfile()
 	./lib/firmware/brcm/brcmfmac4339-sdio.txt \
 	./lib/firmware/brcm/4339.hcd	\
 	./lib/firmware/regulatory_$DOMAIN.db ./lib/firmware/regulatory.db
-	zip -j $IMAGESDIR/$FIRMWARE-$LAIRD_RELEASE_STRING.zip $IMAGESDIR/$FIRMWARE-$LAIRD_RELEASE_STRING.tar.bz2
-	rm $IMAGESDIR/$FIRMWARE-$LAIRD_RELEASE_STRING.tar.bz2 -fr
+	zip -j $IMAGESDIR/$FIRMWARE-$LAIRD_RELEASE_STRING.zip $IMAGESDIR/$FIRMWARE.tar.bz2
+	rm $IMAGESDIR/$FIRMWARE.tar.bz2 -fr
 }
 
 cd $TARGET_DIR
