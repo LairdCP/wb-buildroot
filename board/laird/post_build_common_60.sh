@@ -29,10 +29,6 @@ echo -ne \
 # Copy the product specific rootfs additions, strip host user access control
 rsync -rlptDWK --exclude=.empty "$BOARD_DIR/rootfs-additions/" "$TARGET_DIR"
 
-# Remove MMC automount when booting from SD card
-[[ $BR2_LRD_PLATFORM == *"sd" ]] || [[ $BR2_LRD_PLATFORM == *"sd_"* ]] && \
-    rm -f "$TARGET_DIR/etc/udev/rules.d/91-mmcmount.rules"
-
 mkdir -p $TARGET_DIR/etc/NetworkManager/system-connections
 
 # Make sure connection files have proper attributes
