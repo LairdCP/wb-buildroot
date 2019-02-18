@@ -1,5 +1,8 @@
 BOARD_DIR="${1}"
 
+[ -z "${BR2_LRD_PRODUCT}" ] && \
+	BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
+
 GENIMAGE_CFG="${BOARD_DIR}/configs/genimage.cfg"
 GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
 
@@ -67,8 +70,8 @@ DTB="$(sed -n 's/^BR2_LINUX_KERNEL_INTREE_DTS_NAME="\(.*\)"$/\1/p' ${BR2_CONFIG}
 sed "s/at91-dvk_som60/${DTB}/g" ${BOARD_DIR}/configs/kernel.its > ${BINARIES_DIR}/kernel.its || exit 1
 
 echo "# entering ${BINARIES_DIR} for the next command"
-(cd ${BINARIES_DIR} && $mkimage -f kernel.its kernel.itb) || exit 1
-(cd ${BINARIES_DIR} && $mkimage -F -K u-boot.dtb -k keys -r kernel.itb) || exit 1
+(cd ${BINARIES_DIR} && ${mkimage} -f kernel.its kernel.itb) || exit 1
+(cd ${BINARIES_DIR} && ${mkimage} -F -K u-boot.dtb -k keys -r kernel.itb) || exit 1
 rm -f ${BINARIES_DIR}/kernel.its
 
 # Re-generate u-boot FIT with Keys
@@ -80,7 +83,7 @@ cp "${BINARIES_DIR}/u-boot-spl.dtb" "${BINARIES_DIR}/u-boot-spl-key.dtb"
 # Then update uboot dtb with keys & sign kernel
 # Then build uboot FIT
 echo "# entering ${BINARIES_DIR} for the next command"
-(cd "${BINARIES_DIR}" && "$mkimage" -f u-boot.its -K u-boot-spl-key.dtb -k keys -r u-boot.itb) || exit 1
+(cd "${BINARIES_DIR}" && "${mkimage}" -f u-boot.its -K u-boot-spl-key.dtb -k keys -r u-boot.itb) || exit 1
 
 # Then update SPL with appended keyed DTB
 cat "${BINARIES_DIR}/u-boot-spl-nodtb.bin" "${BINARIES_DIR}/u-boot-spl-key.dtb" > "${BINARIES_DIR}/u-boot-spl.bin"
@@ -101,6 +104,8 @@ if [[ ${BR2_LRD_PLATFORM} != *"sd" ]] && [[ ${BR2_LRD_PLATFORM} != *"sd_"* ]] ; 
 		--config "${GENIMAGE_CFG}"
 
 	# generate SWUpdate .swu image
-	cp ${BOARD_DIR}/configs/sw-description "${BINARIES_DIR}/"
-	${BOARD_DIR}/../sw_image_generator.sh "${BINARIES_DIR}" "boot.bin u-boot.itb kernel.itb rootfs.bin uboot-env.bin"
+	cp ${BOARD_DIR}/configs/sw-description ${BINARIES_DIR}/
+	( cd ${BINARIES_DIR} && \
+		echo -e "sw-description\nboot.bin\nu-boot.itb\nkernel.itb\nrootfs.bin\nuboot-env.bin" |\
+		cpio -ov -H crc > ${BINARIES_DIR}/${BR2_LRD_PRODUCT}.swu)
 fi
