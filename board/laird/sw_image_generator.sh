@@ -1,5 +1,4 @@
 IMAGESDIR="$1"
-TOPDIR="`pwd`"
 
 # enable tracing and exit on errors
 set -x -e
