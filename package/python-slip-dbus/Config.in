@@ -1,0 +1,9 @@
+config BR2_PACKAGE_PYTHON_SLIP_DBUS
+	bool "python-slip-dbus"
+	depends on BR2_PACKAGE_DBUS_PYTHON
+
+	help
+	This package provides slip.dbus.service.Object, which is a dbus.service.Object
+	derivative that ends itself after a certain time without being used and/or if
+	there are no clients anymore on the message bus, as well as convenience
+	functions and decorators for integrating a dbus service with PolicyKit
