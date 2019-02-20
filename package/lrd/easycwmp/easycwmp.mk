@@ -19,12 +19,6 @@ EASYCWMP_CONF_OPTS += \
 	--with-libubus-include-path=$(STAGING_DIR)/usr/include
 
 EASYCWMP_CONF_OPTS += \
-	--enable-debug
-
-EASYCWMP_CONF_OPTS += \
-	--enable-devel
-
-EASYCWMP_CONF_OPTS += \
 	--enable-acs=multi
 
 EASYCWMP_CONF_OPTS += \
