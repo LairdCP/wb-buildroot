@@ -28,11 +28,4 @@ if cd "$TOPDIR"; then
 	source "board/laird/post_image_common.sh" "$IMAGESDIR"
 fi
 
-# generate SWUpdate .swu image
-cp $TOPDIR/board/laird/$BR2_LRD_PRODUCT/configs/sw-description "$IMAGESDIR/"
-if cd "$IMAGESDIR"; then
-	$TOPDIR/board/laird/sw_image_generator.sh "$IMAGESDIR" "at91bs.bin boot.bin u-boot.bin rootfs.ubifs kernel.bin"
-fi
-
-
 echo "WB50n POST IMAGE script: done."
