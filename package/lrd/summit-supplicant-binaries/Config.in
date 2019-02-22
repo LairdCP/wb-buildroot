@@ -1,6 +1,7 @@
 config BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES
 	bool "Summit Supplicant ARM EABIHF Binaries Installer"
 	select BR2_PACKAGE_SDCSUPP if BR2_LRD_DEVEL_BUILD="y"
+	select BR2_PACKAGE_SDCSUPP_WPA_CLI if BR2_LRD_DEVEL_BUILD="y"
 
 	help
 	  Extracts sdcsupp, wpa_cli binaries from summit_supplicant-arm release and install them on the target.
