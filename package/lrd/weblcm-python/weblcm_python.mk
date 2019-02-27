@@ -10,8 +10,10 @@ WEBLCM_PYTHON_BUILD_OPTS = bdist_egg --exclude-source-files
 
 WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += WEBLCM_PYTHON_INSTALL_TARGET_FILES
 
+TARGET_PYTHON_VERSION := $$(find $(TARGET_DIR)/usr/lib -maxdepth 1 -type d -name python* -printf "%f\n" | egrep -o '[0-9].[0-9]')
+
 define WEBLCM_PYTHON_INSTALL_TARGET_FILES
-	$(INSTALL) -D -m 755 $(@D)/dist/weblcm_python-1.0-py3.6.egg $(TARGET_DIR)/usr/bin/weblcm-python
+	$(INSTALL) -D -m 755 $(@D)/dist/weblcm_python-1.0-py$(TARGET_PYTHON_VERSION).egg $(TARGET_DIR)/usr/bin/weblcm-python
 	mkdir -p -m 0775 $(TARGET_DIR)/etc/weblcm-python
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/assets/css

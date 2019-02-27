@@ -13,15 +13,16 @@ PYTHON_SLIP_DBUS_DEPENDENCIES = libglib2 cairo
 PYTHON_SLIP_DBUS_SETUP_TYPE= setuptools
 PYTHON_SLIP_DBUS_INSTALL_STAGING= YES
 PYTHON_SLIP_DBUS_INSTALL_TARGET= YES
+
+PYTHON_SITE_PACKAGET_PATH := $$(find $(TARGET_DIR)/usr/lib -maxdepth 1 -type d -name python* -printf "%f\n")
+
 ifeq ($(BR2_PACKAGE_PYTHON),y)
 PYTHON_SLIP_DBUS_DEPENDENCIES += python host-python
-PYTHON_SITE_PACKAGET_PATH = python2.7
 PYTHON_SLIP_DBUS_CONF_ENV = \
         PYTHON=$(HOST_DIR)/bin/python2 \
         PYTHON_INCLUDES="`$(STAGING_DIR)/usr/bin/python2-config --includes`"
 else
 PYTHON_SLIP_DBUS_DEPENDENCIES += python3 host-python3
-PYTHON_SITE_PACKAGET_PATH = python3.6
 PYTHON_SLIP_DBUS_CONF_ENV = \
         PYTHON=$(HOST_DIR)/bin/python3 \
         PYTHON_INCLUDES="`$(STAGING_DIR)/usr/bin/python3-config --includes`"
