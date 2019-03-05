@@ -32,8 +32,15 @@ rsync -rlptDWK --exclude=.empty "$BOARD_DIR/rootfs-additions/" "$TARGET_DIR"
 mkdir -p $TARGET_DIR/etc/NetworkManager/system-connections
 
 # Make sure connection files have proper attributes
-for f in "$TARGET_DIR/etc/NetworkManager/system-connections/*" ; do
+for f in $TARGET_DIR/etc/NetworkManager/system-connections/* ; do
 	if [ -f $f ] ; then
 		chmod 600 $f
+	fi
+done
+
+# Make sure dispatcher files have proper attributes
+for f in $TARGET_DIR/etc/NetworkManager/dispatcher.d/* ; do
+	if [ -f $f ] ; then
+		chmod 700 $f
 	fi
 done
