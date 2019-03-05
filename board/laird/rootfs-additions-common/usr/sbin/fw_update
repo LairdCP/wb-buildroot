@@ -205,7 +205,7 @@ ask() {
 }
 
 exit_error() {
-  let error && $x_notify && $0 --n $nsap update_failure
+  let error && $x_notify && $0 --n $host update_failure
   echo -e "${1:+  ...$@}"
   if [ -n "$url" ]
   then
@@ -334,11 +334,12 @@ do
     ;;
 
   --n*) ## notify remote via udp '--n <addr:port> <status> [<message>]'
-    if [ $# -gt 2 -a ":" == "${2/*:*/:}" ]
+    server=$2
+    if [ $# -gt 2 -a ":" == "${server/*:*/:}" ]
     then
-      echo -e "\rNotifying update configuration server: $3"
-      busybox nc -u $2 -e echo $( ${NS_FORMAT}_notification $3 "$4" ) && exit 0
-      echo "  ...failed tx: $2"
+      echo -e "\rNotifying update configuration server $2 : $3"
+      busybox nc -u $server -e echo $( ${NS_FORMAT}_notification $3 "$4" ) && exit 0
+      echo "  ...failed tx: $server"
     fi
     exit 1
     ;;
@@ -427,8 +428,9 @@ then
     || exit_error "no response from server: $host"
 
   # an optional notify-server-address-port
-  # may be appended to the url as: ?nsap=<host>:<port>
-  nsap=${url#*\?nsap=}; nsap=${nsap##*$host*}; nsap=${nsap:-$host:$NS_PORT}
+  # may be appended to the url as:
+  #     ?nsap=<host>[:<port>]
+  nsap=${url#*\?nsap=}; nsap=${nsap##*$host*}
   url=${url%%\?*}
 
   test fwul == "${url/*.txt/fwul}" \
@@ -651,7 +653,7 @@ assert_image() {
     if [ -z "$sz" ] \
     && wget -q -O - $src |grep -q .....
     then
-      # try reading file when length n/a via spider
+      # try reading file when length n/a via spider as a last resort
       eval let sz=\$${1}_LEN || sz=$( wget -q -O - $src |wc -c )
     fi
   else
@@ -723,7 +725,7 @@ flash_image() {
     txt="image download/flash interrupted"
     wget $1 -O /tmp/fwu.fifo
     ;;
-    *) ## assume local copy 
+    *) ## assume local copy
     txt="image copy/flash failed"
     copy $1 -O /tmp/fwu.fifo
   esac
@@ -937,17 +939,17 @@ test -n "$shell" \
   && echo shell: \[$shell\] \
   && { test -f "${shell%% *}" && sh - ${shell} || exit_error "failure"; }
 
+[ -z $nsap ] && host="${host/:*/}" || host=$nsap
+[ ":" == "${host/*:*/:}" ] || host=$host:$NS_PORT
 if $x_notify \
-&& $0 --n $nsap update_pending
+&& $0 --n $host update_pending
 then
-: ${uc:=$( busybox nc -w5 -lp${nsap/*:} 2>$X |sed -n "/^$M/s/${M//?/.} *//p" )}&
+: ${uc:=$( busybox nc -w5 -lp${host/*:} 2>$X |sed -n "/^$M/s/${M//?/.} *//p" )}&
   verbose "Awaiting reply\c"
   await $! 5 .
   wait
   verbose ${uc:+OK}
   $fw_setenv _ucs ${uc}
-else
-  nsap=
 fi
 
 echo -e Sync\\\047ing
@@ -957,7 +959,7 @@ $fw_setenv updated_% \
      ${kernel:+kernel=$kernel} \
      ${rootfs:+rootfs=$rootfs} \
      ${userfs:+userfs=$userfs} \
-     ${nsap:+nsap=$nsap}
+     ${host:+host=$host}
 
 test -n "$rootfs" -a -n "$bootargs" \
   && $fw_setenv bootargs $bootargs
