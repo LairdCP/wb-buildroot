@@ -1,0 +1,32 @@
+From 9671e9448bb57a64e18edea1445909b0b597cb88 Mon Sep 17 00:00:00 2001
+From: sean meng <sean.meng@lairdtech.com>
+Date: Wed, 20 Feb 2019 14:11:58 -0500
+Subject: [PATCH] import from gobject-introspection
+
+---
+ src/pyudev/glib.py | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/src/pyudev/glib.py b/src/pyudev/glib.py
+index 9ba3fda..bb709e6 100644
+--- a/src/pyudev/glib.py
++++ b/src/pyudev/glib.py
+@@ -39,9 +39,12 @@ from __future__ import (print_function, division, unicode_literals,
+
+ # thanks to absolute imports, this really imports the glib binding and not this
+ # module again
+-import glib
+-import gobject
+-
++import sys
++PYTHON3 = sys.version_info >= (3, 0)
++if PYTHON3:
++    from gi.repository import GObject as gobject, GLib as glib
++else:
++    import gobject, glib
+
+ class _ObserverMixin(object):
+     """Mixin to provide observer behavior to the old and the new API."""
+--
+2.7.4
+
