@@ -19,6 +19,7 @@ NODEJS_CONF_OPTS = \
 	--shared-zlib \
 	--shared-cares \
 	--shared-libuv \
+	--shared-nghttp2 \
 	--without-dtrace \
 	--without-etw \
 	--cross-compiling \
