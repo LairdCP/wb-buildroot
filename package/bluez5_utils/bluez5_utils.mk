@@ -101,6 +101,42 @@ else
 BLUEZ5_UTILS_CONF_OPTS += --disable-test
 endif
 
+# enable a2dp
+ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS_PROFILES_A2DP),y)
+BLUEZ5_UTILS_CONF_OPTS += --enable-a2dp
+else
+BLUEZ5_UTILS_CONF_OPTS += --disable-a2dp
+endif
+
+# enable avrcp
+ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS_PROFILES_AVRCP),y)
+BLUEZ5_UTILS_CONF_OPTS += --enable-avrcp
+else
+BLUEZ5_UTILS_CONF_OPTS += --disable-avrcp
+endif
+
+# enable avrcp
+ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS_PROFILES_HID),y)
+BLUEZ5_UTILS_CONF_OPTS += --enable-hid
+else
+BLUEZ5_UTILS_CONF_OPTS += --disable-hid
+endif
+
+# enable network
+ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS_PROFILES_NETWORK),y)
+BLUEZ5_UTILS_CONF_OPTS += --enable-network
+else
+BLUEZ5_UTILS_CONF_OPTS += --disable-network
+endif
+
+# enable HoG
+ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS_PROFILES_HOG),y)
+BLUEZ5_UTILS_CONF_OPTS += --enable-hog
+else
+BLUEZ5_UTILS_CONF_OPTS += --disable-hog
+endif
+
+
 # use udev if available
 ifeq ($(BR2_PACKAGE_HAS_UDEV),y)
 BLUEZ5_UTILS_CONF_OPTS += --enable-udev
