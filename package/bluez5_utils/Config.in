@@ -93,6 +93,31 @@ config BR2_PACKAGE_BLUEZ5_UTILS_TEST
 	help
 	  Build BlueZ 5.x tests
 
+config BR2_PACKAGE_BLUEZ5_UTILS_PROFILES_A2DP
+	bool "build classic A2DP profile"
+	help
+	  Build BlueZ 5.x classic A2DP profile
+
+config BR2_PACKAGE_BLUEZ5_UTILS_PROFILES_AVRCP
+	bool "build classic AVRCP profile"
+	help
+	  Build BlueZ 5.x classic AVRCP profile
+
+config BR2_PACKAGE_BLUEZ5_UTILS_PROFILES_HID
+	bool "build classic HID profile"
+	help
+	  Build BlueZ 5.x classic HID profile
+
+config BR2_PACKAGE_BLUEZ5_UTILS_PROFILES_NETWORK
+	bool "build classic network profiles"
+	help
+	  Build BlueZ 5.x classic network profiles (PANU, NAP, GN)
+
+config BR2_PACKAGE_BLUEZ5_UTILS_PROFILES_HOG
+	bool "build LE HoG (HID over GATT) profile"
+	help
+	  Build BlueZ 5.x LE HID over GATT profile
+
 endif
 
 comment "bluez5-utils needs a toolchain w/ wchar, threads, headers >= 3.4, dynamic library"
