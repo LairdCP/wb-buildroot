@@ -1,80 +1,98 @@
 #!/usr/bin/env bash
 
-DRIVE=$1
+DRIVE=${1}
 ARG=${1##*/}
+SRCDIR=${0%/*}
+DRIVE_SIZE=/sys/block/${DRIVE##*/}/size
 
-if [[ ( -z $DRIVE ) || ( -z $ARG ) ]]
-then
+if [ -z ${DRIVE} ] || [ -z ${ARG} ]; then
     echo "mksdcard.sh <device>"
     echo "  <device> is the SD card to be programmed (e.g., /dev/sdc)"
     exit
 fi
 
-if [ ! -f rootfs.tar ]; then
-    echo "Could not find required rootfs.tar file. This script only works"
+if [ ! -b ${DRIVE} ] || [ "$(cat ${DRIVE_SIZE})" -eq 0 ]; then
+    echo "Can not find destination drive \"${DRIVE}\""
+    exit
+fi
+
+if [ ! -e ${SRCDIR}/rootfs.tar ]; then
+    echo "Can not find required rootfs.tar file. This script only works"
     echo "if the build was done for the som60sd target."
     exit
 fi
 
 OPT=${ARG::-1}
 
-if [[ ( ! -z $OPT ) && ( "$OPT" == "sd" ) ]]
-then
-    PART_1="$DRIVE"1
-    PART_2="$DRIVE"2
-elif [[ ( ! -z $OPT ) && ( "$OPT" == "mmcblk" ) ]]
-then
-    PART_1="$DRIVE"p1
-    PART_2="$DRIVE"p2
-else
-    echo "Invalid device name: $ARG"
-    exit
-fi
+case "$OPT" in
+    "sd")
+        PART_BOOT=${DRIVE}1
+        PART_SWAP=${DRIVE}2
+        PART_ROOTFS=${DRIVE}3
+        ;;
 
-echo "*************************************************************************"
-echo "WARNING: All data on "$DRIVE" now will be destroyed! Continue? [y/n]"
-echo "*************************************************************************"
-read -n 1 -s ans
-[ $ans == 'y' ] || exit
+    "mmcblk")
+        PART_BOOT=${DRIVE}p1
+        PART_SWAP=${DRIVE}p2
+        PART_ROOTFS=${DRIVE}p3
+        ;;
 
-umount $DRIVE?
+    *)
+        echo "Invalid device name: ${ARG}"
+        exit
+        ;;
+esac
 
-echo "[Partitioning $DRIVE...]"
+# Un-mount all mounted partitions
+umount -f ${DRIVE}? &> /dev/null
 
-dd if=/dev/zero of=$DRIVE bs=1024 count=1024
+# Check if device is busy
+hdparm -z ${DRIVE} >/dev/null || exit
 
-SIZE=`fdisk -l $DRIVE | grep Disk | awk '{print $5}'`
+echo "[Partitioning ${DRIVE}...]"
 
-echo DISK SIZE - $SIZE bytes
+# Wipe MBR and Partition Table
+dd if=/dev/zero of=${DRIVE} bs=512 count=1
 
-#CYLINDERS=`echo $SIZE/255/63/512 | bc`
-#echo CYLINDERS - $CYLINDERS
-#{
-#    echo ,9,0x0C,*
-#    echo ,,,-
-#} | sfdisk -D -H 255 -S 63 -C $CYLINDERS $DRIVE
-sfdisk $DRIVE << EOF
+# Create new partition table
+sfdisk ${DRIVE} << EOF
 1M,48M,0xE,*
-49M,,,-
+49M,256M,S,-
+305M,,,-
 EOF
 
-echo "[Making filesystems...]"
+[ $? -ne 0 ] && exit
 
-mkfs.vfat -F 16 -n boot "$PART_1" &> /dev/null
-mkfs.ext4 -L rootfs "$PART_2" &> /dev/null
+echo "[Making file systems...]"
+
+# Format newly created partitions
+mkfs.vfat -F 16 -n boot ${PART_BOOT} &> /dev/null
+mkswap ${PART_SWAP} &> /dev/null
+mkfs.ext4 -L rootfs ${PART_ROOTFS} &> /dev/null
 
 echo "[Copying files...]"
 
-mount "$PART_1" /mnt
-cp u-boot-spl.bin /mnt/boot.bin
-cp u-boot.itb /mnt
-cp kernel.itb /mnt
-sync
-umount /mnt
+MNT_BOOT=/mnt/${PART_BOOT##*/}
+MNT_ROOTFS=/mnt/${PART_ROOTFS##*/}
 
-mount "$PART_2" /mnt
-tar xf rootfs.tar -C /mnt
+# Copy files to boot partition
+mkdir -p ${MNT_BOOT}
+mount ${PART_BOOT} ${MNT_BOOT} || exit
+
+cp ${SRCDIR}/u-boot-spl.bin ${MNT_BOOT}/boot.bin
+cp ${SRCDIR}/u-boot.itb ${MNT_BOOT}
+cp ${SRCDIR}/kernel.itb ${MNT_BOOT}
 sync
-umount /mnt
+
+umount ${MNT_BOOT} && rm -rf ${MNT_BOOT}
+
+# Copy files to rootfs partition
+mkdir -p ${MNT_ROOTFS}
+mount ${PART_ROOTFS} ${MNT_ROOTFS} || exit
+
+tar xf ${SRCDIR}/rootfs.tar -C ${MNT_ROOTFS}
+sync
+
+umount ${MNT_ROOTFS} && rm -rf ${MNT_ROOTFS}
 
 echo "[Done]"
