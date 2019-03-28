@@ -13,7 +13,7 @@ echo "/usr/bin/athtestcmd" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 echo "/usr/bin/wmiconfig" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 echo "/etc/ar6kl-tools/dbgParser/include/dbglog.h" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 echo "/etc/ar6kl-tools/dbgParser/include/dbglog_id.h" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
-echo "/usr/sbin/smu_cli" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
+[ -f "$TARGET_DIR/usr/sbin/smu_cli" ] && echo "/usr/sbin/smu_cli" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 
 # move tcmd.sh into package and add to manifest
 cp board/laird/reg50n/rootfs-additions/tcmd.sh $TARGET_DIR/usr/bin
