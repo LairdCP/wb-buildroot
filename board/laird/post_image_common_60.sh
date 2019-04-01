@@ -1,4 +1,8 @@
 BOARD_DIR="${1}"
+SD=${2}
+
+# enable tracing and exit on errors
+set -x -e
 
 [ -z "${BR2_LRD_PRODUCT}" ] && \
 	BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
@@ -45,7 +49,7 @@ fi
 # Copy the boot.scr for uboot
 cp ${BOARD_DIR}/configs/boot.scr ${BINARIES_DIR}/boot.scr
 
-if [[ ( ${BR2_LRD_PLATFORM} != *"sd" || ${BR2_LRD_PLATFORM} = *"sysd" ) ]] && [[ ${BR2_LRD_PLATFORM} != *"sd_"* ]] ; then
+if (( ${SD} )) ; then
 	# Generate the hash table for squashfs
 	rm -f ${BINARIES_DIR}/rootfs.verity
 	${veritysetup} format ${BINARIES_DIR}/rootfs.squashfs ${BINARIES_DIR}/rootfs.verity > ${BINARIES_DIR}/rootfs.verity.header
@@ -93,7 +97,7 @@ cat "${BINARIES_DIR}/u-boot-spl-nodtb.bin" "${BINARIES_DIR}/u-boot-spl-key.dtb" 
 
 rm -f "${BINARIES_DIR}/u-boot-spl-key.dtb"
 
-if [[ ( ${BR2_LRD_PLATFORM} != *"sd" || ${BR2_LRD_PLATFORM} = *"sysd" ) ]] && [[ ${BR2_LRD_PLATFORM} != *"sd_"* ]] ; then
+if (( ${SD} )) ; then
 	# Regenerate Atmel PMECC boot.bin
 	${mkimage} -T atmelimage -n $(${atmel_pmecc_params}) -d ${BINARIES_DIR}/u-boot-spl.bin ${BINARIES_DIR}/boot.bin
 

@@ -1,12 +1,12 @@
 BOARD_DIR="$(dirname $0)"
 
-export BR2_LRD_PLATFORM="$2"
+export BR2_LRD_PLATFORM="${2}"
 
 echo "${BR2_LRD_PLATFORM^^} POST IMAGE script: starting..."
 
-# enable tracing and exit on errors
-set -x -e
+[[ ${BR2_LRD_PLATFORM} == *"sd" ]] || [[ ${BR2_LRD_PLATFORM} == *"sd_mfg" ]]
+SD=$?
 
-source "$BOARD_DIR/../post_image_common_60.sh" "$BOARD_DIR"
+. "${BOARD_DIR}/../post_image_common_60.sh" "${BOARD_DIR}" ${SD}
 
 echo "${BR2_LRD_PLATFORM^^} POST IMAGE script: done."
