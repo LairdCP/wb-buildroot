@@ -36,4 +36,5 @@
 !/configs/summit_supplicant*_defconfig
 !/configs/sterling_supplicant*_defconfig
 !/configs/mfg*_defconfig
+!/configs/adaptive_ww*_defconfig
 # note the above is necessary to avoid customer configs.
