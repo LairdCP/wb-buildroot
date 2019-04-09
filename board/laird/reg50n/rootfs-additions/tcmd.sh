@@ -68,7 +68,10 @@ case ${1#--} in
         do_ insmod ath6kl_core.ko testmode=1
         do_ insmod ath6kl_sdio.ko $ATH6K_SDIO_PARAMS
       else
-        do_ modprobe ath6kl_core testmode=1
+        cd /lib/modules/`uname -r`/kernel/net/wireless
+        do_ insmod cfg80211.ko
+        cd /lib/modules/`uname -r`/kernel/drivers/net/wireless/ath/ath6kl
+        do_ insmod ath6kl_core.ko testmode=1
         do_ modprobe ath6kl_sdio
       fi
     )
