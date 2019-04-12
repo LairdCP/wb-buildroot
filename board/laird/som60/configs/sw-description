@@ -15,7 +15,7 @@ software =
 					volume = "rootfs_a";
 					installed-directly = true;
 				}
-			);
+		    );
 
 			bootenv: (
 				{
@@ -48,48 +48,15 @@ software =
 		}
 
 		full-a: {
-			partitions: (
-				{
-						name = "kernel_a";
-						size = 8388608;
-						device = "mtd4"
-				},
-				{
-						name = "rootfs_a";
-						size = 85983232;
-						device = "mtd4"
-				},
-				{
-						name = "rootfs_data_a";
-						size = 31457280;
-						device = "mtd4"
-				},
-				{
-						name = "kernel_b";
-						size = 8388608;
-						device = "mtd4"
-				},
-				{
-						name = "rootfs_b";
-						size = 85983232;
-						device = "mtd4"
-				},
-				{
-						name = "rootfs_data_b";
-						size = 31457280;
-						device = "mtd4"
-				}
-			);
-
 			images: (
 				{
 					filename = "boot.bin";
-					device = "/dev/mtd0";
+					device = "mtd0";
 					type = "flash";
 				},
 				{
 					filename = "u-boot.itb";
-					device = "/dev/mtd1";
+					device = "mtd1";
 					type = "flash";
 				},
 				{
@@ -101,7 +68,7 @@ software =
 					filename = "rootfs.bin";
 					volume = "rootfs_a";
 					installed-directly = true;
-				}
+				},
 			);
 
 			bootenv: (
@@ -113,48 +80,15 @@ software =
 		}
 
 		full-b: {
-			partitions: (
-				{
-						name = "kernel_a";
-						size = 8388608;
-						device = "mtd4"
-				},
-				{
-						name = "rootfs_a";
-						size = 85983232;
-						device = "mtd4"
-				},
-				{
-						name = "rootfs_data_a";
-						size = 31457280;
-						device = "mtd4"
-				},
-				{
-						name = "kernel_b";
-						size = 8388608;
-						device = "mtd4"
-				},
-				{
-						name = "rootfs_b";
-						size = 85983232;
-						device = "mtd4"
-				},
-				{
-						name = "rootfs_data_b";
-						size = 31457280;
-						device = "mtd4"
-				}
-			);
-
 			images: (
 				{
 					filename = "boot.bin";
-					device = "/dev/mtd0";
+					device = "mtd0";
 					type = "flash";
 				},
 				{
 					filename = "u-boot.itb";
-					device = "/dev/mtd1";
+					device = "mtd1";
 					type = "flash";
 				},
 				{
@@ -166,7 +100,7 @@ software =
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
 					installed-directly = true;
-				}
+				},
 			);
 
 			bootenv: (
@@ -176,79 +110,5 @@ software =
 				}
 			);
 		}
-
-		full-env-a: {
-			images: (
-				{
-					filename = "boot.bin";
-					device = "/dev/mtd0";
-					type = "flash";
-				},
-				{
-					filename = "u-boot.itb";
-					device = "/dev/mtd1";
-					type = "flash";
-				},
-				{
-					filename = "uboot-env.bin";
-					device = "/dev/mtd2";
-					type = "flash";
-				},
-				{
-					filename = "kernel.itb";
-					volume = "kernel_a";
-					installed-directly = true;
-				},
-				{
-					filename = "rootfs.bin";
-					volume = "rootfs_a";
-					installed-directly = true;
-				}
-			);
-
-			bootenv: (
-				{
-					name = "bootside";
-					value = "a";
-				}
-			);
-		}
-
-		full-env-b: {
-			images: (
-				{
-					filename = "boot.bin";
-					device = "/dev/mtd0";
-					type = "flash";
-				},
-				{
-					filename = "u-boot.itb";
-					device = "/dev/mtd1";
-					type = "flash";
-				},
-                                {
-					filename = "uboot-env.bin";
-					device = "/dev/mtd2";
-					type = "flash";
-				},
-				{
-					filename = "kernel.itb";
-					volume = "kernel_b";
-					installed-directly = true;
-				},
-				{
-					filename = "rootfs.bin";
-					volume = "rootfs_b";
-					installed-directly = true;
-				}
-			);
-
-			bootenv: (
-				{
-					name = "bootside";
-					value = "b";
-				}
-			);
-		}
-	};
+	}
 }
