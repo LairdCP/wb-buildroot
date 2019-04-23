@@ -1,0 +1,20 @@
+config BR2_PACKAGE_WB50N_FIRMWARE_BINARIES
+	bool "wb50n Firmware Installer"
+	select BR2_PACKAGE_LAIRD_FIRMWARE if BR2_LRD_DEVEL_BUILD="y"
+	help
+      Extracts the Laird wb50n wireless firmware binaries from an firmware release and install them on the target.
+
+if BR2_PACKAGE_WB50N_FIRMWARE_BINARIES
+
+config BR2_FIRMWARE_BINARIES_ATH6K_6003
+	bool "Laird ath6k AR6003 radio firmware"
+    default n
+	select BR2_PACKAGE_LAIRD_FIRMWARE_AR6003 if BR2_LRD_DEVEL_BUILD="y"
+
+config BR2_FIRMWARE_BINARIES_ATH6K_6004
+	bool "Laird ath6k AR6004 radio firmware"
+    default n
+	select BR2_PACKAGE_LAIRD_FIRMWARE_AR6004 if BR2_LRD_DEVEL_BUILD="y"
+	select BR2_PACKAGE_LRD_WIRELESS_REGDB if BR2_LRD_DEVEL_BUILD="y"
+
+endif
