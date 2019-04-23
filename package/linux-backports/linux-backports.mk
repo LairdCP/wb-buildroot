@@ -5,7 +5,7 @@
 ################################################################################
 
 LINUX_BACKPORTS_VERSION = 7.0.0.65
-SOM60_LINUX_BACKPORTS_VERSION = 7.0.0.38
+SOM60_LINUX_BACKPORTS_VERSION = 7.0.0.52
 
 ifeq (som60,$(findstring som60,$(BR2_DEFCONFIG)))
 LINUX_BACKPORTS_VERSION = $(SOM60_LINUX_BACKPORTS_VERSION)
