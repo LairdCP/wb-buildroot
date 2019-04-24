@@ -4,3 +4,10 @@ config BR2_PACKAGE_SOM60_FIRMWARE_BINARIES
 	select BR2_PACKAGE_LRD_WIRELESS_REGDB if BR2_LRD_DEVEL_BUILD="y"
 	help
       Extracts the Laird som60 wireless firmware binaries from an firmware release and install them on the target.
+
+if BR2_PACKAGE_SOM60_FIRMWARE_BINARIES
+
+config BR2_PACKAGE_SOM60_FIRMWARE_BINARIES_VERSION_VALUE
+	string "som60 firmware binaries version"
+
+endif
