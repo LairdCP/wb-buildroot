@@ -101,6 +101,7 @@ define LIBOPENSSL_1_0_2_CONFIGURE_CMDS
 			$(if $(BR2_STATIC_LIBS),zlib,zlib-dynamic) \
 			$(if $(BR2_STATIC_LIBS),no-dso) \
 			$(LIBOPENSSL_1_0_2_FIPS_CFG) \
+			-DDEVRANDOM='"/dev/hwrng"' \
 	)
 	$(SED) "s#-march=[-a-z0-9] ##" -e "s#-mcpu=[-a-z0-9] ##g" $(@D)/Makefile
 	$(SED) "s#-O[0-9]#$(LIBOPENSSL_1_0_2_CFLAGS)#" $(@D)/Makefile
@@ -116,7 +117,7 @@ LIBOPENSSL_1_0_2_POST_CONFIGURE_HOOKS += LIBOPENSSL_1_0_2_FIXUP_STATIC_MAKEFILE
 endif
 
 define HOST_LIBOPENSSL_1_0_2_BUILD_CMDS
-	$(HOST_MAKE_ENV) $(MAKE) $(LIBOPENSSL_1_0_2_FIPS_MAKE_OPT) -C $(@D)
+	$(HOST_MAKE_ENV) $(MAKE) -C $(@D)
 endef
 
 define LIBOPENSSL_1_0_2_BUILD_CMDS
@@ -128,7 +129,7 @@ define LIBOPENSSL_1_0_2_INSTALL_STAGING_CMDS
 endef
 
 define HOST_LIBOPENSSL_1_0_2_INSTALL_CMDS
-	$(HOST_MAKE_ENV) $(MAKE) $(LIBOPENSSL_1_0_2_FIPS_MAKE_OPT) -C $(@D) install
+	$(HOST_MAKE_ENV) $(MAKE) -C $(@D) install
 endef
 
 define LIBOPENSSL_1_0_2_INSTALL_TARGET_CMDS

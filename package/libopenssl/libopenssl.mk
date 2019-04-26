@@ -16,15 +16,6 @@ LIBOPENSSL_TARGET_ARCH = generic32
 LIBOPENSSL_CFLAGS = $(TARGET_CFLAGS)
 LIBOPENSSL_PROVIDES = openssl
 
-# require openssl-fips built firstly
-ifneq ($(BR2_PACKAGE_OPENSSL_FIPS),)
-LIBOPENSSL_DEPENDENCIES += openssl-fips
-LIBOPENSSL_FIPS_CFG = fips
-LIBOPENSSL_FIPS_OPT = FIPSDIR=$(STAGING_DIR)/usr/local/ssl/fips-2.0 \
-                   FIPS_SIG=$(STAGING_DIR)/usr/local/ssl/fips-2.0/bin/incore
-LIBOPENSSL_FIPS_MAKE_OPT = FIPS_SIG=$(STAGING_DIR)/usr/local/ssl/fips-2.0/bin/incore
-endif
-
 ifeq ($(BR2_m68k_cf),y)
 # relocation truncated to fit: R_68K_GOT16O
 LIBOPENSSL_CFLAGS += -mxgot
@@ -101,7 +92,6 @@ define LIBOPENSSL_CONFIGURE_CMDS
 	(cd $(@D); \
 		$(TARGET_CONFIGURE_ARGS) \
 		$(TARGET_CONFIGURE_OPTS) \
-		$(LIBOPENSSL_FIPS_OPT) \
 		./Configure \
 			linux-$(LIBOPENSSL_TARGET_ARCH) \
 			--prefix=/usr \
@@ -118,7 +108,7 @@ define LIBOPENSSL_CONFIGURE_CMDS
 			no-fuzz-afl \
 			$(if $(BR2_STATIC_LIBS),zlib,zlib-dynamic) \
 			$(if $(BR2_STATIC_LIBS),no-dso) \
-			$(LIBOPENSSL_FIPS_CFG) \
+			--with-rand-seed=devrandom -DDEVRANDOM='"\"/dev/hwrng\""' \
 	)
 	$(SED) "s#-march=[-a-z0-9] ##" -e "s#-mcpu=[-a-z0-9] ##g" $(@D)/Makefile
 	$(SED) "s#-O[0-9s]#$(LIBOPENSSL_CFLAGS)#" $(@D)/Makefile
@@ -134,23 +124,23 @@ LIBOPENSSL_POST_CONFIGURE_HOOKS += LIBOPENSSL_FIXUP_STATIC_MAKEFILE
 endif
 
 define HOST_LIBOPENSSL_BUILD_CMDS
-	$(HOST_MAKE_ENV) $(MAKE) $(LIBOPENSSL_FIPS_MAKE_OPT) -C $(@D)
+	$(HOST_MAKE_ENV) $(MAKE) -C $(@D)
 endef
 
 define LIBOPENSSL_BUILD_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) $(LIBOPENSSL_FIPS_MAKE_OPT) -C $(@D)
+	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)
 endef
 
 define LIBOPENSSL_INSTALL_STAGING_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) $(LIBOPENSSL_FIPS_MAKE_OPT) -C $(@D) DESTDIR=$(STAGING_DIR) install
+	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) DESTDIR=$(STAGING_DIR) install
 endef
 
 define HOST_LIBOPENSSL_INSTALL_CMDS
-	$(HOST_MAKE_ENV) $(MAKE) $(LIBOPENSSL_FIPS_MAKE_OPT) -C $(@D) install
+	$(HOST_MAKE_ENV) $(MAKE) -C $(@D) install
 endef
 
 define LIBOPENSSL_INSTALL_TARGET_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) $(LIBOPENSSL_FIPS_MAKE_OPT) -C $(@D) DESTDIR=$(TARGET_DIR) install
+	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) DESTDIR=$(TARGET_DIR) install
 	rm -rf $(TARGET_DIR)/usr/lib/ssl
 	rm -f $(TARGET_DIR)/usr/bin/c_rehash
 endef
