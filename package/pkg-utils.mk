@@ -160,12 +160,3 @@ endef
 define legal-info-to-sbom # legal-info-dir, sbom-target-dir
     support/scripts/legal-info-to-sbom $(1) $(2)
 endef
-
-#
-# cve-check helper functions
-#
-define update-dbs # dl_dir #build_dir
-		[ -d $(1) ] || mkdir -p $(1)
-		[ -d $(2) ] || mkdir -p $(2)
-    flock -e $(1) -c "support/scripts/update-dbs $(1) $(2)"
-endef
