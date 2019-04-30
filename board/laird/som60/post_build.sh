@@ -13,7 +13,7 @@ SD=$?
 [ -f ${TARGET_DIR}/lib/firmware/regulatory_summit60.db ] && \
     ln -sfr ${TARGET_DIR}/lib/firmware/regulatory_summit60.db ${TARGET_DIR}/lib/firmware/regulatory.db
 
-if (( ${SD} )); then
+if [ ${SD} -eq 0 ]; then
 	grep -q "/dev/mmcblk0p2" ${TARGET_DIR}/etc/fstab ||\
 		echo '/dev/mmcblk0p2 swap swap defaults 0 0' >> ${TARGET_DIR}/etc/fstab
 
