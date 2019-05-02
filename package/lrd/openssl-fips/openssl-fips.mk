@@ -4,9 +4,11 @@
 #
 #############################################################
 
-OPENSSL_FIPS_VERSION = 2.0.10
-OPENSSL_FIPS_SITE = $(DL_DIR)
+OPENSSL_FIPS_VERSION = 2.0.16
+OPENSSL_FIPS_SITE = $(TOPDIR)/../archive
 OPENSSL_FIPS_SITE_METHOD = file
+OPENSSL_FIPS_SOURCE = openssl-fips-$(OPENSSL_FIPS_VERSION).tar.gz
+OPENSSL_FIPS_HMAC = e8dbfa6cb9e22a049ec625ffb7ccaf33e6116598
 #
 # This is a certified source tarball from local archive only!!!
 # For building, see proscribed method in OPENSSL-FIPS-2.0 Security Policy Appendix A
@@ -42,7 +44,10 @@ ifeq ($(BR2_x86_i386),y)
 OPENSSL_TARGET_ARCH = generic32 386
 endif
 
+CALC_HMAC = $(shell openssl sha1 -r -hmac etaonrishdlcupfm $(OPENSSL_FIPS_DL_DIR)/$(OPENSSL_FIPS_SOURCE))
+
 define OPENSSL_FIPS_CONFIGURE_CMDS
+$(if $(filter $(OPENSSL_FIPS_HMAC),$(CALC_HMAC)),,$(error Hash Mismatch $(OPENSSL_FIPS_SOURCE)))
 endef
 
 # BZ10856: set BR2_PASSTHRU_WRAPPER=1 to use base toolchain cross-compiler
@@ -50,7 +55,7 @@ define OPENSSL_FIPS_BUILD_CMDS
 	( cd $(@D); \
 	  export BR2_PASSTHRU_WRAPPER=1; \
 	  export MACHINE=$(OPENSSL_TARGET_ARCH); \
-	  export RELEASE=4.x; \
+	  export RELEASE=7.x; \
 	  export SYSTEM=Linux; \
 	  export BUILD=Laird; \
 	  export CROSS_COMPILE=$(TARGET_CROSS); \
@@ -62,18 +67,7 @@ endef
 
 define OPENSSL_FIPS_INSTALL_STAGING_CMDS
 	$(MAKE1) -C $(@D) INSTALL_PREFIX=$(STAGING_DIR) install
-	( cd $(@D); \
-	  cp util/incore $(STAGING_DIR)/usr/local/ssl/fips-2.0/bin \
-	)
+	cp $(@D)/util/incore $(STAGING_DIR)/usr/local/ssl/fips-2.0/bin
 endef
-
-# NOTE: OPENSSL_FIPS_INSTALL_TARGET_CMDS is not required (see BZ2297)
-
-#define OPENSSL_FIPS_UNINSTALL_CMDS
-#	rm -rf $(addprefix $(TARGET_DIR)/,etc/ssl usr/bin/openssl usr/include/openssl)
-#	rm -rf $(addprefix $(TARGET_DIR)/usr/lib/,ssl engines libcrypto* libssl* pkgconfig/libcrypto.pc)
-#	rm -rf $(addprefix $(STAGING_DIR)/,etc/ssl usr/bin/openssl usr/include/openssl)
-#	rm -rf $(addprefix $(STAGING_DIR)/usr/lib/,ssl engines libcrypto* libssl* pkgconfig/libcrypto.pc)
-#endef
 
 $(eval $(generic-package))
