@@ -4,11 +4,11 @@
 #
 ################################################################################
 
-LINUX_BACKPORTS_VERSION = 7.0.0.69
-SOM60_LINUX_BACKPORTS_VERSION = 7.0.0.69
+LINUX_BACKPORTS_VERSION = 7.0.0.70
+SOM60_LINUX_BACKPORTS_VERSION = 7.0.0.70
 
 ifeq (som60,$(findstring som60,$(BR2_DEFCONFIG)))
-LINUX_BACKPORTS_VERSION = 7.0.0.69
+LINUX_BACKPORTS_VERSION = 7.0.0.70
 endif
 
 LINUX_BACKPORTS_SOURCE = backports-laird-$(LINUX_BACKPORTS_VERSION).tar.bz2
