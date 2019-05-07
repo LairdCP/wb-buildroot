@@ -13,7 +13,7 @@ choice
 	prompt "ssl library"
 	default BR2_PACKAGE_LIBOPENSSL
 	help
-	  Select OpenSSL or LibreSSL.
+	  Select OpenSSL or OpenSSL-1.0.2 or LibreSSL.
 
 config BR2_PACKAGE_LIBOPENSSL
 	bool "openssl"
@@ -29,7 +29,13 @@ config BR2_PACKAGE_LIBOPENSSL
 
 	  Note: Some helper scripts need perl.
 
-if BR2_PACKAGE_LIBOPENSSL
+config BR2_PACKAGE_LIBOPENSSL_1_0_2
+	bool "openssl 1.0.2"
+	select BR2_PACKAGE_ZLIB
+	help
+		This is libopenssl-1.0.2, which support FIPS.
+
+if BR2_PACKAGE_LIBOPENSSL || BR2_PACKAGE_LIBOPENSSL_1_0_2
 
 config BR2_PACKAGE_LIBOPENSSL_BIN
 	bool "openssl binary"
@@ -76,6 +82,7 @@ config BR2_PACKAGE_HAS_OPENSSL
 config BR2_PACKAGE_PROVIDES_OPENSSL
 	string
 	default "libopenssl"  if BR2_PACKAGE_LIBOPENSSL
+	default "libopenssl_1_0_2"  if BR2_PACKAGE_LIBOPENSSL_1_0_2
 	default "libressl"  if BR2_PACKAGE_LIBRESSL
 
 endif
@@ -83,4 +90,5 @@ endif
 # ensure libopenssl is used for the host variant
 config BR2_PACKAGE_PROVIDES_HOST_OPENSSL
 	string
-	default "host-libopenssl"
+	default "host-libopenssl"  if BR2_PACKAGE_LIBOPENSSL
+	default "host-libopenssl_1_0_2"  if BR2_PACKAGE_LIBOPENSSL_1_0_2
