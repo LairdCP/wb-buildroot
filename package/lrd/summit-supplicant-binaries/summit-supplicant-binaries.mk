@@ -8,7 +8,7 @@ SUMMIT_SUPPLICANT_BINARIES_EXTRA_DOWNLOADS = summit_supplicant-arm-eabihf-$(SUMM
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
   SUMMIT_SUPPLICANT_BINARIES_SITE = http://devops.lairdtech.com/share/builds/linux/summit_supplicant/laird/$(SUMMIT_SUPPLICANT_BINARIES_VERSION)
 else
-  SUMMIT_SUPPLICANT_BINARIES_SITE = https://github.com/LairdCP/SOM60-Release-Packages/releases/download/LRD-REL-$(SUMMIT_SUPPLICANT_BINARIES_VERSION)
+  SUMMIT_SUPPLICANT_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(SUMMIT_SUPPLICANT_BINARIES_VERSION)
 endif
 
 define SUMMIT_SUPPLICANT_BINARIES_INSTALL_TARGET_CMDS

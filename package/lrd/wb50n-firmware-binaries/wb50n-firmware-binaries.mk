@@ -9,7 +9,7 @@ WB50N_FIRMWARE_BINARIES_LICENSE_FILES = COPYING
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
   WB50N_FIRMWARE_BINARIES_SITE = http://devops.lairdtech.com/share/builds/linux/firmware/$(WB50N_FIRMWARE_BINARIES_VERSION)
 else
-  WB50N_FIRMWARE_BINARIES_SITE = https://github.com/LairdCP/wb-manifests/releases/download/LRD-REL-$(WB50N_FIRMWARE_BINARIES_VERSION)
+  WB50N_FIRMWARE_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(WB50N_FIRMWARE_BINARIES_VERSION)
 endif
 
 ifeq ($(BR2_FIRMWARE_BINARIES_ATH6K_6003),y)
