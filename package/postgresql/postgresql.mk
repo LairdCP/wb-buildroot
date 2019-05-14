@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-POSTGRESQL_VERSION = 11.1
+POSTGRESQL_VERSION = 11.2
 POSTGRESQL_SOURCE = postgresql-$(POSTGRESQL_VERSION).tar.bz2
 POSTGRESQL_SITE = http://ftp.postgresql.org/pub/source/v$(POSTGRESQL_VERSION)
 POSTGRESQL_LICENSE = PostgreSQL
@@ -14,8 +14,10 @@ POSTGRESQL_CONFIG_SCRIPTS = pg_config
 POSTGRESQL_CONF_ENV = \
 	ac_cv_type_struct_sockaddr_in6=yes \
 	pgac_cv_snprintf_long_long_int_modifier="ll" \
-	pgac_cv_snprintf_size_t_support=yes
+	pgac_cv_snprintf_size_t_support=yes \
+	LIBS=$(TARGET_NLS_LIBS)
 POSTGRESQL_CONF_OPTS = --disable-rpath
+POSTGRESQL_DEPENDENCIES = $(TARGET_NLS_DEPENDENCIES)
 
 # https://www.postgresql.org/docs/11/static/install-procedure.html:
 # "If you want to invoke the build from another makefile rather than
@@ -81,6 +83,14 @@ POSTGRESQL_CONF_OPTS += --with-libxml
 POSTGRESQL_CONF_ENV += XML2_CONFIG=$(STAGING_DIR)/usr/bin/xml2-config
 else
 POSTGRESQL_CONF_OPTS += --without-libxml
+endif
+
+# required for postgresql.service Type=notify
+ifeq ($(BR2_PACKAGE_SYSTEMD),y)
+POSTGRESQL_DEPENDENCIES += systemd
+POSTGRESQL_CONF_OPTS += --with-systemd
+else
+POSTGRESQL_CONF_OPTS += --without-systemd
 endif
 
 define POSTGRESQL_USERS
