@@ -20,7 +20,7 @@ LINUX_BACKPORTS_SITE_METHOD = wget
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
   LINUX_BACKPORTS_SITE = http://devops.lairdtech.com/share/builds/linux/backports/laird/$(LINUX_BACKPORTS_VERSION)
 else
-  LINUX_BACKPORTS_SITE = https://github.com/LairdCP/Sterling-60-Release-Packages/releases/download/LRD-REL-$(LINUX_BACKPORTS_VERSION)
+  LINUX_BACKPORTS_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(LINUX_BACKPORTS_VERSION)
 endif
 
 ifeq ($(BR2_PACKAGE_LINUX_BACKPORTS_USE_DEFCONFIG),y)
