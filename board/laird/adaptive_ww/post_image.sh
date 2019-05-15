@@ -4,6 +4,8 @@ BR2_LRD_PLATFORM="$2"
 
 PKGNAME=adaptive_ww
 
+[ ! -d "$IMAGESDIR" ] && mkdir -p "$IMAGESDIR"
+
 echo "$BR2_LRD_PLATFORM POST IMAGE script: starting..."
 echo "PKGNAME =$PKGNAME..."
 

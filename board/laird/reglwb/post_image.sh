@@ -2,6 +2,8 @@ IMAGESDIR="$1"
 
 export BR2_LRD_PRODUCT=reglwb
 
+[ ! -d "$IMAGESDIR" ] && mkdir -p "$IMAGESDIR"
+
 # enable tracing and exit on errors
 set -x -e
 

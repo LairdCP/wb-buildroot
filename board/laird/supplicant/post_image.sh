@@ -2,6 +2,8 @@ IMAGESDIR="$1"
 
 BR2_LRD_PLATFORM="$2"
 
+[ ! -d "$IMAGESDIR" ] && mkdir -p "$IMAGESDIR"
+
 echo "$BR2_LRD_PLATFORM POST IMAGE script: starting..."
 
 # enable tracing and exit on errors
