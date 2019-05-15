@@ -3,6 +3,8 @@ BR2_LRD_PRODUCT="$2"
 BR2_LRD_MFG_FW=lib/firmware/lrdmwl
 BR2_LRD_LIBEDIT=usr/lib
 
+[ ! -d "$IMAGESDIR" ] && mkdir -p "$IMAGESDIR"
+
 # enable tracing and exit on errors
 set -x -e
 

@@ -3,6 +3,8 @@ IMAGESDIR="$1"
 export BR2_LRD_PLATFORM=laird-radio-firmware
 export FW_DIR="$TARGET_DIR/lib/firmware"
 
+[ ! -d "$IMAGESDIR" ] && mkdir -p "$IMAGESDIR"
+
 echo "$BR2_LRD_PLATFORM POST IMAGE script: starting..."
 
 # enable tracing and exit on errors
