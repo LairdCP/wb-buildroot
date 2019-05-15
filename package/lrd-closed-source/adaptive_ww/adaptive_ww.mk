@@ -6,7 +6,7 @@
 ADAPTIVE_WW_VERSION = local
 ADAPTIVE_WW_SITE = package/lrd-closed-source/externals/adaptive_ww
 ADAPTIVE_WW_SITE_METHOD = local
-ADAPTIVE_WW_DEPENDENCIES = host-pkgconf libnl libopenssl
+ADAPTIVE_WW_DEPENDENCIES = host-pkgconf libnl openssl
 
 MY_MAKE_OPTS = CXX="$(TARGET_CXX)" CC="$(TARGET_CC)" LD="$(TARGET_LD)" PKG_CONFIG="$(HOST_DIR)/usr/bin/pkg-config"
 
