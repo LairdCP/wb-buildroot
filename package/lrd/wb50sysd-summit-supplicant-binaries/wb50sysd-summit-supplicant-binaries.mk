@@ -12,7 +12,7 @@ else
 endif
 
 define WB50SYSD_SUMMIT_SUPPLICANT_BINARIES_INSTALL_TARGET_CMDS
-	tar -xjf $(DL_DIR)/wb50sysd-summit-supplicant-binaries/$(WB50SYSD_SUMMIT_SUPPLICANT_BINARIES_EXTRA_DOWNLOADS) -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
+	tar -xjf $($(PKG)_DL_DIR)/$(WB50SYSD_SUMMIT_SUPPLICANT_BINARIES_EXTRA_DOWNLOADS) -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
 endef
 
 endif

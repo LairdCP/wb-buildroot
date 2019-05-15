@@ -12,7 +12,7 @@ else
 endif
 
 define SUMMIT_SUPPLICANT_BINARIES_INSTALL_TARGET_CMDS
-	tar -xjf $(DL_DIR)/summit-supplicant-binaries/$(SUMMIT_SUPPLICANT_BINARIES_EXTRA_DOWNLOADS) -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
+	tar -xjf $($(PKG)_DL_DIR)/$(SUMMIT_SUPPLICANT_BINARIES_EXTRA_DOWNLOADS) -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
 endef
 
 endif

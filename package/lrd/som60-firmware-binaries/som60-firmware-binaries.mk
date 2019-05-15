@@ -13,7 +13,7 @@ else
 endif
 
 define SOM60_FIRMWARE_BINARIES_SOM60_INSTALL_TARGET
-	tar -xjf $(DL_DIR)/som60-firmware-binaries/laird-som60-radio-firmware-$(SOM60_FIRMWARE_BINARIES_VERSION).tar.bz2 -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
+	tar -xjf $($(PKG)_DL_DIR)/laird-som60-radio-firmware-$(SOM60_FIRMWARE_BINARIES_VERSION).tar.bz2 -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
 endef
 
 define SOM60_FIRMWARE_BINARIES_INSTALL_TARGET_CMDS

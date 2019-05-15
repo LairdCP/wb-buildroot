@@ -11,7 +11,7 @@ else
 endif
 
 define ADAPTIVE_WW_BINARIES_INSTALL_TARGET_CMDS
-	tar -xjf $(DL_DIR)/adaptive-ww-binaries/$(ADAPTIVE_WW_BINARIES_EXTRA_DOWNLOADS) -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
+	tar -xjf $($(PKG)_DL_DIR)/$(ADAPTIVE_WW_BINARIES_EXTRA_DOWNLOADS) -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
 endef
 
 endif
