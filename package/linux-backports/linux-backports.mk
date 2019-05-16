@@ -5,13 +5,23 @@
 ################################################################################
 
 LINUX_BACKPORTS_VERSION = 0.0.0.0
+SOM60_LINUX_BACKPORTS_VERSION = 0.0.0.0
+
+ifeq (som60,$(findstring som60,$(BR2_DEFCONFIG)))
+LINUX_BACKPORTS_VERSION = $(SOM60_LINUX_BACKPORTS_VERSION)
+endif
 
 LINUX_BACKPORTS_SOURCE = backports-laird-$(LINUX_BACKPORTS_VERSION).tar.bz2
 BR_NO_CHECK_HASH_FOR += $(LINUX_BACKPORTS_SOURCE)
 LINUX_BACKPORTS_LICENSE = GPL-2.0
 LINUX_BACKPORTS_LICENSE_FILES = COPYING
-LINUX_BACKPORTS_SITE = https://github.com/LairdCP/wb-package-archive/raw/master
 LINUX_BACKPORTS_SITE_METHOD = wget
+
+ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
+LINUX_BACKPORTS_SITE = http://devops.lairdtech.com/share/builds/linux/backports/laird/$(LINUX_BACKPORTS_VERSION)
+else
+LINUX_BACKPORTS_SITE = https://github.com/LairdCP/SOM60-Release-Packages/releases/download/LRD-REL-$(LINUX_BACKPORTS_VERSION)
+endif
 
 ifeq ($(BR2_PACKAGE_LINUX_BACKPORTS_USE_DEFCONFIG),y)
 LINUX_BACKPORTS_KCONFIG_FILE = $(LINUX_BACKPORTS_DIR)/defconfigs/$(call qstrip,$(BR2_PACKAGE_LINUX_BACKPORTS_DEFCONFIG))
