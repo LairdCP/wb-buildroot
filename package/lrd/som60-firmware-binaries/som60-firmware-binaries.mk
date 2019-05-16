@@ -9,7 +9,7 @@ SOM60_FIRMWARE_BINARIES_EXTRA_DOWNLOADS = laird-som60-radio-firmware-$(SOM60_FIR
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
   SOM60_FIRMWARE_BINARIES_SITE = http://devops.lairdtech.com/share/builds/linux/firmware/$(SOM60_FIRMWARE_BINARIES_VERSION)
 else
-  SOM60_FIRMWARE_BINARIES_SITE = https://github.com/LairdCP/SOM60-Release-Packages/releases/download/LRD-REL-$(SOM60_FIRMWARE_BINARIES_VERSION)
+  SOM60_FIRMWARE_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(SOM60_FIRMWARE_BINARIES_VERSION)
 endif
 
 define SOM60_FIRMWARE_BINARIES_SOM60_INSTALL_TARGET

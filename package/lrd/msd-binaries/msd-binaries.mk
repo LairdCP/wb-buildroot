@@ -11,7 +11,7 @@ endif
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
   MSD_BINARIES_SITE_URL = http://devops.lairdtech.com/share/builds/linux/$(MSD_BINARIES_PLATFORM)/laird/$(MSD_BINARIES_VERSION)
 else
-  MSD_BINARIES_SITE_URL = https://github.com/LairdCP/wb-manifests/releases/download/LRD-REL-$(MSD_BINARIES_VERSION)
+  MSD_BINARIES_SITE_URL = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(MSD_BINARIES_VERSION)
 endif
 
 MSD_BINARIES_SITE = $(MSD_BINARIES_SITE_URL)
