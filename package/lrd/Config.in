@@ -1,6 +1,8 @@
 source "package/lrd/patchram/Config.in"
 source "package/lrd/msd-binaries/Config.in"
 source "package/lrd/firmware-binaries/Config.in"
+source "package/lrd/som60-firmware-binaries/Config.in"
+source "package/lrd/wb50n-firmware-binaries/Config.in"
 source "package/lrd/lrd-wireless-regdb/Config.in"
 source "package/lrd/openssl-fips/Config.in"
 source "package/lrd/fips-check/Config.in"

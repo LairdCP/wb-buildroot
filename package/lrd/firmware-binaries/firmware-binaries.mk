@@ -12,21 +12,15 @@ STERLING-LWB5-JP=480-0095
 LWB-MFG=480-0108
 LWB5-MFG=480-0109
 WL-FMAC=930-0081
-SOM60=laird-som60-radio-firmware
-ATH6K-6003=laird-ath6k-6003-firmware
-ATH6K-6004=laird-ath6k-6004-firmware
 
 FIRMWARE_BINARIES_SOURCE =
 FIRMWARE_BINARIES_LICENSE = GPL-2.0
 FIRMWARE_BINARIES_LICENSE_FILES = COPYING
-FIRMWARE_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/raw/master
+
+FIRMWARE_BINARIES_SITE = http://devops.lairdtech.com/share/builds/linux/firmware/$(FIRMWARE_BINARIES_VERSION)
 
 define install-firmware-lwb-func
-	unzip -p $(DL_DIR)/$(1)-$(FIRMWARE_BINARIES_VERSION).zip | tar -xjf - -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
-endef
-
-define install-firmware-lrd-func
-	tar -xjf $(DL_DIR)/$(1)-$(FIRMWARE_BINARIES_VERSION).tar.bz2 -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
+	unzip -p $(DL_DIR)/firmware-binaries/$(1)-$(FIRMWARE_BINARIES_VERSION).zip | tar -xjf - -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
 endef
 
 ifeq ($(BR2_FIRMWARE_BINARIES_480_0079),y)
@@ -58,7 +52,7 @@ define FIRMWARE_BINARIES_480_0108_INSTALL_TARGET
 	$(call install-firmware-lwb-func,$(LWB-MFG))
 endef
 
-FIRMWARE_BINARIES_EXTRA_DOWNLOADS += laird-lwb-firmware-mfg-$(FIRMWARE_BINARIES_VERSION).zip
+FIRMWARE_BINARIES_EXTRA_DOWNLOADS += $(LWB-MFG)-$(FIRMWARE_BINARIES_VERSION).zip
 endif
 
 ifeq ($(BR2_FIRMWARE_BINARIES_480_0081),y)
@@ -98,39 +92,15 @@ define FIRMWARE_BINARIES_480_0109_INSTALL_TARGET
 	$(call install-firmware-lwb-func,$(LWB5-MFG))
 endef
 
-FIRMWARE_BINARIES_EXTRA_DOWNLOADS += laird-lwb5-firmware-mfg-$(FIRMWARE_BINARIES_VERSION).zip
+FIRMWARE_BINARIES_EXTRA_DOWNLOADS += $(LWB5-MFG)-$(FIRMWARE_BINARIES_VERSION).zip
 endif
 
 ifeq ($(BR2_FIRMWARE_BINARIES_930_0081),y)
 define FIRMWARE_BINARIES_930_0081_INSTALL_TARGET
-	unzip -uo $(DL_DIR)/$(WL-FMAC)-$(FIRMWARE_BINARIES_VERSION).zip -d $(TARGET_DIR)/usr/bin/
+	unzip -uo $(DL_DIR)/firmware-binaries/$(WL-FMAC)-$(FIRMWARE_BINARIES_VERSION).zip -d $(TARGET_DIR)/usr/bin/
 endef
 
 FIRMWARE_BINARIES_EXTRA_DOWNLOADS += $(WL-FMAC)-$(FIRMWARE_BINARIES_VERSION).zip
-endif
-
-ifeq ($(BR2_FIRMWARE_BINARIES_SOM60),y)
-define FIRMWARE_BINARIES_SOM60_INSTALL_TARGET
-	$(call install-firmware-lrd-func,$(SOM60))
-endef
-
-FIRMWARE_BINARIES_EXTRA_DOWNLOADS += $(SOM60)-$(FIRMWARE_BINARIES_VERSION).tar.bz2
-endif
-
-ifeq ($(BR2_FIRMWARE_BINARIES_ATH6K_6003),y)
-define FIRMWARE_BINARIES_ATH6K_6003_INSTALL_TARGET
-	$(call install-firmware-lrd-func,$(ATH6K-6003))
-endef
-
-FIRMWARE_BINARIES_EXTRA_DOWNLOADS += $(ATH6K-6003)-$(FIRMWARE_BINARIES_VERSION).tar.bz2
-endif
-
-ifeq ($(BR2_FIRMWARE_BINARIES_ATH6K_6004),y)
-define FIRMWARE_BINARIES_ATH6K_6004_INSTALL_TARGET
-	$(call install-firmware-lrd-func,$(ATH6K-6004))
-endef
-
-FIRMWARE_BINARIES_EXTRA_DOWNLOADS += $(ATH6K-6004)-$(FIRMWARE_BINARIES_VERSION).tar.bz2
 endif
 
 define FIRMWARE_BINARIES_INSTALL_TARGET_CMDS
@@ -144,9 +114,6 @@ define FIRMWARE_BINARIES_INSTALL_TARGET_CMDS
 	$(FIRMWARE_BINARIES_480_0095_INSTALL_TARGET)
 	$(FIRMWARE_BINARIES_480_0109_INSTALL_TARGET)
 	$(FIRMWARE_BINARIES_930_0081_INSTALL_TARGET)
-	$(FIRMWARE_BINARIES_SOM60_INSTALL_TARGET)
-	$(FIRMWARE_BINARIES_ATH6K_6003_INSTALL_TARGET)
-	$(FIRMWARE_BINARIES_ATH6K_6004_INSTALL_TARGET)
 endef
 
 endif

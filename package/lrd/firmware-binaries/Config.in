@@ -64,22 +64,4 @@ config BR2_FIRMWARE_BINARIES_930_0081
 	bool "WL-FMAC"
     default n
 	select BR2_PACKAGE_WL_FMAC if BR2_LRD_DEVEL_BUILD="y"
-
-config BR2_FIRMWARE_BINARIES_SOM60
-	bool "Laird SOM60 radio firmware"
-    default n
-	select BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM60 if BR2_LRD_DEVEL_BUILD="y"
-	select BR2_PACKAGE_LRD_WIRELESS_REGDB if BR2_LRD_DEVEL_BUILD="y"
-
-config BR2_FIRMWARE_BINARIES_ATH6K_6003
-	bool "Laird ath6k AR6003 radio firmware"
-    default n
-	select BR2_PACKAGE_LAIRD_FIRMWARE_AR6003 if BR2_LRD_DEVEL_BUILD="y"
-
-config BR2_FIRMWARE_BINARIES_ATH6K_6004
-	bool "Laird ath6k AR6004 radio firmware"
-    default n
-	select BR2_PACKAGE_LAIRD_FIRMWARE_AR6004 if BR2_LRD_DEVEL_BUILD="y"
-	select BR2_PACKAGE_LAIRD_FIRMWARE_BT if BR2_LRD_DEVEL_BUILD="y"
-
 endif
