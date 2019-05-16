@@ -25,7 +25,7 @@ MSD_BINARIES_DEPENDENCIES += libedit
 endif
 
 define MSD_BINARIES_EXTRACT_CMDS
-	$(TAR) -C "$(@D)" -xf $(DL_DIR)/msd-binaries/$(MSD_BINARIES_SOURCE) --strip-components=1
+	$(TAR) -C "$(@D)" -xf $($(PKG)_DL_DIR)/$(MSD_BINARIES_SOURCE) --strip-components=1
 endef
 
 define MSD_BINARIES_CONFIGURE_CMDS

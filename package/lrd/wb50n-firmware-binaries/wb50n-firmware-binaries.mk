@@ -14,7 +14,7 @@ endif
 
 ifeq ($(BR2_FIRMWARE_BINARIES_ATH6K_6003),y)
 define WB50N_FIRMWARE_BINARIES_ATH6K_6003_INSTALL_TARGET
-	tar -xjf $(DL_DIR)/wb50n-firmware-binaries/ath6k-6003-$(WB50N_FIRMWARE_BINARIES_VERSION).tar.bz2 -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
+	tar -xjf $($(PKG)_DL_DIR)/laird-ath6k-6003-firmware-$(WB50N_FIRMWARE_BINARIES_VERSION).tar.bz2 -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
 endef
 
 WB50N_FIRMWARE_BINARIES_EXTRA_DOWNLOADS += ath6k-6003-$(WB50N_FIRMWARE_BINARIES_VERSION).tar.bz2
@@ -22,7 +22,7 @@ endif
 
 ifeq ($(BR2_FIRMWARE_BINARIES_ATH6K_6004),y)
 define WB50N_FIRMWARE_BINARIES_ATH6K_6004_INSTALL_TARGET
-	tar -xjf $(DL_DIR)/wb50n-firmware-binaries/ath6k-6004-$(WB50N_FIRMWARE_BINARIES_VERSION).tar.bz2 -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
+	tar -xjf $($(PKG)_DL_DIR)/laird-ath6k-6004-firmware-$(WB50N_FIRMWARE_BINARIES_VERSION).tar.bz2 -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch
 endef
 
 WB50N_FIRMWARE_BINARIES_EXTRA_DOWNLOADS += ath6k-6004-$(WB50N_FIRMWARE_BINARIES_VERSION).tar.bz2
