@@ -5,7 +5,7 @@
 ################################################################################
 
 LINUX_BACKPORTS_VERSION = 0.0.0.0
-SOM60_LINUX_BACKPORTS_VERSION = 0.0.0.0
+SOM60_LINUX_BACKPORTS_VERSION = $(call qstrip,$(BR2_PACKAGE_LINUX_BACKPORTS_VERSION_VALUE))
 
 ifeq (som60,$(findstring som60,$(BR2_DEFCONFIG)))
 LINUX_BACKPORTS_VERSION = $(SOM60_LINUX_BACKPORTS_VERSION)
