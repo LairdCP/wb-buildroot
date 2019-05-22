@@ -1,0 +1,21 @@
+comment "Laird toolchains available for Cortex-A + EABIhf"
+	depends on BR2_arm
+	depends on !BR2_ARM_EABI
+	depends on !BR2_STATIC_LIBS
+
+config BR2_TOOLCHAIN_EXTERNAL_LAIRD_ARM
+	bool "Laird ARM 2018.02"
+	depends on BR2_arm
+	depends on BR2_ARM_CPU_ARMV7A || BR2_ARM_CPU_ARMV8A
+	depends on BR2_HOSTARCH = "x86_64" || BR2_HOSTARCH = "x86"
+	depends on BR2_ARM_EABIHF
+	depends on !BR2_STATIC_LIBS
+	select BR2_TOOLCHAIN_EXTERNAL_GLIBC
+	select BR2_TOOLCHAIN_HAS_SSP
+	select BR2_TOOLCHAIN_HAS_NATIVE_RPC
+	select BR2_INSTALL_LIBSTDCPP
+	select BR2_TOOLCHAIN_HEADERS_AT_LEAST_4_1
+	select BR2_TOOLCHAIN_GCC_AT_LEAST_6
+	help
+	  Laird toolchain for the ARM architecture. It uses GCC
+	  6.4.0, GDB 7.11.1, glibc-2.26, binutils 2.29.1.
