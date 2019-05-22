@@ -25,6 +25,7 @@ source "toolchain/toolchain-external/toolchain-external-synopsys-arc/Config.in"
 
 # ARM (use ARM toolchain by default)
 source "toolchain/toolchain-external/toolchain-external-arm-arm/Config.in"
+source "toolchain/toolchain-external/toolchain-external-laird-arm/Config.in"
 source "toolchain/toolchain-external/toolchain-external-linaro-arm/Config.in"
 source "toolchain/toolchain-external/toolchain-external-codesourcery-arm/Config.in"
 
@@ -126,6 +127,7 @@ source "toolchain/toolchain-external/toolchain-external-synopsys-arc/Config.in.o
 
 # ARM
 source "toolchain/toolchain-external/toolchain-external-arm-arm/Config.in.options"
+source "toolchain/toolchain-external/toolchain-external-laird-arm/Config.in.options"
 source "toolchain/toolchain-external/toolchain-external-linaro-arm/Config.in.options"
 source "toolchain/toolchain-external/toolchain-external-codesourcery-arm/Config.in.options"
 
