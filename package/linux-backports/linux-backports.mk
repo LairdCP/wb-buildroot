@@ -4,11 +4,10 @@
 #
 ################################################################################
 
-LINUX_BACKPORTS_VERSION = 7.0.0.73
-SOM60_LINUX_BACKPORTS_VERSION = 7.0.0.73
-
-ifeq (som60,$(findstring som60,$(BR2_DEFCONFIG)))
-LINUX_BACKPORTS_VERSION = 7.0.0.73
+ifneq ($(BR2_PACKAGE_LINUX_BACKPORTS_VERSION_CI),)
+LINUX_BACKPORTS_VERSION = $(call qstrip,$(BR2_PACKAGE_LINUX_BACKPORTS_VERSION_CI))
+else
+LINUX_BACKPORTS_VERSION = $(call qstrip,$(BR2_PACKAGE_LINUX_BACKPORTS_VERSION_VALUE))
 endif
 
 LINUX_BACKPORTS_SOURCE = backports-laird-$(LINUX_BACKPORTS_VERSION).tar.bz2
