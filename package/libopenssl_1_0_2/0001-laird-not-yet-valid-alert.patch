@@ -1,6 +1,5 @@
-diff -uar openssl-1.0.2k-orig/ssl/s3_both.c openssl-1.0.2k-new/ssl/s3_both.c
---- openssl-1.0.2k-orig/ssl/s3_both.c	2017-01-26 08:22:04.000000000 -0500
-+++ openssl-1.0.2k-new/ssl/s3_both.c	2017-07-14 09:34:34.478062471 -0400
+--- a/ssl/s3_both.c	2017-01-26 08:22:04.000000000 -0500
++++ b/ssl/s3_both.c	2017-07-14 09:34:34.478062471 -0400
 @@ -536,8 +536,6 @@
      case X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD:
      case X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD:
@@ -19,4 +18,3 @@ diff -uar openssl-1.0.2k-orig/ssl/s3_both.c openssl-1.0.2k-new/ssl/s3_both.c
      case X509_V_ERR_CERT_HAS_EXPIRED:
      case X509_V_ERR_CRL_HAS_EXPIRED:
          al = SSL_AD_CERTIFICATE_EXPIRED;
-Only in openssl-1.0.2k-new/ssl: s3_both.c~
