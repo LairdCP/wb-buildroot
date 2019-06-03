@@ -1,0 +1,129 @@
+diff --git a/core/notifier.c b/core/notifier.c
+index 8643c6f..448778b 100644
+--- a/core/notifier.c
++++ b/core/notifier.c
+@@ -120,65 +120,67 @@ void notify(RECOVERY_STATUS status, int error, int level, const char *msg)
+  */
+ static void console_notifier (RECOVERY_STATUS status, int error, int level, const char *msg)
+ {
+-	char current[80];
+-	switch(status) {
+-	case IDLE:
+-		strncpy(current, "No SWUPDATE running : ", sizeof(current));
+-		break;
+-	case DOWNLOAD:
+-		strncpy(current, "SWUPDATE downloading : ", sizeof(current));
+-		break;
+-	case START:
+-		strncpy(current, "SWUPDATE started : ", sizeof(current));
+-		break;
+-	case RUN:
+-		strncpy(current, "SWUPDATE running : ", sizeof(current));
+-		break;
+-	case SUCCESS:
+-		strncpy(current, "SWUPDATE successful !", sizeof(current));
+-		break;
+-	case FAILURE:
+-		snprintf(current, sizeof(current), "SWUPDATE failed [%d]", error);
+-		break;
+-	case SUBPROCESS:
+-		snprintf(current, sizeof(current), "EVENT [%d] : ", error );
+-		break;
+-	case DONE:
+-		strncpy(current, "SWUPDATE done : ", sizeof(current));
+-		break;
+-	}
++	if (loglevel >= level) {
++		char current[80];
++		switch(status) {
++		case IDLE:
++			strncpy(current, "No SWUPDATE running : ", sizeof(current));
++			break;
++		case DOWNLOAD:
++			strncpy(current, "SWUPDATE downloading : ", sizeof(current));
++			break;
++		case START:
++			strncpy(current, "SWUPDATE started : ", sizeof(current));
++			break;
++		case RUN:
++			strncpy(current, "SWUPDATE running : ", sizeof(current));
++			break;
++		case SUCCESS:
++			strncpy(current, "SWUPDATE successful !", sizeof(current));
++			break;
++		case FAILURE:
++			snprintf(current, sizeof(current), "SWUPDATE failed [%d]", error);
++			break;
++		case SUBPROCESS:
++			snprintf(current, sizeof(current), "EVENT [%d] : ", error );
++			break;
++		case DONE:
++			strncpy(current, "SWUPDATE done : ", sizeof(current));
++			break;
++		}
+ 
+-	switch (level) {
+-	case ERRORLEVEL:
+-		fprintf(stderr, "%s%s[ERROR]",
+-				console_ansi_colors ? "\033[01;31m" : "",
+-				console_priority_prefix ? "<3>" : "");
+-		break;
+-	case WARNLEVEL:
+-		fprintf(stdout, "%s%s[WARN ]",
+-				console_ansi_colors ? "\033[01;33m" : "",
+-				console_priority_prefix ? "<4>" : "");
+-		break;
+-	case INFOLEVEL:
+-		fprintf(stdout, "%s%s[INFO ]",
+-				console_ansi_colors ? "\033[01;32m" : "",
+-				console_priority_prefix ? "<6>" : "");
+-		break;
+-	case DEBUGLEVEL:
+-		fprintf(stdout, "%s%s[DEBUG]",
+-				console_ansi_colors ? "\033[01;30m" : "",
+-				console_priority_prefix ? "<7>" : "");
+-		break;
+-	case TRACELEVEL:
+-		fprintf(stdout, "%s%s[TRACE]",
+-				console_ansi_colors ? "\033[01;30m" : "",
+-				console_priority_prefix ? "<7>" : "");
+-		break;
+-	}
++		switch (level) {
++		case ERRORLEVEL:
++			fprintf(stderr, "%s%s[ERROR]",
++					console_ansi_colors ? "\033[01;31m" : "",
++					console_priority_prefix ? "<3>" : "");
++			break;
++		case WARNLEVEL:
++			fprintf(stdout, "%s%s[WARN ]",
++					console_ansi_colors ? "\033[01;33m" : "",
++					console_priority_prefix ? "<4>" : "");
++			break;
++		case INFOLEVEL:
++			fprintf(stdout, "%s%s[INFO ]",
++					console_ansi_colors ? "\033[01;32m" : "",
++					console_priority_prefix ? "<6>" : "");
++			break;
++		case DEBUGLEVEL:
++			fprintf(stdout, "%s%s[DEBUG]",
++					console_ansi_colors ? "\033[01;30m" : "",
++					console_priority_prefix ? "<7>" : "");
++			break;
++		case TRACELEVEL:
++			fprintf(stdout, "%s%s[TRACE]",
++					console_ansi_colors ? "\033[01;30m" : "",
++					console_priority_prefix ? "<7>" : "");
++			break;
++		}
+ 
+-	fprintf(level == ERRORLEVEL ? stderr : stdout,
+-			" : %s %s%s\n", current, msg ? msg : "", console_ansi_colors ? "\x1b[0m" : "");
+-	fflush(stdout);
++		fprintf(level == ERRORLEVEL ? stderr : stdout,
++				" : %s %s%s\n", current, msg ? msg : "", console_ansi_colors ? "\x1b[0m" : "");
++		fflush(stdout);
++	}
+ }
+ 
+ /*
