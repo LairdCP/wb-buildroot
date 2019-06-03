@@ -1,6 +1,6 @@
 IMAGESDIR="$1"
 
-export BR2_LRD_PRODUCT=reglwb
+export BR2_LRD_PRODUCT=regCypress
 
 [ ! -d "$IMAGESDIR" ] && mkdir -p "$IMAGESDIR"
 
@@ -20,6 +20,8 @@ TARFILE="$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.tar"
 
 # generate tar.bz2 to be inserted in script
 tar -cvf $IMAGESDIR/$TARFILE --directory="$TARGET_DIR/usr/bin" .
+tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/lib/firmware/brcm/bcm4339/" "brcmfmac4339-sdio-mfg.bin"
+tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/lib/firmware/brcm/bcm4339/" "brcmfmac4339-sdio.bin"
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/lib/firmware/brcm/bcm4343w/" "brcmfmac43430-sdio-mfg.bin"
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/lib/firmware/brcm/bcm4343w/" "brcmfmac43430-sdio.bin"
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/" "$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.manifest"
@@ -41,4 +43,4 @@ tar -cvf "$IMAGESDIR/$TARFILE" --directory="$IMAGESDIR" "$BR2_LRD_PRODUCT-$LAIRD
 tar --append --file="$IMAGESDIR/$TARFILE" --directory="$IMAGESDIR" "$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.sha"
 bzip2 -f "$IMAGESDIR/$TARFILE"
 
-echo "REGLWB POST BUILD script: done."
+echo "REGCYPRESS POST BUILD script: done."

@@ -21,9 +21,16 @@ define WL_FMAC_BUILD_CMDS
 	$(WL_FMAC_MAKE_ENV) $(MAKE) -C $(@D)/src/wl/exe
 endef
 
+ifeq ($(BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX),"aarch64-buildroot-linux-gnu")
+
 define WL_FMAC_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 755 $(@D)/src/wl/exe/wlarm $(TARGET_DIR)/usr/bin/wl
+	$(INSTALL) -D -m 755 $(@D)/src/wl/exe/wlaarch64 $(TARGET_DIR)/usr/bin/wl
 endef
+else
+define WL_FMAC_INSTALL_TARGET_CMDS
+        $(INSTALL) -D -m 755 $(@D)/src/wl/exe/wlarm $(TARGET_DIR)/usr/bin/wl
+endef
+endif
 
 define WL_FMAC_UNINSTALL_TARGET_CMDS
 	rm -f $(TARGET_DIR)/usr/bin/wl
