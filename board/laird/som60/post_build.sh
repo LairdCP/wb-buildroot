@@ -10,6 +10,21 @@ SD=$?
 # source the common post build script
 . "${BOARD_DIR}/../post_build_common_60.sh" "${BOARD_DIR}"  ${SD}
 
+if [ ${SD} -eq 0 ]; then
+	rm -fr "${TARGET_DIR}/etc/tmpfiles.d"
+	rm -fr "${TARGET_DIR}/etc/systemd/system/tmp.mount.d"
+	rm -fr "${TARGET_DIR}/etc/systemd/system/local-fs.target.wants"
+	rm -f "${TARGET_DIR}/etc/systemd/system/mount_data.service"
+	rm -f "${TARGET_DIR}/usr/sbin/mount_data.sh"
+	rm -f "${TARGET_DIR}/usr/sbin/pre-systemd-init.sh"
+	rm -f "${TARGET_DIR}/etc/machine-id"
+	rm -f "${TARGET_DIR}/etc/NetworkManager/conf.d/default-keyfile-path.conf"
+else
+	# Securely mount /var on tmpfs
+	echo "tmpfs /var tmpfs mode=1777,noexec,nosuid,nodev 0 0" >> ${TARGET_DIR}/etc/fstab
+fi
+
+
 [ -f ${TARGET_DIR}/lib/firmware/regulatory_summit60.db ] && \
     ln -sfr ${TARGET_DIR}/lib/firmware/regulatory_summit60.db ${TARGET_DIR}/lib/firmware/regulatory.db
 

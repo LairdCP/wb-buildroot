@@ -1,0 +1,11 @@
+[Unit]
+Description=Mount Data Partition
+DefaultDependencies=false
+Before=NetworkManager.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/mount_data.sh
+ExecStop=umount /data
+KeyringMode=inherit
