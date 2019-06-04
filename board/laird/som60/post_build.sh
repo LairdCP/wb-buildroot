@@ -19,6 +19,7 @@ if [ ${SD} -eq 0 ]; then
 	rm -f "${TARGET_DIR}/usr/sbin/pre-systemd-init.sh"
 	rm -f "${TARGET_DIR}/etc/machine-id"
 	rm -f "${TARGET_DIR}/etc/NetworkManager/conf.d/default-keyfile-path.conf"
+	rm -f "${TARGET_DIR}/etc/systemd/system/NetworkManager.service.d/10-inherit-keyring.conf"
 else
 	# Securely mount /var on tmpfs
 	echo "tmpfs /var tmpfs mode=1777,noexec,nosuid,nodev 0 0" >> ${TARGET_DIR}/etc/fstab

@@ -1,7 +1,8 @@
 [Unit]
 Description=Mount Data Partition
 DefaultDependencies=false
-Before=NetworkManager.service
+Wants=fskey.service
+After=fskey.service
 
 [Service]
 Type=oneshot
