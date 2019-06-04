@@ -6,18 +6,19 @@
 
 	images {
 		kernel@1 {
-			data = /incbin/("zImage");
+			data = /incbin/("Image.gz");
 			type = "kernel";
 			arch = "arm";
 			os = "linux";
-			compression = "none";
-			load = <0x22000000>;
-			entry = <0x22000000>;
+			compression = "gzip";
+			load = <0x20008000>;
+			entry = <0x20008000>;
 			kernel-version = <1>;
 			hash@1 {
 				algo = "sha256";
 			};
 		};
+
 		fdt@1 {
 			data = /incbin/("at91-dvk_som60.dtb");
 			type = "flat_dt";
@@ -28,6 +29,7 @@
 				algo = "sha256";
 			};
 		};
+
 		script@1 {
 			data = /incbin/("boot.scr");
 			type = "script";
@@ -38,6 +40,7 @@
 			};
 		};
 	};
+
 	configurations {
 		default = "config@1";
 		config@1 {

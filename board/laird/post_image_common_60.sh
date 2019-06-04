@@ -37,7 +37,7 @@ test -x ${genimage} || \
 test -x ${mkenvimage} || \
 	die "No mkenvimage found (host-uboot-tools has not been built?)"
 
-$mkenvimage -s 0x20000 -o ${BINARIES_DIR}/uboot-env.bin ${BINARIES_DIR}/uboot-env.txt -r
+${mkenvimage} -s 0x20000 -o ${BINARIES_DIR}/uboot-env.bin ${BINARIES_DIR}/uboot-env.txt -r
 
 # Generate dev keys if needed
 if [ ! -f ${BINARIES_DIR}/keys/dev.key ]; then
@@ -72,9 +72,17 @@ fi
 # files must be in current directory for mkimage.
 DTB="$(sed -n 's/^BR2_LINUX_KERNEL_INTREE_DTS_NAME="\(.*\)"$/\1/p' ${BR2_CONFIG})"
 # Look for DTB in custom path
-[ -z $DTB ] && DTB="$(sed -n 's,BR2_LINUX_KERNEL_CUSTOM_DTS_PATH=".*/\(.*\).dts"$,\1,p' ${BR2_CONFIG})"
+[ -z ${DTB} ] && DTB="$(sed -n 's,BR2_LINUX_KERNEL_CUSTOM_DTS_PATH=".*/\(.*\).dts"$,\1,p' ${BR2_CONFIG})"
 
 sed "s/at91-dvk_som60/${DTB}/g" ${BOARD_DIR}/configs/kernel.its > ${BINARIES_DIR}/kernel.its || exit 1
+
+if grep '"Image.gz"' ${BINARIES_DIR}/kernel.its; then
+	gzip -9k ${BINARIES_DIR}/Image
+elif grep '"Image.lzo"' ${BINARIES_DIR}/kernel.its; then
+	lzop -9o ${BINARIES_DIR}/Image.lzo ${BINARIES_DIR}/Image
+elif grep '"Image.lzma"' ${BINARIES_DIR}/kernel.its; then
+	lzma -9k ${BINARIES_DIR}/Image
+fi
 
 echo "# entering ${BINARIES_DIR} for the next command"
 (cd ${BINARIES_DIR} && ${mkimage} -f kernel.its kernel.itb) || exit 1
@@ -91,6 +99,7 @@ cp "${BINARIES_DIR}/u-boot-spl.dtb" "${BINARIES_DIR}/u-boot-spl-key.dtb"
 # Then build uboot FIT
 echo "# entering ${BINARIES_DIR} for the next command"
 (cd "${BINARIES_DIR}" && "${mkimage}" -f u-boot.its -K u-boot-spl-key.dtb -k keys -r u-boot.itb) || exit 1
+rm -f ${BINARIES_DIR}/u-boot.its
 
 # Then update SPL with appended keyed DTB
 cat "${BINARIES_DIR}/u-boot-spl-nodtb.bin" "${BINARIES_DIR}/u-boot-spl-key.dtb" > "${BINARIES_DIR}/u-boot-spl.bin"
