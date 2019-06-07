@@ -1,4 +1,4 @@
 rootfs="ubi.block=0,${bootvol}"
 dm_table="vroot,,ro,0 SIZE verity 1 /dev/ubiblock0_${bootvol} /dev/ubiblock0_${bootvol} 4096 4096 BLOCKS OFFSET sha256 HASH SALT"
 
-setenv bootargs "ubi.mtd=ubi ${rootfs} dm=\"${dm_table}\" root=/dev/dm-0 rootfstype=squashfs ro init=/usr/sbin/pre-systemd-init.sh loglevel=3 systemd.show_status=0"
+setenv bootargs "ubi.mtd=ubi ${rootfs} dm=\"${dm_table}\" root=/dev/dm-0 rootfstype=squashfs ro init=/sbin/overlayRoot.sh loglevel=3 systemd.show_status=0"
