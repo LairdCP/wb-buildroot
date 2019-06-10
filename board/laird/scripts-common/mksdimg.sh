@@ -6,7 +6,7 @@ IMGFILE=$1
 IMGUSERSIZE=$2
 BLKSIZE=512
 
-if [-z ${IMGFILE} ]
+if [[ ( -z $IMGFILE ) ]]
 then
     echo "mksdimg.sh <output filename> [optional output file size in MiB]"
     exit
@@ -22,26 +22,26 @@ DYNAMICFILESIZE=$(stat -c%s "rootfs.tar")
 MiBCONVERTER=$((1024*1024))
 DYNAMICFILESIZE=$((DYNAMICFILESIZE / MiBCONVERTER))
 
-if [[ ${IMGUSERSIZE} ]]
+if [[ ( $IMGUSERSIZE ) ]]
 then
    ISNUMBER='^[0-9]+$'
 
-	if ! [[ ${IMGUSERSIZE} =~ ${ISNUMBER} ]] ; 
+	if ! [[ $IMGUSERSIZE =~ $ISNUMBER ]] ; 
 	then
 		echo "error: Not a number" >&2; exit 1
 	fi
 
     echo "[Setting filesystem to user defined size...]"
-    let IMGSIZE=${IMGUSERSIZE}*1024*1024
+    let IMGSIZE=$IMGUSERSIZE*1024*1024
     let	CHECKSIZE=$((DYNAMICFILESIZE + 80))*1024*1024
 
-	if [ ${IMGSIZE} -lt ${CHECKSIZE} ]
+	if [[ $IMGSIZE < $CHECKSIZE ]]
 	then
 		echo "Warning image size ($((CHECKSIZE / MiBCONVERTER)) MiB) size smaller than recommend size ($((CHECKSIZE / MiBCONVERTER))) MiB"
 	fi
 fi
 
-if [ -z $IMGUSERSIZE ]
+if [[ (-z $IMGUSERSIZE ) ]]
 then
 	let IMGSIZE=$((DYNAMICFILESIZE +80))*1024*1024
 fi
@@ -58,10 +58,9 @@ SIZE=`fdisk -l $LOOPNAME | grep Disk | awk '{print $5}'`
 
 echo DISK SIZE - $SIZE bytes
 
-sfdisk ${DRIVE} << EOF
+sfdisk $LOOPNAME << EOF
 1M,48M,0xE,*
-49M,256M,S,-
-305M,,,-
+49M,,,-
 EOF
 
 echo "[Making filesystems...]"
