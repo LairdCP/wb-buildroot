@@ -30,6 +30,13 @@ echo -ne \
 # Copy the product specific rootfs additions, strip host user access control
 rsync -rlptDWK --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
 
+if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
+	# Securely mount /var on tmpfs
+	grep -q "^tmpfs" ${TARGET_DIR}/etc/fstab &&
+		sed -ie '/^tmpfs/ s/mode=1777 /mode=1777,noexec,nosuid,nodev /' $TARGET_DIR/etc/fstab ||
+		echo "tmpfs /var tmpfs mode=1777,noexec,nosuid,nodev 0 0" >> ${TARGET_DIR}/etc/fstab
+fi
+
 mkdir -p $TARGET_DIR/etc/NetworkManager/system-connections
 
 # Make sure connection files have proper attributes
