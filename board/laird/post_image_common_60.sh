@@ -42,12 +42,23 @@ ${mkenvimage} -s 0x20000 -o ${BINARIES_DIR}/uboot-env.bin ${BINARIES_DIR}/uboot-
 # Generate dev keys if needed
 if [ ! -f ${BINARIES_DIR}/keys/dev.key ]; then
 	mkdir -p ${BINARIES_DIR}/keys
-	${openssl} genrsa -out ${BINARIES_DIR}/keys/dev.key 2048
-	${openssl} req -batch -new -x509 -key ${BINARIES_DIR}/keys/dev.key -out ${BINARIES_DIR}/keys/dev.crt
+	if [ -f $BOARD_DIR/keys/dev.key ]; then
+		cp ${BOARD_DIR}/keys/dev.key ${BINARIES_DIR}/keys
+		cp ${BOARD_DIR}/keys/dev.crt ${BINARIES_DIR}/keys
+		cp ${BOARD_DIR}/keys/key.bin ${BINARIES_DIR}/keys
+	else
+		${openssl} genrsa -out ${BINARIES_DIR}/keys/dev.key 2048
+		${openssl} req -batch -new -x509 -key ${BINARIES_DIR}/keys/dev.key -out ${BINARIES_DIR}/keys/dev.crt
+	fi
 fi
 
-# Copy the boot.scr for uboot
-cp ${BOARD_DIR}/configs/boot.scr ${BINARIES_DIR}/boot.scr
+# Copy the boot.scr and u-boot.its for uboot
+rm -f ${BINARIES_DIR}/u-boot.itb
+if ! grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
+	cp -f ${BOARD_DIR}/configs/boot.scr ${BINARIES_DIR}/boot.scr
+	cp -f ${BOARD_DIR}/configs/u-boot.its ${BINARIES_DIR}/u-boot.its || exit 1
+fi
+cp "${BINARIES_DIR}/u-boot-spl.dtb" "${BINARIES_DIR}/u-boot-spl-key.dtb"
 
 if (( ${SD} )) ; then
 	# Generate the hash table for squashfs
@@ -89,17 +100,26 @@ echo "# entering ${BINARIES_DIR} for the next command"
 (cd ${BINARIES_DIR} && ${mkimage} -F -K u-boot.dtb -k keys -r kernel.itb) || exit 1
 rm -f ${BINARIES_DIR}/kernel.its
 
-# Re-generate u-boot FIT with Keys
-rm -f ${BINARIES_DIR}/u-boot.itb
-cp ${BOARD_DIR}/configs/u-boot.its ${BINARIES_DIR}/u-boot.its || exit 1
-cp "${BINARIES_DIR}/u-boot-spl.dtb" "${BINARIES_DIR}/u-boot-spl-key.dtb"
-
 # First check for local keys, generate own if not
 # Then update uboot dtb with keys & sign kernel
 # Then build uboot FIT
-echo "# entering ${BINARIES_DIR} for the next command"
-(cd "${BINARIES_DIR}" && "${mkimage}" -f u-boot.its -K u-boot-spl-key.dtb -k keys -r u-boot.itb) || exit 1
-rm -f ${BINARIES_DIR}/u-boot.its
+if ! grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
+	echo "# entering ${BINARIES_DIR} for the next command"
+	(cd "${BINARIES_DIR}" && "${mkimage}" -f u-boot.its -K u-boot-spl-key.dtb -k keys -r u-boot.itb) || exit 1
+else
+	# Create AES key and IV from binary keyfile
+	AES_KEY=`xxd -p -l 16 ${BINARIES_DIR}/keys/key.bin`
+	AES_IV=`xxd -p -s 16 -l 16 ${BINARIES_DIR}/keys/key.bin`
+
+	# Encrypt U-Boot and U-Boot DTB
+	${openssl} aes-128-cbc -e -K ${AES_KEY} -iv ${AES_IV} -in ${BINARIES_DIR}/u-boot.dtb -out ${BINARIES_DIR}/u-boot.dtb.enc -v
+	${openssl} aes-128-cbc -e -K ${AES_KEY} -iv ${AES_IV} -in ${BINARIES_DIR}/u-boot-nodtb.bin -out ${BINARIES_DIR}/u-boot-nodtb.bin.enc -v
+
+	# Create U-Boot FIT image (encrypted), and store key and IV in SPL
+	echo "# entering ${BINARIES_DIR} for the next command"
+	(cd "${BINARIES_DIR}" && "${mkimage}" -f u-boot.its u-boot.itb) || exit 1
+	(cd "${BINARIES_DIR}" && "${mkimage}" -F -K u-boot-spl-key.dtb -k keys -r -Z ${AES_KEY} -z ${AES_IV} u-boot.itb) || exit 1
+fi
 
 # Then update SPL with appended keyed DTB
 cat "${BINARIES_DIR}/u-boot-spl-nodtb.bin" "${BINARIES_DIR}/u-boot-spl-key.dtb" > "${BINARIES_DIR}/u-boot-spl.bin"

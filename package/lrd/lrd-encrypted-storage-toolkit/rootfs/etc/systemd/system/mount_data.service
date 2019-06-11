@@ -1,0 +1,12 @@
+[Unit]
+Description=Mount Data Partition
+DefaultDependencies=false
+Wants=fskey.service
+After=fskey.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/mount_data.sh
+ExecStop=umount /data
+KeyringMode=inherit
