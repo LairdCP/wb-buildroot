@@ -32,6 +32,7 @@
 !/configs/bdimx6_defconfig
 !/configs/backports_defconfig
 !/configs/som60*_defconfig
+!/configs/ig60*_defconfig
 !/configs/firmware_defconfig
 !/configs/summit_supplicant*_defconfig
 !/configs/sterling_supplicant*_defconfig

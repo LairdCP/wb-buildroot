@@ -90,5 +90,4 @@ endif
 # ensure libopenssl is used for the host variant
 config BR2_PACKAGE_PROVIDES_HOST_OPENSSL
 	string
-	default "host-libopenssl"  if BR2_PACKAGE_LIBOPENSSL
-	default "host-libopenssl_1_0_2"  if BR2_PACKAGE_LIBOPENSSL_1_0_2
+	default "host-libopenssl"
