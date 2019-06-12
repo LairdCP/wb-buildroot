@@ -10,4 +10,9 @@ if BR2_PACKAGE_SOM60_FIRMWARE_BINARIES
 config BR2_PACKAGE_SOM60_FIRMWARE_BINARIES_VERSION_VALUE
 	string "som60 firmware binaries version"
 	default "0.0.0.0"
+
+config BR2_PACKAGE_SOM60_ST_SDIO_UART_FIRMWARE_BINARIES
+	bool "som60 SDIO UART Firmware Installer"
+	help
+      Extracts the Laird Sterling SDIO/UART wireless firmware binary from a firmware release and installs it on the target in addition to the normal SOM60 firmware.
 endif
