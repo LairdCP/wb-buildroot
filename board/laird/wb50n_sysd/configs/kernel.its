@@ -29,7 +29,7 @@
 			};
 		};
 		script@1 {
-			data = /incbin/("boot.scr");
+			data = /incbin/("uboot.scr");
 			type = "script";
 			arch = "arm";
 			compression = "none";
