@@ -53,12 +53,10 @@ if [ ! -f ${BINARIES_DIR}/keys/dev.key ]; then
 fi
 
 # Copy the boot.scr and u-boot.its for uboot
-rm -f ${BINARIES_DIR}/u-boot.itb
 if ! grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
 	cp -f ${BOARD_DIR}/configs/boot.scr ${BINARIES_DIR}/boot.scr
 	cp -f ${BOARD_DIR}/configs/u-boot.its ${BINARIES_DIR}/u-boot.its || exit 1
 fi
-cp "${BINARIES_DIR}/u-boot-spl.dtb" "${BINARIES_DIR}/u-boot-spl-key.dtb"
 
 if (( ${SD} )) ; then
 	# Generate the hash table for squashfs
@@ -74,8 +72,10 @@ if (( ${SD} )) ; then
 	# Generate a combined rootfs
 	cat ${BINARIES_DIR}/rootfs.squashfs ${BINARIES_DIR}/rootfs.verity > ${BINARIES_DIR}/rootfs.bin
 
-	# Generate the boot.scr for uboot
-	sed -i -e "s/SALT/${SALT}/g" -e "s/HASH/${HASH}/g" -e "s/BLOCKS/${BLOCKS}/g" -e "s/SIZE/${SIZE}/g" -e "s/OFFSET/${OFFSET}/g" ${BINARIES_DIR}/boot.scr
+	# Generate the uboot.scr for uboot
+	sed -e "s/SALT/${SALT}/g" -e "s/HASH/${HASH}/g" -e "s/BLOCKS/${BLOCKS}/g" -e "s/SIZE/${SIZE}/g" -e "s/OFFSET/${OFFSET}/g" ${BINARIES_DIR}/boot.scr > ${BINARIES_DIR}/uboot.scr
+else
+	cp -f ${BINARIES_DIR}/boot.scr ${BINARIES_DIR}/uboot.scr
 fi
 
 # Generate kernel FIT
@@ -100,6 +100,8 @@ echo "# entering ${BINARIES_DIR} for the next command"
 (cd ${BINARIES_DIR} && ${mkimage} -F -K u-boot.dtb -k keys -r kernel.itb) || exit 1
 rm -f ${BINARIES_DIR}/kernel.its
 
+rm -f ${BINARIES_DIR}/u-boot.itb
+cp "${BINARIES_DIR}/u-boot-spl.dtb" "${BINARIES_DIR}/u-boot-spl-key.dtb"
 # First check for local keys, generate own if not
 # Then update uboot dtb with keys & sign kernel
 # Then build uboot FIT
