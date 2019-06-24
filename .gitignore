@@ -13,16 +13,11 @@
 *.rej
 *~
 *.pyc
+
 # ignore our git clones brought in via Repo
 /package/lrd/externals/*
 /package/lrd-closed-source/externals/*
-/package/lrd-closed-source/externals/kernel/drivers/net/wireless/laird/lrdmwl
-/package/lrd-devel/at91bootstrap3
-/package/lrd-devel/u-boot
-/package/lrd-customers/*
-/board/laird/customers/*
 !/board/boundarydevices/common/etc/*
-!/board/laird/customers/README
 
 # ignore configs directory, except for the files we want:
 /configs/*
