@@ -33,4 +33,5 @@
 !/configs/sterling_supplicant*_defconfig
 !/configs/mfg*_defconfig
 !/configs/adaptive_ww*_defconfig
+!/configs/backports-test_defconfig
 # note the above is necessary to avoid customer configs.
