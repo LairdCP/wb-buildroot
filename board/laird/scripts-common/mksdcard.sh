@@ -68,7 +68,7 @@ echo "[Making file systems...]"
 # Format newly created partitions
 mkfs.vfat -F 16 -n boot ${PART_BOOT} &> /dev/null
 mkswap ${PART_SWAP} &> /dev/null
-mkfs.ext4 -L rootfs ${PART_ROOTFS} &> /dev/null
+mkfs.ext4 -L rootfs ${PART_ROOTFS} -E lazy_itable_init=0,lazy_journal_init=0 &> /dev/null
 
 echo "[Copying files...]"
 
@@ -94,5 +94,6 @@ tar xf ${SRCDIR}/rootfs.tar -C ${MNT_ROOTFS}
 sync
 
 umount ${MNT_ROOTFS} && rm -rf ${MNT_ROOTFS}
+umount -f ${DRIVE}? &> /dev/null
 
 echo "[Done]"
