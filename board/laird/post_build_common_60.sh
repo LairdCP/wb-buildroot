@@ -30,11 +30,21 @@ echo -ne \
 # Copy the product specific rootfs additions, strip host user access control
 rsync -rlptDWK --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
 
+sed -i 's/auto rw/auto,noatime rw/g' ${TARGET_DIR}/etc/fstab
+
+if [ ${SD} -eq 0 ]; then
+	grep -q "/dev/mmcblk0p2" ${TARGET_DIR}/etc/fstab ||\
+		echo '/dev/mmcblk0p2 swap swap defaults,noatime 0 0' >> ${TARGET_DIR}/etc/fstab
+
+	grep -q "/dev/mmcblk0p1" ${TARGET_DIR}/etc/fstab ||\
+		echo '/dev/mmcblk0p1 /boot vfat defaults,noatime 0 0' >> ${TARGET_DIR}/etc/fstab
+fi
+
 if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
 	# Securely mount /var on tmpfs
 	grep -q "^tmpfs" ${TARGET_DIR}/etc/fstab &&
-		sed -ie '/^tmpfs/ s/mode=1777 /mode=1777,noexec,nosuid,nodev /' $TARGET_DIR/etc/fstab ||
-		echo "tmpfs /var tmpfs mode=1777,noexec,nosuid,nodev 0 0" >> ${TARGET_DIR}/etc/fstab
+		sed -ie '/^tmpfs/ s/mode=1777 /mode=1777,noexec,nosuid,nodev,noatime /' $TARGET_DIR/etc/fstab ||
+		echo "tmpfs /var tmpfs mode=1777,noexec,nosuid,nodev,noatime 0 0" >> ${TARGET_DIR}/etc/fstab
 fi
 
 mkdir -p $TARGET_DIR/etc/NetworkManager/system-connections
