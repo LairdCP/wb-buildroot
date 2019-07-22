@@ -13,7 +13,6 @@ GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
 # Copy mksdcard.sh and mksdimg.sh to images
 cp ${BOARD_DIR}/../scripts-common/mksdcard.sh ${BINARIES_DIR}/
 cp ${BOARD_DIR}/../scripts-common/mksdimg.sh ${BINARIES_DIR}/
-cp ${BOARD_DIR}/configs/uboot-env.txt ${BINARIES_DIR}/
 
 # Tooling checks
 mkimage=${HOST_DIR}/bin/mkimage
@@ -36,8 +35,6 @@ test -x ${genimage} || \
 	die "No genimage found (host-genimage has not been built?)"
 test -x ${mkenvimage} || \
 	die "No mkenvimage found (host-uboot-tools has not been built?)"
-
-${mkenvimage} -s 0x20000 -o ${BINARIES_DIR}/uboot-env.bin ${BINARIES_DIR}/uboot-env.txt -r
 
 # Generate dev keys if needed
 if [ ! -f ${BINARIES_DIR}/keys/dev.key ]; then
@@ -144,6 +141,6 @@ if (( ${SD} )) ; then
 	# generate SWUpdate .swu image
 	cp ${BOARD_DIR}/configs/sw-description ${BINARIES_DIR}/
 	( cd ${BINARIES_DIR} && \
-		echo -e "sw-description\nboot.bin\nu-boot.itb\nkernel.itb\nrootfs.bin\nuboot-env.bin" |\
+		echo -e "sw-description\nboot.bin\nu-boot.itb\nkernel.itb\nrootfs.bin" |\
 		cpio -ov -H crc > ${BINARIES_DIR}/${BR2_LRD_PRODUCT}.swu)
 fi
