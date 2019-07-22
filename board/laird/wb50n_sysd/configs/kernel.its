@@ -18,6 +18,7 @@
 				algo = "sha256";
 			};
 		};
+
 		fdt@1 {
 			data = /incbin/("at91-dvk_som60.dtb");
 			type = "flat_dt";
@@ -28,6 +29,7 @@
 				algo = "sha256";
 			};
 		};
+
 		script@1 {
 			data = /incbin/("uboot.scr");
 			type = "script";
@@ -38,6 +40,7 @@
 			};
 		};
 	};
+
 	configurations {
 		default = "config@1";
 		config@1 {

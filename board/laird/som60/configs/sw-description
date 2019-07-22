@@ -52,12 +52,12 @@ software =
 			images: (
 				{
 					filename = "boot.bin";
-					device = "mtd0";
+					mtdname = "u-boot-spl";
 					type = "flash";
 				},
 				{
 					filename = "u-boot.itb";
-					device = "mtd1";
+					mtdname = "u-boot";
 					type = "flash";
 				},
 				{
@@ -84,12 +84,12 @@ software =
 			images: (
 				{
 					filename = "boot.bin";
-					device = "mtd0";
+					mtdname = "u-boot-spl";
 					type = "flash";
 				},
 				{
 					filename = "u-boot.itb";
-					device = "mtd1";
+					mtdname = "u-boot";
 					type = "flash";
 				},
 				{
@@ -116,12 +116,12 @@ software =
 			images: (
 				{
 					filename = "boot.bin";
-					device = "mtd0";
+					mtdname = "u-boot-spl";
 					type = "flash";
 				},
 				{
 					filename = "u-boot.itb";
-					device = "mtd1";
+					mtdname = "u-boot";
 					type = "flash";
 				},
 				{

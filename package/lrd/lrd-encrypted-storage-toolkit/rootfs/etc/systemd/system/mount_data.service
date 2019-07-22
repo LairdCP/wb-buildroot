@@ -7,6 +7,9 @@ After=fskey.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/sbin/mount_data.sh
-ExecStop=umount /data
+ExecStart=/usr/sbin/mount_data.sh start
+ExecStop=/usr/sbin/mount_data.sh stop
 KeyringMode=inherit
+
+[Install]
+WantedBy=local-fs.target

@@ -1,6 +1,7 @@
 software =
 {
 	version = "0.1.0";
+	bootloader_transaction_marker = false;
 
 	stable = {
 		main-a: {
@@ -51,12 +52,12 @@ software =
 			images: (
 				{
 					filename = "boot.bin";
-					device = "mtd0";
+					mtdname = "u-boot-spl";
 					type = "flash";
 				},
 				{
 					filename = "u-boot.itb";
-					device = "mtd1";
+					mtdname = "u-boot";
 					type = "flash";
 				},
 				{
@@ -83,12 +84,12 @@ software =
 			images: (
 				{
 					filename = "boot.bin";
-					device = "mtd0";
+					mtdname = "u-boot-spl";
 					type = "flash";
 				},
 				{
 					filename = "u-boot.itb";
-					device = "mtd1";
+					mtdname = "u-boot";
 					type = "flash";
 				},
 				{
@@ -107,6 +108,41 @@ software =
 				{
 					name = "bootside";
 					value = "b";
+				}
+			);
+		}
+
+		full: {
+			images: (
+				{
+					filename = "boot.bin";
+					mtdname = "u-boot-spl";
+					type = "flash";
+				},
+				{
+					filename = "u-boot.itb";
+					mtdname = "u-boot";
+					type = "flash";
+				},
+				{
+					filename = "kernel.itb";
+					volume = "kernel_a";
+					installed-directly = true;
+				},
+				{
+					filename = "kernel.itb";
+					volume = "kernel_b";
+					installed-directly = true;
+				},
+				{
+					filename = "rootfs.bin";
+					volume = "rootfs_a";
+					installed-directly = true;
+				},
+				{
+					filename = "rootfs.bin";
+					volume = "rootfs_b";
+					installed-directly = true;
 				}
 			);
 		}
