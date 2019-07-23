@@ -34,7 +34,8 @@ rsync -rlptDWK --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
 sed -i 's/auto rw/auto,noatime rw/g' ${TARGET_DIR}/etc/fstab
 
 # Do not run fsck for read-only file systems
-awk -i inplace '{if ($6 == 1 && $4 == "ro") $6=0}; 1' ${TARGET_DIR}/etc/fstab
+awk '{if ($6 == 1 && $4 == "ro") $6=0}; 1' ${TARGET_DIR}/etc/fstab > ${TARGET_DIR}/etc/fstab.tmp
+mv -f ${TARGET_DIR}/etc/fstab.tmp ${TARGET_DIR}/etc/fstab
 
 if [ ${SD} -eq 0 ]; then
 	grep -q "/dev/mmcblk0p2" ${TARGET_DIR}/etc/fstab ||\
