@@ -51,7 +51,10 @@ if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
 		echo "tmpfs /var tmpfs mode=1777,noexec,nosuid,nodev,noatime 0 0" >> ${TARGET_DIR}/etc/fstab
 fi
 
-mkdir -p $TARGET_DIR/etc/NetworkManager/system-connections
+# No need to detect SmartMedia cards, thus remove errors and speedup boot
+rm -f ${TARGET_DIR}/usr/lib/udev/rules.d/75-probe_mtd.rules
+
+mkdir -p ${TARGET_DIR}/etc/NetworkManager/system-connections
 
 # Make sure connection files have proper attributes
 for f in ${TARGET_DIR}/etc/NetworkManager/system-connections/* ; do
