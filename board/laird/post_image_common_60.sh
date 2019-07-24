@@ -10,10 +10,6 @@ set -x -e
 GENIMAGE_CFG="${BOARD_DIR}/configs/genimage.cfg"
 GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
 
-# Copy mksdcard.sh and mksdimg.sh to images
-cp ${BOARD_DIR}/../scripts-common/mksdcard.sh ${BINARIES_DIR}/
-cp ${BOARD_DIR}/../scripts-common/mksdimg.sh ${BINARIES_DIR}/
-
 # Tooling checks
 mkimage=${HOST_DIR}/bin/mkimage
 atmel_pmecc_params=${BUILD_DIR}/uboot-custom/tools/atmel_pmecc_params
@@ -73,6 +69,10 @@ if (( ${SD} )) ; then
 	sed -e "s/SALT/${SALT}/g" -e "s/HASH/${HASH}/g" -e "s/BLOCKS/${BLOCKS}/g" -e "s/SIZE/${SIZE}/g" -e "s/OFFSET/${OFFSET}/g" ${BINARIES_DIR}/boot.scr > ${BINARIES_DIR}/uboot.scr
 else
 	cp -f ${BINARIES_DIR}/boot.scr ${BINARIES_DIR}/uboot.scr
+
+	# Copy mksdcard.sh and mksdimg.sh to images
+	cp ${BOARD_DIR}/../scripts-common/mksdcard.sh ${BINARIES_DIR}/
+	cp ${BOARD_DIR}/../scripts-common/mksdimg.sh ${BINARIES_DIR}/
 fi
 
 # Generate kernel FIT

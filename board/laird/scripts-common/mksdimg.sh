@@ -1,93 +1,120 @@
-#!/usr/bin/env bash
-#********************************************ENTER IN IMAGE SIZES IN MiB******************************************
+#!/bin/sh
 
-echo "IMAGE SIZES ARE IN MiB!!"
 IMGFILE=$1
-IMGUSERSIZE=$2
-BLKSIZE=512
+ROOTFS_EXTRA_SIZE=${2:-0}
+SRCDIR=${0%/*}
 
-if [[ ( -z $IMGFILE ) ]]
-then
-    echo "mksdimg.sh <output filename> [optional output file size in MiB]"
+MiBCONVERTER=$(( 1024 * 1024 ))
+
+if [ -z "${IMGFILE}" ]; then
+    echo "mksdimg.sh <output filename> [optional rootfs free space size in MiB]" >&2
     exit
 fi
 
-if [ ! -f rootfs.tar ]; then
-    echo "Could not find required rootfs.tar file. This script only works"
-    echo "if the build was done for the som60sd target."
+if [ ! -f "${SRCDIR}/rootfs.tar" ]; then
+    echo "Could not find required rootfs.tar file." >&2
     exit
 fi
 
-DYNAMICFILESIZE=$(stat -c%s "rootfs.tar")
-MiBCONVERTER=$((1024*1024))
-DYNAMICFILESIZE=$((DYNAMICFILESIZE / MiBCONVERTER))
-
-if [[ ( $IMGUSERSIZE ) ]]
-then
-   ISNUMBER='^[0-9]+$'
-
-	if ! [[ $IMGUSERSIZE =~ $ISNUMBER ]] ; 
-	then
-		echo "error: Not a number" >&2; exit 1
-	fi
-
-    echo "[Setting filesystem to user defined size...]"
-    let IMGSIZE=$IMGUSERSIZE*1024*1024
-    let	CHECKSIZE=$((DYNAMICFILESIZE + 80))*1024*1024
-
-	if [[ $IMGSIZE < $CHECKSIZE ]]
-	then
-		echo "Warning image size ($((CHECKSIZE / MiBCONVERTER)) MiB) size smaller than recommend size ($((CHECKSIZE / MiBCONVERTER))) MiB"
-	fi
+[ "${ROOTFS_EXTRA_SIZE}" -eq "${ROOTFS_EXTRA_SIZE}" ] 2>/dev/null
+if [ $? -ne 0 ]; then
+		echo "rootfs free space size is not a number" >&2
+		exit
 fi
 
-if [[ (-z $IMGUSERSIZE ) ]]
-then
-	let IMGSIZE=$((DYNAMICFILESIZE +80))*1024*1024
-fi
+echo "[Creating card image...]"
 
-let IMGBLKS=${IMGSIZE}/${BLKSIZE}
+# Calculate size of the rootfs file system
+ROOTFS_FILE_SIZE=$(stat -c%s "${SRCDIR}/rootfs.tar")
 
-echo "[Creating image file...]"
-dd if=/dev/zero of=${IMGFILE} bs=${BLKSIZE} count=${IMGBLKS}
-LOOPNAME=$(losetup -f)
-losetup $LOOPNAME ${IMGFILE}
+# Set image free space to 10% of the used space by default
+[ "${ROOTFS_EXTRA_SIZE}" -eq "0" ] &&
+	ROOTFS_EXTRA_SIZE=$(( ROOTFS_FILE_SIZE * 11 / 10 ))
 
-echo "[Partitioning block device...]"
-SIZE=`fdisk -l $LOOPNAME | grep Disk | awk '{print $5}'`
+# Calculate partitions
+BOOT_IMG_SIZE_MiB=48
+BOOT_BLOCK_SIZE=512
+BOOT_BLOCKS=$(( BOOT_IMG_SIZE_MiB * MiBCONVERTER / BOOT_BLOCK_SIZE ))
 
-echo DISK SIZE - $SIZE bytes
+SWAP_IMG_SIZE_MiB=256
 
-sfdisk $LOOPNAME << EOF
-1M,48M,0xE,*
-49M,,,-
-EOF
+ROOTFS_IMG_SIZE_MiB=$(( (ROOTFS_FILE_SIZE + ROOTFS_EXTRA_SIZE) / MiBCONVERTER + 1 ))
+ROOTFS_BLOCK_SIZE=1024
+ROOTFS_BLOCKS=$(( ROOTFS_IMG_SIZE_MiB * MiBCONVERTER / ROOTFS_BLOCK_SIZE ))
 
-echo "[Making filesystems...]"
-# IMPORTANT: These offsets must match the partitions created above!
-LOOPNAME1=$(losetup -f)
-losetup -o 1048576 $LOOPNAME1 $LOOPNAME
-LOOPNAME2=$(losetup -f)
-losetup -o 51380224 $LOOPNAME2 $LOOPNAME
+BOOT_START_MiB=1
+BOOT_END_MiB=$((BOOT_START_MiB + BOOT_IMG_SIZE_MiB))
 
-mkfs.vfat -F 16 -n boot $LOOPNAME1 &> /dev/null
-mkfs.ext4 -L rootfs $LOOPNAME2 &> /dev/null
+SWAP_START_MiB=${BOOT_END_MiB}
+SWAP_END_MiB=$((SWAP_START_MiB + SWAP_IMG_SIZE_MiB))
 
-echo "[Copying files...]"
-mount -t vfat $LOOPNAME1 /mnt
-cp u-boot-spl.bin /mnt/boot.bin || echo "Script failed, check image size recommend: $((CHECKSIZE / MiBCONVERTER)) MiB"
-cp u-boot.itb /mnt
-cp kernel.itb /mnt
-sync
-umount /mnt
+ROOTFS_START_MiB=${SWAP_END_MiB}
+ROOTFS_END_MiB=$((ROOTFS_START_MiB + ROOTFS_IMG_SIZE_MiB))
 
-mount $LOOPNAME2 /mnt
-tar xf rootfs.tar -C /mnt ||  echo "Script failed, check image size recommend: $((CHECKSIZE / MiBCONVERTER)) MiB"
-sync
-umount /mnt
+TOTAL_IMG_SIZE_MiB=$((ROOTFS_END_MiB + 1))
 
-losetup -d $LOOPNAME1
-losetup -d $LOOPNAME2
-losetup -d $LOOPNAME
+# Create disk image placeholder
+rm -f ${IMGFILE}
+fallocate -l ${TOTAL_IMG_SIZE_MiB}MiB ${IMGFILE}
+[ $? -ne 0 ] && exit
+
+# Create image partition table
+parted -s ${IMGFILE} mklabel msdos unit MiB \
+    mkpart primary fat16 ${BOOT_START_MiB} ${BOOT_END_MiB} set 1 lba on set 1 boot on \
+    mkpart primary linux-swap ${SWAP_START_MiB} ${SWAP_END_MiB} \
+    mkpart primary ext4 ${ROOTFS_START_MiB} ${ROOTFS_END_MiB}
+
+[ $? -ne 0 ] && exit
+
+TMPDIR=$(mktemp -d)
+
+echo "[Creating boot partition...]"
+
+# Create boot partition image
+mkfs.vfat -F 16 -n BOOT -S ${BOOT_BLOCK_SIZE} -C ${TMPDIR}/boot.img ${BOOT_BLOCKS} > /dev/null
+
+# Add files to boot partition image
+mcopy -i ${TMPDIR}/boot.img ${SRCDIR}/u-boot-spl.bin ::/boot.bin
+mcopy -i ${TMPDIR}/boot.img ${SRCDIR}/u-boot.itb ::/
+mcopy -i ${TMPDIR}/boot.img ${SRCDIR}/kernel.itb ::/
+
+# Add boot partition to disk image
+dd if=${TMPDIR}/boot.img of=${IMGFILE} conv=notrunc bs=1MiB seek=${BOOT_START_MiB} count=${BOOT_IMG_SIZE_MiB} status=none
+rm -f ${TMPDIR}/boot.img
+
+echo "[Creating swap partition...]"
+
+# Create swap partition image
+fallocate -l ${SWAP_IMG_SIZE_MiB}MiB ${TMPDIR}/swap.img
+chmod 600 ${TMPDIR}/swap.img
+
+# Format swap partition image
+mkswap -L swap ${TMPDIR}/swap.img > /dev/null
+
+# Add swap partition to disk image
+dd if=${TMPDIR}/swap.img of=${IMGFILE} conv=notrunc bs=1MiB seek=${SWAP_START_MiB} count=${SWAP_IMG_SIZE_MiB} status=none
+rm -f ${TMPDIR}/swap.img
+
+echo "[Creating rootfs partition...]"
+
+# Create rootfs directory for mkfs.ext4
+mkdir ${TMPDIR}/rootfs.tmp
+tar xf ${SRCDIR}/rootfs.tar -C ${TMPDIR}/rootfs.tmp
+
+# Create rootfs partition image
+mkfs.ext4 -q -L rootfs -F -b ${ROOTFS_BLOCK_SIZE} -d ${TMPDIR}/rootfs.tmp -E lazy_itable_init=0,lazy_journal_init=0 ${TMPDIR}/rootfs.img ${ROOTFS_BLOCKS}
+rm -rf ${TMPDIR}/rootfs.tmp
+
+# Add rootfs partition to disk image
+dd if=${TMPDIR}/rootfs.img of=${IMGFILE} conv=notrunc bs=1MiB seek=${ROOTFS_START_MiB} count=${ROOTFS_IMG_SIZE_MiB} status=none
+rm -f ${TMPDIR}/rootfs.img
+
+rm -rf ${TMPDIR}
+
+echo "[Compressing card image...]"
+xz -9f ${IMGFILE}
 
 echo "[Done]"
+echo
+echo "[Image file: ${IMGFILE}.xz]"
+echo "SD Card Programming: umount /dev/sdX ; xz -dc ${IMGFILE}.xz | dd of=/dev/sdX bs=4M conv=fsync"
