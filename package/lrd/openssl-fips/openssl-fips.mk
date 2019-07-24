@@ -9,6 +9,23 @@ OPENSSL_FIPS_SITE = $(TOPDIR)/../archive
 OPENSSL_FIPS_SITE_METHOD = file
 OPENSSL_FIPS_SOURCE = openssl-fips-$(OPENSSL_FIPS_VERSION).tar.gz
 OPENSSL_FIPS_HMAC = e8dbfa6cb9e22a049ec625ffb7ccaf33e6116598
+
+ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS),y)
+# LAIRD FIPS PATCHES
+OPENSSL_FIPS_LOCAL_PATCH_FILES = \
+	$(TOPDIR)/package/lrd-closed-source/externals/wpa_supplicant/laird/laird-fips-ssl-patches/0010-laird-fips-openssl-fips-2.0.16.patch
+define OPENSSL_FIPS_APPLY_LOCAL_PATCHES
+	for p in $(OPENSSL_FIPS_LOCAL_PATCH_FILES) ; do \
+		if test -d $$p ; then \
+			$(APPLY_PATCHES) $(@D) $$p \*.patch || exit 1 ; \
+		else \
+			$(APPLY_PATCHES) $(@D) `dirname $$p` `basename $$p` || exit 1; \
+		fi \
+	done
+endef
+OPENSSL_FIPS_POST_PATCH_HOOKS += OPENSSL_FIPS_APPLY_LOCAL_PATCHES
+endif
+
 #
 # This is a certified source tarball from local archive only!!!
 # For building, see proscribed method in OPENSSL-FIPS-2.0 Security Policy Appendix A
