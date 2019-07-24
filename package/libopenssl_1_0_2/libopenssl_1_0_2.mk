@@ -31,6 +31,22 @@ LIBOPENSSL_1_0_2_PATCH = \
 	https://gitweb.gentoo.org/repo/gentoo.git/plain/dev-libs/openssl/files/openssl-1.0.2a-parallel-install-dirs.patch?id=c8abcbe8de5d3b6cdd68c162f398c011ff6e2d9d \
 	https://gitweb.gentoo.org/repo/gentoo.git/plain/dev-libs/openssl/files/openssl-1.0.2a-parallel-symlinking.patch?id=c8abcbe8de5d3b6cdd68c162f398c011ff6e2d9d
 
+ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS),y)
+# LAIRD FIPS PATCHES
+LIBOPENSSL_1_0_2_LOCAL_PATCH_FILES = \
+	$(TOPDIR)/package/lrd-closed-source/externals/wpa_supplicant/laird/laird-fips-ssl-patches/0010-laird-fips-openssl-1.0.2s.patch
+define LIBOPENSSL_1_0_2_APPLY_LOCAL_PATCHES
+	for p in $(LIBOPENSSL_1_0_2_LOCAL_PATCH_FILES) ; do \
+		if test -d $$p ; then \
+			$(APPLY_PATCHES) $(@D) $$p \*.patch || exit 1 ; \
+		else \
+			$(APPLY_PATCHES) $(@D) `dirname $$p` `basename $$p` || exit 1; \
+		fi \
+	done
+endef
+LIBOPENSSL_1_0_2_POST_PATCH_HOOKS += LIBOPENSSL_1_0_2_APPLY_LOCAL_PATCHES
+endif
+
 # relocation truncated to fit: R_68K_GOT16O
 ifeq ($(BR2_m68k_cf),y)
 LIBOPENSSL_1_0_2_CFLAGS += -mxgot
@@ -165,7 +181,7 @@ endef
 LIBOPENSSL_1_0_2_POST_INSTALL_TARGET_HOOKS += LIBOPENSSL_1_0_2_REMOVE_PERL_SCRIPTS
 endif
 
-ifeq ($(BR2_PACKAGE_LIBOPENSSL_1_0_2_BIN),)
+ifeq ($(BR2_PACKAGE_LIBOPENSSL_BIN),)
 define LIBOPENSSL_1_0_2_REMOVE_BIN
 	$(RM) -f $(TARGET_DIR)/usr/bin/openssl
 	$(RM) -f $(TARGET_DIR)/etc/ssl/misc/{CA.*,c_*}
