@@ -1,9 +1,0 @@
-#!/bin/ash
-
-flash_erase /dev/mtd0 00 00
-flash_erase /dev/mtd1 00 00
-flash_erase /dev/mtd2 00 00
-flash_erase /dev/mtd3 00 00
-
-ubidetach -p /dev/mtd4 2>/dev/null
-ubiformat /dev/mtd4 -y
