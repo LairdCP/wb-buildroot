@@ -1,11 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 DRIVE=${1}
 ARG=${1##*/}
 SRCDIR=${0%/*}
 DRIVE_SIZE=/sys/block/${DRIVE##*/}/size
 
-if [ -z ${DRIVE} ] || [ -z ${ARG} ]; then
+if [ -z "${DRIVE}" ] || [ -z "${ARG}" ]; then
     echo "mksdcard.sh <device>"
     echo "  <device> is the SD card to be programmed (e.g., /dev/sdc)"
     exit
@@ -17,21 +17,18 @@ if [ ! -b ${DRIVE} ] || [ "$(cat ${DRIVE_SIZE})" -eq 0 ]; then
 fi
 
 if [ ! -e ${SRCDIR}/rootfs.tar ]; then
-    echo "Can not find required rootfs.tar file. This script only works"
-    echo "if the build was done for the som60sd target."
+    echo "Can not find required rootfs.tar file."
     exit
 fi
 
-OPT=${ARG::-1}
-
-case "$OPT" in
-    "sd")
+case "${ARG}" in
+    sd*)
         PART_BOOT=${DRIVE}1
         PART_SWAP=${DRIVE}2
         PART_ROOTFS=${DRIVE}3
         ;;
 
-    "mmcblk")
+    mmcblk*)
         PART_BOOT=${DRIVE}p1
         PART_SWAP=${DRIVE}p2
         PART_ROOTFS=${DRIVE}p3
@@ -44,7 +41,7 @@ case "$OPT" in
 esac
 
 # Un-mount all mounted partitions
-umount -f ${DRIVE}? &> /dev/null
+umount -f ${DRIVE}? 2> /dev/null
 
 # Check if device is busy
 hdparm -z ${DRIVE} >/dev/null || exit
@@ -52,23 +49,27 @@ hdparm -z ${DRIVE} >/dev/null || exit
 echo "[Partitioning ${DRIVE}...]"
 
 # Wipe MBR and Partition Table
-dd if=/dev/zero of=${DRIVE} bs=512 count=1
+dd if=/dev/zero of=${DRIVE} bs=512 count=1 status=none
+dd if=/dev/zero of=${DRIVE} bs=1KiB count=1 seek=1024 status=none
+dd if=/dev/zero of=${DRIVE} bs=1KiB count=4 seek=$((49*1024)) status=none
+dd if=/dev/zero of=${DRIVE} bs=1KiB count=4 seek=$((305*1024)) status=none
 
-# Create new partition table
-sfdisk ${DRIVE} << EOF
-1M,48M,0xE,*
-49M,256M,S,-
-305M,,,-
-EOF
+parted -s ${DRIVE} mklabel msdos unit MiB \
+    mkpart primary fat16 1 49 set 1 lba on set 1 boot on \
+    mkpart primary linux-swap 49 305 \
+    mkpart primary ext4 305 100%
 
 [ $? -ne 0 ] && exit
+
+sync
 
 echo "[Making file systems...]"
 
 # Format newly created partitions
-mkfs.vfat -F 16 -n boot ${PART_BOOT} &> /dev/null
-mkswap ${PART_SWAP} &> /dev/null
-mkfs.ext4 -L rootfs ${PART_ROOTFS} -E lazy_itable_init=0,lazy_journal_init=0 &> /dev/null
+mkfs.vfat -F 16 -n BOOT ${PART_BOOT} >/dev/null
+mkswap -L swap ${PART_SWAP} >/dev/null
+mkfs.ext4 -q -L rootfs ${PART_ROOTFS} -E lazy_itable_init=0,lazy_journal_init=0
+sync
 
 echo "[Copying files...]"
 
@@ -94,6 +95,6 @@ tar xf ${SRCDIR}/rootfs.tar -C ${MNT_ROOTFS}
 sync
 
 umount ${MNT_ROOTFS} && rm -rf ${MNT_ROOTFS}
-umount -f ${DRIVE}? &> /dev/null
+umount -f ${DRIVE}? 2> /dev/null
 
 echo "[Done]"
