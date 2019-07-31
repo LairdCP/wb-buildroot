@@ -152,6 +152,10 @@ copy_toolchain_sysroot = \
 	if test -n "$${SUPPORT_LIB_DIR}" ; then \
 		cp -a $${SUPPORT_LIB_DIR}/* $(STAGING_DIR)/lib/ ; \
 	fi ; \
+	if ! grep -q "NL80211_WOWLAN_TRIG_NET_DETECT," $(STAGING_DIR)/usr/include/linux/nl80211.h ; then \
+		echo "WB50N_RDVK: fixing a bug in the toolchain"; \
+		sed -i '/NL80211_WOWLAN_TRIG_WAKEUP_TCP_NOMORETOKENS,/a NL80211_WOWLAN_TRIG_NET_DETECT,' $(STAGING_DIR)/usr/include/linux/nl80211.h ; \
+	fi; \
 	find $(STAGING_DIR) -type d | xargs chmod 755
 
 #
