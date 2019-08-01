@@ -19,4 +19,6 @@ endef
 
 FIPS_CHECK_PRE_CONFIGURE_HOOKS += FIPS_CHECK_CREATE_M4_DIR
 
+FIPS_CHECK_INSTALL_TARGET_OPTS = DESTDIR=$(TARGET_DIR) install-exec
+
 $(eval $(autotools-package))
