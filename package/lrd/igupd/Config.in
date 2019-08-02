@@ -1,0 +1,5 @@
+config BR2_PACKAGE_IGUPD
+	bool "igupd"
+	help
+	  Laird Industrial Gateway Update Service
+	depends on BR2_PACKAGE_PYTHON || BR2_PACKAGE_PYTHON3
