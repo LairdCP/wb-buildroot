@@ -27,3 +27,5 @@ source "package/lrd/lrd-automount/Config.in"
 source "package/lrd/lrd-usbgadget/Config.in"
 source "package/lrd/lrd-encrypted-storage-toolkit/Config.in"
 source "package/lrd/igconfd/Config.in"
+source "package/lrd/lrd-bt-utils/Config.in"
+
