@@ -1,6 +1,6 @@
 WIFI_TEST_SUITE_VERSION = f7a8d7ef7d1a831c1bb47de21fa083536ea2f3a9
 WIFI_TEST_SUITE_SITE_METHOD = git
-WIFI_TEST_SUITE_SITE = git://github.com/Wi-FiTestSuite/Wi-FiTestSuite-Linux-DUT
+WIFI_TEST_SUITE_SITE = https://github.com/Wi-FiTestSuite/Wi-FiTestSuite-Linux-DUT.git
 
 define WIFI_TEST_SUITE_BUILD_CMDS
 	$(MAKE)  -C $(@D) \
