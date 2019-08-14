@@ -1,0 +1,12 @@
+comment "Please config openssl in Target packages->Libraries/Crypto/Openssl"
+comment "Please config linux-backports in Target packages->Hardware handling->linux-backports"
+menu "Laird SOM60 Radio Stack"
+depends on BR2_LRD_PLATFORM_SOM60
+config BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE
+	string "Radio stack version"
+	help
+	Version number for linux-backports and radio packages unless specified in the package itself.
+source "package/lrd/lrd-som60-radio/adaptive_ww-binaries/Config.in"
+source "package/lrd/lrd-som60-radio/som60-firmware-binaries/Config.in"
+source "package/lrd/lrd-som60-radio/summit-supplicant-binaries/Config.in"
+endmenu
