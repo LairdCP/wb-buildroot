@@ -29,7 +29,6 @@ endchoice
 
 config BR2_PACKAGE_LINUX_BACKPORTS_VERSION_VALUE
 	string "backports version"
-	default "0.0.0.0"
 
 config BR2_PACKAGE_LINUX_BACKPORTS_DEFCONFIG
 	string "Defconfig name"

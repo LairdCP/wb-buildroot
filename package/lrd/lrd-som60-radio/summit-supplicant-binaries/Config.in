@@ -5,9 +5,3 @@ config BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES
 
 	help
 	  Extracts sdcsupp, wpa_cli binaries from summit_supplicant-arm release and install them on the target.
-
-if BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES
-config BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES_VERSION_VALUE
-	string "summit supplicant binaries version"
-	default "0.0.0.0"
-endif

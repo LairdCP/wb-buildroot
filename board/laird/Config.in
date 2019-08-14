@@ -26,6 +26,7 @@ menu "Laird"
 
     menu "Packages"
         source "package/lrd/Config.in"
+        source "package/lrd/lrd-som60-radio/Config.in"
     endmenu
 
     menu "Packages (Closed Source)"
