@@ -4,7 +4,11 @@
 #
 ################################################################################
 
-BACKPORTS_TEST_VERSION = $(call qstrip,$(BR2_PACKAGE_BACKPORTS_TEST_VERSION))
+
+BACKPORTS_TEST_VERSION = $(call qstrip,$(BR2_PACKAGE_LINUX_BACKPORTS_VERSION))
+ifeq ($(BACKPORTS_TEST_VERSION),)
+BACKPORTS_TEST_VERSION = 0.$(BR2_LRD_BRANCH).0.0
+endif
 
 BACKPORTS_TEST_SOURCE = backports-laird-$(BACKPORTS_TEST_VERSION).tar.bz2
 BR_NO_CHECK_HASH_FOR += $(BACKPORTS_TEST_SOURCE)
@@ -20,13 +24,9 @@ endif
 
 define HOST_BACKPORTS_TEST_BUILD_CMDS
 	cd $(@D) \
-		&& ../../../../package/lrd/externals/backports/devel/backports-update-manager --force \
+		&& ../../../../package/lrd/externals/backports/devel/backports-update-manager --yes \
 		&& ../../../../package/lrd/externals/backports/devel/ckmake --develdebug --nocurses \
 		&& ../../../../package/lrd/externals/backports/devel/ckmake --defconfig=regression-test --nocurses
-endef
-
-define HOST_BACKPORTS_TEST_INSTALL_TARGET_CMDS
-
 endef
 
 $(eval $(host-generic-package))
