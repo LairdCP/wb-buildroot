@@ -1,0 +1,81 @@
+From 237390a0a97491d158df9d941516850094a45cca Mon Sep 17 00:00:00 2001
+From: Lubomir Rintel <lkundrak@v3.sk>
+Date: Wed, 14 Jun 2017 18:18:57 +0200
+Subject: [PATCH 2/2] gio: don't fail the GDBusObjectManagerClient
+ initialization if the service disappears
+
+The current initialization sequence is racy -- the service could go away
+between we check for the bus name presence and the call to
+GetManagerObjects. Let's not fail the initialization in such case --
+wait for the service to reappear instead.
+
+Signed-off-by: Lubomir Rintel <lkundrak@v3.sk>
+---
+ gio/gdbusobjectmanagerclient.c | 33 +++++++++++++++++++++++----------
+ 1 file changed, 23 insertions(+), 10 deletions(-)
+
+diff --git a/gio/gdbusobjectmanagerclient.c b/gio/gdbusobjectmanagerclient.c
+index 04886f5cf..29de904e8 100644
+--- a/gio/gdbusobjectmanagerclient.c
++++ b/gio/gdbusobjectmanagerclient.c
+@@ -34,6 +34,7 @@
+ #include "gdbusobjectproxy.h"
+ #include "gdbusproxy.h"
+ #include "gdbusinterface.h"
++#include "gdbuserror.h"
+
+ #include "glibintl.h"
+
+@@ -1331,6 +1332,7 @@ initable_init (GInitable     *initable,
+                GError       **error)
+ {
+   GDBusObjectManagerClient *manager = G_DBUS_OBJECT_MANAGER_CLIENT (initable);
++  GError *dbus_error = NULL;
+   gboolean ret;
+   GVariant *value;
+   GDBusProxyFlags proxy_flags;
+@@ -1388,20 +1390,31 @@ initable_init (GInitable     *initable,
+                                       G_DBUS_CALL_FLAGS_NONE,
+                                       -1,
+                                       cancellable,
+-                                      error);
++                                      &dbus_error);
+       if (value == NULL)
+         {
+           maybe_unsubscribe_signals (manager);
+-          g_warn_if_fail (g_signal_handlers_disconnect_by_func (manager->priv->control_proxy,
+-                                                                on_control_proxy_g_signal,
+-                                                                manager) == 1);
+-          g_object_unref (manager->priv->control_proxy);
+-          manager->priv->control_proxy = NULL;
+-          goto out;
++          if (g_error_matches (dbus_error, G_DBUS_ERROR, G_DBUS_ERROR_SERVICE_UNKNOWN))
++            {
++              /* the service has gone off between the bus name check and GetManagedObjects call */
++              g_error_free (dbus_error);
++            }
++          else
++            {
++              g_warn_if_fail (g_signal_handlers_disconnect_by_func (manager->priv->control_proxy,
++                                                                    on_control_proxy_g_signal,
++                                                                    manager) == 1);
++              g_object_unref (manager->priv->control_proxy);
++              manager->priv->control_proxy = NULL;
++              g_propagate_error (error, dbus_error);
++              goto out;
++            }
++        }
++      else
++        {
++          process_get_all_result (manager, value, manager->priv->name_owner);
++          g_variant_unref (value);
+         }
+-
+-      process_get_all_result (manager, value, manager->priv->name_owner);
+-      g_variant_unref (value);
+     }
+
+   ret = TRUE;
+--
+2.13.0
+
