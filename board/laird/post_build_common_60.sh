@@ -48,12 +48,16 @@ fi
 if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
 	# Securely mount /var on tmpfs
 	grep -q "^tmpfs" ${TARGET_DIR}/etc/fstab &&
-		sed -ie '/^tmpfs/ s/mode=1777 /mode=1777,noexec,nosuid,nodev,noatime /' $TARGET_DIR/etc/fstab ||
+		sed -ie '/^tmpfs/ s/mode=1777 /mode=1777,noexec,nosuid,nodev,noatime /' ${TARGET_DIR}/etc/fstab ||
 		echo "tmpfs /var tmpfs mode=1777,noexec,nosuid,nodev,noatime 0 0" >> ${TARGET_DIR}/etc/fstab
 fi
 
 # No need to detect SmartMedia cards, thus remove errors and speedup boot
 rm -f ${TARGET_DIR}/usr/lib/udev/rules.d/75-probe_mtd.rules
+
+# Fixup systemd default to avoid errors
+sed -i 's/^net\.core\.default_qdisc/# net\.core\.default_qdisc/' ${TARGET_DIR}/usr/lib/sysctl.d/50-default.conf
+sed -i 's/^kernel\.sysrq/# kernel\.sysrq/' ${TARGET_DIR}/usr/lib/sysctl.d/50-default.conf
 
 mkdir -p ${TARGET_DIR}/etc/NetworkManager/system-connections
 
