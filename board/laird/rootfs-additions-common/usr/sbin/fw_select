@@ -534,8 +534,6 @@ case $1 in
       romode="configured for read-only"
     fi
     let kip=0+`kernel_x` rip=0+`rootfs_x` addr=0
-    test -e /dev/ubi[1]_1 \
-    && overlay=`cat /sys/class/ubi/ubi1_1/name` ## check if user is mounted
     echo $wb - flash memory
     echo "  mtd     address     size      description"
     for x in `grep -l nand /sys/class/mtd/*/type`
@@ -545,7 +543,6 @@ case $1 in
       let size=`cat $mtd/size`
       mtd=${mtd##/sys/class/mtd/mtd}
       [ $mtd -gt 0 ] && [ $mtd -eq $kip -o $mtd -eq $rip ] && ap='->' || ap='  '
-      [ $mtd -eq 8 ] && [ "user" == "${overlay}" ] && ap='->' ## tag user partion as active
       printf " $ap% 2d:  0x%08x  0x%08x  %-13s?\b" $mtd $addr $size "$name"
       mtd=/dev/mtd${mtd}
       vers=' '
@@ -566,10 +563,6 @@ case $1 in
         rootfs*)
           [ "${ap}" == "->" ] && [ ! -z "$romode" ] && vers="$romode" \
                                         || vers=`strings -n8 < $mtd |sed -n \
-                                        -e'/Laird Linux/{s/.* //p;q}' \
-                                        -e'/SDC Linux Release/{s/.* //p;q}'`;;
-        user )
-          [ "${overlay}" == "user" ] && vers=`sed /etc/laird-release -n \
                                         -e'/Laird Linux/{s/.* //p;q}' \
                                         -e'/SDC Linux Release/{s/.* //p;q}'`;;
       esac

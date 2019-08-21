@@ -17,7 +17,6 @@ image2=#u-boot.bin
 image3=kernel.bin
 image4=#rootfs.bin
 image5=sqroot.bin
-image6=userfs.bin
 if [ ! -f $image5 ]
 then
 	# builds without sqroot should have rootfs.bin enabled
@@ -33,7 +32,7 @@ else
 fi
 
 # write update-list
-for n in 1 2 3 4 5 6
+for n in 1 2 3 4 5
 do
   # construct image var
   eval name=\$image$n \

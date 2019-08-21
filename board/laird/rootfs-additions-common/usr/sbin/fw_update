@@ -30,7 +30,6 @@ U_BOOT_IMG=u-boot.bin
 KERNEL_IMG=kernel.bin
 ROOTFS_IMG=rootfs.bin
 SQROOT_IMG=sqroot.bin
-USERFS_IMG=userfs.bin
 
 # update-list file
 FWUL=/tmp/fw.txt
@@ -516,12 +515,6 @@ then
   test -n "${2}" && [ "${2:0:1}" != "/" -a "${2/*:*/:}" != ":" ] \
     && SQROOT_URL=${isl:-${url%/*}}/${2/^.\/}
 
-  ## parse md5, name, length and check if absolute url/path or convert
-  set -- $( sed -n "/^[^#] *[0-9a-f]\{32\}\ .*${USERFS_IMG}/p" $FWUL )
-  eval USERFS_MD5=$1 USERFS_URL=$2 USERFS_LEN=${3:-0}
-  test -n "${2}" && [ "${2:0:1}" != "/" -a "${2/*:*/:}" != ":" ] \
-    && USERFS_URL=${isl:-${url%/*}}/${2/^.\/}
-
   ## parse other options
   shell=$( sed -n '/^ *sh[ell]* /{s/.*sh[ell]* //p;q}' $FWUL )
 
@@ -587,7 +580,7 @@ then
     echo -e "Reverting rootfs-a/b swap\n  ...\c"
     [ $rootfs != a ] && $fw_select rootfs-a || $fw_select rootfs-b
   fi
-  eval at91bs= u_boot= kernel= rootfs= userfs=
+  eval at91bs= u_boot= kernel= rootfs=
 fi
 
 bootcmd_x() {
@@ -903,37 +896,6 @@ then
   fi
 fi
 
-tp=mtd8
-image=${USERFS_IMG%%.*} ubifs=${UBIFS:-true}
-if assert_image USERFS "User Filesystem"
-then
-  umount /mnt
-  umount /etc
-  umount /home
-  ubidetach -p /dev/mtd8
-  if flash_image $USERFS_URL
-  then
-    if $fw_setenv md5_$image $USERFS_MD5
-    then
-      userfs=x
-    fi
-  fi
-  # reattach overlays if system is not rebooting after update
-  # cant call boot scripts since they exist in the overlays
-  # these commands could match those found in bootoverlay scripts
-  if ! $x_reboot
-  then
-    ubiattach -p /dev/mtd8
-    mount -t ubifs ubi1:user /mnt
-    mkdir -p /mnt/etc-upperdir
-    mkdir -p /mnt/etc-workdir
-    mount -t overlay -olowerdir=/etc,upperdir=/mnt/etc-upperdir,workdir=/mnt/etc-workdir overlayfs /etc
-    mkdir -p /mnt/home-upperdir
-    mkdir -p /mnt/home-workdir
-    mount -t overlay -olowerdir=/home,upperdir=/mnt/home-upperdir,workdir=/mnt/home-workdir overlayfs /home
-  fi
-fi
-
 ${tm:-:}
 test -n "$shell" \
   && echo shell: \[$shell\] \
@@ -958,7 +920,6 @@ $fw_setenv updated_% \
      ${u_boot:+u_boot=$u_boot} \
      ${kernel:+kernel=$kernel} \
      ${rootfs:+rootfs=$rootfs} \
-     ${userfs:+userfs=$userfs} \
      ${host:+host=$host}
 
 test -n "$rootfs" -a -n "$bootargs" \
