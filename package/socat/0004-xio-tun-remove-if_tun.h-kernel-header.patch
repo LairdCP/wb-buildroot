@@ -29,10 +29,10 @@ index 9058bf8..ed0962c 100644
  /* Define if you have the <netpacket/packet.h> header file.  */
  #undef HAVE_NETPACKET_PACKET_H
  
-diff --git a/configure.in b/configure.in
+diff --git a/configure.ac b/configure.ac
 index 1d2e76f..27bb3d5 100644
---- a/configure.in
-+++ b/configure.in
+--- a/configure.ac
++++ b/configure.ac
 @@ -78,7 +78,7 @@ AC_CHECK_HEADERS(arpa/nameser.h)
  
  AC_HEADER_RESOLV()
