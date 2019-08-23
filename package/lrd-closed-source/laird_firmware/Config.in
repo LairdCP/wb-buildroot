@@ -92,6 +92,12 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_USB_UART
 	help
 	  Install firmware for Laird's Sterling 60 USB WiFi-UART BT combo radio.
 
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_USB_USB
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird Sterling 60 USB-USB"
+	help
+	  Install firmware for Laird's Sterling 60 USB WiFi-USB BT combo radio.
+
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_SDIO_UART
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird Summit 60 SDIO-UART"
@@ -121,6 +127,12 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_USB_UART
 	bool "Laird Summit 60 USB-UART"
 	help
 	  Install firmware for Laird's Summit 60 USB WiFi-UART BT combo radio.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_USB_USB
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird Summit 60 USB-USB"
+	help
+	  Install firmware for Laird's Summit 60 USB WiFi-USB BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM60
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
