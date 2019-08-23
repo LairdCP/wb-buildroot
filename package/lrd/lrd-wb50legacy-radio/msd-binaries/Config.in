@@ -1,6 +1,7 @@
 config BR2_PACKAGE_MSD_BINARIES
-	bool "MSD Installer"
+	bool "MSD Installer for WB50N Legacy"
 	select BR2_PACKAGE_LIBNL
+	depends on BR2_LRD_WB50N_LEGACY_RADIO
 	help
       Extracts the Laird closed source binaries from an msd release and install them on the target.
       (sdcsupp, sdcsdk, sdc_cli, etc)

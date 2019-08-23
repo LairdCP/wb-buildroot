@@ -1,0 +1,7 @@
+config BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE
+	string "WB50N sysd radio stack version"
+	depends on BR2_LRD_WB50N_SYSD_RADIO || BR2_LRD_WB50N_SYSD_FIPS_RADIO
+	help
+	Version number for radio packages.
+source "package/lrd/lrd-wb50sysd-radio/wb50n-firmware-binaries/Config.in"
+source "package/lrd/lrd-wb50sysd-radio/wb50sysd-summit-supplicant-binaries/Config.in"
