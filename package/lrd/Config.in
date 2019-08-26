@@ -1,4 +1,3 @@
-source "package/lrd/patchram/Config.in"
 source "package/lrd/lrd-wireless-regdb/Config.in"
 source "package/lrd/openssl-fips/Config.in"
 source "package/lrd/fips-check/Config.in"
