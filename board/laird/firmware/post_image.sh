@@ -75,7 +75,7 @@ create_60_firmware_zipfile()
 {
 	grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_${1^^}60_${2^^}_${3^^}=y" ${BR2_CONFIG} || return
 
-	FW_FILE=$(basename ${FW_DIR}/lrdmwl/88W8997_${1}_${2}_${3}_*.bin)
+	local FW_FILE=$(basename ${FW_DIR}/lrdmwl/88W8997_${1}_${2}_${3}_*.bin)
 	[ "${1}" == "SU" ] && FW_PROD=summit60 || FW_PROD=sterling60
 
 	ln -rsf ${FW_DIR}/lrdmwl/${FW_FILE} ${FW_DIR}/lrdmwl/88W8997_${2}.bin
@@ -93,35 +93,26 @@ create_60_firmware_zipfile ST sdio sdio
 create_60_firmware_zipfile ST pcie uart
 create_60_firmware_zipfile ST pcie usb
 create_60_firmware_zipfile ST usb uart
+create_60_firmware_zipfile ST usb usb
 
 create_60_firmware_zipfile SU sdio uart
 create_60_firmware_zipfile SU sdio sdio
 create_60_firmware_zipfile SU pcie uart
 create_60_firmware_zipfile SU pcie usb
 create_60_firmware_zipfile SU usb uart
+create_60_firmware_zipfile SU usb usb
 
+if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM60=y" ${BR2_CONFIG}; then
+	FW_FILE=$(basename ${FW_DIR}/lrdmwl/88W8997_SOM_sdio_uart_*.bin)
 
-if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343_MFG=y" ${BR2_CONFIG}; then
-ln -rsf ${FW_DIR}/regulatory_default.db ${FW_DIR}/regulatory.db
-ln -rsf ${FW_DIR}/brcm/bcm4343w/brcmfmac43430-sdio-mfg.bin ${FW_DIR}/brcm/brcmfmac43430-sdio.bin
-ln -rsf ${FW_DIR}/brcm/bcm4343w/brcmfmac43430-sdio-fcc.txt ${FW_DIR}/brcm/brcmfmac43430-sdio.txt
-ln -rsf ${FW_DIR}/brcm/bcm4343w/4343w.hcd ${FW_DIR}/brcm/4343w.hcd
-ln -rsf ${FW_DIR}/brcm/bcm4343w/4343w.hcd ${FW_DIR}/brcm/BCM43430A1.1DX.hcd
-ln -rsf ${FW_DIR}/brcm/bcm4343w/brcmfmac43430-sdio.clm_blob ${FW_DIR}/brcm/brcmfmac43430-sdio.clm_blob
-tar -cjf "${IMAGESDIR}/laird-lwb-firmware-mfg-${LAIRD_RELEASE_STRING}.tar.bz2" \
-	-C ${TARGET_DIR} \
-	lib/firmware/regulatory_default.db lib/firmware/regulatory.db	\
-	lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio-mfg.bin \
-	lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio-fcc.txt \
-	lib/firmware/brcm/brcmfmac43430-sdio.txt \
-	lib/firmware/brcm/brcmfmac43430-sdio.bin \
-	lib/firmware/brcm/4343w.hcd \
-	lib/firmware/brcm/BCM43430A1.1DX.hcd \
-	lib/firmware/brcm/bcm4343w/4343w.hcd \
-	lib/firmware/brcm/brcmfmac43430-sdio.clm_blob \
-	lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio.clm_blob \
-	lib/firmware/regulatory_default.db lib/firmware/regulatory.db
-zip -j ${IMAGESDIR}/480-0108-${LAIRD_RELEASE_STRING}.zip ${IMAGESDIR}/laird-lwb-firmware-mfg-${LAIRD_RELEASE_STRING}.tar.bz2
+	ln -rsf ${FW_DIR}/lrdmwl/${FW_FILE} ${FW_DIR}/lrdmwl/88W8997_sdio.bin
+	ln -rsf ${FW_DIR}/regulatory_summit60.db ${FW_DIR}/regulatory.db
+
+	tar -cjf "${IMAGESDIR}/laird-som60-radio-firmware-$LAIRD_RELEASE_STRING.tar.bz2" \
+		-C ${TARGET_DIR} \
+		lib/firmware/lrdmwl/88W8997_sdio.bin \
+		lib/firmware/lrdmwl/${FW_FILE} \
+		lib/firmware/regulatory_summit60.db lib/firmware/regulatory.db
 fi
 
 if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343=y" ${BR2_CONFIG}; then
