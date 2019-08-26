@@ -1,14 +1,11 @@
 config BR2_PACKAGE_WB50N_FIRMWARE_BINARIES
 	bool "wb50n Firmware Installer"
 	select BR2_PACKAGE_LAIRD_FIRMWARE if BR2_LRD_DEVEL_BUILD="y"
+	depends on BR2_LRD_WB50N_SYSD_RADIO || BR2_LRD_WB50N_SYSD_FIPS_RADIO
 	help
       Extracts the Laird wb50n wireless firmware binaries from an firmware release and install them on the target.
 
 if BR2_PACKAGE_WB50N_FIRMWARE_BINARIES
-
-config BR2_PACKAGE_WB50N_FIRMWARE_BINARIES_VERSION_VALUE
-	string "wb50n firmware binaries version"
-	default "0.0.0.0"
 
 config BR2_FIRMWARE_BINARIES_ATH6K_6003
 	bool "Laird ath6k AR6003 radio firmware"

@@ -1,0 +1,7 @@
+config BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE
+	string "WB50N legacy radio stack version"
+	default "0.0.0.0"
+	depends on BR2_LRD_WB50N_LEGACY_RADIO
+	help
+	Version number for radio packages.
+source "package/lrd/lrd-wb50legacy-radio/msd-binaries/Config.in"

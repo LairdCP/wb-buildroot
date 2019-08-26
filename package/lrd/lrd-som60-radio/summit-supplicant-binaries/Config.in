@@ -2,6 +2,6 @@ config BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES
 	bool "SOM60 Summit Supplicant ARM EABIHF Binaries Installer"
 	select BR2_PACKAGE_SDCSUPP if BR2_LRD_DEVEL_BUILD="y"
 	select BR2_PACKAGE_SDCSUPP_WPA_CLI if BR2_LRD_DEVEL_BUILD="y"
-
+	depends on (BR2_LRD_SOM60_RADIO && !BR2_PACKAGE_LAIRD_OPENSSL_FIPS && !BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES) || (BR2_LRD_SOM60_FIPS_RADIO && (BR2_PACKAGE_LAIRD_OPENSSL_FIPS || BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES))
 	help
-	  Extracts sdcsupp, wpa_cli binaries from summit_supplicant-arm release and install them on the target.
+	  Extracts sdcsupp, wpa_cli binaries from summit supplicant release and install them on the target.

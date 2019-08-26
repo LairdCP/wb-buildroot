@@ -8,21 +8,13 @@ SDCSDK_VERSION = local
 SDCSDK_SITE = package/lrd-closed-source/externals/sdk
 SDCSDK_SITE_METHOD = local
 
-SDCSDK_DEPENDENCIES = libnl host-pkgconf openssl 
+SDCSDK_DEPENDENCIES = libnl host-pkgconf openssl
 SDCSDK_INSTALL_STAGING = YES
 SDCSDK_MAKE_ENV = CFLAGS="$(TARGET_CFLAGS)" PKG_CONFIG="$(HOST_DIR)/usr/bin/pkg-config"
 SDCSDK_TARGET_DIR = $(TARGET_DIR)
 
 SDCSDK_PLATFORM := $(call qstrip,$(BR2_LRD_PLATFORM))
-ifeq ($(SDCSDK_PLATFORM),wb50n)
-    SDCSDK_RADIO_FLAGS := CONFIG_SDC_RADIO_QCA45N=y
-else ifeq ($(SDCSDK_PLATFORM),wb45n)
-    SDCSDK_RADIO_FLAGS := CONFIG_SDC_RADIO_QCA45N=y
-else ifeq ($(SDCSDK_PLATFORM),wb40n)
-    SDCSDK_RADIO_FLAGS := CONFIG_SDC_RADIO_BCM40N=y
-else ifeq ($(BR2_PACKAGE_SDCSDK),y)
-    $(error "ERROR: Expected BR2_LRD_PLATFORM to be wb50n, wb45n or wb40n.")
-endif
+SDCSDK_RADIO_FLAGS := CONFIG_SDC_RADIO_QCA45N=y
 
 define SDCSDK_BUILD_CMDS
     $(MAKE) -C $(@D) clean
