@@ -1,4 +1,3 @@
-source "package/lrd/patchram/Config.in"
 source "package/lrd/msd-binaries/Config.in"
 source "package/lrd/wb50n-firmware-binaries/Config.in"
 source "package/lrd/lrd-wireless-regdb/Config.in"
