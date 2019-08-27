@@ -26,7 +26,7 @@ SDCSUPP_FIPS += CONFIG_FIPS_LAIRD=y
 endif
 endif
 
-ifeq ($(BR2_PACKAGE_LRD_LEGACY),y)
+ifeq ($(BR2_PACKAGE_SDCSUPP_LEGACY),y)
 	SDCSUPP_CONFIG = $(SDCSUPP_D)/config_legacy
 else
 	SDCSUPP_DEPENDENCIES += dbus
@@ -49,7 +49,7 @@ define SDCSUPP_INSTALL_WPA_CLI
 endef
 endif
 
-ifneq ($(BR2_PACKAGE_LRD_LEGACY),y)
+ifneq ($(BR2_PACKAGE_SDCSUPP_LEGACY),y)
 
 ifeq ($(BR2_PACKAGE_WPA_SUPPLICANT),y)
 	# both wpa_supplicant and sdcsupp installed, postfix to avoid collision
