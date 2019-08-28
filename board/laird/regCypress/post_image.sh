@@ -17,6 +17,10 @@ sed -i "1i#${LAIRD_RELEASE_STRING}" ${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest
 
 TARFILE="${BR2_LRD_PRODUCT}.tar.bz2"
 
+
+ln -srf ${TARGET_DIR}/lib/firmware/brcm/bcm4339/brcmfmac4339-sdio-mfg.bin ${TARGET_DIR}/lib/firmware/brcm/bcm4339/brcmfmac4339-sdio.bin
+ln -srf ${TARGET_DIR}/lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio-mfg.bin ${TARGET_DIR}/lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio.bin
+
 # generate tar.bz2 to be inserted in script
 tar -cjf "${IMAGESDIR}/${TARFILE}" -C ${TARGET_DIR} \
 	${BR2_LRD_PRODUCT}.manifest \
@@ -24,6 +28,7 @@ tar -cjf "${IMAGESDIR}/${TARFILE}" -C ${TARGET_DIR} \
 	lib/firmware/brcm/bcm4339/brcmfmac4339-sdio-mfg.bin \
 	lib/firmware/brcm/bcm4339/brcmfmac4339-sdio.bin \
 	lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio-mfg.bin \
+	lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio.clm_blob \
 	lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio.bin
 
 # generate sha to validate package
