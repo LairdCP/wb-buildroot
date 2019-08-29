@@ -1,7 +1,7 @@
 menu "Laird"
 
 	config BR2_LRD_DEVEL_BUILD
-	string
+	bool
 	option env="BR2_LRD_DEVEL_BUILD"
 	help
 	  Developers at Laird can access the closed source repositories,
