@@ -28,7 +28,8 @@ if [[ ${BR2_LRD_PLATFORM} == *legacy* ]]; then
 		usr/include/sdc_sdk.h \
 		usr/include/sdc_events.h \
 		usr/include/lrd_sdk_pil.h \
-		usr/include/lrd_sdk_eni.h
+		usr/include/lrd_sdk_eni.h \
+		usr/lib/libsdc_sdk.so
 fi
 
 bzip2 -f "${IMAGESDIR}/${BR2_LRD_PRODUCT}.tar"

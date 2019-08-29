@@ -14,11 +14,11 @@ else
 endif
 
 define WB50N_LEGACY_SUMMIT_SUPPLICANT_BINARIES_INSTALL_STAGING_CMDS
-	tar -xjf $($(PKG)_DL_DIR)/$(WB50N_LEGACY_SUMMIT_SUPPLICANT_BINARIES_EXTRA_DOWNLOADS) -C $(STAGING_DIR) --keep-directory-symlink --no-overwrite-dir --touch usr/include
+	tar -xjf $($(PKG)_DL_DIR)/$(WB50N_LEGACY_SUMMIT_SUPPLICANT_BINARIES_EXTRA_DOWNLOADS) -C $(STAGING_DIR) --keep-directory-symlink --no-overwrite-dir --touch --wildcards usr/include usr/lib/lib*
 endef
 
 define WB50N_LEGACY_SUMMIT_SUPPLICANT_BINARIES_INSTALL_TARGET_CMDS
-	tar -xjf $($(PKG)_DL_DIR)/$(WB50N_LEGACY_SUMMIT_SUPPLICANT_BINARIES_EXTRA_DOWNLOADS) -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch --exclude=usr/include
+	tar -xjf $($(PKG)_DL_DIR)/$(WB50N_LEGACY_SUMMIT_SUPPLICANT_BINARIES_EXTRA_DOWNLOADS) -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch --exclude=usr/include --exclude=usr/lib/libsdc_sdk.so
 endef
 
 endif
