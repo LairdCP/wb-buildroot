@@ -1,0 +1,21 @@
+config BR2_PACKAGE_LRU_ATH6KL
+	bool "Lru_Ath6kl"
+	select BR2_PACKAGE_LIBNL
+	select BR2_PACKAGE_READLINE
+	help
+	  Lru Tools
+
+if BR2_PACKAGE_LRU_ATH6KL
+
+config BR2_PACKAGE_LRU_ATH6KL_WB50N_SUPPORT
+	bool "WB50N support"
+	help
+	  Builds tools to support WB50n(AR6004) instead of WB45n(AR6003).
+
+config BR2_PACKAGE_LRU_ATH6KL_TEST_MODE
+	bool "Lru testmode"
+	help
+	  Puts Lru in testmode
+
+
+endif
