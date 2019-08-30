@@ -13,11 +13,25 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_AR6003
 	  Install Laird's AR6003 firmware and calibration data for the 45
 	  series radios.
 
+config BR2_PACKAGE_LAIRD_FIRMWARE_AR6003_MFG
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird 45-series Mfg"
+	help
+	  Install Laird's AR6003 manufacturing firmware for the 45
+	  series radios.
+
 config BR2_PACKAGE_LAIRD_FIRMWARE_AR6004
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird 50-series"
 	help
 	  Install Laird's AR6004 firmware and calibration data for the 50
+	  series radios.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_AR6004_MFG
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird 50-series Mfg"
+	help
+	  Install Laird's AR6004 manufacturing firmware for the 50
 	  series radios.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_AR6004_PUBLIC

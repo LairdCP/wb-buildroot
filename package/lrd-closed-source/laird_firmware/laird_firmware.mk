@@ -7,6 +7,14 @@ ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_AR6003),y)
 define LAIRD_FW_6003_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/ath6k
 	cp -r $(@D)/ath6k/AR6003 $(TARGET_DIR)/lib/firmware/ath6k
+	rm $(TARGET_DIR)/lib/firmware/ath6k/AR6003/hw2.1.1/athtcmd*
+endef
+endif
+
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_AR6003_MFG),y)
+define LAIRD_FW_6003_MFG_INSTALL_TARGET_CMDS
+	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/ath6k/AR6003/hw2.1.1
+	cp $(@D)/ath6k/AR6003/hw2.1.1/athtcmd* $(TARGET_DIR)/lib/firmware/ath6k/AR6003/hw2.1.1/
 endef
 endif
 
@@ -15,6 +23,14 @@ define LAIRD_FW_6004_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/ath6k
 	cp -r $(@D)/ath6k/AR6004 $(TARGET_DIR)/lib/firmware/ath6k
 	rm $(TARGET_DIR)/lib/firmware/ath6k/AR6004/hw3.0/qca*
+	rm $(TARGET_DIR)/lib/firmware/ath6k/AR6004/hw3.0/utf*
+endef
+endif
+
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_AR6004_MFG),y)
+define LAIRD_FW_6004_MFG_INSTALL_TARGET_CMDS
+	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/ath6k/AR6004/hw3.0
+	cp $(@D)/ath6k/AR6004/hw3.0/utf* $(TARGET_DIR)/lib/firmware/ath6k/AR6004/hw3.0/
 endef
 endif
 
@@ -209,7 +225,9 @@ endif
 
 define LAIRD_FIRMWARE_INSTALL_TARGET_CMDS
 	$(LAIRD_FW_6003_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_6003_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_6004_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_6004_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_6004_PUBLIC_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4343_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4339_INSTALL_TARGET_CMDS)
