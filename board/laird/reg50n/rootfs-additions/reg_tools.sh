@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# set -x -e
+#set -x -e
 
 help_text() {
 echo
@@ -9,12 +9,14 @@ echo
 echo "Options:"
 echo "  sha  ..validate the encapsulated tarball vs the sha signature file supplied as an argument"
 echo "  install  ..install the files from the tarball in their proper places, -f to force install"
+echo "  uninstall ..removes the files from their installation directory"
 echo "  tar  ..dump the encapsulated tarball to the filesystem as a normal .tar.bz2"
 echo "  version  ..output the version number of this build"
 echo
 echo "Examples:"
 echo "  $0 sha [file]"
 echo "  $0 install"
+echo "  $0 uninstall"
 echo "  $0 tar"
 echo "  $0 version"
 echo
@@ -38,33 +40,32 @@ case $1 in
 		fi
 		TAR_SHA=`tail -n +$SKIP $THIS | sha256sum | sed -e 's/\s.*$//'`
 		FILE_SHA=`cat $2 | sed -e 's/\s.*$//'`
-		if [ "$TAR_SHA" == "$FILE_SHA" ]
+		if [ "$TAR_SHA" = "$FILE_SHA" ]
 		then
 			echo "Computed checksums match"
 		else
 			echo "Computed checksums did NOT match"
 		fi
-		break
 		;;
 	"install")
 		# make directory to store files
 		mkdir -p $ROOTNAME
-		# decompress tar.bz2
-		tail -n +$SKIP $THIS | tar -xzj -C $ROOTNAME
+		#decompress tar.bz2
+		tail -n +$SKIP $THIS | tar -xj -C $ROOTNAME
 		# read manifest
 		while read line; do
 			BIN=`echo $line | sed 's/.*\///'`
-			if [[ ${line:0:1} != '#' ]]
+			if [ $(echo $line | cut -c1-1) != '#' ]
 			then
 				# check for forced
-				if [ "$2" == "-f" ]
+				if [ "$2" = "-f" ]
 				then
 					mkdir -p `echo $line | sed "s/$BIN//g"`
 					echo "Forced install of $BIN to $line"
 					cp "$ROOTNAME/$BIN" "$line"
 				else
 					# check if file exists
-					if [[ -e "$line" ]]
+					if [ -e "$line" ]
 					then
 						echo "File $line already exists, skipping..."
 					else
@@ -76,15 +77,30 @@ case $1 in
 			fi
 		done < `find $ROOTNAME/. -name '*.manifest'`
 		rm -rf $ROOTNAME
-		break
+		;;
+	"uninstall")
+		# make directory to store files
+		mkdir -p $ROOTNAME
+		# decompress tar.bz2
+		tail -n +$SKIP $THIS | tar -xj -C $ROOTNAME
+		# read manifest
+		while read line; do
+			BIN=`echo $line | sed 's/.*\///'`
+			if [ $(echo $line | cut -c1-1) != '#' ]
+			then
+				if [ -e "$line" ]
+				then
+					rm -f "$ROOTNAME/$BIN" "$line"
+				fi
+			fi
+		done < `find $ROOTNAME/. -name '*.manifest'`
+		rm -rf $ROOTNAME
 		;;
 	"tar")
 		tail -n +$SKIP $THIS > "$ROOTNAME.tar.bz2"
-		break
 		;;
 	"version")
 		sed -n 2,2p $0 | sed 's/.*#//'
-		break
 		;;
 	*)
 		help_text

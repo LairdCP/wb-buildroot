@@ -20,13 +20,13 @@ sed -i "1i#$LAIRD_RELEASE_STRING" "$TARGET_DIR/$BR2_LRD_PRODUCT-$LAIRD_RELEASE_S
 TARFILE="$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.tar"
 
 # generate tar.bz2 to be inserted in script
-tar -cvf $IMAGESDIR/$TARFILE --directory="$TARGET_DIR/usr/bin" .
-[ -f "$TARGET_DIR/usr/sbin/" ] && tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/usr/sbin/" .
-tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/etc/ar6kl-tools/dbgParser/include/" .
+tar -cvf $IMAGESDIR/$TARFILE --directory="$TARGET_DIR/usr/bin/" athtestcmd tcmd.sh
+tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/usr/sbin/" smu_cli
+(cd "$TARGET_DIR/lib/firmware/ath6k/AR6004/hw3.0" && tar --append --file="$IMAGESDIR/$TARFILE" utf*)
 tar --append --file="$IMAGESDIR/$TARFILE" -C "$TARGET_DIR/" "$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.manifest"
 bzip2 -f "$IMAGESDIR/$TARFILE"
 
-# generate sha to valitage package
+# generate sha to validate package
 CURRENT_PWD=`pwd`
 cd $IMAGESDIR
 sha256sum "$TARFILE.bz2" > "$BR2_LRD_PRODUCT-$LAIRD_RELEASE_STRING.sha"
