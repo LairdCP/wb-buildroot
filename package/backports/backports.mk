@@ -26,9 +26,10 @@ BP_LRDMWL_GIT_DIR := $(BP_LRDMWL_DIR)/.git
 
 define HOST_BACKPORTS_BUILD_CMDS
 	rm -rf $(BP_LRDMWL_GIT_DIR)/shallow
-	$(@D)/gentree.py --clean --copy-list $(@D)/copy-list \
+	$(@D)/gentree.py --clean --copy-list $(@D)/copy-list --base-name "Laird Linux" \
 			       $(BP_LINUX_DIR) \
 			       $(BP_TREE_WORKING)
+	sed -i 's|\(BACKPORTS_VERSION=\).*|\1\"v$(BACKPORTS_VERSION)\"|g' $(BP_TREE_WORKING)/versions
 	rm -rf $(BP_TREE_WORKING)/drivers/net/wireless/laird/lrdmwl/.git
 	mv $(BP_TREE_WORKING) $(BP_TREE) # necessary to catch failure of prev step
 endef
