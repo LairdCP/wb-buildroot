@@ -6,7 +6,6 @@
 
 define POST_INSTALL_TARGET_HOOK
 	rsync -rlptDWK package/lrd/lrd-encrypted-storage-toolkit/rootfs/ $(TARGET_DIR)/
-	cp -fr package/lrd/lrd-encrypted-storage-toolkit/keys $(BINARIES_DIR)/
 	cp -f  package/lrd/lrd-encrypted-storage-toolkit/configs/* $(BINARIES_DIR)/
 endef
 

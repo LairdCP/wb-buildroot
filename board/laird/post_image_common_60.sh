@@ -1,5 +1,6 @@
 BOARD_DIR="${1}"
 SD=${2}
+DEVEL_KEYS="${3}"
 
 # enable tracing and exit on errors
 set -x -e
@@ -33,16 +34,13 @@ test -x ${mkenvimage} || \
 	die "No mkenvimage found (host-uboot-tools has not been built?)"
 
 # Generate dev keys if needed
-if [ ! -f ${BINARIES_DIR}/keys/dev.key ]; then
-	mkdir -p ${BINARIES_DIR}/keys
-	if [ -f $BOARD_DIR/keys/dev.key ]; then
-		cp ${BOARD_DIR}/keys/dev.key ${BINARIES_DIR}/keys
-		cp ${BOARD_DIR}/keys/dev.crt ${BINARIES_DIR}/keys
-		cp ${BOARD_DIR}/keys/key.bin ${BINARIES_DIR}/keys
-	else
-		${openssl} genrsa -out ${BINARIES_DIR}/keys/dev.key 2048
-		${openssl} req -batch -new -x509 -key ${BINARIES_DIR}/keys/dev.key -out ${BINARIES_DIR}/keys/dev.crt
-	fi
+mkdir -p ${BINARIES_DIR}/keys
+if [ -f ${DEVEL_KEYS}/dev.key ]; then
+	cp ${DEVEL_KEYS}/* ${BINARIES_DIR}/keys/ -fr
+else
+	${openssl} genrsa -out ${BINARIES_DIR}/keys/dev.key 2048
+	${openssl} req -batch -new -x509 -key ${BINARIES_DIR}/keys/dev.key -out ${BINARIES_DIR}/keys/dev.crt
+	dd if=/dev/random of=${BINARIES_DIR}/keys/key.bin bs=64 count=1
 fi
 
 # Copy the boot.scr and u-boot.its for uboot
