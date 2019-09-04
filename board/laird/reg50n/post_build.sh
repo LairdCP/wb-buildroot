@@ -1,6 +1,5 @@
 
 export BR2_LRD_PRODUCT=reg50n
-export BR2_LRD_PLATFORM=msd50n
 
 echo "REG50n POST BUILD script: starting..."
 
@@ -22,6 +21,6 @@ echo "/usr/bin/tcmd.sh" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 
 # make sure board script is not in target directory and copy it from rootfs-additions
 rm -f $TARGET_DIR/reg_tools.sh
-cp board/laird/reg50n/rootfs-additions/reg_tools.sh $TARGET_DIR
+cp board/laird/scripts-common/reg_tools.sh $TARGET_DIR
 
 echo "REG50n POST BUILD script: done."

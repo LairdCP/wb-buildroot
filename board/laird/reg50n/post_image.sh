@@ -1,7 +1,6 @@
 IMAGESDIR="$1"
 
 export BR2_LRD_PRODUCT=reg50n
-export BR2_LRD_PLATFORM=msd50n
 
 [ ! -d "$IMAGESDIR" ] && mkdir -p "$IMAGESDIR"
 
