@@ -1,0 +1,33 @@
+diff -Naur a/plugins/udevng.c b/plugins/udevng.c
+--- a/plugins/udevng.c	2019-04-12 20:14:23.000000000 +0000
++++ b/plugins/udevng.c	2019-07-22 19:32:04.770920854 +0000
+@@ -1151,8 +1151,9 @@
+ 				qmi = info->devnode;
+ 		}
+ 
+-		/* Cinterion ALS3, PLS8-E, PLS8-X */
+-		if (g_strcmp0(info->interface, "2/2/1") == 0) {
++		/* Cinterion ALS3, PLS8-E, PLS8-X, PLS62-W */
++		if (g_strcmp0(info->interface, "2/2/1") == 0 ||
++		    g_strcmp0(info->interface, "2/2/0") == 0) {
+ 			if (g_strcmp0(info->number, "00") == 0)
+ 				mdm = info->devnode;
+ 			else if (g_strcmp0(info->number, "02") == 0)
+@@ -1161,7 +1162,7 @@
+ 				gps = info->devnode;
+ 		}
+ 		if (g_strcmp0(info->interface, "2/6/0") == 0) {
+-			if (g_strcmp0(info->subsystem, "net") == 0)
++			if (g_strcmp0(info->subsystem, "net") == 0 && !net)
+ 				net = info->devnode;
+ 		}
+ 	}
+@@ -1705,6 +1706,8 @@
+ 	{ "gemalto",	"option",	"1e2d",	"0053"	},
+ 	{ "gemalto",	"cdc_wdm",	"1e2d",	"0053"	},
+ 	{ "gemalto",	"qmi_wwan",	"1e2d",	"0053"	},
++	{ "gemalto",	"cdc_acm",	"1e2d",	"005b"	},
++	{ "gemalto",	"cdc_ether",	"1e2d",	"005b"	},
+ 	{ "gemalto",	"cdc_acm",	"1e2d",	"0061"	},
+ 	{ "gemalto",	"cdc_ether",	"1e2d",	"0061"	},
+ 	{ "telit",	"cdc_ncm",	"1bc7", "0036"	},

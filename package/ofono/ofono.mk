@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OFONO_VERSION = 1.28
+OFONO_VERSION = 1.29
 OFONO_SOURCE = ofono-$(OFONO_VERSION).tar.xz
 OFONO_SITE = $(BR2_KERNEL_MIRROR)/linux/network/ofono
 OFONO_LICENSE = GPL-2.0
@@ -20,6 +20,8 @@ OFONO_CONF_OPTS = \
 	--disable-test \
 	--with-dbusconfdir=/etc \
 	$(if $(BR2_INIT_SYSTEMD),--with-systemdunitdir=/usr/lib/systemd/system)
+
+OFONO_AUTORECONF = YES
 
 # N.B. Qualcomm QMI modem support requires O_CLOEXEC; so
 # make sure that it is defined.
