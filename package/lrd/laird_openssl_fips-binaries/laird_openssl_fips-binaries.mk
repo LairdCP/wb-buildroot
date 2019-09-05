@@ -6,8 +6,6 @@
 #
 ################################################################################
 
-ifneq ($(BR2_LRD_DEVEL_BUILD),y)
-
 LAIRD_OPENSSL_FIPS_BINARIES_VERSION = $(call qstrip,$(BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES_VERSION_VALUE))
 LAIRD_OPENSSL_FIPS_BINARIES_SOURCE =
 LAIRD_OPENSSL_FIPS_BINARIES_LICENSE = OpenSSL or SSLeay
@@ -30,8 +28,6 @@ define LAIRD_OPENSSL_FIPS_BINARIES_REMOVE_BIN
 	$(RM) -f $(TARGET_DIR)/etc/ssl/misc/{CA.*,c_*}
 endef
 LAIRD_OPENSSL_FIPS_BINARIES_POST_INSTALL_TARGET_HOOKS += LAIRD_OPENSSL_FIPS_BINARIES_REMOVE_BIN
-endif
-
 endif
 
 $(eval $(generic-package))
