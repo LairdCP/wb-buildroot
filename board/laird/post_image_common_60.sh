@@ -78,7 +78,8 @@ fi
 # files must be in current directory for mkimage.
 DTB="$(sed -n 's/^BR2_LINUX_KERNEL_INTREE_DTS_NAME="\(.*\)"$/\1/p' ${BR2_CONFIG})"
 # Look for DTB in custom path
-[ -z ${DTB} ] && DTB="$(sed -n 's,BR2_LINUX_KERNEL_CUSTOM_DTS_PATH=".*/\(.*\).dts"$,\1,p' ${BR2_CONFIG})"
+[ -z ${DTB} ] && \
+	DTB="$(sed 's,BR2_LINUX_KERNEL_CUSTOM_DTS_PATH="\(.*\)",\1,; s,\s,\n,g' ${BR2_CONFIG} | sed -n 's,.*/\(.*\).dts$,\1,p')"
 
 sed "s/at91-dvk_som60/${DTB}/g" ${BOARD_DIR}/configs/kernel.its > ${BINARIES_DIR}/kernel.its || exit 1
 
