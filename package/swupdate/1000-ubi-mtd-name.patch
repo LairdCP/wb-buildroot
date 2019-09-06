@@ -1,0 +1,26 @@
+--- a/corelib/mtd-interface.c
++++ b/corelib/mtd-interface.c
+@@ -471,7 +471,7 @@
+ 	/*
+ 	 * Search for volumes in MTD that are not attached, default case
+ 	 */
+-
++#if 0
+ 	for (i = mtd_info->lowest_mtd_num;
+ 	     i <= mtd_info->highest_mtd_num; i++) {
+ 		if (flash->libubi && !flash->mtd_info[i].skipubi &&
+@@ -479,6 +479,13 @@
+ 				flash->mtd_info[i].mtd.type != MTD_UBIVOLUME)
+ 			scan_ubi_partitions(i);
+ 	}
++#else
++	i = get_mtd_from_name("ubi");
++	if (i >= 0 && flash->libubi && !flash->mtd_info[i].skipubi &&
++			!flash->mtd_info[i].scanned &&
++			flash->mtd_info[i].mtd.type != MTD_UBIVOLUME)
++		scan_ubi_partitions(i);
++#endif
+ #endif
+ #endif
+ 
+
