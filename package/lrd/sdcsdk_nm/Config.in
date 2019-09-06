@@ -1,0 +1,6 @@
+config BR2_PACKAGE_SDCSDK_NM
+	bool "SOM60 SDC SDK"
+	select BR2_PACKAGE_LIBNL
+	select BR2_PACKAGE_LRD_USERSPACE_EXAMPLES
+	help
+	  SDCSDK based on NetworkManager.
