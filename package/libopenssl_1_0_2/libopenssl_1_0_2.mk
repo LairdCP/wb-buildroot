@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-LIBOPENSSL_1_0_2_VERSION = 1.0.2s
+LIBOPENSSL_1_0_2_VERSION = 1.0.2t
 LIBOPENSSL_1_0_2_SITE = http://www.openssl.org/source
 LIBOPENSSL_1_0_2_SOURCE = openssl-$(LIBOPENSSL_1_0_2_VERSION).tar.gz
 LIBOPENSSL_1_0_2_LICENSE = OpenSSL or SSLeay
