@@ -4,26 +4,17 @@
 #
 #############################################################
 
+ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS),y)
+# building from closed source git repository
+OPENSSL_FIPS_VERSION = local
+OPENSSL_FIPS_SITE = package/lrd-closed-source/externals/lairdssl_fips_2_0
+OPENSSL_FIPS_SITE_METHOD = local
+else
 OPENSSL_FIPS_VERSION = 2.0.16
 OPENSSL_FIPS_SITE = $(TOPDIR)/../archive
 OPENSSL_FIPS_SITE_METHOD = file
 OPENSSL_FIPS_SOURCE = openssl-fips-$(OPENSSL_FIPS_VERSION).tar.gz
 OPENSSL_FIPS_HMAC = e8dbfa6cb9e22a049ec625ffb7ccaf33e6116598
-
-ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS),y)
-# LAIRD FIPS PATCHES
-OPENSSL_FIPS_LOCAL_PATCH_FILES = \
-	$(TOPDIR)/package/lrd-closed-source/externals/wpa_supplicant/laird/laird-fips-ssl-patches/0010-laird-fips-openssl-fips-2.0.16.patch
-define OPENSSL_FIPS_APPLY_LOCAL_PATCHES
-	for p in $(OPENSSL_FIPS_LOCAL_PATCH_FILES) ; do \
-		if test -d $$p ; then \
-			$(APPLY_PATCHES) $(@D) $$p \*.patch || exit 1 ; \
-		else \
-			$(APPLY_PATCHES) $(@D) `dirname $$p` `basename $$p` || exit 1; \
-		fi \
-	done
-endef
-OPENSSL_FIPS_POST_PATCH_HOOKS += OPENSSL_FIPS_APPLY_LOCAL_PATCHES
 endif
 
 #
@@ -63,9 +54,19 @@ endif
 
 CALC_HMAC = $(shell openssl sha1 -r -hmac etaonrishdlcupfm $(OPENSSL_FIPS_DL_DIR)/$(OPENSSL_FIPS_SOURCE))
 
+ifneq ($(OPENSSL_FIPS_VERSION),local)
 define OPENSSL_FIPS_CONFIGURE_CMDS
 $(if $(filter $(OPENSSL_FIPS_HMAC),$(CALC_HMAC)),,$(error Hash Mismatch $(OPENSSL_FIPS_SOURCE)))
 endef
+endif
+
+ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS),y)
+# building from git repository
+OPENSSL_FIPS_CONFIG_CMD_EXEC=./config fipscanisteronly
+else
+# building from tarball
+OPENSSL_FIPS_CONFIG_CMD_EXEC=./config
+endif
 
 # BZ10856: set BR2_PASSTHRU_WRAPPER=1 to use base toolchain cross-compiler
 define OPENSSL_FIPS_BUILD_CMDS
@@ -77,7 +78,7 @@ define OPENSSL_FIPS_BUILD_CMDS
 	  export BUILD=Laird; \
 	  export CROSS_COMPILE=$(TARGET_CROSS); \
 	  export HOSTCC=gcc; \
-	  ./config; \
+	  $(OPENSSL_FIPS_CONFIG_CMD_EXEC); \
 	  make \
 	)
 endef

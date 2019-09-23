@@ -4,9 +4,16 @@
 #
 ################################################################################
 
+ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS),y)
+# building from closed source git repository
+LIBOPENSSL_1_0_2_VERSION = local
+LIBOPENSSL_1_0_2_SITE = package/lrd-closed-source/externals/lairdssl_1_0_2
+LIBOPENSSL_1_0_2_SITE_METHOD = local
+else
 LIBOPENSSL_1_0_2_VERSION = 1.0.2t
 LIBOPENSSL_1_0_2_SITE = http://www.openssl.org/source
 LIBOPENSSL_1_0_2_SOURCE = openssl-$(LIBOPENSSL_1_0_2_VERSION).tar.gz
+endif
 LIBOPENSSL_1_0_2_LICENSE = OpenSSL or SSLeay
 LIBOPENSSL_1_0_2_LICENSE_FILES = LICENSE
 LIBOPENSSL_1_0_2_INSTALL_STAGING = YES
@@ -30,22 +37,6 @@ LIBOPENSSL_1_0_2_PATCH = \
 	https://gitweb.gentoo.org/repo/gentoo.git/plain/dev-libs/openssl/files/openssl-1.0.2a-parallel-obj-headers.patch?id=c8abcbe8de5d3b6cdd68c162f398c011ff6e2d9d \
 	https://gitweb.gentoo.org/repo/gentoo.git/plain/dev-libs/openssl/files/openssl-1.0.2a-parallel-install-dirs.patch?id=c8abcbe8de5d3b6cdd68c162f398c011ff6e2d9d \
 	https://gitweb.gentoo.org/repo/gentoo.git/plain/dev-libs/openssl/files/openssl-1.0.2a-parallel-symlinking.patch?id=c8abcbe8de5d3b6cdd68c162f398c011ff6e2d9d
-
-ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS),y)
-# LAIRD FIPS PATCHES
-LIBOPENSSL_1_0_2_LOCAL_PATCH_FILES = \
-	$(TOPDIR)/package/lrd-closed-source/externals/wpa_supplicant/laird/laird-fips-ssl-patches/0010-laird-fips-openssl-1.0.2s.patch
-define LIBOPENSSL_1_0_2_APPLY_LOCAL_PATCHES
-	for p in $(LIBOPENSSL_1_0_2_LOCAL_PATCH_FILES) ; do \
-		if test -d $$p ; then \
-			$(APPLY_PATCHES) $(@D) $$p \*.patch || exit 1 ; \
-		else \
-			$(APPLY_PATCHES) $(@D) `dirname $$p` `basename $$p` || exit 1; \
-		fi \
-	done
-endef
-LIBOPENSSL_1_0_2_POST_PATCH_HOOKS += LIBOPENSSL_1_0_2_APPLY_LOCAL_PATCHES
-endif
 
 # relocation truncated to fit: R_68K_GOT16O
 ifeq ($(BR2_m68k_cf),y)
