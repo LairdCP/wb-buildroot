@@ -14,14 +14,17 @@ MY_MAKE_OPTS = CXX="$(TARGET_CXX)" CC="$(TARGET_CC)" LD="$(TARGET_LD)" PKG_CONFI
 # BUILD
 #
 define ADAPTIVE_WW_BUILD_CMDS
-	$(MAKE) $(MY_MAKE_OPTS) -C $(@D)
+	$(TARGET_MAKE_ENV) $(MAKE) $(MY_MAKE_OPTS) -C $(@D)/awm
+	$(TARGET_MAKE_ENV) $(MAKE) $(MY_MAKE_OPTS) -C $(@D)/lpt
 endef
 
 #
 #Install
 #
 define ADAPTIVE_WW_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 755 $(@D)/bin/adaptive_ww $(TARGET_DIR)/usr/bin/adaptive_ww
+#Note: Do *NOT* install lpt on target.  This utility is for internal use only by FAEs to build
+#      the txpower database used by adaptive ww.
+	$(INSTALL) -D -m 755 $(@D)/awm/bin/adaptive_ww $(TARGET_DIR)/usr/bin/adaptive_ww
 endef
 
 
