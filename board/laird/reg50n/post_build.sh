@@ -7,7 +7,7 @@ echo "REG50n POST BUILD script: starting..."
 set -x -e
 
 # generate manifest file
-echo "/usr/bin/athtestcmd" > "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
+echo "/usr/bin/lru" > "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 echo "/usr/sbin/smu_cli" >> "$TARGET_DIR/$BR2_LRD_PRODUCT.manifest"
 
 for f in $TARGET_DIR/lib/firmware/ath6k/AR6004/hw3.0/utf*; do
