@@ -50,8 +50,8 @@ case ${1#--} in
     ;;
 
   '') ## setup for athtestcmd
-    test -x /usr/bin/athtestcmd \
-      || { echo "error - athtestcmd not available"; exit 1; }
+    test -x /usr/bin/lru \
+      || { echo "error - lru not available"; exit 1; }
 
     # remove any configuration
     if [ -z "$NM" ]; then
@@ -64,13 +64,13 @@ case ${1#--} in
     echo
     (
       if [ -z "$NM" ]; then
-        cd /lib/modules/`uname -r`/kernel/drivers/net/wireless/ath/ath6kl
+        cd /lib/modules/`uname -r`/backports/drivers/net/wireless/ath/ath6kl
         do_ insmod ath6kl_core.ko testmode=1
         do_ insmod ath6kl_sdio.ko $ATH6K_SDIO_PARAMS
       else
-        cd /lib/modules/`uname -r`/kernel/net/wireless
+        cd /lib/modules/`uname -r`/backports/net/wireless
         do_ insmod cfg80211.ko
-        cd /lib/modules/`uname -r`/kernel/drivers/net/wireless/ath/ath6kl
+        cd /lib/modules/`uname -r`/backports/drivers/net/wireless/ath/ath6kl
         do_ insmod ath6kl_core.ko testmode=1
         do_ modprobe ath6kl_sdio
       fi
