@@ -1,11 +1,12 @@
 /dts-v1/;
 
 / {
-	description = "Laird OS kernel image & FDT blob";
+	description = "Laird FIT Image";
 	#address-cells = <1>;
 
 	images {
 		kernel@1 {
+			description = "Laird Linux Kernel";
 			data = /incbin/("Image.gz");
 			type = "kernel";
 			arch = "arm";
@@ -20,6 +21,7 @@
 		};
 
 		fdt@1 {
+			description = "Flattened Device Tree blob";
 			data = /incbin/("at91-dvk_som60.dtb");
 			type = "flat_dt";
 			arch = "arm";
@@ -31,6 +33,7 @@
 		};
 
 		script@1 {
+			description = "Boot script";
 			data = /incbin/("uboot.scr");
 			type = "script";
 			arch = "arm";
@@ -44,6 +47,7 @@
 	configurations {
 		default = "config@1";
 		config@1 {
+			description = "Laird Linux kernel with FDT blob";
 			kernel = "kernel@1";
 			fdt = "fdt@1";
 			loadables = "script@1";

@@ -43,10 +43,13 @@ else
 	dd if=/dev/random of=${BINARIES_DIR}/keys/key.bin bs=64 count=1
 fi
 
+cp -f ${BOARD_DIR}/configs/boot.scr ${BINARIES_DIR}/boot.scr
+
 # Copy the boot.scr and u-boot.its for uboot
 if ! grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
-	cp -f ${BOARD_DIR}/configs/boot.scr ${BINARIES_DIR}/boot.scr
 	cp -f ${BOARD_DIR}/configs/u-boot.its ${BINARIES_DIR}/u-boot.its || exit 1
+else
+	sed 's,^initlrd=.*,initlrd="initlrd=/usr/sbin/pre-systemd-init.sh",g' -i ${BINARIES_DIR}/boot.scr
 fi
 
 if (( ${SD} )) ; then
@@ -84,9 +87,9 @@ DTB="$(sed -n 's/^BR2_LINUX_KERNEL_INTREE_DTS_NAME="\(.*\)"$/\1/p' ${BR2_CONFIG}
 sed "s/at91-dvk_som60/${DTB}/g" ${BOARD_DIR}/configs/kernel.its > ${BINARIES_DIR}/kernel.its || exit 1
 
 if grep -q '"Image.gz"' ${BINARIES_DIR}/kernel.its; then
-	gzip -9kf ${BINARIES_DIR}/Image
+	gzip -9kfn ${BINARIES_DIR}/Image
 elif grep -q '"Image.lzo"' ${BINARIES_DIR}/kernel.its; then
-	lzop -9o ${BINARIES_DIR}/Image.lzo ${BINARIES_DIR}/Image
+	lzop -9on ${BINARIES_DIR}/Image.lzo ${BINARIES_DIR}/Image
 elif grep -q '"Image.lzma"' ${BINARIES_DIR}/kernel.its; then
 	lzma -9kf ${BINARIES_DIR}/Image
 fi

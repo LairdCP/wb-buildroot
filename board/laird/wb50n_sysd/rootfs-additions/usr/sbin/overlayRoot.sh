@@ -64,7 +64,15 @@ mkdir /mnt/lower
 mkdir /mnt/rw
 
 # Find our running ubiblock
-BLOCK=`sed -n 's/.*ubi\.block=[0-9]*,\([0-9]*\).*/\1/p' /proc/cmdline`
+set -- $(cat /proc/cmdline)
+for x in "$@"; do
+    case "$x" in
+        ubi.block=*)
+        BLOCK=${x#*,}
+        ;;
+    esac
+done
+
 OVERLAY=$((BLOCK + 1))
 
 mount -o noatime -t ubifs ubi0_$OVERLAY /mnt/rw ||\
@@ -75,7 +83,7 @@ mkdir -p /mnt/rw/work
 mkdir /mnt/newroot
 
 # mount root filesystem readonly
-set `mount | awk '$3 == "/" {print $1, $5}'`
+set -- $(mount | awk '$3 == "/" {print $1, $5}')
 rootDev=$1
 rootFsType=$2
 
@@ -102,10 +110,10 @@ pivot_root . mnt
 
 exec chroot . sh -c "$(cat <<END
 # move ro and rw mounts to the new root
-mount  --move /mnt/mnt/lower/ /ro ||
+mount --move /mnt/mnt/lower/ /ro ||
     ( echo "ERROR: could not move ro-root into newroot" ; /bin/sh )
 
-mount  --move /mnt/mnt/rw /rw ||
+mount --move /mnt/mnt/rw /rw ||
     ( echo "ERROR: could not move tempfs rw mount into newroot" ; /bin/sh )
 
 # unmount unneeded mounts so we can unmout the old readonly root
@@ -115,6 +123,6 @@ umount /mnt/dev
 umount /mnt
 
 # continue with regular init
-exec /sbin/init
+exec /usr/sbin/init
 END
 )"
