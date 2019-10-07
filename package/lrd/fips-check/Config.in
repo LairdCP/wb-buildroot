@@ -1,4 +1,0 @@
-config BR2_PACKAGE_FIPS_CHECK
-	bool "fips_check"
-	help
-	  FIPS Integrity Checker
