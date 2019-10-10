@@ -16,6 +16,8 @@ BACKPORTS_TEST_LICENSE = GPL-2.0
 BACKPORTS_TEST_LICENSE_FILES = COPYING
 BACKPORTS_TEST_SITE_METHOD = wget
 
+BACKPORTS_TEST_TOOLDIR = $(TOPDIR)/package/lrd/externals/backports/devel
+
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
   BACKPORTS_TEST_SITE = http://devops.lairdtech.com/share/builds/linux/backports/laird/$(BACKPORTS_TEST_VERSION)
 else
@@ -23,10 +25,8 @@ else
 endif
 
 define HOST_BACKPORTS_TEST_BUILD_CMDS
-	cd $(@D) \
-		&& ../../../../package/lrd/externals/backports/devel/backports-update-manager --yes \
-		&& ../../../../package/lrd/externals/backports/devel/ckmake --develdebug --nocurses \
-		&& ../../../../package/lrd/externals/backports/devel/ckmake --defconfig=regression-test --nocurses
+	$(BACKPORTS_TEST_TOOLDIR)/backports-update-manager --yes --lrd-repo
+	cd $(@D); $(BACKPORTS_TEST_TOOLDIR)/ckmake --defconfig=regression-test --nocurses
 endef
 
 $(eval $(host-generic-package))
