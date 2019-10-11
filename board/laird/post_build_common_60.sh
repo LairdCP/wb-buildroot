@@ -43,6 +43,10 @@ if [ ${SD} -eq 0 ]; then
 
 	grep -q "/dev/mmcblk0p1" ${TARGET_DIR}/etc/fstab ||\
 		echo '/dev/mmcblk0p1 /boot vfat defaults,noatime 0 0' >> ${TARGET_DIR}/etc/fstab
+
+	sed -i 's,^/dev/mtd,# /dev/mtd,' ${TARGET_DIR}/etc/fw_env.config
+else
+	sed -i 's,^/boot/,# /boot/,' ${TARGET_DIR}/etc/fw_env.config
 fi
 
 if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
