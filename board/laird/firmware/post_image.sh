@@ -1,7 +1,6 @@
 IMAGESDIR="${1}"
 
 export BR2_LRD_PLATFORM=laird-radio-firmware
-export FW_DIR="${TARGET_DIR}/lib/firmware"
 
 [ ! -d "${IMAGESDIR}" ] && mkdir -p "${IMAGESDIR}"
 
@@ -10,65 +9,52 @@ echo "${BR2_LRD_PLATFORM} POST IMAGE script: starting..."
 # enable tracing and exit on errors
 set -x -e
 
-[ -z "${LAIRD_RELEASE_STRING}" ] && LAIRD_RELEASE_STRING="$(date +%Y%m%d)"
+[ -z "${LAIRD_RELEASE_STRING}" ] && LAIRD_RELEASE_STRING="0.${BR2_LRD_BRANCH}.0.0"
+
+FW_DIR="${TARGET_DIR}/lib/firmware"
 
 create_bcm4343w_firmware_zipfile()
 {
-	DOMAIN=${1}
-	FIRMWARE=${2}
+	local DOMAIN=${1}
+	local FIRMWARE=${2}
+
+	local BRCM_DIR=${FW_DIR}/brcm
+	local BCM4343_DIR=${FW_DIR}/brcm/bcm4343w
 
 	ln -rsf ${FW_DIR}/regulatory_${DOMAIN}.db ${FW_DIR}/regulatory.db
-	ln -rsf ${FW_DIR}/brcm/bcm4343w/brcmfmac43430-sdio-prod.bin ${FW_DIR}/brcm/bcm4343w/brcmfmac43430-sdio.bin
-	ln -rsf ${FW_DIR}/brcm/bcm4343w/brcmfmac43430-sdio-${DOMAIN}.txt ${FW_DIR}/brcm/bcm4343w/brcmfmac43430-sdio.txt
-	ln -rsf ${FW_DIR}/brcm/bcm4343w/brcmfmac43430-sdio.bin ${FW_DIR}/brcm/brcmfmac43430-sdio.bin
-	ln -rsf ${FW_DIR}/brcm/bcm4343w/brcmfmac43430-sdio-${DOMAIN}.txt ${FW_DIR}/brcm/brcmfmac43430-sdio.txt
-	ln -rsf ${FW_DIR}/brcm/bcm4343w/brcmfmac43430-sdio.clm_blob ${FW_DIR}/brcm/brcmfmac43430-sdio.clm_blob
-	ln -rsf ${FW_DIR}/brcm/bcm4343w/4343w.hcd ${FW_DIR}/brcm/4343w.hcd
-	ln -rsf ${FW_DIR}/brcm/bcm4343w/4343w.hcd ${FW_DIR}/brcm/BCM43430A1.1DX.hcd
+	ln -rsf ${BCM4343_DIR}/brcmfmac43430-sdio-${DOMAIN}.txt ${BCM4343_DIR}/brcmfmac43430-sdio.txt
+	ln -rsf ${BCM4343_DIR}/brcmfmac43430-sdio-${DOMAIN}.txt ${BRCM_DIR}/brcmfmac43430-sdio.txt
 
-	tar -cjf "${IMAGESDIR}/${FIRMWARE}.tar.bz2" -C ${TARGET_DIR} \
-		lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio-prod.bin \
-		lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio.bin \
-		lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio.txt \
-		lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio-${DOMAIN}.txt \
-		lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio.clm_blob \
-		lib/firmware/brcm/bcm4343w/4343w.hcd	\
-		lib/firmware/brcm/brcmfmac43430-sdio.bin \
-		lib/firmware/brcm/brcmfmac43430-sdio.txt \
-		lib/firmware/brcm/brcmfmac43430-sdio.clm_blob \
-		lib/firmware/brcm/4343w.hcd	\
-		lib/firmware/brcm/BCM43430A1.1DX.hcd	\
+	(
+	cd ${TARGET_DIR}
+	tar -cjf "${IMAGESDIR}/${FIRMWARE}.tar.bz2" --exclude *-mfg.bin \
+		lib/firmware/brcm/*4343* \
 		lib/firmware/regulatory_${DOMAIN}.db lib/firmware/regulatory.db
-	zip -j ${IMAGESDIR}/${FIRMWARE}-${LAIRD_RELEASE_STRING}.zip ${IMAGESDIR}/${FIRMWARE}.tar.bz2
-	rm ${IMAGESDIR}/${FIRMWARE}.tar.bz2 -fr
+	)
+
+	zip -mj ${IMAGESDIR}/${FIRMWARE}-${LAIRD_RELEASE_STRING}.zip ${IMAGESDIR}/${FIRMWARE}.tar.bz2
 }
 
 create_bcm4339_firmware_zipfile()
 {
-	DOMAIN=${1}
-	FIRMWARE=${2}
+	local DOMAIN=${1}
+	local FIRMWARE=${2}
+
+	local BRCM_DIR=${FW_DIR}/brcm
+	local BCM4339_DIR=${FW_DIR}/brcm/bcm4339
 
 	ln -rsf ${FW_DIR}/regulatory_${DOMAIN}.db ${FW_DIR}/regulatory.db
-	ln -rsf ${FW_DIR}/brcm/bcm4339/brcmfmac4339-sdio-prod.bin ${FW_DIR}/brcm/bcm4339/brcmfmac4339-sdio.bin
-	ln -rsf ${FW_DIR}/brcm/bcm4339/brcmfmac4339-sdio-${DOMAIN}.txt ${FW_DIR}/brcm/bcm4339/brcmfmac4339-sdio.txt
-	ln -rsf ${FW_DIR}/brcm/bcm4339/brcmfmac4339-sdio.bin ${FW_DIR}/brcm/brcmfmac4339-sdio.bin
-	ln -rsf ${FW_DIR}/brcm/bcm4339/brcmfmac4339-sdio-${DOMAIN}.txt ${FW_DIR}/brcm/brcmfmac4339-sdio.txt
-	ln -rsf ${FW_DIR}/brcm/bcm4339/4339.hcd ${FW_DIR}/brcm/4339.hcd
-	ln -rsf ${FW_DIR}/brcm/bcm4339/4339.hcd ${FW_DIR}/brcm/BCM4335C0.ZP.hcd
+	ln -rsf ${BCM4339_DIR}/brcmfmac4339-sdio-${DOMAIN}.txt ${BCM4339_DIR}/brcmfmac4339-sdio.txt
+	ln -rsf ${BCM4339_DIR}/brcmfmac4339-sdio-${DOMAIN}.txt ${BRCM_DIR}/brcmfmac4339-sdio.txt
 
-	tar -cjf "${IMAGESDIR}/${FIRMWARE}.tar.bz2" -C ${TARGET_DIR} \
-		lib/firmware/brcm/bcm4339/brcmfmac4339-sdio-prod.bin \
-		lib/firmware/brcm/bcm4339/brcmfmac4339-sdio.bin \
-		lib/firmware/brcm/bcm4339/brcmfmac4339-sdio.txt \
-		lib/firmware/brcm/bcm4339/brcmfmac4339-sdio-${DOMAIN}.txt \
-		lib/firmware/brcm/bcm4339/4339.hcd	\
-		lib/firmware/brcm/brcmfmac4339-sdio.bin \
-		lib/firmware/brcm/brcmfmac4339-sdio.txt \
-		lib/firmware/brcm/4339.hcd	\
-		lib/firmware/brcm/BCM4335C0.ZP.hcd	\
+	(
+	cd ${TARGET_DIR}
+	tar -cjf "${IMAGESDIR}/${FIRMWARE}.tar.bz2" --exclude *-mfg.bin \
+		lib/firmware/brcm/*433* \
 		lib/firmware/regulatory_${DOMAIN}.db lib/firmware/regulatory.db
-	zip -j ${IMAGESDIR}/${FIRMWARE}-${LAIRD_RELEASE_STRING}.zip ${IMAGESDIR}/${FIRMWARE}.tar.bz2
-	rm ${IMAGESDIR}/${FIRMWARE}.tar.bz2 -fr
+	)
+
+	zip -mj ${IMAGESDIR}/${FIRMWARE}-${LAIRD_RELEASE_STRING}.zip ${IMAGESDIR}/${FIRMWARE}.tar.bz2
 }
 
 create_60_firmware_zipfile()
