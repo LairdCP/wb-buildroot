@@ -16,13 +16,20 @@ set -x -e
 PKGNAME=libopenssl_1_0_2
 
 sed -n "s/^$PKGNAME,\(.*[.]so.*\)/\1/p" "${BUILD_DIR}/packages-file-list.txt" |\
-     tar --transform 's|^./|./target/|' -cf "$IMAGESDIR/$BR2_LRD_PRODUCT.tar" -C "$TARGET_DIR" -T -
+     tar --transform 's|^./|target/|' -cf "$IMAGESDIR/$BR2_LRD_PRODUCT.tar" -C "$TARGET_DIR" -T -
 
 sed -n "s/^$PKGNAME,\(.*bin[/]openssl\)/\1/p" "${BUILD_DIR}/packages-file-list.txt" |\
-     tar --transform 's|^./|./target/|' -rf "$IMAGESDIR/$BR2_LRD_PRODUCT.tar" -C "$TARGET_DIR" -T -
+     tar --transform 's|^./|target/|' -rf "$IMAGESDIR/$BR2_LRD_PRODUCT.tar" -C "$TARGET_DIR" -T -
 
-sed -n "s/^$PKGNAME,//p" "${BUILD_DIR}/packages-file-list-staging.txt" |\
-     tar --transform 's|^./|./staging/|' -rf "$IMAGESDIR/$BR2_LRD_PRODUCT.tar" -C "$STAGING_DIR" -T -
+sed -n "s|^$PKGNAME,\(./usr/include\)|\1|p" "${BUILD_DIR}/packages-file-list-staging.txt" |\
+     tar --transform 's|^./|staging/|' -rf "$IMAGESDIR/$BR2_LRD_PRODUCT.tar" -C "$STAGING_DIR" -T -
+
+sed -n "s|^$PKGNAME,\(./usr/lib\)|\1|p" "${BUILD_DIR}/packages-file-list-staging.txt" |\
+     tar --transform 's|^./|staging/|' -rf "$IMAGESDIR/$BR2_LRD_PRODUCT.tar" -C "$STAGING_DIR" -T -
+
+sed -n "s|^openssl-fips,\(./usr/local/ssl/fips-2.0/include/openssl/fips.*\)|\1|p" "${BUILD_DIR}/packages-file-list-staging.txt" |\
+     tar --transform 's|^./usr/local/ssl/fips-2.0/include|staging/usr/include|' \
+        -rf "$IMAGESDIR/$BR2_LRD_PRODUCT.tar" -C "$STAGING_DIR" -T -
 
 bzip2 -f "$IMAGESDIR/$BR2_LRD_PRODUCT.tar"
 
