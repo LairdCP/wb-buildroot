@@ -21,6 +21,9 @@ sed -n "s/^$PKGNAME,\(.*[.]so.*\)/\1/p" "${BUILD_DIR}/packages-file-list.txt" |\
 sed -n "s/^$PKGNAME,\(.*bin[/]openssl\)/\1/p" "${BUILD_DIR}/packages-file-list.txt" |\
      tar --transform 's|^./|target/|' -rf "$IMAGESDIR/$BR2_LRD_PRODUCT.tar" -C "$TARGET_DIR" -T -
 
+sed -n "s/^$PKGNAME,\(.*[/]etc[/]ssl[/].*\)/\1/p" "${BUILD_DIR}/packages-file-list.txt" |\
+     tar --transform 's|^./|target/|' -rf "$IMAGESDIR/$BR2_LRD_PRODUCT.tar" -C "$TARGET_DIR" -T -
+
 sed -n "s|^$PKGNAME,\(./usr/include\)|\1|p" "${BUILD_DIR}/packages-file-list-staging.txt" |\
      tar --transform 's|^./|staging/|' -rf "$IMAGESDIR/$BR2_LRD_PRODUCT.tar" -C "$STAGING_DIR" -T -
 
