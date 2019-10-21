@@ -1,0 +1,1 @@
+modprobe mwifiex_sdio
