@@ -8,6 +8,6 @@ echo "${BR2_LRD_PLATFORM^^} POST BUILD script: starting..."
 SD=$?
 
 # source the common post build script
-. "${BOARD_DIR}/../post_build_common_60.sh" "${BOARD_DIR}"
+. "${BOARD_DIR}/../post_build_common_60.sh" "${BOARD_DIR}" ${SD}
 
 echo "${BR2_LRD_PLATFORM^^} POST BUILD script: done."
