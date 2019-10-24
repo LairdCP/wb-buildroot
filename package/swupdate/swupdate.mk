@@ -132,6 +132,8 @@ endef
 
 define SWUPDATE_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 0755 $(@D)/swupdate $(TARGET_DIR)/usr/bin/swupdate
+	$(INSTALL) -D -m 0755 $(@D)/ipc/lib.a $(TARGET_DIR)/usr/lib/libswupdate-client.a
+	$(INSTALL) -D -m 0755 $(@D)/ipc/lib.a $(STAGING_DIR)/usr/lib/libswupdate-client.a
 	$(if $(BR2_PACKAGE_SWUPDATE_INSTALL_WEBSITE), \
 		mkdir -p $(TARGET_DIR)/var/www/swupdate; \
 		cp -dpfr $(@D)/examples/www/v2/* $(TARGET_DIR)/var/www/swupdate)
