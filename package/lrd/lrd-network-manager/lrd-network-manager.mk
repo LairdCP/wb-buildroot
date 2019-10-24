@@ -8,10 +8,13 @@ LRD_NETWORK_MANAGER_VERSION = local
 LRD_NETWORK_MANAGER_SITE = package/lrd/externals/lrd-network-manager
 LRD_NETWORK_MANAGER_SITE_METHOD = local
 LRD_NETWORK_MANAGER_INSTALL_STAGING = YES
-LRD_NETWORK_MANAGER_DEPENDENCIES = host-pkgconf udev dbus-glib libnl gnutls \
-	libgcrypt wireless_tools util-linux host-intltool readline libndp libgudev
-LRD_NETWORK_MANAGER_LICENSE = GPL-2.0+ (app), LGPL-2.0+ (libnm-util)
-LRD_NETWORK_MANAGER_LICENSE_FILES = COPYING libnm-util/COPYING
+LRD_NETWORK_MANAGER_DEPENDENCIES = host-pkgconf udev gnutls \
+	libgcrypt wireless_tools util-linux host-intltool readline libndp
+# Even though the COPYING file only contains the GPL-2.0 text, many
+# parts of network-manager are under LGPL-2.0. See the "Legal" section
+# of the CONTRIBUTING file for details.
+LRD_NETWORK_MANAGER_LICENSE = GPL-2.0+ (app), LGPL-2.0+ (libnm)
+LRD_NETWORK_MANAGER_LICENSE_FILES = COPYING CONTRIBUTING
 
 LRD_NETWORK_MANAGER_AUTORECONF = YES
 
@@ -24,17 +27,13 @@ LRD_NETWORK_MANAGER_CONF_ENV = \
 	ac_cv_file__etc_SuSE_release=no
 
 LRD_NETWORK_MANAGER_CONF_OPTS = \
-	--enable-ovs=no \
-	--enable-ifcfg_rh=no \
 	--disable-tests \
 	--disable-qt \
 	--disable-more-warnings \
-	--without-docs \
 	--with-crypto=gnutls \
 	--with-iptables=/usr/sbin/iptables \
-	--disable-ifupdown \
-	--disable-ifnet \
-	--enable-introspection=no
+	--disable-ifupdown
+
 ifeq ($(BR2_PACKAGE_OFONO),y)
 LRD_NETWORK_MANAGER_DEPENDENCIES += ofono
 LRD_NETWORK_MANAGER_CONF_OPTS += --with-ofono
@@ -78,9 +77,11 @@ ifeq ($(BR2_PACKAGE_DHCPCD),y)
 LRD_NETWORK_MANAGER_CONF_OPTS += --with-dhcpcd=/sbin/dhcpcd --with-dhcpcd-supports-ipv6=yes
 endif
 
-# uClibc by default doesn't have backtrace support, so don't use it
-ifeq ($(BR2_TOOLCHAIN_USES_UCLIBC),y)
-LRD_NETWORK_MANAGER_CONF_OPTS += --disable-crashtrace
+ifeq ($(BR2_PACKAGE_LRD_NETWORK_MANAGER_OVS),y)
+LRD_NETWORK_MANAGER_CONF_OPTS += --enable-ovs
+LRD_NETWORK_MANAGER_DEPENDENCIES += jansson
+else
+LRD_NETWORK_MANAGER_CONF_OPTS += --disable-ovs
 endif
 
 define LRD_NETWORK_MANAGER_INSTALL_INIT_SYSV
