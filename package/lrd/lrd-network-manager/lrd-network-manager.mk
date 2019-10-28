@@ -32,7 +32,8 @@ LRD_NETWORK_MANAGER_CONF_OPTS = \
 	--disable-more-warnings \
 	--with-crypto=gnutls \
 	--with-iptables=/usr/sbin/iptables \
-	--disable-ifupdown
+	--disable-ifupdown \
+	--disable-introspection
 
 ifeq ($(BR2_PACKAGE_OFONO),y)
 LRD_NETWORK_MANAGER_DEPENDENCIES += ofono
