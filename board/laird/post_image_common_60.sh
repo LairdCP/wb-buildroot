@@ -18,6 +18,7 @@ openssl=${HOST_DIR}/usr/bin/openssl
 genimage=${HOST_DIR}/bin/genimage
 veritysetup=${HOST_DIR}/sbin/veritysetup
 mkenvimage=${HOST_DIR}/bin/mkenvimage
+fipshmac=${HOST_DIR}/bin/fipshmac
 
 die() { echo "$@" >&2; exit 1; }
 test -x ${mkimage} || \
@@ -86,12 +87,23 @@ DTB="$(sed -n 's/^BR2_LINUX_KERNEL_INTREE_DTS_NAME="\(.*\)"$/\1/p' ${BR2_CONFIG}
 
 sed "s/at91-dvk_som60/${DTB}/g" ${BOARD_DIR}/configs/kernel.its > ${BINARIES_DIR}/kernel.its || exit 1
 
+IMAGE_NAME=Image
+
 if grep -q '"Image.gz"' ${BINARIES_DIR}/kernel.its; then
 	gzip -9kfn ${BINARIES_DIR}/Image
+	IMAGE_NAME+=.gz
 elif grep -q '"Image.lzo"' ${BINARIES_DIR}/kernel.its; then
 	lzop -9on ${BINARIES_DIR}/Image.lzo ${BINARIES_DIR}/Image
+	IMAGE_NAME+=.lzo
 elif grep -q '"Image.lzma"' ${BINARIES_DIR}/kernel.its; then
 	lzma -9kf ${BINARIES_DIR}/Image
+	IMAGE_NAME+=.lzma
+fi
+
+if grep -qF "BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES=y" ${BR2_CONFIG}; then
+	${fipshmac} ${BINARIES_DIR}/${IMAGE_NAME}
+	[ "$(cat ${BINARIES_DIR}/.${IMAGE_NAME}.hmac)" == "$(cat ${TARGET_DIR}/usr/lib/fipscheck/${IMAGE_NAME}.hmac)" ] ||\
+		die "FIPS Kernel Hash mismatch to the certified kernel"
 fi
 
 echo "# entering ${BINARIES_DIR} for the next command"
