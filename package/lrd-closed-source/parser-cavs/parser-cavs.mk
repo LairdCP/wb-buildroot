@@ -7,9 +7,9 @@
 PARSER_CAVS_VERSION = local
 PARSER_CAVS_SITE    = package/lrd-closed-source/externals/cavs_api/parser
 PARSER_CAVS_SITE_METHOD = local
-PARSER_CAVS_DEPENDENCIES = libgcrypt libgpg-error openssl keyutils
+PARSER_CAVS_DEPENDENCIES = host-pkgconf libgcrypt libgpg-error openssl keyutils
 
-PARSER_CAVS_MAKE_ENV = CC=$(TARGET_CC) \
+PARSER_CAVS_MAKE_ENV = CC=$(TARGET_CC) PKG_CONFIG=$(PKG_CONFIG_HOST_BINARY) \
 	INCLUDE_DIRS="$(STAGING_DIR)/usr/include"
 
 define PARSER_CAVS_BUILD_CMDS
