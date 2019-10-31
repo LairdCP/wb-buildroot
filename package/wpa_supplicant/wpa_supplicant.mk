@@ -37,6 +37,9 @@ WPA_SUPPLICANT_CONFIG_ENABLE += CONFIG_IEEE80211W
 WPA_SUPPLICANT_CONFIG_DISABLE = \
 	CONFIG_SMARTCARD
 
+# LAIRD: disable experimental TEAP
+WPA_SUPPLICANT_CONFIG_DISABLE += CONFIG_EAP_TEAP
+
 # libnl-3 needs -lm (for rint) and -lpthread if linking statically
 # And library order matters hence stick -lnl-3 first since it's appended
 # in the wpa_supplicant Makefiles as in LIBS+=-lnl-3 ... thus failing
