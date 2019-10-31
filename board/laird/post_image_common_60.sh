@@ -21,6 +21,7 @@ mkenvimage=${HOST_DIR}/bin/mkenvimage
 fipshmac=${HOST_DIR}/bin/fipshmac
 
 die() { echo "$@" >&2; exit 1; }
+
 test -x ${mkimage} || \
 	die "No mkimage found (host-uboot-tools has not been built?)"
 test -x ${atmel_pmecc_params} || \
@@ -100,10 +101,21 @@ elif grep -q '"Image.lzma"' ${BINARIES_DIR}/kernel.its; then
 	IMAGE_NAME+=.lzma
 fi
 
+hash_check() {
+	${fipshmac} ${1}/${2}
+	if [ "$(cat ${1}/.${2}.hmac)" == "$(cat ${TARGET_DIR}/usr/lib/fipscheck/${2}.hmac)" ]; then
+		rm ${1}/.${2}.hmac
+	else
+		rm ${1}/.${2}.hmac
+		die "FIPS Hash mismatch to the certified for ${2}"
+	fi
+}
+
 if grep -qF "BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES=y" ${BR2_CONFIG}; then
-	${fipshmac} ${BINARIES_DIR}/${IMAGE_NAME}
-	[ "$(cat ${BINARIES_DIR}/.${IMAGE_NAME}.hmac)" == "$(cat ${TARGET_DIR}/usr/lib/fipscheck/${IMAGE_NAME}.hmac)" ] ||\
-		die "FIPS Kernel Hash mismatch to the certified kernel"
+	hash_check ${BINARIES_DIR} ${IMAGE_NAME}
+	hash_check ${TARGET_DIR}/usr/bin fipscheck
+	hash_check ${TARGET_DIR}/usr/lib libfipscheck.so.1
+	hash_check ${TARGET_DIR}/usr/lib libcrypto.so.1.0.0
 fi
 
 echo "# entering ${BINARIES_DIR} for the next command"
