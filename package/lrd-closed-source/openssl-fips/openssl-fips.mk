@@ -83,18 +83,9 @@ define OPENSSL_FIPS_BUILD_CMDS
 	)
 endef
 
-ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS),y)
-# building from git repository -- check fipscanister is unchanged
-OPENSSL_FIPS_CAN_CHECK=diff $(TOPDIR)/package/lrd-closed-source/openssl-fips/fipscanister.o.sha1.check $(STAGING_DIR)/usr/local/ssl/fips-2.0/lib/fipscanister.o.sha1
-else
-# building from tarball
-OPENSSL_FIPS_CAN_CHECK=
-endif
-
 define OPENSSL_FIPS_INSTALL_STAGING_CMDS
 	$(MAKE1) -C $(@D) INSTALL_PREFIX=$(STAGING_DIR) install
 	cp $(@D)/util/incore $(STAGING_DIR)/usr/local/ssl/fips-2.0/bin
-	$(OPENSSL_FIPS_CAN_CHECK)
 endef
 
 $(eval $(generic-package))

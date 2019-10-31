@@ -34,9 +34,6 @@ sed -n "s|^openssl-fips,\(./usr/local/ssl/fips-2.0/include/openssl/fips.*\)|\1|p
      tar --transform 's|^./usr/local/ssl/fips-2.0/include|staging/usr/include|' \
         -rf "${IMAGESDIR}/${BR2_LRD_PRODUCT}.tar" -C "${STAGING_DIR}" -T -
 
-sed -n "s|^openssl-fips,\(./usr/local/ssl/fips-2.0/lib/.*\)|\1|p" "${BUILD_DIR}/packages-file-list-staging.txt" |\
-     tar --transform 's|^./|staging/|' -rf "${IMAGESDIR}/${BR2_LRD_PRODUCT}.tar" -C "${STAGING_DIR}" -T -
-
 bzip2 -f "${IMAGESDIR}/${BR2_LRD_PRODUCT}.tar"
 
 if [ "${BR2_LRD_DEVEL_BUILD}" == "y" ] && [ -n "${BR2_DL_DIR}" ]; then
