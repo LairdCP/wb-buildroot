@@ -1,5 +1,5 @@
 [Unit]
-Description=Create USB Gadgets
+Description=Create USB Ethernet Gadget
 
 [Service]
 RemainAfterExit=yes

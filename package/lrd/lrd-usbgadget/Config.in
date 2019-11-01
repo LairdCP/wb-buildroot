@@ -1,24 +1,24 @@
 menuconfig BR2_PACKAGE_LRD_USBGADGET
 	bool "lrd-usb-gadget"
 	help
-	  Laird USB Automount
+	  Laird USB Ethernet Gadget
 
 if BR2_PACKAGE_LRD_USBGADGET
 choice BR2_PACKAGE_LRD_USBGADGET_TYPE
 	prompt "USB Gadget Type"
 	default BR2_PACKAGE_LRD_USBGADGET_TYPE_RNDIS
 	help
-	  Laird USB Gadget setup
+	  Laird USB Ethernet Gadget Type
 
 config BR2_PACKAGE_LRD_USBGADGET_TYPE_RNDIS
 	bool "RNDIS"
 	help
-	  Laird RNDIS USB Etherent Gadget RNDIS
+	  Laird RNDIS USB Ethernet Gadget RNDIS
 
 config BR2_PACKAGE_LRD_USBGADGET_TYPE_NCM
 	bool "NCM"
 	help
-	  Laird RNDIS USB Etherent Gadget NCM
+	  Laird RNDIS USB Ethernet Gadget NCM
 
 endchoice
 endif
