@@ -17,20 +17,20 @@ UDC_DIR=/sys/class/udc
 GADGET_DIR=/sys/kernel/config/usb_gadget
 
 create_gadgets () {
-	proto=$1
+	proto=${1}
 	counter=0
 
-	[ -d "$GADGET_DIR" ] || exit 1;
+	[ -d "${GADGET_DIR}" ] || exit 1;
 
-	[ -z "$proto" ] && proto=rndis
+	[ -z "${proto}" ] && proto=rndis
 
-	for udc_name in $(ls $UDC_DIR); do
-		mkdir $GADGET_DIR/g$counter
-		cd $GADGET_DIR/g$counter
+	for udc_name in $(ls ${UDC_DIR}); do
+		mkdir ${GADGET_DIR}/g${counter}
+		cd ${GADGET_DIR}/g${counter}
 
 		echo 0x0525 > idVendor
 
-		if [ $proto == rndis ]; then
+		if [ ${proto} == rndis ] || [ ${proto} == ncm ]; then
 			echo 0xa4a2 > idProduct
 			echo "1" > os_desc/use
 			echo "0xcd" > os_desc/b_vendor_code
@@ -46,23 +46,25 @@ create_gadgets () {
 			echo "deadbeefdeadbeef" > strings/0x409/serialnumber
 		fi
 
-		echo "Laird Technologies" > strings/0x409/manufacturer
-		echo "SOM60" > strings/0x409/product
+		echo "Laird Connectivity" > strings/0x409/manufacturer
+		echo "$(cat /sys/firmware/devicetree/base/model)" > strings/0x409/product
 
 		mkdir -p configs/c.1/strings/0x409
 		echo "USB Ethernet Configuration" > configs/c.1/strings/0x409/configuration
 
 		# Create Ethernet config
-		mkdir -p functions/$proto.usb$counter
-		cd functions/$proto.usb$counter
+		mkdir -p functions/${proto}.usb${counter}
+		cd functions/${proto}.usb${counter}
 
-		if [ $proto == rndis ]; then
+		if [ ${proto} == rndis ]; then
 			echo "ef" > class
 			echo "04" > subclass
 			echo "01" > protocol
 
 			echo "RNDIS" > os_desc/interface.rndis/compatible_id
 			echo "5162001" > os_desc/interface.rndis/sub_compatible_id
+		elif [ ${proto} == ncm ]; then
+			echo "WINNCM" > os_desc/interface.ncm/compatible_id
 		fi
 
 		echo "DE:AD:BE:EF:00:00" > dev_addr
@@ -70,10 +72,10 @@ create_gadgets () {
 
 		cd ../..
 
-		ln -s functions/$proto.usb$counter configs/c.1
+		ln -s functions/${proto}.usb${counter} configs/c.1
 		ln -s configs/c.1 os_desc
 
-		echo $udc_name > UDC
+		echo ${udc_name} > UDC
 
 		counter=$((counter+1))
 	done
@@ -82,13 +84,13 @@ create_gadgets () {
 destroy_gadgets () {
 	counter=0
 
-	for udc_name in $(ls $UDC_DIR); do
-		gadget="$GADGET_DIR/g$counter"
+	for udc_name in $(ls ${UDC_DIR}); do
+		gadget="${GADGET_DIR}/g${counter}"
 
-		if [ -e $gadget ]; then
-			echo "" > $gadget/UDC
-			rm -rf $gadget 2>/dev/null
-			rm -rf $gadget 2>/dev/null
+		if [ -e ${gadget} ]; then
+			echo "" > ${gadget}/UDC
+			rm -rf ${gadget} 2>/dev/null
+			rm -rf ${gadget} 2>/dev/null
 		fi
 
 		counter=$((counter+1))
