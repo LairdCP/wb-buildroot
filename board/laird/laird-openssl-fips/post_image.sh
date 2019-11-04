@@ -9,7 +9,6 @@ echo "$BR2_LRD_PLATFORM POST IMAGE script: starting..."
 # enable tracing and exit on errors
 set -x -e
 
-
 [ -z "${BR2_LRD_PRODUCT}" ] && export BR2_LRD_PRODUCT="${BR2_LRD_PLATFORM}"
 [ -z "$LAIRD_RELEASE_STRING" ] && LAIRD_RELEASE_STRING="$(date +%Y%m%d)"
 
@@ -36,10 +35,15 @@ sed -n "s|^openssl-fips,\(./usr/local/ssl/fips-2.0/include/openssl/fips.*\)|\1|p
 
 bzip2 -f "${IMAGESDIR}/${BR2_LRD_PRODUCT}.tar"
 
-if [ "${BR2_LRD_DEVEL_BUILD}" == "y" ] && [ -n "${BR2_DL_DIR}" ]; then
-	mkdir -p ${BR2_DL_DIR}/laird_openssl_fips-binaries
-	cp ${IMAGESDIR}/${BR2_LRD_PRODUCT}.tar.bz2 \
-		${BR2_DL_DIR}/laird_openssl_fips-binaries/${BR2_LRD_PRODUCT}-0.${BR2_LRD_BRANCH}.0.0.tar.bz2
+if [ "${BR2_LRD_DEVEL_BUILD}" == "y" ]; then
+	[ -z "${BR2_DL_DIR}" ] && \
+		BR2_DL_DIR="$(sed -n 's,^BR2_DL_DIR="\(.*\)"$,\1,p' ${BR2_CONFIG})"
+
+	if [ -n "${BR2_DL_DIR}" ]; then
+		mkdir -p ${BR2_DL_DIR}/laird_openssl_fips-binaries
+		cp ${IMAGESDIR}/${BR2_LRD_PRODUCT}.tar.bz2 \
+			${BR2_DL_DIR}/laird_openssl_fips-binaries/${BR2_LRD_PRODUCT}-0.${BR2_LRD_BRANCH}.0.0.tar.bz2
+	fi
 fi
 
 echo "${BR2_LRD_PLATFORM} POST IMAGE script: done."
