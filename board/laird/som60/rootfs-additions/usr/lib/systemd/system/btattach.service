@@ -3,7 +3,7 @@ Description=Enable Bluetooth for lrdmwl
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/btattach -B /dev/ttyS1 -P h4 -S 3000000 -N
+ExecStart=/usr/bin/btattach -B /dev/ttyS1 -P h4 -S 3000000
 
 [Install]
 WantedBy=multi-user.target
