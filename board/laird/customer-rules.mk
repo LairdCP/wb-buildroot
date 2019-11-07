@@ -1,5 +1,5 @@
 # Generic Make engine for customer builds
-# Customer external repositories should using this 
+# Customer external repositories should be using this Makefile
 
 BUILDROOT_MENU_SUFFIX = -menuconfig
 BUILDROOT_SAVE_SUFFIX = -savedefconfig
@@ -25,7 +25,7 @@ TARGETS_CLEAN  = $(addprefix $(CLEAN_PREFIX),$(TARGETS))
 
 strip_target = $(subst $(1),,$@)
 
-default all: $(TARGETS)
+all: $(TARGETS)
 
 clean cleanall: $(TARGETS_CLEAN)
 
@@ -35,7 +35,7 @@ $(TARGETS):
 	$(MAKE) -C buildroot O=output/$@
 
 $(BUILDROOT_MENU):
-	$(MAKE) -C buildroot O=output/$(call strip_suffix,$(BUILDROOT_MENU_SUFFIX)) menuconfig
+	$(MAKE) -C buildroot O=output/$(call strip_target,$(BUILDROOT_MENU_SUFFIX)) menuconfig
 
 $(BUILDROOT_SAVE):
 	$(MAKE) -C buildroot O=output/$(call strip_target,$(BUILDROOT_SAVE_SUFFIX)) savedefconfig \
@@ -55,3 +55,7 @@ $(UBOOT_SAVE):
 
 $(TARGETS_CLEAN):
 	$(MAKE) -C buildroot O=output/$(call strip_target,$(CLEAN_PREFIX)) distclean
+
+.PHONY: all clean cleanall \
+	$(TARGETS) $(TARGETS_CLEAN) $(BUILDROOT_MENU) $(BUILDROOT_SAVE) \
+	$(LINUX_MENU) $(LINUX_SAVE) $(UBOOT_MENU) $(UBOOT_SAVE)
