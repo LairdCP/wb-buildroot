@@ -101,7 +101,10 @@ if [ -z "${ROOTFSDIR}" ]; then
 fi
 
 # Create rootfs partition image
-mkfs.ext4 -q -L rootfs -F -b ${BLOCK_SIZE} -d ${ROOTFSDIR} -E lazy_itable_init=0,lazy_journal_init=0 ${TMPDIR}/rootfs.img ${ROOTFS_BLOCKS}
+HOST_MKFS=${SRCDIR}/../host/sbin/mkfs.ext4
+[ -f ${HOST_MKFS} ] || HOST_MKFS=mkfs.ext4
+
+${HOST_MKFS} -q -L rootfs -F -b ${BLOCK_SIZE} -d ${ROOTFSDIR} -E lazy_itable_init=0,lazy_journal_init=0 ${TMPDIR}/rootfs.img ${ROOTFS_BLOCKS}
 rm -rf ${TMPDIR}/rootfs.tmp
 
 # Add rootfs partition to disk image
