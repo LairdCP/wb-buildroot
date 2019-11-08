@@ -1,82 +1,75 @@
 #!/bin/sh
-
 # udhcpc script edited by Tim Riker <Tim@Rikers.org>
 
-[ -z "$1" ] && echo "Error: should be called from udhcpc" && exit 1
-
 RESOLV_CONF="/etc/resolv.conf"
-[ -e $RESOLV_CONF ] || touch $RESOLV_CONF
+
+[ -n "$1" ] || { echo "Error: should be called from udhcpc"; exit 1; }
+
+NETMASK=""
+if command -v ip >/dev/null; then
+	[ -n "$subnet" ] && NETMASK="/$subnet"
+else
+	[ -n "$subnet" ] && NETMASK="netmask $subnet"
+fi
+BROADCAST="broadcast +"
 [ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
-[ -n "$subnet" ] && NETMASK="netmask $subnet"
 
 case "$1" in
 	deconfig)
-		/sbin/ifconfig $interface up
-		/sbin/ifconfig $interface 0.0.0.0
-
-		# drop info from this interface
-		# resolv.conf may be a symlink to /tmp/, so take care
-		TMPFILE=$(mktemp)
-		grep -vE "# $interface\$" $RESOLV_CONF > $TMPFILE
-		cat $TMPFILE > $RESOLV_CONF
-		rm -f $TMPFILE
-
-		if [ -x /usr/sbin/avahi-autoipd ]; then
-			/usr/sbin/avahi-autoipd -k $interface
-		fi
-		;;
-
-	leasefail|nak)
-		if [ -x /usr/sbin/avahi-autoipd ]; then
-			/usr/sbin/avahi-autoipd -wD $interface --no-chroot
+		echo "Setting IP address 0.0.0.0 on $interface"
+		if command -v ip >/dev/null; then
+			ip addr flush dev $interface
+		else
+			ifconfig $interface 0.0.0.0
 		fi
 		;;
 
 	renew|bound)
-		if [ -x /usr/sbin/avahi-autoipd ]; then
-			/usr/sbin/avahi-autoipd -k $interface
+		echo "Setting IP address $ip on $interface"
+		if command -v ip >/dev/null; then
+			ip addr add $ip$NETMASK $BROADCAST dev $interface
+		else
+			ifconfig $interface $ip $NETMASK $BROADCAST
 		fi
-		/sbin/ifconfig $interface $ip $BROADCAST $NETMASK
 
 		if [ -n "$router" ] ; then
-			echo "deleting routers"
-			while route del default gw 0.0.0.0 dev $interface 2> /dev/null; do
+			echo "Deleting routers"
+			while route del default gw 0.0.0.0 dev $interface ; do
 				:
 			done
 
+			metric=0
 			for i in $router ; do
-				route add default gw $i dev $interface
+				echo "Adding router $i"
+				if [ "$subnet" = "255.255.255.255" ]; then
+	# special case for /32 subnets:
+	# /32 instructs kernel to always use routing for all outgoing packets
+	# (they can never be sent to local subnet - there is no local subnet for /32).
+	# Used in datacenters, avoids the need for private ip-addresses between two hops.
+					ip route add $i dev $interface
+				fi
+				route add default gw $i dev $interface metric $((metric++))
 			done
 		fi
 
-		# drop info from this interface
-		# resolv.conf may be a symlink to /tmp/, so take care
-		TMPFILE=$(mktemp)
-		grep -vE "# $interface\$" $RESOLV_CONF > $TMPFILE
-		cat $TMPFILE > $RESOLV_CONF
-		rm -f $TMPFILE
-
-		# prefer rfc3359 domain search list (option 119) if available
-		if [ -n "$search" ]; then
-			search_list=$search
-		elif [ -n "$domain" ]; then
-			search_list=$domain
+		echo "Recreating $RESOLV_CONF"
+		# If the file is a symlink somewhere (like /etc/resolv.conf
+		# pointing to /run/resolv.conf), make sure things work.
+		if test -L "$RESOLV_CONF"; then
+			# If it's a dangling symlink, try to create the target.
+			test -e "$RESOLV_CONF" || touch "$RESOLV_CONF"
 		fi
-
-		[ -n "$search_list" ] &&
-			echo "search $search_list # $interface" >> $RESOLV_CONF
-
+		realconf=$(readlink -f "$RESOLV_CONF" 2>/dev/null || echo "$RESOLV_CONF")
+		tmpfile="$realconf-$$"
+		> "$tmpfile"
+		[ -n "$domain" ] && echo "search $domain" >> "$tmpfile"
 		for i in $dns ; do
-			echo adding dns $i
-			echo "nameserver $i # $interface" >> $RESOLV_CONF
+			echo " Adding DNS server $i"
+			echo "nameserver $i" >> "$tmpfile"
 		done
+		mv "$tmpfile" "$realconf"
 		;;
 esac
 
-HOOK_DIR="$0.d"
-for hook in "${HOOK_DIR}/"*; do
-    [ -f "${hook}" -a -x "${hook}" ] || continue
-    "${hook}" "${@}"
-done
-
 exit 0
+
