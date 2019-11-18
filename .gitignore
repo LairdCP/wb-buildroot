@@ -24,7 +24,6 @@
 !/configs/msd*_defconfig
 !/configs/wb*_defconfig
 !/configs/reglwb*_defconfig
-!/configs/bdimx6_defconfig
 !/configs/bdimx6_rdvk_defconfig
 !/configs/backports_defconfig
 !/configs/som60*_defconfig
