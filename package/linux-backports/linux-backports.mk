@@ -19,7 +19,7 @@ LINUX_BACKPORTS_LICENSE = GPL-2.0
 LINUX_BACKPORTS_LICENSE_FILES = COPYING
 
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
-  LINUX_BACKPORTS_SITE = http://devops.lairdtech.com/share/builds/linux/backports/laird/$(LINUX_BACKPORTS_VERSION)
+  LINUX_BACKPORTS_SITE = https://files.devops.rfpros.com/builds/linux/backports/laird/$(LINUX_BACKPORTS_VERSION)
 else
   LINUX_BACKPORTS_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(LINUX_BACKPORTS_VERSION)
 endif
