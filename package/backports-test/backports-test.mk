@@ -19,7 +19,7 @@ BACKPORTS_TEST_SITE_METHOD = wget
 BACKPORTS_TEST_TOOLDIR = $(TOPDIR)/package/lrd/externals/backports/devel
 
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
-  BACKPORTS_TEST_SITE = http://devops.lairdtech.com/share/builds/linux/backports/laird/$(BACKPORTS_TEST_VERSION)
+  BACKPORTS_TEST_SITE = https://files.devops.lairdtech.com/builds/linux/backports/laird/$(BACKPORTS_TEST_VERSION)
 else
   BACKPORTS_TEST_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(BACKPORTS_TEST_VERSION)
 endif
