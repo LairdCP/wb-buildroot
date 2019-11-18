@@ -17,7 +17,7 @@ LAIRD_OPENSSL_FIPS_BINARIES_LICENSE = OpenSSL or SSLeay
 LAIRD_OPENSSL_FIPS_BINARIES_EXTRA_DOWNLOADS = laird_openssl_fips-arm-eabihf-$(LAIRD_OPENSSL_FIPS_BINARIES_VERSION).tar.bz2
 
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
-  LAIRD_OPENSSL_FIPS_BINARIES_SITE = https://files.devops.lairdtech.com/builds/linux/summit_supplicant/laird/$(LAIRD_OPENSSL_FIPS_BINARIES_VERSION)
+  LAIRD_OPENSSL_FIPS_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/summit_supplicant/laird/$(LAIRD_OPENSSL_FIPS_BINARIES_VERSION)
 else
   LAIRD_OPENSSL_FIPS_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(LAIRD_OPENSSL_FIPS_BINARIES_VERSION)
 endif

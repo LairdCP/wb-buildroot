@@ -24,7 +24,7 @@ endif
 SUMMIT_SUPPLICANT_BINARIES_EXTRA_DOWNLOADS = summit_supplicant$(SUMMIT_SUPPLICANT_BINARIES_TYPE1)$(SUMMIT_SUPPLICANT_BINARIES_TYPE2)-$(SUMMIT_SUPPLICANT_BINARIES_VERSION).tar.bz2
 
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
-  SUMMIT_SUPPLICANT_BINARIES_SITE = https://files.devops.lairdtech.com/builds/linux/summit_supplicant/laird/$(SUMMIT_SUPPLICANT_BINARIES_VERSION)
+  SUMMIT_SUPPLICANT_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/summit_supplicant/laird/$(SUMMIT_SUPPLICANT_BINARIES_VERSION)
 else
   SUMMIT_SUPPLICANT_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(SUMMIT_SUPPLICANT_BINARIES_VERSION)
 endif
