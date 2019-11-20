@@ -27,4 +27,8 @@ cat "${BINARIES_DIR}/u-boot-spl-nodtb.bin"  "${BINARIES_DIR}/u-boot-spl.dtb" > "
 # Regenerate Atmel PMECC boot.bin
 ${mkimage} -T atmelimage -n $(${atmel_pmecc_params}) -d ${BINARIES_DIR}/u-boot-spl.bin ${BINARIES_DIR}/boot.bin
 
+# wbx3 sd card loading tools
+cp ${BOARD_DIR}/../scripts-common/mksdcard-wbx3.sh ${BINARIES_DIR}/mksdcard.sh
+cp ${BOARD_DIR}/../scripts-common/mksdimg-wbx3.sh ${BINARIES_DIR}/mksdimg.sh
+
 echo "${BR2_LRD_PLATFORM^^} POST IMAGE script: done."
