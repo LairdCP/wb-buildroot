@@ -4,17 +4,21 @@
 #
 ################################################################################
 
+ifeq ($(BR2_LRD_DEVEL_BUILD),)
 ifneq ($(BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE),)
 
 LRD_NETWORK_MANAGER_VERSION = $(call qstrip,$(BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE))
 LRD_NETWORK_MANAGER_SOURCE = lrd-network-manager-src-$(LRD_NETWORK_MANAGER_VERSION).tar.xz
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
-  LRD_NETWORK_MANAGER_SITE = http://devops.lairdtech.com/share/builds/linux/lrd-network-manager/src/$(LRD_NETWORK_MANAGER_VERSION)
+  LRD_NETWORK_MANAGER_SITE = https://files.devops.rfpros.com/builds/linux/lrd-network-manager/src/$(LRD_NETWORK_MANAGER_VERSION)
 else
   LRD_NETWORK_MANAGER_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(LRD_NETWORK_MANAGER_VERSION)
 endif
 
-else
+endif
+endif
+
+ifeq ($(LRD_NETWORK_MANAGER_VERSION),)
 
 LRD_NETWORK_MANAGER_VERSION = local
 LRD_NETWORK_MANAGER_SITE = package/lrd/externals/lrd-network-manager
