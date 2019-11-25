@@ -4,9 +4,25 @@
 #
 ################################################################################
 
+ifneq ($(BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE),)
+
+LRD_NETWORK_MANAGER_VERSION = $(call qstrip,$(BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE))
+LRD_NETWORK_MANAGER_SOURCE = lrd-network-manager-src-$(LRD_NETWORK_MANAGER_VERSION).tar.xz
+ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
+  LRD_NETWORK_MANAGER_SITE = http://devops.lairdtech.com/share/builds/linux/lrd-network-manager/src/$(LRD_NETWORK_MANAGER_VERSION)
+else
+  LRD_NETWORK_MANAGER_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(LRD_NETWORK_MANAGER_VERSION)
+endif
+
+else
+
 LRD_NETWORK_MANAGER_VERSION = local
 LRD_NETWORK_MANAGER_SITE = package/lrd/externals/lrd-network-manager
 LRD_NETWORK_MANAGER_SITE_METHOD = local
+
+endif
+
+
 LRD_NETWORK_MANAGER_INSTALL_STAGING = YES
 LRD_NETWORK_MANAGER_DEPENDENCIES = host-pkgconf udev gnutls \
 	libgcrypt wireless_tools util-linux host-intltool readline libndp
