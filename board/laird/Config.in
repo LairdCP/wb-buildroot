@@ -21,6 +21,7 @@ menu "Laird"
 				select BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES
 				select BR2_PACKAGE_LINUX_BACKPORTS
 				select BR2_PACKAGE_ADAPTIVE_WW_BINARIES
+				select BR2_PACKAGE_LRD_NETWORK_MANAGER
 
 			config BR2_LRD_SOM60_FIPS_RADIO
 				bool "SOM60 FIPS Radio"
@@ -28,18 +29,21 @@ menu "Laird"
 				select BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES
 				select BR2_PACKAGE_LINUX_BACKPORTS
 				select BR2_PACKAGE_ADAPTIVE_WW_BINARIES
+				select BR2_PACKAGE_LRD_NETWORK_MANAGER
 
 			config BR2_LRD_WB50N_SYSD_RADIO
 				bool "WB50N SYSD Radio"
 				select BR2_PACKAGE_WB50N_FIRMWARE_BINARIES
 				select BR2_PACKAGE_WB50N_SYSD_SUMMIT_SUPPLICANT_BINARIES
 				select BR2_PACKAGE_LINUX_BACKPORTS
+				select BR2_PACKAGE_LRD_NETWORK_MANAGER
 
 			config BR2_LRD_WB50N_SYSD_FIPS_RADIO
 				bool "WB50N SYSD FIPS_Radio"
 				select BR2_PACKAGE_WB50N_FIRMWARE_BINARIES
 				select BR2_PACKAGE_WB50N_SYSD_SUMMIT_SUPPLICANT_BINARIES
 				select BR2_PACKAGE_LINUX_BACKPORTS
+				select BR2_PACKAGE_LRD_NETWORK_MANAGER
 
 			config BR2_LRD_WB50N_LEGACY_RADIO
 				bool "WB50N Legacy Radio"
@@ -60,6 +64,8 @@ menu "Laird"
 		comment "Please config openssl in Target packages->Libraries/Crypto/Openssl"
 		depends on !BR2_LRD_NO_RADIO
 		comment "Please config linux-backports in Target packages->Hardware handling->linux-backports"
+		depends on !BR2_LRD_NO_RADIO && !BR2_LRD_WB50N_LEGACY_RADIO
+		comment "Please config lrd-network-manager in Laird->Packages->lrd-networkmanager"
 		depends on !BR2_LRD_NO_RADIO && !BR2_LRD_WB50N_LEGACY_RADIO
 
 		source "package/lrd/lrd-som60-radio/Config.in"
