@@ -8,3 +8,4 @@ config BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE
 source "package/lrd/lrd-wb50n-radio/wb50n-firmware-binaries/Config.in"
 source "package/lrd/lrd-wb50n-radio/wb50n-legacy-summit-supplicant-binaries/Config.in"
 source "package/lrd/lrd-wb50n-radio/wb50n-sysd-summit-supplicant-binaries/Config.in"
+source "package/lrd/reg50n-arm-eabihf-binaries/Config.in"
