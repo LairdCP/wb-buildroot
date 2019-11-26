@@ -12,7 +12,7 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# contact: ews-support@lairdtech.com
+# contact: support@lairdconnect.com
 
 # /etc/network/bridge.sh v112
 # Sets up Ethernet L2 Bridging for USB or WiFi.

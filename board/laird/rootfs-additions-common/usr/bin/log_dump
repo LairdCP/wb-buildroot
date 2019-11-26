@@ -12,7 +12,7 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# contact: ews-support@lairdtech.com
+# contact: support@lairdconnect.com
 
 # /usr/bin/log_dump Support utility to gather logs for support to assist
 # with issue debugging
@@ -192,6 +192,6 @@ if command_exists dmesg ; then
 fi
 
 echo "The file" $LOGFILE "was created.  Please provide this file to"
-echo "your support contact at ews-support@lairdtech.com"
+echo "your support contact at support@lairdconnect.com"
 
 exit 0
