@@ -165,8 +165,14 @@ if (( ${SD} )) ; then
 		--config "${GENIMAGE_CFG}"
 
 	# generate SWUpdate .swu image
-	cp ${BOARD_DIR}/configs/sw-description ${BINARIES_DIR}/
+	if [[ "${BR2_LRD_PRODUCT}" =~ ^(som60x2|ig60ll)$ ]]; then
+		cp ${BOARD_DIR}/configs/sw-description-som60x2 ${BINARIES_DIR}/sw-description -fr
+	else
+		cp ${BOARD_DIR}/configs/sw-description ${BINARIES_DIR}/ -fr
+	fi
+	cp ${BOARD_DIR}/../scripts-common/erase_data.sh ${BINARIES_DIR}/ -fr
+	cp ${BOARD_DIR}/configs/u-boot-env.tgz ${BINARIES_DIR}/ -fr
 	( cd ${BINARIES_DIR} && \
-		echo -e "sw-description\nboot.bin\nu-boot.itb\nkernel.itb\nrootfs.bin" |\
+		echo -e "sw-description\nboot.bin\nu-boot.itb\nkernel.itb\nrootfs.bin\nu-boot-env.tgz\nerase_data.sh" |\
 		cpio -ov -H crc > ${BINARIES_DIR}/${BR2_LRD_PRODUCT}.swu)
 fi

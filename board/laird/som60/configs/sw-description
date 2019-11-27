@@ -16,7 +16,14 @@ software =
 					volume = "rootfs_a";
 					installed-directly = true;
 				}
-		    );
+			);
+			scripts: (
+				{
+					filename = "erase_data.sh";
+					type = "postinstall";
+					data = "rootfs_data_a";
+				}
+			);
 
 			bootenv: (
 				{
@@ -37,6 +44,14 @@ software =
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
 					installed-directly = true;
+				},
+			);
+
+			scripts: (
+				{
+					filename = "erase_data.sh";
+					type = "postinstall";
+					data = "rootfs_data_b";
 				}
 			);
 
@@ -72,6 +87,14 @@ software =
 				},
 			);
 
+			scripts: (
+				{
+					filename = "erase_data.sh";
+					type = "postinstall";
+					data = "rootfs_data_a";
+				}
+			);
+
 			bootenv: (
 				{
 					name = "bootside";
@@ -102,6 +125,14 @@ software =
 					volume = "rootfs_b";
 					installed-directly = true;
 				},
+			);
+
+			scripts: (
+				{
+					filename = "erase_data.sh";
+					type = "postinstall";
+					data = "rootfs_data_b";
+				}
 			);
 
 			bootenv: (
@@ -143,6 +174,104 @@ software =
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
 					installed-directly = true;
+				}
+			);
+
+			scripts: (
+				{
+					filename = "erase_data.sh";
+					type = "postinstall";
+					data = "rootfs_data_a rootfs_data_b perm";
+				}
+			);
+		}
+
+		complete: {
+			/* partitions tag is used to resize UBI partitions */
+			partitions: (
+				{
+					name = "kernel_a";
+					mtdname = "ubi";
+					size = 12582912; /* in bytes */
+				},
+				{
+					name = "kernel_b";
+					mtdname = "ubi";
+					size = 12582912; /* in bytes */
+				},
+				{
+					name = "rootfs_a";
+					mtdname = "ubi";
+					size = 92274688; /* in bytes */
+				},
+				{
+					name = "rootfs_b";
+					mtdname = "ubi";
+					size = 92274688; /* in bytes */
+				},
+				{
+					name = "rootfs_data_a";
+					mtdname = "ubi";
+					size = 10485760; /* in bytes */
+				},
+				{
+					name = "rootfs_data_b";
+					mtdname = "ubi";
+					size = 10485760; /* in bytes */
+				},
+				{
+					name = "perm";
+					mtdname = "ubi";
+					size = 21204992; /* in bytes */
+				}
+			);
+			images: (
+				{
+					filename = "boot.bin";
+					mtdname = "u-boot-spl";
+					type = "flash";
+				},
+				{
+					filename = "u-boot.itb";
+					mtdname = "u-boot";
+					type = "flash";
+				},
+				{
+					filename = "kernel.itb";
+					volume = "kernel_a";
+					installed-directly = true;
+				},
+				{
+					filename = "kernel.itb";
+					volume = "kernel_b";
+					installed-directly = true;
+				},
+				{
+					filename = "rootfs.bin";
+					volume = "rootfs_a";
+					installed-directly = true;
+				},
+				{
+					filename = "rootfs.bin";
+					volume = "rootfs_b";
+					installed-directly = true;
+				},
+				{
+					filename = "u-boot-env.tgz";
+					mtdname = "u-boot-env-a";
+					type="flash";
+				},
+				{
+					filename = "u-boot-env.tgz";
+					mtdname = "u-boot-env-b";
+					type="flash";
+				}
+			);
+			scripts: (
+				{
+					filename = "erase_data.sh";
+					type = "postinstall";
+					data = "rootfs_data_a rootfs_data_b perm";
 				}
 			);
 		}

@@ -44,7 +44,7 @@ software =
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
 					installed-directly = true;
-				}
+				},
 			);
 
 			scripts: (
@@ -192,40 +192,39 @@ software =
 				{
 					name = "kernel_a";
 					mtdname = "ubi";
-					size = 8388608; /* in bytes */
+					size = 12582912; /* in bytes */
 				},
 				{
 					name = "kernel_b";
 					mtdname = "ubi";
-					size = 8388608; /* in bytes */
+					size = 12582912; /* in bytes */
 				},
 				{
 					name = "rootfs_a";
 					mtdname = "ubi";
-					size = 46465024; /* in bytes */
+					size = 11534336; /* in bytes */
 				},
 				{
 					name = "rootfs_b";
 					mtdname = "ubi";
-					size = 46465024; /* in bytes */
+					size = 11534336; /* in bytes */
 				},
 				{
 					name = "rootfs_data_a";
 					mtdname = "ubi";
-					size = 4194304; /* in bytes */
+					size = 20971520 */
 				},
 				{
 					name = "rootfs_data_b";
 					mtdname = "ubi";
-					size = 4194304; /* in bytes */
+					size =  20971520; /* in bytes */
 				},
 				{
 					name = "perm";
 					mtdname = "ubi";
-					size = 6221824; /* in bytes */
+					size = 70471680; /* in bytes */
 				}
 			);
-
 			images: (
 				{
 					filename = "boot.bin";

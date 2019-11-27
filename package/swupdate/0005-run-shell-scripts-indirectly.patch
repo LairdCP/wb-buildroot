@@ -1,0 +1,16 @@
+diff --git a/handlers/shell_scripthandler.c b/handlers/shell_scripthandler.c
+index 6d5e05e..f9637c5 100644
+--- a/handlers/shell_scripthandler.c
++++ b/handlers/shell_scripthandler.c
+@@ -39,7 +39,7 @@ static int execute_shell_script(struct img_type *img, const char *fnname)
+ 		return -1;
+ 	}
+ 	snprintf(shellscript, sizeof(shellscript),
+-		 "%s%s %s %s", tmp, img->fname, fnname, img->type_data);
++		 "/bin/sh %s%s %s %s", tmp, img->fname, fnname, img->type_data);
+
+ 	ret = system(shellscript);
+ 	if (WIFEXITED(ret)) {
+--
+2.7.4
+
