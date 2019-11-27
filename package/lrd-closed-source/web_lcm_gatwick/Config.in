@@ -3,7 +3,7 @@ config BR2_PACKAGE_WEB_LCM_GATWICK
 	select BR2_PACKAGE_LIBOPENSSL_BIN
 	help
 	  Laird webapp to configure LoRa gateway
-	    http://lairdtech.com
+	    http://www.lairdconnect.com
 
 if BR2_PACKAGE_WEB_LCM_GATWICK
 

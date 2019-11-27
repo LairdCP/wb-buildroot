@@ -1,61 +1,69 @@
 # Generic Make engine for customer builds
 # Customer external repositories should be using this Makefile
 
-BUILDROOT_MENU_SUFFIX = -menuconfig
-BUILDROOT_SAVE_SUFFIX = -savedefconfig
+PACK_legacy = \
+	at91bs.bin u-boot.bin kernel.bin rootfs.bin rootfs.tar.bz2 \
+	userfs.bin sqroot.bin \
+	fw_update fw_select fw_usi fw.txt prep_nand_for_update
 
-LINUX_MENU_SUFFIX = -linux-menuconfig
-LINUX_SAVE_SUFFIX = -linux-savedefconfig
+PACK_sd60 = \
+	u-boot-spl.bin u-boot.itb kernel.itb rootfs.tar \
+	mksdcard.sh mksdimg.sh
 
-UBOOT_MENU_SUFFIX = -uboot-menuconfig
-UBOOT_SAVE_SUFFIX = -uboot-savedefconfig
+PACK_nand60 = \
+	boot.bin u-boot.itb kernel.itb rootfs.bin *.swu
 
-CLEAN_PREFIX = clean-
+PACK_nand60-secure = \
+	boot.bin u-boot.itb kernel.itb rootfs.bin *.swu \
+	pmecc.bin u-boot-spl.dtb u-boot-spl-nodtb.bin u-boot.dtb \
+	u-boot-nodtb.bin u-boot.its kernel-nosig.itb sw-description \
+	$(PRODUCT)-full.swu sw-description-full \
+	fdtget fdtput mkimage genimage rodata.tar.bz2 rodata-encrypt
 
-BUILDROOT_MENU = $(addsuffix $(BUILDROOT_MENU_SUFFIX),$(TARGETS))
-BUILDROOT_SAVE = $(addsuffix $(BUILDROOT_SAVE_SUFFIX),$(TARGETS))
-
-LINUX_MENU = $(addsuffix $(LINUX_MENU_SUFFIX),$(TARGETS))
-LINUX_SAVE = $(addsuffix $(LINUX_SAVE_SUFFIX),$(TARGETS))
-
-UBOOT_MENU = $(addsuffix $(UBOOT_MENU_SUFFIX),$(TARGETS))
-UBOOT_SAVE = $(addsuffix $(UBOOT_SAVE_SUFFIX),$(TARGETS))
-
-TARGETS_CLEAN  = $(addprefix $(CLEAN_PREFIX),$(TARGETS))
-
-strip_target = $(subst $(1),,$@)
-
+.PHONY: all clean
 all: $(TARGETS)
+clean: $(addsuffix -clean,$(TARGETS))
 
-clean cleanall: $(TARGETS_CLEAN)
+$(patsubst %,buildroot/output/%/.config,$(TARGETS)): buildroot/output/%/.config: $(BR2_EXTERNAL)/configs/%_defconfig
+	$(MAKE) -C buildroot O=output/$* $*_defconfig
 
-$(TARGETS):
-	# first check/do config, because can't use $@ in dependency
-	$(MAKE) -C buildroot O=output/$@ $@_defconfig
-	$(MAKE) -C buildroot O=output/$@
+.PHONY: $(TARGETS)
+$(TARGETS): %: buildroot/output/%/.config
+	$(MAKE) -C buildroot O=output/$*
 
-$(BUILDROOT_MENU):
-	$(MAKE) -C buildroot O=output/$(call strip_target,$(BUILDROOT_MENU_SUFFIX)) menuconfig
+.PHONY: $(addsuffix -menuconfig,$(TARGETS))
+$(addsuffix -menuconfig,$(TARGETS)): %-menuconfig: %-config
+	$(MAKE) -C buildroot O=output/$* menuconfig
 
-$(BUILDROOT_SAVE):
-	$(MAKE) -C buildroot O=output/$(call strip_target,$(BUILDROOT_SAVE_SUFFIX)) savedefconfig \
-		BR2_DEFCONFIG=$(BR2_EXTERNAL)/configs/$(call strip_target,$(BUILDROOT_SAVE_SUFFIX))_defconfig
+.PHONY: $(addsuffix -savedefconfig,$(TARGETS))
+$(addsuffix -savedefconfig,$(TARGETS)): %-savedefconfig:
+	$(MAKE) -C buildroot O=output/$* savedefconfig \
+		BR2_DEFCONFIG=$(BR2_EXTERNAL)/configs/$*_defconfig
 
-$(LINUX_MENU):
-	$(MAKE) -C buildroot O=output/$(call strip_target,$(LINUX_MENU_SUFFIX)) linux-menuconfig
+.PHONY: $(addsuffix -linux-menuconfig,$(TARGETS))
+$(addsuffix -linux-menuconfig,$(TARGETS)): %-linux-menuconfig:
+	$(MAKE) -C buildroot O=output/$* linux-menuconfig
 
-$(LINUX_SAVE):
-	$(MAKE) -C buildroot O=output/$(call strip_target,$(LINUX_SAVE_SUFFIX)) linux-update-defconfig
+.PHONY: $(addsuffix -linux-savedefconfig,$(TARGETS))
+$(addsuffix -linux-savedefconfig,$(TARGETS)): %-linux-savedefconfig:
+	$(MAKE) -C buildroot O=output/$* linux-update-defconfig
 
-$(UBOOT_MENU):
-	$(MAKE) -C buildroot O=output/$(call strip_target,$(UBOOT_MENU_SUFFIX)) uboot-menuconfig
+.PHONY: $(addsuffix -uboot-menuconfig,$(TARGETS))
+$(addsuffix -uboot-menuconfig,$(TARGETS)): %:
+	$(MAKE) -C buildroot O=output/$* uboot-menuconfig
 
-$(UBOOT_SAVE):
-	$(MAKE) -C buildroot O=output/$(call strip_target,$(UBOOT_SAVE_SUFFIX)) uboot-update-defconfig
+.PHONY: $(addsuffix -uboot-savedefconfig,$(TARGETS))
+$(addsuffix -uboot-savedefconfig,$(TARGETS)): %-uboot-savedefconfig:
+	$(MAKE) -C buildroot O=output/$* uboot-update-defconfig
 
-$(TARGETS_CLEAN):
-	$(MAKE) -C buildroot O=output/$(call strip_target,$(CLEAN_PREFIX)) distclean
+.PHONY: $(addsuffix -clean,$(TARGETS))
+$(addsuffix -clean,$(TARGETS)): %-clean:
+	$(MAKE) -C buildroot O=output/$* distclean
 
-.PHONY: all clean cleanall \
-	$(TARGETS) $(TARGETS_CLEAN) $(BUILDROOT_MENU) $(BUILDROOT_SAVE) \
-	$(LINUX_MENU) $(LINUX_SAVE) $(UBOOT_MENU) $(UBOOT_SAVE)
+.PHONY: $(addsuffix -sdk,$(TARGETS))
+$(addsuffix -sdk,$(TARGETS)): %-sdk:
+	$(MAKE) -C buildroot O=output/$* sdk
+
+.PHONY: $(addsuffix -pack,$(TARGETS))
+$(addsuffix -pack,$(TARGETS)): %-pack:
+	tar -C buildroot/output/$*/images -jcf $*-laird.tar.bz2 $(PACK_FILES_$*)
