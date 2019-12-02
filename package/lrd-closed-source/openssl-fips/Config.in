@@ -6,6 +6,5 @@ config BR2_PACKAGE_OPENSSL_FIPS
 	  http://www.openssl.org/
 config BR2_PACKAGE_LAIRD_OPENSSL_FIPS
 	bool "Laird openssl-fips version"
-	depends on BR2_PACKAGE_OPENSSL_FIPS
 	help
 	  Builds the Laird openssl-fips/openssl.

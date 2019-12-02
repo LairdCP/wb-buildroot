@@ -7,8 +7,8 @@ DCAS_VERSION = local
 DCAS_SITE = package/lrd/externals/dcas
 DCAS_SITE_METHOD = local
 
-ifeq ($(BR2_PACKAGE_WB50N_LEGACY_SUMMIT_SUPPLICANT_BINARIES),y)
-	DCAS_DEPENDENCIES = wb50n-legacy-summit-supplicant-binaries
+ifeq ($(BR2_PACKAGE_WB_LEGACY_SUMMIT_SUPPLICANT_BINARIES),y)
+	DCAS_DEPENDENCIES = wb-legacy-summit-supplicant-binaries
 else
 	DCAS_DEPENDENCIES = sdcsdk
 endif
