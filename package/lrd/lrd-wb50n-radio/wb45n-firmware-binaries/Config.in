@@ -1,0 +1,9 @@
+config BR2_PACKAGE_WB45N_FIRMWARE_BINARIES
+	bool "WB45N Firmware Installer"
+	select BR2_PACKAGE_LAIRD_FIRMWARE if BR2_LRD_DEVEL_BUILD="y"
+	select BR2_PACKAGE_LAIRD_FIRMWARE_AR6004 if BR2_LRD_DEVEL_BUILD="y"
+	select BR2_PACKAGE_WIRELESS_REGDB if BR2_LRD_DEVEL_BUILD="y"
+	depends on BR2_LRD_WB45N_RADIO
+	help
+	  Extracts the Laird wb45n wireless firmware binaries from the
+	  binary firmware release and install them on the target.

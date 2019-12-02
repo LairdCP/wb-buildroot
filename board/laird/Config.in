@@ -48,8 +48,13 @@ menu "Laird"
 			config BR2_LRD_WB50N_LEGACY_RADIO
 				bool "WB50N Legacy Radio"
 				select BR2_PACKAGE_WB50N_FIRMWARE_BINARIES
-				select BR2_PACKAGE_WB50N_LEGACY_SUMMIT_SUPPLICANT_BINARIES
+				select BR2_PACKAGE_WB_LEGACY_SUMMIT_SUPPLICANT_BINARIES
 				select BR2_PACKAGE_LINUX_BACKPORTS
+
+			config BR2_LRD_WB45N_RADIO
+				bool "WB45N Radio"
+				select BR2_PACKAGE_WB45N_FIRMWARE_BINARIES
+				select BR2_PACKAGE_WB_LEGACY_SUMMIT_SUPPLICANT_BINARIES
 		endchoice
 
 		config BR2_LRD_RADIO
@@ -64,9 +69,9 @@ menu "Laird"
 		comment "Please config openssl in Target packages->Libraries/Crypto/Openssl"
 		depends on !BR2_LRD_NO_RADIO
 		comment "Please config linux-backports in Target packages->Hardware handling->linux-backports"
-		depends on !BR2_LRD_NO_RADIO && !BR2_LRD_WB50N_LEGACY_RADIO
+		depends on !BR2_LRD_NO_RADIO && !BR2_LRD_WB45N_RADIO
 		comment "Please config lrd-network-manager in Laird->Packages->lrd-networkmanager"
-		depends on !BR2_LRD_NO_RADIO && !BR2_LRD_WB50N_LEGACY_RADIO
+		depends on !BR2_LRD_NO_RADIO && !BR2_LRD_WB50N_LEGACY_RADIO && !BR2_LRD_WB45N_RADIO
 
 		source "package/lrd/lrd-som60-radio/Config.in"
 		source "package/lrd/lrd-wb50n-radio/Config.in"

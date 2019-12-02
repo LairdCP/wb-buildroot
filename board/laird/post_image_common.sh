@@ -9,8 +9,11 @@ set -x -e
 if [ -e "$IMAGESDIR/uImage.at91-$BR2_LRD_PRODUCT"  ]
 then
 	cp "$IMAGESDIR/uImage.at91-$BR2_LRD_PRODUCT"  "$IMAGESDIR/kernel.bin"
-else
+elif [ -e "$IMAGESDIR/uImage.at91-$BR2_LRD_PLATFORM"  ]
+then
 	cp "$IMAGESDIR/uImage.at91-$BR2_LRD_PLATFORM" "$IMAGESDIR/kernel.bin"
+else
+	cp "$IMAGESDIR/uImage.$BR2_LRD_PRODUCT" "$IMAGESDIR/kernel.bin"
 fi
 cp "$IMAGESDIR/rootfs.ubi"                       "$IMAGESDIR/rootfs.bin"
 

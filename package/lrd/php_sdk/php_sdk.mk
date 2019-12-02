@@ -11,8 +11,8 @@ PHP_SDK_LICENSE = ICS
 
 PHP_SDK_DEPENDENCIES = php host-swig
 
-ifeq ($(BR2_PACKAGE_WB50N_LEGACY_SUMMIT_SUPPLICANT_BINARIES),y)
-PHP_SDK_DEPENDENCIES += wb50n-legacy-summit-supplicant-binaries
+ifeq ($(BR2_PACKAGE_WB_LEGACY_SUMMIT_SUPPLICANT_BINARIES),y)
+PHP_SDK_DEPENDENCIES += wb-legacy-summit-supplicant-binaries
 else
 PHP_SDK_DEPENDENCIES += sdcsdk
 endif
