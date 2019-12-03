@@ -34,9 +34,12 @@ FIPS_ENABLED=$(cat /proc/sys/crypto/fips_enabled 2>/dev/null)
 if [ "${FIPS_ENABLED}" == "1" ] && [ -n "${KERNEL}" ]; then
 	mount -o mode=1777,nosuid,nodev -t tmpfs tmpfs /tmp 2> /dev/null
 	TMP_MOUNT=$?
-	
-	[ ${BOOT_MOUNT} -eq 0 ] && \
-		{ mount -t vfat /dev/mmcblk0p1 /boot 2>/dev/null ; BOOT_MOUNT=$? ; }
+
+	if [ ${BOOT_MOUNT} -eq 0 ]; then
+		mkdir -p /boot
+		mount -t vfat /dev/mmcblk0p1 /boot 2>/dev/null ||
+			fail "Cannot mount /boot: $?"
+	fi
 
 	/usr/sbin/dumpimage -i ${KERNEL} -p 0 -T flat_dt /tmp/Image.gz > /dev/null ||\
 		fail "Cannot extract kernel image error: $1"
