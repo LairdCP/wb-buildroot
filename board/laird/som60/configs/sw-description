@@ -195,17 +195,7 @@ software =
 					size = 12582912; /* in bytes */
 				},
 				{
-					name = "kernel_b";
-					mtdname = "ubi";
-					size = 12582912; /* in bytes */
-				},
-				{
 					name = "rootfs_a";
-					mtdname = "ubi";
-					size = 92274688; /* in bytes */
-				},
-				{
-					name = "rootfs_b";
 					mtdname = "ubi";
 					size = 92274688; /* in bytes */
 				},
@@ -213,6 +203,16 @@ software =
 					name = "rootfs_data_a";
 					mtdname = "ubi";
 					size = 10485760; /* in bytes */
+				},
+				{
+					name = "kernel_b";
+					mtdname = "ubi";
+					size = 12582912; /* in bytes */
+				},
+				{
+					name = "rootfs_b";
+					mtdname = "ubi";
+					size = 92274688; /* in bytes */
 				},
 				{
 					name = "rootfs_data_b";
