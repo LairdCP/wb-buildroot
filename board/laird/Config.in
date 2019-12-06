@@ -74,7 +74,7 @@ menu "Laird"
 
 	menu "Packages"
 		source "package/lrd/Config.in"
-    endmenu
+	endmenu
 
 	menu "Packages (Closed Source)"
 		source "package/lrd-closed-source/Config.in"

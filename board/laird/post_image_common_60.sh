@@ -175,4 +175,21 @@ if (( ${SD} )) ; then
 	( cd ${BINARIES_DIR} && \
 		echo -e "sw-description\nboot.bin\nu-boot.itb\nkernel.itb\nrootfs.bin\nu-boot-env.tgz\nerase_data.sh" |\
 		cpio -ov -H crc > ${BINARIES_DIR}/${BR2_LRD_PRODUCT}.swu)
+
+	tar -C ${BINARIES_DIR} -cf ${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird.tar \
+		boot.bin u-boot.itb kernel.itb rootfs.bin ${BR2_LRD_PRODUCT}.swu
+
+	if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
+		tar -C ${BINARIES_DIR} -rf ${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird.tar \
+			pmecc.bin u-boot-spl.dtb u-boot-spl-nodtb.bin u-boot.dtb \
+			u-boot-nodtb.bin u-boot.its kernel-nosig.itb sw-description
+
+		tar -C ${HOST_DIR}/usr/bin -rf ${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird.tar \
+			fdtget fdtput mkimage genimage
+	fi
+
+	bzip2 -f ${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird.tar
+else
+	tar -C ${BINARIES_DIR} -cjf ${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird.tar.bz2 \
+		u-boot-spl.bin u-boot.itb kernel.itb rootfs.tar mksdcard.sh mksdimg.sh
 fi
