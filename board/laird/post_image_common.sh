@@ -37,4 +37,11 @@ if cd "$IMAGESDIR"; then
   cd - >/dev/null
 fi
 
+( cd "$IMAGESDIR" && tar -cjf "$IMAGESDIR/$BR2_LRD_PRODUCT-laird.tar.bz2" \
+	$(ls \
+		at91bs.bin u-boot.bin kernel.bin rootfs.bin \
+		userfs.bin sqroot.bin fw_update fw_select fw_usi fw.txt \
+		prep_nand_for_update \
+	2>/dev/null))
+
 echo "COMMON POST IMAGE script: done."
