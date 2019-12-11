@@ -5,8 +5,14 @@ DEVEL_KEYS="${3}"
 
 echo "${BR2_LRD_PLATFORM^^} POST IMAGE script: starting..."
 
-[[ ${BR2_LRD_PLATFORM} == *"sd_sysd" ]]
-SD=$?
+case ${BR2_LRD_PLATFORM} in
+	*"sd_sysd")
+		SD=0
+		;;
+	*)
+		SD=1
+		;;
+esac
 
 . "${BOARD_DIR}/../post_image_common_60.sh" "${BOARD_DIR}" ${SD} "${DEVEL_KEYS}"
 
