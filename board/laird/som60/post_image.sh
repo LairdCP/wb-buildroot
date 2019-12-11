@@ -1,12 +1,18 @@
 BOARD_DIR="$(dirname $0)"
 
-export BR2_LRD_PLATFORM="${2}"
+BR2_LRD_PLATFORM="${2}"
 DEVEL_KEYS="${3}"
 
 echo "${BR2_LRD_PLATFORM^^} POST IMAGE script: starting..."
 
-[[ ${BR2_LRD_PLATFORM} == *"sd" ]] || [[ ${BR2_LRD_PLATFORM} == *"sd_mfg" ]]
-SD=$?
+case ${BR2_LRD_PLATFORM} in
+	*"sd"|*"sd_mfg")
+		SD=0
+		;;
+	*)
+		SD=1
+		;;
+esac
 
 . "${BOARD_DIR}/../post_image_common_60.sh" "${BOARD_DIR}" ${SD} "${DEVEL_KEYS}"
 

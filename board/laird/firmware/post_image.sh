@@ -1,15 +1,9 @@
-IMAGESDIR="${1}"
+BR2_LRD_PRODUCT=firmware
 
-export BR2_LRD_PLATFORM=laird-radio-firmware
-
-[ ! -d "${IMAGESDIR}" ] && mkdir -p "${IMAGESDIR}"
-
-echo "${BR2_LRD_PLATFORM} POST IMAGE script: starting..."
+echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: starting..."
 
 # enable tracing and exit on errors
 set -x -e
-
-[ -z "${LAIRD_RELEASE_STRING}" ] && LAIRD_RELEASE_STRING="0.${BR2_LRD_BRANCH}.0.0"
 
 FW_DIR="${TARGET_DIR}/lib/firmware"
 
@@ -27,12 +21,12 @@ create_bcm4343w_firmware_zipfile()
 
 	(
 	cd ${TARGET_DIR}
-	tar -cjf "${IMAGESDIR}/${FIRMWARE}.tar.bz2" --exclude *-mfg.bin \
+	tar -cjf "${BINARIES_DIR}/${FIRMWARE}.tar.bz2" --exclude *-mfg.bin \
 		lib/firmware/brcm/*4343* \
 		lib/firmware/regulatory_${DOMAIN}.db lib/firmware/regulatory.db
 	)
 
-	zip -mj ${IMAGESDIR}/${FIRMWARE}-${LAIRD_RELEASE_STRING}.zip ${IMAGESDIR}/${FIRMWARE}.tar.bz2
+	zip -mj ${BINARIES_DIR}/${FIRMWARE}.zip ${BINARIES_DIR}/${FIRMWARE}.tar.bz2
 }
 
 create_bcm4339_firmware_zipfile()
@@ -49,12 +43,12 @@ create_bcm4339_firmware_zipfile()
 
 	(
 	cd ${TARGET_DIR}
-	tar -cjf "${IMAGESDIR}/${FIRMWARE}.tar.bz2" --exclude *-mfg.bin \
+	tar -cjf "${BINARIES_DIR}/${FIRMWARE}.tar.bz2" --exclude *-mfg.bin \
 		lib/firmware/brcm/*433* \
 		lib/firmware/regulatory_${DOMAIN}.db lib/firmware/regulatory.db
 	)
 
-	zip -mj ${IMAGESDIR}/${FIRMWARE}-${LAIRD_RELEASE_STRING}.zip ${IMAGESDIR}/${FIRMWARE}.tar.bz2
+	zip -mj ${BINARIES_DIR}/${FIRMWARE}.zip ${BINARIES_DIR}/${FIRMWARE}.tar.bz2
 }
 
 create_60_firmware_zipfile()
@@ -67,7 +61,7 @@ create_60_firmware_zipfile()
 	ln -rsf ${FW_DIR}/lrdmwl/${FW_FILE} ${FW_DIR}/lrdmwl/88W8997_${2}.bin
 	ln -rsf ${FW_DIR}/regulatory_${FW_PROD}.db ${FW_DIR}/regulatory.db
 
-	tar -cjf "${IMAGESDIR}/laird-${FW_PROD}-firmware-${2}-${3}-${LAIRD_RELEASE_STRING}.tar.bz2" \
+	tar -cjf "${BINARIES_DIR}/laird-${FW_PROD}-firmware-${2}-${3}.tar.bz2" \
 		-C ${TARGET_DIR} \
 		lib/firmware/lrdmwl/88W8997_${2}.bin \
 		lib/firmware/lrdmwl/${FW_FILE} \
@@ -94,7 +88,7 @@ if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM60=y" ${BR2_CONFIG}; then
 	ln -rsf ${FW_DIR}/lrdmwl/${FW_FILE} ${FW_DIR}/lrdmwl/88W8997_sdio.bin
 	ln -rsf ${FW_DIR}/regulatory_summit60.db ${FW_DIR}/regulatory.db
 
-	tar -cjf "${IMAGESDIR}/laird-som60-radio-firmware-$LAIRD_RELEASE_STRING.tar.bz2" \
+	tar -cjf "${BINARIES_DIR}/laird-som60-radio-firmware.tar.bz2" \
 		-C ${TARGET_DIR} \
 		lib/firmware/lrdmwl/88W8997_sdio.bin \
 		lib/firmware/lrdmwl/${FW_FILE} \
@@ -116,7 +110,7 @@ fi
 
 if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_AR6003=y" ${BR2_CONFIG}; then
 ln -rsf ${FW_DIR}/regulatory_default.db ${FW_DIR}/regulatory.db
-tar -cjf "${IMAGESDIR}/laird-ath6k-6003-firmware-${LAIRD_RELEASE_STRING}.tar.bz2" \
+tar -cjf "${BINARIES_DIR}/laird-ath6k-6003-firmware.tar.bz2" \
 	-C ${TARGET_DIR} \
 	lib/firmware/ath6k/AR6003 \
 	lib/firmware/regulatory_default.db \
@@ -125,7 +119,7 @@ fi
 
 if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_AR6004=y" ${BR2_CONFIG}; then
 ln -rsf ${FW_DIR}/regulatory_default.db ${FW_DIR}/regulatory.db
-tar -cjf "${IMAGESDIR}/laird-ath6k-6004-firmware-${LAIRD_RELEASE_STRING}.tar.bz2" \
+tar -cjf "${BINARIES_DIR}/laird-ath6k-6004-firmware.tar.bz2" \
 	-C ${TARGET_DIR} \
 	lib/firmware/ath6k/AR6004 \
 	lib/firmware/bluetopia \
@@ -133,4 +127,4 @@ tar -cjf "${IMAGESDIR}/laird-ath6k-6004-firmware-${LAIRD_RELEASE_STRING}.tar.bz2
 	lib/firmware/regulatory.db lib/firmware/regulatory.db.p7s
 fi
 
-echo "${BR2_LRD_PLATFORM} POST IMAGE script: done."
+echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: done."

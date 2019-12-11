@@ -1,5 +1,3 @@
-IMAGESDIR="${1}"
-
 # enable tracing and exit on errors
 set -x -e
 
@@ -9,7 +7,8 @@ if [ "${BR2_LRD_DEVEL_BUILD}" == "y" ]; then
 
 	if [ -n "${BR2_DL_DIR}" ]; then
 		mkdir -p ${BR2_DL_DIR}/linux-backports
-		cp ${IMAGESDIR}/*.bz2 ${BR2_DL_DIR}/linux-backports
-		cp ${IMAGESDIR}/*.bz2 ${BR2_DL_DIR}/backports-test
+		mkdir -p ${BR2_DL_DIR}/backports-test
+		cp ${BINARIES_DIR}/*.bz2 ${BR2_DL_DIR}/linux-backports
+		cp ${BINARIES_DIR}/*.bz2 ${BR2_DL_DIR}/backports-test
 	fi
 fi
