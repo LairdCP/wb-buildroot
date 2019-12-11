@@ -5,6 +5,8 @@ echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: starting..."
 # enable tracing and exit on errors
 set -x -e
 
+mkdir -p ${BINARIES_DIR}
+
 if [[ ${BR2_LRD_PRODUCT} == *legacy* ]]; then
 	PKGNAME="(sdcsupp|sdccli|sdcsdk)"
 elif [[ ${BR2_LRD_PRODUCT} == summit* ]]; then

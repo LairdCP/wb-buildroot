@@ -5,6 +5,8 @@ echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: starting..."
 # enable tracing and exit on errors
 set -x -e
 
+mkdir -p ${BINARIES_DIR}
+
 FW_DIR="${TARGET_DIR}/lib/firmware"
 
 create_bcm4343w_firmware_zipfile()
