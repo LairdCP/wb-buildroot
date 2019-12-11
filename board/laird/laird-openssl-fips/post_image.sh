@@ -5,6 +5,8 @@ echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: starting..."
 # enable tracing and exit on errors
 set -x -e
 
+mkdir -p ${BINARIES_DIR}
+
 PKGNAME=libopenssl_1_0_2
 
 sed -n "s|^${PKGNAME},\(.*\.so\..*\)|\1|p" "${BUILD_DIR}/packages-file-list.txt" |\
