@@ -1,4 +1,4 @@
-WB50N_SYSD_RDVK_DIR="$(dirname $0)"
+WB50N_SYSD_RDVK_DIR="$(realpath $(dirname $0))"
 WB50N_SYSD_DIR="${WB50N_SYSD_RDVK_DIR}/../wb50n_sysd"
 
 export BR2_LRD_PLATFORM="${2}"

@@ -1,4 +1,4 @@
-BOARD_DIR="$(dirname $0)"
+BOARD_DIR="$(realpath $(dirname $0))"
 
 BR2_LRD_PLATFORM="${2}"
 DEVEL_KEYS="${3}"

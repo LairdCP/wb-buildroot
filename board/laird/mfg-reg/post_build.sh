@@ -1,9 +1,9 @@
-BR2_LRD_PRODUCT="${2}";
-
-echo "${BR2_LRD_PRODUCT^^} POST BUILD script: starting..."
-
 # enable tracing and exit on errors
 set -x -e
+
+BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
+
+echo "${BR2_LRD_PRODUCT^^} POST BUILD script: starting..."
 
 if [[ "${BR2_LRD_PRODUCT}" == mfg60* ]]; then
 

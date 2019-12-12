@@ -3,19 +3,24 @@
 
 export BR2_EXTERNAL ?= $(realpath $(MK_DIR))
 
-CONFIG_DIR ?= $(realpath $(MK_DIR))
-OUTPUT_DIR ?= $(realpath $(BR_DIR)/output)
+CONFIG_DIR ?= $(realpath $(MK_DIR)/configs)
+OUTPUT_DIR ?= $(abspath $(BR_DIR)/output)
 
 TARGETS_ALL = $(TARGETS) $(TARGETS_COMPONENT)
 
-$(info $(BR_DIR) $(OUTPUT_DIR))
+ifeq ($(LAIRD_RELEASE_STRING),)
+release_file = $(OUTPUT_DIR)/$(1)/images/$(1)-laird.tar
+else
+release_file = $(OUTPUT_DIR)/$(1)/images/$(1)-laird-$(LAIRD_RELEASE_STRING).tar
+endif
 
 .NOTPARALLEL:
+
 .PHONY: all clean cleanall
 all: $(TARGETS_ALL)
 clean: $(addsuffix -clean,$(TARGETS_ALL))
 
-$(patsubst %,$(OUTPUT_DIR)/%/.config,$(TARGETS_ALL)): $(OUTPUT_DIR)/%/.config: $(CONFIG_DIR)/configs/%_defconfig
+$(patsubst %,$(OUTPUT_DIR)/%/.config,$(TARGETS_ALL)): $(OUTPUT_DIR)/%/.config: $(CONFIG_DIR)/%_defconfig
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* $*_defconfig
 
 .PHONY: $(TARGETS_ALL)
@@ -29,7 +34,7 @@ $(addsuffix -menuconfig,$(TARGETS_ALL)): %-menuconfig: $(OUTPUT_DIR)/%/.config
 .PHONY: $(addsuffix -savedefconfig,$(TARGETS_ALL))
 $(addsuffix -savedefconfig,$(TARGETS_ALL)): %-savedefconfig:
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* savedefconfig \
-		BR2_DEFCONFIG=$(CONFIG_DIR)/configs/$*_defconfig
+		BR2_DEFCONFIG=$(CONFIG_DIR)/$*_defconfig
 
 .PHONY: $(addsuffix -linux-menuconfig,$(TARGETS_ALL))
 $(addsuffix -linux-menuconfig,$(TARGETS_ALL)): %-linux-menuconfig:
@@ -71,14 +76,14 @@ $(addsuffix -legal-info,$(TARGETS_ALL)): %-legal-info:
 
 .PHONY: $(addsuffix -full,$(TARGETS))
 $(addsuffix -full,$(TARGETS)): %-full: % %-sbom-gen %-sdk
-	bzip2 -d $(OUTPUT_DIR)/$*/images/$*-laird.tar.bz2
-	tar -C $(OUTPUT_DIR)/$*/images -rf $(OUTPUT_DIR)/$*/release/$*-laird.tar \
+	bzip2 -d $(call release_file,$*).bz2
+	tar -C $(OUTPUT_DIR)/$*/images -rf $(call release_file,$*)\
 		legal-info.tar.bz2 host-sbom target-sbom $*-sdk.tar.gz
-	bzip2 $(OUTPUT_DIR)/$*/images/$*-laird.tar
+	bzip2 $(call release_file,$*)
 
-.PHONY: $(addsuffix -full-legacy,$(TARGETS))
+.PHONY: $(addsuffix -full-legal,$(TARGETS))
 $(addsuffix -full-legal,$(TARGETS)): %-full-legal: % %-legal-info
-	bzip2 -d $(OUTPUT_DIR)/$*/images/$*-laird.tar.bz2
-	tar -C $(OUTPUT_DIR)/$*/images -rf $(OUTPUT_DIR)/$*/release/$*-laird.tar \
+	bzip2 -d $(call release_file,$*).bz2
+	tar -C "$(OUTPUT_DIR)/$*/images" -rf $(call release_file,$*) \
 		legal-info.tar.bz2
-	bzip2 $(OUTPUT_DIR)/$*/images/$*-laird.tar
+	bzip2 $(call release_file,$*)

@@ -1,5 +1,5 @@
 
-BOARD_DIR="$(dirname $0)"
+BOARD_DIR="$(realpath $(dirname $0))"
 GENIMAGE_CFG="${BOARD_DIR}/genimage.cfg"
 GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
 
@@ -17,17 +17,19 @@ ${genimage}                        \
 	--outputpath "${BINARIES_DIR}" \
 	--config "${GENIMAGE_CFG}"
 
-[ -z "${BR2_LRD_PRODUCT}" ] && \
-	BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
+BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
 
-mkdir -p ${BINARIES_DIR}/../release
+RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird"
+[ -n "${LAIRD_RELEASE_STRING}" ] && RELEASE_FILE+="-${LAIRD_RELEASE_STRING}"
 
 if [[ "${BR2_LRD_PRODUCT}" == *"rdvk" ]]; then
 	cp "${BOARD_DIR}"/sw-description "${BINARIES_DIR}"/
 	gzip -f "${BINARIES_DIR}/rootfs.ext2"
 	(cd "${BINARIES_DIR}" && echo -e "sw-description\nrootfs.ext2.gz" |\
 		cpio -ov -H crc > "${BINARIES_DIR}/${BR2_LRD_PRODUCT}.swu")
-	tar -C -"${BINARIES_DIR}" -cjf ../release/${BR2_LRD_PRODUCT}-laird.tar.bz2 sdcard.img ${BR2_LRD_PRODUCT}.swu
+	tar -C -"${BINARIES_DIR}" -cjf "${RELEASE_FILE}.tar.bz2" \
+		sdcard.img ${BR2_LRD_PRODUCT}.swu
 else
-	tar -C -"${BINARIES_DIR}" -cjf ../release/${BR2_LRD_PRODUCT}-laird.tar.bz2 sdcard.img
+	tar -C -"${BINARIES_DIR}" -cjf "${RELEASE_FILE}.tar.bz2" \
+		sdcard.img
 fi
