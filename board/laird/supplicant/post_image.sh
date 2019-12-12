@@ -1,11 +1,11 @@
-BR2_LRD_PRODUCT="${2}"
+BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
 
 echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: starting..."
 
 # enable tracing and exit on errors
 set -x -e
 
-mkdir -p ${BINARIES_DIR}
+mkdir -p "${BINARIES_DIR}"
 
 if [[ ${BR2_LRD_PRODUCT} == *legacy* ]]; then
 	PKGNAME="(sdcsupp|sdccli|sdcsdk)"
@@ -15,11 +15,14 @@ else
 	PKGNAME=wpa_supplicant
 fi
 
+[ -n "${LAIRD_RELEASE_STRING}" ] && RELEASE_SUFFIX="-${LAIRD_RELEASE_STRING}"
+RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}${RELEASE_SUFFIX}.tar"
+
 sed -nE "s/^${PKGNAME},\.\///p" "${BUILD_DIR}/packages-file-list.txt" |\
-	tar -cf "${BINARIES_DIR}/${BR2_LRD_PRODUCT}.tar" -C "${TARGET_DIR}" -T -
+	tar -cf "${RELEASE_FILE}" -C "${TARGET_DIR}" -T -
 
 if [[ ${BR2_LRD_PRODUCT} == *legacy* ]]; then
-	tar -uf "${BINARIES_DIR}/${BR2_LRD_PRODUCT}.tar" -C "${STAGING_DIR}" \
+	tar -uf "${RELEASE_FILE}" -C "${STAGING_DIR}" \
 		usr/include/sdc_sdk.h \
 		usr/include/sdc_events.h \
 		usr/include/lrd_sdk_pil.h \
@@ -27,6 +30,6 @@ if [[ ${BR2_LRD_PRODUCT} == *legacy* ]]; then
 		usr/lib/libsdc_sdk.so
 fi
 
-bzip2 -f "${BINARIES_DIR}/${BR2_LRD_PRODUCT}.tar"
+bzip2 -f "${RELEASE_FILE}"
 
 echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: done."

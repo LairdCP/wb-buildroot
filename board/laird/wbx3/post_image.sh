@@ -1,4 +1,4 @@
-BOARD_DIR="$(dirname $0)"
+BOARD_DIR="$(realpath $(dirname $0))"
 
 # enable tracing and exit on errors
 set -x -e
@@ -14,7 +14,10 @@ cat "${BINARIES_DIR}/u-boot-spl-nodtb.bin" "${BINARIES_DIR}/u-boot-spl.dtb" > "$
 cp ${BOARD_DIR}/../scripts-common/mksdcard-wbx3.sh ${BINARIES_DIR}/mksdcard.sh
 cp ${BOARD_DIR}/../scripts-common/mksdimg-wbx3.sh ${BINARIES_DIR}/mksdimg.sh
 
-tar -C ${BINARIES_DIR} -cjf ${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird.tar.bz2 \
+[ -n "${LAIRD_RELEASE_STRING}" ] && RELEASE_SUFFIX="-${LAIRD_RELEASE_STRING}"
+
+tar -C ${BINARIES_DIR} \
+	-cjf ${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird${RELEASE_SUFFIX}.tar.bz2 \
 	u-boot-spl.bin u-boot.itb mksdcard.sh mksdimg.sh
 
 echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: done."
