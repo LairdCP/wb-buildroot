@@ -8,8 +8,8 @@ set -x -e
 # source the common post image script
 . "board/laird/post_image_common.sh" "${BINARES_DIR}"
 
-word=$(stat -c "%s" ${BINARES_DIR}/kernel.bin)
-if [ $word -gt 2359296 ]; then
+word=$(stat -c "%s" ${BINARIES_DIR}/kernel.bin)
+if [ ${word} -gt 2359296 ]; then
 	echo "kernel size exceeded 18 block limit, failed"
 	exit 1
 fi
