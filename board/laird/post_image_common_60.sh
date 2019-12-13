@@ -152,7 +152,7 @@ cat "${BINARIES_DIR}/u-boot-spl-nodtb.bin" "${BINARIES_DIR}/u-boot-spl-key.dtb" 
 rm -f "${BINARIES_DIR}/u-boot-spl-key.dtb"
 
 RELEASE_FILE=${BR2_LRD_PRODUCT}-laird
-[ -n "${LAIRD_RELEASE_STRING}" ] && RELEASE_FILE+="-${LAIRD_RELEASE_STRING}"
+if [ -n "${VERSION}" ] && RELEASE_FILE+="-${VERSION}"
 
 if (( ${SD} )) ; then
 	# Regenerate Atmel PMECC boot.bin

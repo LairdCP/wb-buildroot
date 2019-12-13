@@ -8,13 +8,14 @@ echo "${BR2_LRD_PRODUCT^^} POST Image script: starting..."
 mkdir -p "${BINARIES_DIR}"
 
 RELEASE_FILE=${BR2_LRD_PRODUCT}
-if [ -n "${LAIRD_RELEASE_STRING}" ]; then
-	RELEASE_FILE+="-${LAIRD_RELEASE_STRING}"
+if [ -n "${VERSION}" ]; then
+	RELEASE_FILE+="-${VERSION}"
+
 	mv -f "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest" \
 		"${TARGET_DIR}/${RELEASE_FILE}.manifest"
 fi
 
-sed -i "2i#${LAIRD_RELEASE_STRING}" "${TARGET_DIR}/reg_tools.sh"
+sed -i "2i#${VERSION}" "${TARGET_DIR}/reg_tools.sh"
 
 TARFILE="${BINARIES_DIR}/${RELEASE_FILE}.tar.bz2"
 

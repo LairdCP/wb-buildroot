@@ -8,10 +8,10 @@ OUTPUT_DIR ?= $(abspath $(BR_DIR)/output)
 
 TARGETS_ALL = $(TARGETS) $(TARGETS_COMPONENT)
 
-ifeq ($(LAIRD_RELEASE_STRING),)
+ifeq ($(VERSION),)
 release_file = $(OUTPUT_DIR)/$(1)/images/$(1)-laird.tar
 else
-release_file = $(OUTPUT_DIR)/$(1)/images/$(1)-laird-$(LAIRD_RELEASE_STRING).tar
+release_file = $(OUTPUT_DIR)/$(1)/images/$(1)-laird-$(VERSION).tar
 endif
 
 .NOTPARALLEL:

@@ -14,7 +14,7 @@ cat "${BINARIES_DIR}/u-boot-spl-nodtb.bin" "${BINARIES_DIR}/u-boot-spl.dtb" > "$
 cp ${BOARD_DIR}/../scripts-common/mksdcard-wbx3.sh ${BINARIES_DIR}/mksdcard.sh
 cp ${BOARD_DIR}/../scripts-common/mksdimg-wbx3.sh ${BINARIES_DIR}/mksdimg.sh
 
-[ -n "${LAIRD_RELEASE_STRING}" ] && RELEASE_SUFFIX="-${LAIRD_RELEASE_STRING}"
+[ -n "${VERSION}" ] && RELEASE_SUFFIX="-${VERSION}"
 
 tar -C ${BINARIES_DIR} \
 	-cjf ${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird${RELEASE_SUFFIX}.tar.bz2 \

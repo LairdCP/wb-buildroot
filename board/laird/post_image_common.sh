@@ -24,7 +24,7 @@ cp board/laird/rootfs-additions-common/usr/sbin/fw_update "${BINARIES_DIR}/"
 [ -z "${LAIRD_FW_TXT_URL}" ] && \
 	LAIRD_FW_TXT_URL="http://$(hostname)/${BR2_LRD_PRODUCT}"
 
-[ -n "${LAIRD_RELEASE_STRING}" ] && RELEASE_SUFFIX="-${LAIRD_RELEASE_STRING}"
+[ -n "${VERSION}" ] && RELEASE_SUFFIX="-${VERSION}"
 
 cd "${BINARIES_DIR}"
 ${TOPDIR}/board/laird/mkfwtxt.sh "${LAIRD_FW_TXT_URL}"

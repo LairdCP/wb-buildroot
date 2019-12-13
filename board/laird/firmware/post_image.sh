@@ -9,7 +9,7 @@ mkdir -p ${BINARIES_DIR}
 
 FW_DIR="${TARGET_DIR}/lib/firmware"
 
-[ -n "${LAIRD_RELEASE_STRING}" ] && RELEASE_SUFFIX="-${LAIRD_RELEASE_STRING}"
+[ -n "${VERSION}" ] && RELEASE_SUFFIX="-${VERSION}"
 
 create_bcm4343w_firmware_zipfile()
 {

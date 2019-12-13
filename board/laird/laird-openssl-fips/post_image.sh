@@ -9,7 +9,7 @@ mkdir -p ${BINARIES_DIR}
 
 PKGNAME=libopenssl_1_0_2
 
-[ -n "${LAIRD_RELEASE_STRING}" ] && RELEASE_SUFFIX="-${LAIRD_RELEASE_STRING}"
+[ -n "${VERSION}" ] && RELEASE_SUFFIX="-${VERSION}"
 RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}${RELEASE_SUFFIX}.tar"
 
 sed -n "s|^${PKGNAME},\(.*\.so\..*\)|\1|p" "${BUILD_DIR}/packages-file-list.txt" |\
@@ -20,17 +20,18 @@ sed -n "s|^${PKGNAME},\(.*bin/openssl\)|\1|p" "${BUILD_DIR}/packages-file-list.t
 
 sed -n "s|^${PKGNAME},\(.*[/]etc[/]ssl[/].*\)|\1|p" "${BUILD_DIR}/packages-file-list.txt" |\
      tar --transform 's|^./|target/|' -rf "${RELEASE_FILE}" -C "${TARGET_DIR}" -T -
+
 sed -n "s|^${PKGNAME},\(./usr/include\)|\1|p" "${BUILD_DIR}/packages-file-list-staging.txt" |\
-     tar --transform 's|^./|staging/|' -rf "${RELEASE_FILE}.tar" -C "${STAGING_DIR}" -T -
+     tar --transform 's|^./|staging/|' -rf "${RELEASE_FILE}" -C "${STAGING_DIR}" -T -
 
 sed -n "s|^${PKGNAME},\(./usr/lib\)|\1|p" "${BUILD_DIR}/packages-file-list-staging.txt" |\
-     tar --transform 's|^./|staging/|' -rf "${RELEASE_FILE}.tar" -C "${STAGING_DIR}" -T -
+     tar --transform 's|^./|staging/|' -rf "${RELEASE_FILE}" -C "${STAGING_DIR}" -T -
 
 sed -n "s|^openssl-fips,\(./usr/local/ssl/fips-2.0/include/openssl/fips.*\)|\1|p" "${BUILD_DIR}/packages-file-list-staging.txt" |\
      tar --transform 's|^./usr/local/ssl/fips-2.0/include|staging/usr/include|' \
         -rf "${RELEASE_FILE}" -C "${STAGING_DIR}" -T -
 
-bzip2 -f "${RELEASE_FILE}.tar"
+bzip2 -f "${RELEASE_FILE}"
 
 if [ "${BR2_LRD_DEVEL_BUILD}" == "y" ]; then
 	[ -z "${BR2_DL_DIR}" ] && \

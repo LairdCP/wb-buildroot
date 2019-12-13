@@ -9,7 +9,7 @@ PKGNAME=adaptive_ww
 
 mkdir -p ${BINARIES_DIR}
 
-[ -n "${LAIRD_RELEASE_STRING}" ] && RELEASE_SUFFIX="-${LAIRD_RELEASE_STRING}"
+[ -n "${VERSION}" ] && RELEASE_SUFFIX="-${VERSION}"
 
 sed -n "s/^${PKGNAME},//p" "${BUILD_DIR}/packages-file-list.txt" |\
      tar -cjf "${BINARIES_DIR}/${BR2_LRD_PRODUCT}${RELEASE_SUFFIX}.tar.bz2" \
