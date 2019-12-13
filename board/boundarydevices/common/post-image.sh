@@ -20,7 +20,7 @@ ${genimage}                        \
 BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
 
 RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird"
-[ -n "${LAIRD_RELEASE_STRING}" ] && RELEASE_FILE+="-${LAIRD_RELEASE_STRING}"
+[ -n "${VERSION}" ] && RELEASE_FILE+="-${VERSION}"
 
 if [[ "${BR2_LRD_PRODUCT}" == *"rdvk" ]]; then
 	cp "${BOARD_DIR}"/sw-description "${BINARIES_DIR}"/

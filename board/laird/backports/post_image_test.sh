@@ -1,7 +1,7 @@
 # enable tracing and exit on errors
 set -x -e
 
-[ -n "${LAIRD_RELEASE_STRING}" ] && RELEASE_SUFFIX="-${LAIRD_RELEASE_STRING}"
+[ -n "${VERSION}" ] && RELEASE_SUFFIX="-${VERSION}"
 
 BACKPORTS_TEST_DIR=$(echo ${BUILD_DIR}/host-backports-test* | head -1)
 

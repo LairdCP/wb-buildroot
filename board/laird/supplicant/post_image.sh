@@ -15,7 +15,7 @@ else
 	PKGNAME=wpa_supplicant
 fi
 
-[ -n "${LAIRD_RELEASE_STRING}" ] && RELEASE_SUFFIX="-${LAIRD_RELEASE_STRING}"
+[ -n "${VERSION}" ] && RELEASE_SUFFIX="-${VERSION}"
 RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}${RELEASE_SUFFIX}.tar"
 
 sed -nE "s/^${PKGNAME},\.\///p" "${BUILD_DIR}/packages-file-list.txt" |\
