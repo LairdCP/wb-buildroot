@@ -6,7 +6,7 @@ echo "${BR2_LRD_PLATFORM^^} POST IMAGE script: starting..."
 set -x -e
 
 # source the common post image script
-. "board/laird/post_image_common.sh" "${BINARES_DIR}"
+. "board/laird/post_image_common.sh" "${BINARIES_DIR}"
 
 word=$(stat -c "%s" ${BINARIES_DIR}/kernel.bin)
 if [ ${word} -gt 2359296 ]; then
