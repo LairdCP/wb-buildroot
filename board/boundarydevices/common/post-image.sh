@@ -27,9 +27,9 @@ if [[ "${BR2_LRD_PRODUCT}" == *"rdvk" ]]; then
 	gzip -f "${BINARIES_DIR}/rootfs.ext2"
 	(cd "${BINARIES_DIR}" && echo -e "sw-description\nrootfs.ext2.gz" |\
 		cpio -ov -H crc > "${BINARIES_DIR}/${BR2_LRD_PRODUCT}.swu")
-	tar -C -"${BINARIES_DIR}" -cjf "${RELEASE_FILE}.tar.bz2" \
+	tar -C "${BINARIES_DIR}" -cjf "${RELEASE_FILE}.tar.bz2" \
 		sdcard.img ${BR2_LRD_PRODUCT}.swu
 else
-	tar -C -"${BINARIES_DIR}" -cjf "${RELEASE_FILE}.tar.bz2" \
+	tar -C "${BINARIES_DIR}" -cjf "${RELEASE_FILE}.tar.bz2" \
 		sdcard.img
 fi
