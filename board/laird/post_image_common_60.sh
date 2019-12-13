@@ -151,8 +151,11 @@ cat "${BINARIES_DIR}/u-boot-spl-nodtb.bin" "${BINARIES_DIR}/u-boot-spl-key.dtb" 
 
 rm -f "${BINARIES_DIR}/u-boot-spl-key.dtb"
 
-RELEASE_FILE=${BR2_LRD_PRODUCT}-laird
-if [ -n "${VERSION}" ] && RELEASE_FILE+="-${VERSION}"
+if [ -n "${VERSION}" ]; then
+	RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird-${VERSION}.tar"
+else
+	RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird.tar"
+fi
 
 if (( ${SD} )) ; then
 	# Regenerate Atmel PMECC boot.bin
@@ -179,20 +182,20 @@ if (( ${SD} )) ; then
 		echo -e "sw-description\nboot.bin\nu-boot.itb\nkernel.itb\nrootfs.bin\nu-boot-env.tgz\nerase_data.sh" |\
 		cpio -ov -H crc > ${BINARIES_DIR}/${BR2_LRD_PRODUCT}.swu)
 
-	tar -C ${BINARIES_DIR} -cf ${BINARIES_DIR}/${RELEASE_FILE}.tar \
+	tar -C ${BINARIES_DIR} -cf ${RELEASE_FILE} \
 		boot.bin u-boot.itb kernel.itb rootfs.bin ${BR2_LRD_PRODUCT}.swu
 
 	if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
-		tar -C ${BINARIES_DIR} -rf ${BINARIES_DIR}/${RELEASE_FILE}.tar \
+		tar -C ${BINARIES_DIR} -rf ${RELEASE_FILE} \
 			pmecc.bin u-boot-spl.dtb u-boot-spl-nodtb.bin u-boot.dtb \
 			u-boot-nodtb.bin u-boot.its kernel-nosig.itb sw-description
 
-		tar -C ${HOST_DIR}/usr/bin -rf ${BINARIES_DIR}/${RELEASE_FILE}.tar \
+		tar -C ${HOST_DIR}/usr/bin -rf ${RELEASE_FILE} \
 			fdtget fdtput mkimage genimage
 	fi
 
-	bzip2 -f ${BINARIES_DIR}/${RELEASE_FILE}.tar
+	bzip2 -f ${RELEASE_FILE}
 else
-	tar -C ${BINARIES_DIR} -cjf ${BINARIES_DIR}/${RELEASE_FILE}.tar.bz2 \
+	tar -C ${BINARIES_DIR} -cjf ${RELEASE_FILE}.bz2 \
 		u-boot-spl.bin u-boot.itb kernel.itb rootfs.tar mksdcard.sh mksdimg.sh
 fi

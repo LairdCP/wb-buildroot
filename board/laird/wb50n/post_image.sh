@@ -16,6 +16,6 @@ cp sqroot.ubi sqroot.bin
 )
 
 # source the common post image script
-. "$(BOARD_DIR)/../post_image_common.sh" "${BINARIES_DIR}"
+. "${BOARD_DIR}/../post_image_common.sh" "${BINARIES_DIR}"
 
 echo "${BR2_LRD_PLATFORM^^} POST IMAGE script: done."

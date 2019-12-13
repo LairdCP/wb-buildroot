@@ -7,14 +7,7 @@ set -x -e
 
 BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
 
-if [ -e "${BINARIES_DIR}/uImage.at91-${BR2_LRD_PRODUCT}" ]; then
-	cp "${BINARIES_DIR}/uImage.at91-${BR2_LRD_PRODUCT}" "${BINARIES_DIR}/kernel.bin"
-elif [ -e "${BINARIES_DIR}/uImage.at91-${BR2_LRD_PLATFORM}"  ]; then
-	cp "${BINARIES_DIR}/uImage.at91-${BR2_LRD_PLATFORM}" "${BINARIES_DIR}/kernel.bin"
-else
-	cp "${BINARIES_DIR}/uImage.${BR2_LRD_PRODUCT}" "${BINARIES_DIR}/kernel.bin"
-fi
-
+cp "${BINARIES_DIR}/uImage."* "${BINARIES_DIR}/kernel.bin"
 cp "${BINARIES_DIR}/rootfs.ubi" "${BINARIES_DIR}/rootfs.bin"
 cp "${BINARIES_DIR}/at91bootstrap.bin" "${BINARIES_DIR}/at91bs.bin"
 
