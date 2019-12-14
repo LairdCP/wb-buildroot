@@ -120,6 +120,7 @@ fi
 
 echo "# entering ${BINARIES_DIR} for the next command"
 (cd ${BINARIES_DIR} && ${mkimage} -f kernel.its kernel.itb) || exit 1
+cp -f ${BINARIES_DIR}/kernel.itb ${BINARIES_DIR}/kernel-nosig.itb
 (cd ${BINARIES_DIR} && ${mkimage} -F -K u-boot.dtb -k keys -r kernel.itb) || exit 1
 rm -f ${BINARIES_DIR}/kernel.its
 
@@ -186,6 +187,8 @@ if (( ${SD} )) ; then
 		boot.bin u-boot.itb kernel.itb rootfs.bin ${BR2_LRD_PRODUCT}.swu
 
 	if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
+		dd if=${BINARIES_DIR}/boot.bin of=${BINARIES_DIR}/pmecc.bin bs=208 count=1
+
 		tar -C ${BINARIES_DIR} -rf ${RELEASE_FILE} \
 			pmecc.bin u-boot-spl.dtb u-boot-spl-nodtb.bin u-boot.dtb \
 			u-boot-nodtb.bin u-boot.its kernel-nosig.itb sw-description
