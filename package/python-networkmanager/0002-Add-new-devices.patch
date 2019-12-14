@@ -1,0 +1,31 @@
+diff --git a/NetworkManager.py b/NetworkManager.py
+index 3e46e36..55a01f1 100644
+--- a/NetworkManager.py
++++ b/NetworkManager.py
+@@ -389,7 +389,11 @@ def device_class(typ):
+         NM_DEVICE_TYPE_PPP: PPP,
+         NM_DEVICE_TYPE_OVS_INTERFACE: OvsIf,
+         NM_DEVICE_TYPE_OVS_PORT: OvsPort,
+-        NM_DEVICE_TYPE_OVS_BRIDGE: OvsBridge
++        NM_DEVICE_TYPE_OVS_BRIDGE: OvsBridge,
++        NM_DEVICE_TYPE_WPAN: WPan,
++        NM_DEVICE_TYPE_6LOWPAN: LowPan6,
++        NM_DEVICE_TYPE_WIREGUARD: WireGuard,
++        NM_DEVICE_TYPE_WIFI_P2P: WifiP2P
+     }[typ]
+
+ class Adsl(Device): pass
+@@ -416,6 +420,10 @@ class PPP(Device): pass
+ class OvsIf(Device): pass
+ class OvsPort(Device): pass
+ class OvsBridge(Device): pass
++class WPan(Device): pass
++class LowPan6(Device): pass
++class WireGuard(Device): pass
++class WifiP2P(Device): pass
+
+ class NSP(TransientNMDbusInterface):
+     interface_names = ['org.freedesktop.NetworkManager.Wimax.NSP']
+--
+2.7.4
+
