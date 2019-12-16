@@ -11,10 +11,10 @@ OPENSSL_FIPS_SITE = package/lrd-closed-source/externals/lairdssl_fips_2_0
 OPENSSL_FIPS_SITE_METHOD = local
 else
 OPENSSL_FIPS_VERSION = 2.0.10
-OPENSSL_FIPS_SITE = $(TOPDIR)/../archive
-OPENSSL_FIPS_SITE_METHOD = file
+OPENSSL_FIPS_SITE = https://www.openssl.org/source/old/fips
 OPENSSL_FIPS_SOURCE = openssl-fips-$(OPENSSL_FIPS_VERSION).tar.gz
 OPENSSL_FIPS_HMAC = af8bda4bb9739e35b4ef00a9bc40d21a6a97a780
+OPENSSL_FIPS_LICENSE_FILES = LICENSE
 endif
 
 #
