@@ -544,6 +544,10 @@ different steps of the build process.
   will be run only when the relevant init system is installed (i.e. if
   systemd is selected as the init system in the configuration, only
   +LIBFOO_INSTALL_INIT_SYSTEMD+ will be run).
+  When systemd is used as the init system, buildroot will automatically enable
+  all services using the +systemctl preset-all+ command in the final phase of
+  image building. You can add preset files to prevent a particular unit from
+  being automatically enabled by buildroot.
 
 * +LIBFOO_HELP_CMDS+ lists the actions to print the package help, which
   is included to the main +make help+ output. These commands can print
