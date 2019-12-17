@@ -109,6 +109,9 @@ Example usage:                                   (to see options, try '-h')
 
   fw_update --url http://http://<server/path>
            (..re-run using $FWUL and with applied images server link )
+
+  fw_update http://<server>/fw.txt?nsap=<notification_server>:<port_no>
+           (..use remote http method and specify non-default notification server)
 End
 --Usage-Info--
 
