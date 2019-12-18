@@ -23,6 +23,15 @@ cd "${BINARIES_DIR}"
 ${TOPDIR}/board/laird/mkfwtxt.sh "${LAIRD_FW_TXT_URL}"
 ${TOPDIR}/board/laird/mkfwusi.sh
 
+if [ ${BR2_LRD_PLATFORM} == "wb45n" ]; then
+	word=$(stat -c "%s" ${BINARIES_DIR}/kernel.bin)
+	if [ $word -gt 2359296 ]
+	then
+		echo "kernel size exceeded 18 block limit, failed"
+		exit 1
+	fi
+fi
+
 tar -cjf "${BR2_LRD_PRODUCT}-laird${RELEASE_SUFFIX}.tar.bz2" \
 	at91bs.bin u-boot.bin kernel.bin rootfs.bin \
 	fw_update fw_select fw_usi fw.txt \
