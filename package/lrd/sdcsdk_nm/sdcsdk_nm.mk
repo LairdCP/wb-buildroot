@@ -8,7 +8,7 @@ SDCSDK_NM_VERSION = local
 SDCSDK_NM_SITE = package/lrd/externals/sdcsdk_nm
 SDCSDK_NM_SITE_METHOD = local
 
-SDCSDK_NM_DEPENDENCIES = libnl host-pkgconf openssl lrd-userspace-examples
+SDCSDK_NM_DEPENDENCIES = libnl host-pkgconf lrd-userspace-examples
 SDCSDK_NM_INSTALL_STAGING = YES
 SDCSDK_NM_MAKE_ENV = CFLAGS="$(TARGET_CFLAGS)" PKG_CONFIG="$(HOST_DIR)/usr/bin/pkg-config"
 SDCSDK_NM_TARGET_DIR = $(TARGET_DIR)
