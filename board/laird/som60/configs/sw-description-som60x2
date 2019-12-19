@@ -143,49 +143,6 @@ software =
 			);
 		}
 
-		full: {
-			images: (
-				{
-					filename = "boot.bin";
-					mtdname = "u-boot-spl";
-					type = "flash";
-				},
-				{
-					filename = "u-boot.itb";
-					mtdname = "u-boot";
-					type = "flash";
-				},
-				{
-					filename = "kernel.itb";
-					volume = "kernel_a";
-					installed-directly = true;
-				},
-				{
-					filename = "kernel.itb";
-					volume = "kernel_b";
-					installed-directly = true;
-				},
-				{
-					filename = "rootfs.bin";
-					volume = "rootfs_a";
-					installed-directly = true;
-				},
-				{
-					filename = "rootfs.bin";
-					volume = "rootfs_b";
-					installed-directly = true;
-				}
-			);
-
-			scripts: (
-				{
-					filename = "erase_data.sh";
-					type = "postinstall";
-					data = "rootfs_data_a rootfs_data_b";
-				}
-			);
-		}
-
 		complete: {
 			/* partitions tag is used to resize UBI partitions */
 			partitions: (
