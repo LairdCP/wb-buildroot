@@ -1,8 +1,10 @@
 #!/bin/sh
 
 MOUNT_POINT=/tmp/ubi_mount_point
-DATA_SECRET_TARGET=${MOUNT_POINT}/secret
 DATA_SECRET_SRC=/data/secret
+DATA_SECRET_TARGET=${MOUNT_POINT}/secret
+DATA_NONSECRET_SRC=/data/misc
+DATA_NONSECRET_TARGET=${MOUNT_POINT}/misc
 
 exit_on_error() {
 	[ "${1}" == 1 ] && /bin/umount "${MOUNT_POINT}"
@@ -33,9 +35,15 @@ migrate_data() {
 	if [ -d "${DATA_SECRET_SRC}"  ]; then
 		#Needs keyring to access secret data
 		/bin/keyctl link @us @s
-		mkdir -p "${DATA_SECRET_TARGET}" || exit_on_error 0 "Directory Creation for ${DATA_SECRET_TARGET} Failed"
+		mkdir -p "${DATA_SECRET_TARGET}" || exit_on_error 1 "Directory Creation for ${DATA_SECRET_TARGET} Failed"
 		#migrate the secret data
 		/bin/rsync -rlptDW --exclude=.mounted "${DATA_SECRET_SRC}/" "${DATA_SECRET_TARGET}" || exit_on_error 1 "Data Copying.. Failed"
+	fi
+	#Migrate misc data if exists
+	if [ -d "${DATA_NONSECRET_SRC}"  ]; then
+		mkdir -p "${DATA_NONSECRET_TARGET}" || exit_on_error 1 "Directory Creation for ${DATA_NONSECRET_TARGET} Failed"
+		#migrate the misc data
+		/bin/rsync -rlptDW --exclude=.mounted "${DATA_NONSECRET_SRC}/" "${DATA_NONSECRET_TARGET}" || exit_on_error 1 "Data Copying.. Failed"
 	fi
 	#Unmount the data device
 	/bin/umount "${MOUNT_POINT}" || exit_on_error 0 "Unmounting ${MOUNT_POINT} Failed"
