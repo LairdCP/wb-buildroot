@@ -181,7 +181,7 @@ software =
 				{
 					filename = "erase_data.sh";
 					type = "postinstall";
-					data = "rootfs_data_a rootfs_data_b perm";
+					data = "rootfs_data_a rootfs_data_b";
 				}
 			);
 		}

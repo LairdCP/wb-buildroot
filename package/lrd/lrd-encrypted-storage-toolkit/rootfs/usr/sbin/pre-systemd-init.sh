@@ -6,7 +6,7 @@
 # require a writeable filesystem.
 
 PERM_MOUNT=/perm
-PERM_DEVICE=ubi0:perm
+PERM_DEVICE=ubi0_6
 
 mount -t ubifs -o noatime,nosuid,noexec ${PERM_DEVICE} ${PERM_MOUNT}
 
