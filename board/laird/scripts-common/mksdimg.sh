@@ -9,8 +9,8 @@ BLOCK_SIZE=1024
 MiBCONVERTER=$(( 1024 * 1024 ))
 
 if [ -z "${IMGFILE}" ]; then
-    echo "mksdimg.sh <output filename> [rootfs free space size in MiB] [rootfs source directory]" >&2
-    exit
+	echo "mksdimg.sh <output filename> [rootfs free space size in MiB] [rootfs source directory]" >&2
+	exit
 fi
 
 if [ -z "${ROOTFSDIR}" ]; then
@@ -25,8 +25,8 @@ fi
 
 [ "${ROOTFS_EXTRA_SIZE}" -eq "${ROOTFS_EXTRA_SIZE}" ] 2>/dev/null
 if [ $? -ne 0 ]; then
-		echo "rootfs free space size is not a number" >&2
-		exit
+	echo "rootfs free space size is not a number" >&2
+	exit
 fi
 
 echo "[Creating card image...]"
@@ -35,7 +35,7 @@ echo "[Creating card image...]"
 ROOTFS_FILE_SIZE=$(stat -c%s "${SRCDIR}/rootfs.tar")
 
 # Set image free space to 10% of the used space by default
-[ "${ROOTFS_EXTRA_SIZE}" -eq 0 ] &&
+[ "${ROOTFS_EXTRA_SIZE}" -eq 0 ] && \
 	ROOTFS_EXTRA_SIZE=$(( ROOTFS_FILE_SIZE * 11 / 10 ))
 
 # Calculate partitions
@@ -104,7 +104,8 @@ fi
 HOST_MKFS=${SRCDIR}/../host/sbin/mkfs.ext4
 [ -f ${HOST_MKFS} ] || HOST_MKFS=mkfs.ext4
 
-${HOST_MKFS} -q -L rootfs -F -b ${BLOCK_SIZE} -d ${ROOTFSDIR} -E lazy_itable_init=0,lazy_journal_init=0 ${TMPDIR}/rootfs.img ${ROOTFS_BLOCKS}
+fakeroot ${HOST_MKFS} -q -L rootfs -F -b ${BLOCK_SIZE} -d ${ROOTFSDIR} \
+	-E lazy_itable_init=0,lazy_journal_init=0 ${TMPDIR}/rootfs.img ${ROOTFS_BLOCKS}
 rm -rf ${TMPDIR}/rootfs.tmp
 
 # Add rootfs partition to disk image
@@ -113,9 +114,9 @@ rm -f ${TMPDIR}/rootfs.img
 
 # Create image partition table
 parted -s ${IMGTMPFILE} mklabel msdos unit MiB \
-    mkpart primary fat16 ${BOOT_START_MiB} ${BOOT_END_MiB} set 1 lba on set 1 boot on \
-    mkpart primary linux-swap ${SWAP_START_MiB} ${SWAP_END_MiB} \
-    mkpart primary ext4 ${ROOTFS_START_MiB} 100%
+	mkpart primary fat16 ${BOOT_START_MiB} ${BOOT_END_MiB} set 1 lba on set 1 boot on \
+	mkpart primary linux-swap ${SWAP_START_MiB} ${SWAP_END_MiB} \
+	mkpart primary ext4 ${ROOTFS_START_MiB} 100%
 
 if [ $? -eq 0 ]; then
 	echo "[Compressing card image...]"
