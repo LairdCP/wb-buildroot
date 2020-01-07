@@ -7,8 +7,8 @@ BLOCK_SIZE=1024
 MiBCONVERTER=$(( 1024 * 1024 ))
 
 if [ -z "${IMGFILE}" ]; then
-    echo "mksdimg.sh <output filename>" >&2
-    exit
+	echo "mksdimg.sh <output filename>" >&2
+	exit
 fi
 
 echo "[Creating card image...]"
@@ -43,7 +43,7 @@ rm -f ${TMPDIR}/boot.img
 
 # Create image partition table
 parted -s ${IMGTMPFILE} mklabel msdos unit MiB \
-    mkpart primary fat16 ${BOOT_START_MiB} 100% set 1 lba on set 1 boot on
+	mkpart primary fat16 ${BOOT_START_MiB} 100% set 1 lba on set 1 boot on
 
 if [ $? -eq 0 ]; then
 	echo "[Compressing card image...]"
