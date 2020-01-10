@@ -10,7 +10,7 @@ LIBOPENSSL_1_0_2_VERSION = local
 LIBOPENSSL_1_0_2_SITE = package/lrd-closed-source/externals/lairdssl_1_0_2
 LIBOPENSSL_1_0_2_SITE_METHOD = local
 else
-LIBOPENSSL_1_0_2_VERSION = 1.0.2t
+LIBOPENSSL_1_0_2_VERSION = 1.0.2u
 LIBOPENSSL_1_0_2_SITE = http://www.openssl.org/source
 LIBOPENSSL_1_0_2_SOURCE = openssl-$(LIBOPENSSL_1_0_2_VERSION).tar.gz
 endif
