@@ -1,0 +1,84 @@
+diff --git a/NetworkManager.py b/NetworkManager.py
+index 55a01f1..ec3d89a 100644
+--- a/NetworkManager.py
++++ b/NetworkManager.py
+@@ -500,11 +500,17 @@ class fixups(object):
+                     settings[key]['cloned-mac-address'] = fixups.mac_to_dbus(settings[key]['cloned-mac-address'])
+                 if 'bssid' in settings[key]:
+                     settings[key]['bssid'] = fixups.mac_to_dbus(settings[key]['bssid'])
+-                for cert in ['ca-cert', 'client-cert', 'phase2-ca-cert', 'phase2-client-cert', 'private-key']:
++                for cert in ['ca-cert', 'client-cert', 'phase2-ca-cert', 'phase2-client-cert', 'private-key', 'phase2-private-key']:
+                     if cert in settings[key]:
+                         settings[key][cert] = fixups.cert_to_dbus(settings[key][cert])
+             if 'ssid' in settings.get('802-11-wireless', {}):
+                 settings['802-11-wireless']['ssid'] = fixups.ssid_to_dbus(settings['802-11-wireless']['ssid'])
++            for key in ['group', 'proto', 'pairwise']:
++                if key in settings.get('802-11-wireless-security', {}):
++                    settings['802-11-wireless-security'][key] = fixups.string_to_dbus_array(settings['802-11-wireless-security'][key])
++            for key in ['eap', 'phase2-auth', 'phase2-autheap']:
++                if key in settings.get('802-1x', {}):
++                    settings['802-1x'][key] = fixups.string_to_dbus_array(settings['802-1x'][key])
+             if 'ipv4' in settings:
+                 if 'address-data' in settings['ipv4']:
+                     for item in settings['ipv4']['address-data']:
+@@ -572,6 +578,12 @@ class fixups(object):
+                 return [fixups.route_to_python(route, klass_af) for route in val]
+             if arg in ('Nameservers', 'WinsServers'):
+                 return [fixups.addr_to_python(addr, klass_af) for addr in val]
++            if arg in ['group', 'proto', 'pairwise']:
++                return fixups.dbus_array_to_string(val)
++            if arg in ['eap', 'phase2-auth', 'phase2-autheap']:
++                return fixups.dbus_array_to_string(val)
++            if arg in ['ca-cert', 'client-cert', 'phase2-ca-cert', 'phase2-client-cert', 'private-key', 'phase2-private-key']:
++                return fixups.cert_to_python(val)
+             if arg == 'Options':
+                 for key in val:
+                     if key.startswith('requested_'):
+@@ -585,6 +597,15 @@ class fixups(object):
+         if method == 'GetSettings':
+             if 'ssid' in val.get('802-11-wireless', {}):
+                 val['802-11-wireless']['ssid'] = fixups.ssid_to_python(val['802-11-wireless']['ssid'])
++            for key in ['group', 'proto', 'pairwise']:
++                if key in val.get('802-11-wireless-security', {}):
++                    val['802-11-wireless-security'][key] = fixups.dbus_array_to_string(val['802-11-wireless-security'][key])
++            for key in ['eap', 'phase2-auth', 'phase2-autheap']:
++                if key in val.get('802-1x', {}):
++                    val['802-1x'][key] = fixups.dbus_array_to_string(val['802-1x'][key])
++            for cert in ['ca-cert', 'client-cert', 'phase2-ca-cert', 'phase2-client-cert', 'private-key', 'phase2-private-key']:
++                if cert in val.get('802-1x', {}):
++                    val['802-1x'][cert] = fixups.cert_to_python(val['802-1x'][cert])
+             for key in val:
+                 val_ = val[key]
+                 if 'mac-address' in val_:
+@@ -654,6 +675,14 @@ class fixups(object):
+         return [dbus.Byte(x) for x in ssid]
+
+     @staticmethod
++    def string_to_dbus_array(val):
++        return dbus.Array(val.split(), signature='s')
++
++    @staticmethod
++    def dbus_array_to_string(val):
++        return " ".join(val)
++
++    @staticmethod
+     def strength_to_python(strength):
+         return struct.unpack('B', strength)[0]
+
+@@ -731,6 +760,13 @@ class fixups(object):
+         ]
+
+     @staticmethod
++    def cert_to_python(cert):
++        if cert:
++            cert.pop();
++            filename = ''.join(c.decode('utf-8') for c in cert)
++            return filename[len("file://"):]
++
++    @staticmethod
+     def cert_to_dbus(cert):
+         if not isinstance(cert, bytes):
+             if not cert.startswith('file://'):
+--
+2.7.4
+
