@@ -1,0 +1,5 @@
+config BR2_PACKAGE_IG_TTY_UTILS
+	bool "IG60 TTY Utilities"
+	help
+	  Utilities to enable serial getty processes on USB and serial
+	depends on BR2_PACKAGE_SYSTEMD
