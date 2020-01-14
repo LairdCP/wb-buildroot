@@ -102,7 +102,6 @@ else ifeq ($(BR2_mipsel),y)
 NODEJS_CPU = mipsel
 else ifeq ($(BR2_arm),y)
 NODEJS_CPU = arm
-NODEJS_ARM_FP = $(GCC_TARGET_FLOAT_ABI)
 else ifeq ($(BR2_aarch64),y)
 NODEJS_CPU = arm64
 # V8 needs to know what floating point ABI the target is using.
@@ -133,7 +132,6 @@ define NODEJS_CONFIGURE_CMDS
 		$(HOST_DIR)/bin/python2 ./configure \
 		--prefix=/usr \
 		--dest-cpu=$(NODEJS_CPU) \
-		--with-arm-fpu=vfpv3-d16 \
 		$(if $(NODEJS_ARM_FP),--with-arm-float-abi=$(NODEJS_ARM_FP)) \
 		$(if $(NODEJS_MIPS_ARCH_VARIANT),--with-mips-arch-variant=$(NODEJS_MIPS_ARCH_VARIANT)) \
 		$(if $(NODEJS_MIPS_FPU_MODE),--with-mips-fpu-mode=$(NODEJS_MIPS_FPU_MODE)) \
