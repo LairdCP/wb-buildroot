@@ -32,8 +32,10 @@ config BR2_PACKAGE_LINUX_BACKPORTS_VERSION_VALUE
 
 config BR2_PACKAGE_LINUX_BACKPORTS_DEFCONFIG
 	string "Defconfig name"
-	default "som60" if BR2_LRD_SOM60_RADIO || BR2_LRD_SOM60_FIPS_RADIO
-	default "wb50n" if BR2_LRD_WB50N_LEGACY_RADIO || BR2_LRD_WB50N_SYSD_RADIO || BR2_LRD_WB50N_SYSD_FIPS_RADIO
+	default "som60" if BR2_LRD_SOM60_RADIO
+	default "som60_fips" if BR2_LRD_SOM60_FIPS_RADIO
+	default "wb50n" if BR2_LRD_WB50N_LEGACY_RADIO || BR2_LRD_WB50N_SYSD_RADIO
+	default "wb50n_fips" if  BR2_LRD_WB50N_SYSD_FIPS_RADIO
 	depends on BR2_PACKAGE_LINUX_BACKPORTS_USE_DEFCONFIG
 	help
 	  Name of the backports defconfig file to use, without the
