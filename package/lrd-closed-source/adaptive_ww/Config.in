@@ -5,3 +5,16 @@ config BR2_PACKAGE_ADAPTIVE_WW
 	help
 		Laird 60 Series Radio's Adaptive World Mode Feature
 
+config BR2_PACKAGE_ADAPTVE_WW_REGPWRDB
+	bool "Adaptive World Mode Regulatory Power Database"
+	depends on BR2_PACKAGE_ADAPTIVE_WW
+	help
+		A default Adaptive World Mode Regulatory Power Database
+
+config BR2_PACKAGE_ADAPTIVE_WW_LPT
+	bool "Adaptive World Mode Power Tool"
+	depends on BR2_PACKAGE_ADAPTIVE_WW
+	depends on BR2_i386 || BR2_x86_64
+	help
+		Laird Tool used to create Regulatory Power Database
+
