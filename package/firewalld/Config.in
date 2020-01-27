@@ -1,16 +1,12 @@
 config BR2_PACKAGE_FIREWALLD
 	bool "firewalld"
 	depends on BR2_PACKAGE_LIBGLIB2
-	depends on BR2_PACKAGE_IPTABLES
-	depends on BR2_PACKAGE_EBTABLES
-	depends on BR2_PACKAGE_IPSET
-	depends on BR2_PACKAGE_NFTABLES
-	depends on BR2_PACKAGE_DESKTOP_FILE_UTILS
-	depends on BR2_PACKAGE_GETTEXT
 	depends on BR2_PACKAGE_DBUS_PYTHON
-	depends on BR2_PACKAGE_PYTHON_DECORATOR
 	depends on BR2_PACKAGE_PYTHON3_GOBJECT || BR2_PACKAGE_PYTHON_GOBJECT
-	depends on BR2_PACKAGE_PYTHON_SLIP_DBUS
+	select BR2_PACKAGE_PYTHON_DECORATOR
+	select BR2_PACKAGE_GETTEXT
+	select BR2_PACKAGE_PYTHON_SLIP_DBUS
+	select BR2_PACKAGE_NFTABLES
 	help
 	  firewalld is as a firewall management tool for Linux operating
 	  systems. It provides firewall features by acting as a

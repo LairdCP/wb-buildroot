@@ -1,6 +1,7 @@
 config BR2_PACKAGE_PYTHON_SLIP_DBUS
 	bool "python-slip-dbus"
 	depends on BR2_PACKAGE_DBUS_PYTHON
+	select BR2_PACKAGE_PYTHON_SIX
 
 	help
 	This package provides slip.dbus.service.Object, which is a dbus.service.Object
