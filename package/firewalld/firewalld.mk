@@ -4,11 +4,10 @@
 #
 ################################################################################
 
-FIREWALLD_VERSION = v0.6.3
+FIREWALLD_VERSION = v0.7.1
 FIREWALLD_SOURCE = $(FIREWALLD_VERSION).tar.gz
 FIREWALLD_SITE = https://github.com/firewalld/firewalld/archive
-FIREWALLD_DEPENDENCIES = libglib2 iptables ebtables nftables host-intltool gettext \
-			 desktop-file-utils systemd python-decorator dbus-python python-slip-dbus
+FIREWALLD_DEPENDENCIES = libglib2 nftables host-intltool gettext systemd python-decorator dbus-python python-slip-dbus
 FIREWALLD_INSTALL_STAGING = YES
 FIREWALLD_LIBTOOL_PATCH = YES
 FIREWALLD_AUTORECONF= YES
@@ -27,7 +26,7 @@ endef
 FIREWALLD_POST_EXTRACT_HOOKS = FIREWALLD_RUN_INTLTOOLIZE
 
 define FIREWALLD_FIX_SHEBANG
-	cd $(BUILD_DIR)/firewalld-v0.6.3/src && $(SED) "1s/.*/\#\\!\\/\bin\/\python/" firewalld \
+	cd $(BUILD_DIR)/firewalld-$(FIREWALLD_VERSION)/src && $(SED) "1s/.*/\#\\!\\/\bin\/\python/" firewalld \
 	&& $(SED) "1s/.*/\#\\!\\/\bin\/\python/" firewall-cmd \
 	&& $(SED) "1s/.*/\#\\!\\/\bin\/\python/" firewall-applet \
 	&& $(SED) "1s/.*/\#\\!\\/\bin\/\python/" firewall-config \
