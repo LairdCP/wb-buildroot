@@ -1,6 +1,5 @@
 config BR2_PACKAGE_HOST_PRELINK_CROSS
 	bool "host prelink-cross"
-	select BR2_PACKAGE_ELFUTILS
 	help
 	  Emulate a runtime linker for a given sysroot.
 
