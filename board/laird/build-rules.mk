@@ -36,20 +36,20 @@ $(addsuffix -savedefconfig,$(TARGETS_ALL)): %-savedefconfig:
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* savedefconfig \
 		BR2_DEFCONFIG=$(CONFIG_DIR)/$*_defconfig
 
-.PHONY: $(addsuffix -linux-menuconfig,$(TARGETS_ALL))
-$(addsuffix -linux-menuconfig,$(TARGETS_ALL)): %-linux-menuconfig:
+.PHONY: $(addsuffix -linux-menuconfig,$(TARGETS))
+$(addsuffix -linux-menuconfig,$(TARGETS)): %-linux-menuconfig:
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* linux-menuconfig
 
-.PHONY: $(addsuffix -linux-savedefconfig,$(TARGETS_ALL))
-$(addsuffix -linux-savedefconfig,$(TARGETS_ALL)): %-linux-savedefconfig:
+.PHONY: $(addsuffix -linux-savedefconfig,$(TARGETS))
+$(addsuffix -linux-savedefconfig,$(TARGETS)): %-linux-savedefconfig:
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* linux-update-defconfig
 
-.PHONY: $(addsuffix -uboot-menuconfig,$(TARGETS_ALL))
-$(addsuffix -uboot-menuconfig,$(TARGETS_ALL)): %:
+.PHONY: $(addsuffix -uboot-menuconfig,$(TARGETS))
+$(addsuffix -uboot-menuconfig,$(TARGETS)): %:
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* uboot-menuconfig
 
-.PHONY: $(addsuffix -uboot-savedefconfig,$(TARGETS_ALL))
-$(addsuffix -uboot-savedefconfig,$(TARGETS_ALL)): %-uboot-savedefconfig:
+.PHONY: $(addsuffix -uboot-savedefconfig,$(TARGETS))
+$(addsuffix -uboot-savedefconfig,$(TARGETS)): %-uboot-savedefconfig:
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* uboot-update-defconfig
 
 .PHONY: $(addsuffix -clean,$(TARGETS_ALL))
@@ -57,12 +57,12 @@ $(addsuffix -clean,$(TARGETS_ALL)): %-clean:
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* distclean
 	rm -rf $(OUTPUT_DIR)/$*
 
-.PHONY: $(addsuffix -sdk,$(TARGETS_ALL))
-$(addsuffix -sdk,$(TARGETS_ALL)): %-sdk:
+.PHONY: $(addsuffix -sdk,$(TARGETS))
+$(addsuffix -sdk,$(TARGETS)): %-sdk: $(OUTPUT_DIR)/%/.config
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* BR2_SDK_PREFIX=$@ sdk
 
-.PHONY: $(addsuffix -sbom-gen,$(TARGETS_ALL))
-$(addsuffix -sbom-gen,$(TARGETS_ALL)): %-sbom-gen:
+.PHONY: $(addsuffix -sbom-gen,$(TARGETS))
+$(addsuffix -sbom-gen,$(TARGETS)): %-sbom-gen:
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* sbom-gen
 	tar --exclude=*sources -C $(OUTPUT_DIR)/$*/legal-info/ \
 		-cjf $(OUTPUT_DIR)/$*/images/legal-info.tar.bz2 .
@@ -87,3 +87,8 @@ $(addsuffix -full-legal,$(TARGETS)): %-full-legal: % %-legal-info
 	tar -C "$(OUTPUT_DIR)/$*/images" -rf $(call release_file,$*) \
 		legal-info.tar.bz2
 	bzip2 $(call release_file,$*)
+
+.PHONY: $(addsuffix -sdk-only,$(TARGETS))
+$(addsuffix -sdk-only,$(TARGETS)): %-sdk-only: %-sdk
+	mv -f $(OUTPUT_DIR)/$*/images/$*-sdk.tar.gz $(call release_file,$*).gz
+	sha256sum $(call release_file,$*).gz | sed 's, .*/, ,' > $(call release_file,$*).gz.sha
