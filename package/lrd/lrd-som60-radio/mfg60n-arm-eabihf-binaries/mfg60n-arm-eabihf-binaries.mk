@@ -6,7 +6,7 @@ MFG60N_ARM_EABIHF_BINARIES_EXTRA_DOWNLOADS = mfg60n-arm-eabihf-$(MFG60N_ARM_EABI
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
   MFG60N_ARM_EABIHF_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/mfg60n/laird/$(MFG60N_ARM_EABIHF_BINARIES_VERSION)
   ifeq ($(shell wget -q --spider $(MFG60N_ARM_EABIHF_BINARIES_SITE) && echo ok),)
-	  MFG60N_ARM_EABIHF_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/mfg60n-arm-eabihf/laird/$(MFG60N_ARM_EABIHF_BINARIES_VERSION)
+	  MFG60N_ARM_EABIHF_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/mfg60n/laird/$(MFG60N_ARM_EABIHF_BINARIES_VERSION)
   endif
 else
   MFG60N_ARM_EABIHF_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(MFG60N_ARM_EABIHF_BINARIES_VERSION)
