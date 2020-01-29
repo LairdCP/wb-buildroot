@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-FIREWALLD_VERSION = v0.7.1
+FIREWALLD_VERSION = v0.8.1
 FIREWALLD_SOURCE = $(FIREWALLD_VERSION).tar.gz
 FIREWALLD_SITE = https://github.com/firewalld/firewalld/archive
 FIREWALLD_DEPENDENCIES = libglib2 nftables host-intltool gettext systemd python-decorator dbus-python python-slip-dbus
@@ -19,7 +19,7 @@ FIREWALLD_CONF_OPTS = \
 	--with-ip6tables-restore=no \
 	--with-ebtables=no \
 	--with-ebtables-restore=no \
-	--with-ipset=no \
+	--with-ipset=no
 
 ifeq ($(BR2_PACKAGE_PYTHON),y)
 FIREWALLD_DEPENDENCIES  += python-gobject
