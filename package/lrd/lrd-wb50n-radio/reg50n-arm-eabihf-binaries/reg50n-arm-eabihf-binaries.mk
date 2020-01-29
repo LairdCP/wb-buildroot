@@ -7,8 +7,8 @@ REG50N_ARM_EABIHF_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/r
 
 define REG50N_ARM_EABIHF_BINARIES_EXTRACT_CMDS
 	tar -xjf $($(PKG)_DL_DIR)/$(REG50N_ARM_EABIHF_BINARIES_EXTRA_DOWNLOADS) -C $(@D) --keep-directory-symlink --no-overwrite-dir --touch
-	(cd $(@D) && ./reg50n-$(REG50N_ARM_EABIHF_BINARIES_VERSION).sh tar && mkdir -p files)
-	tar -xvjf $(@D)/reg50n-$(REG50N_ARM_EABIHF_BINARIES_VERSION).tar.bz2 -C $(@D)/files/
+	(cd $(@D) && ./reg50n-arm-eabihf-$(REG50N_ARM_EABIHF_BINARIES_VERSION).sh tar && mkdir -p files)
+	tar -xvjf $(@D)/reg50n-arm-eabihf-$(REG50N_ARM_EABIHF_BINARIES_VERSION).tar.bz2 -C $(@D)/files/
 endef
 
 define REG50N_ARM_EABIHF_BINARIES_INSTALL_TARGET_CMDS
