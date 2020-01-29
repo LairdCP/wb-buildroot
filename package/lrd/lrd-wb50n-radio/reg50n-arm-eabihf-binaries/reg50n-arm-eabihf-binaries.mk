@@ -3,7 +3,10 @@ REG50N_ARM_EABIHF_BINARIES_SOURCE =
 REG50N_ARM_EABIHF_BINARIES_LICENSE = GPL-2.0
 REG50N_ARM_EABIHF_BINARIES_EXTRA_DOWNLOADS = reg50n-arm-eabihf-laird-$(REG50N_ARM_EABIHF_BINARIES_VERSION).tar.bz2
 
-REG50N_ARM_EABIHF_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/reg50n-arm-eabihf/laird/$(REG50N_ARM_EABIHF_BINARIES_VERSION)
+REG50N_ARM_EABIHF_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/reg50n/laird/$(REG50N_ARM_EABIHF_BINARIES_VERSION)
+ifeq ($(shell wget -q --spider $(REG50N_ARM_EABIHF_BINARIES_SITE) && echo ok),)
+  REG50N_ARM_EABIHF_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/reg50n-arm-eabihf/laird/$(REG50N_ARM_EABIHF_BINARIES_VERSION)
+endif
 
 define REG50N_ARM_EABIHF_BINARIES_EXTRACT_CMDS
 	tar -xjf $($(PKG)_DL_DIR)/$(REG50N_ARM_EABIHF_BINARIES_EXTRA_DOWNLOADS) -C $(@D) --keep-directory-symlink --no-overwrite-dir --touch
