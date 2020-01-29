@@ -1,0 +1,25 @@
+diff --git a/Makefile.am b/Makefile.am
+index 85da0b5..f47ff1e 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -1,4 +1,4 @@
+-SUBDIRS = config doc po shell-completion src
++SUBDIRS = config po shell-completion src
+ DIST_TARGETS = dist-gzip
+
+ EXTRA_DIST = \
+diff --git a/configure.ac b/configure.ac
+index 0758c69..e73463b 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -42,7 +42,6 @@ GLIB_GSETTINGS
+
+ #############################################################
+
+-JH_CHECK_XML_CATALOG([http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl], [DocBook XSL Stylesheets])
+
+ #############################################################
+
+--
+2.7.4
+
