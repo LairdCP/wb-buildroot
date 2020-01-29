@@ -12,6 +12,15 @@ FIREWALLD_INSTALL_STAGING = YES
 FIREWALLD_LIBTOOL_PATCH = YES
 FIREWALLD_AUTORECONF= YES
 
+FIREWALLD_CONF_OPTS = \
+	--with-iptables=no \
+	--with-iptables-restore=no \
+	--with-ip6tables=no \
+	--with-ip6tables-restore=no \
+	--with-ebtables=no \
+	--with-ebtables-restore=no \
+	--with-ipset=no \
+
 ifeq ($(BR2_PACKAGE_PYTHON),y)
 FIREWALLD_DEPENDENCIES  += python-gobject
 else
