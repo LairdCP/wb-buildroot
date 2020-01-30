@@ -1,7 +1,7 @@
 if BR2_TOOLCHAIN_EXTERNAL_LAIRD_ARM
 
 config BR2_TOOLCHAIN_EXTERNAL_PREFIX
-	default "arm-buildroot-linux-gnueabihf"
+	default "arm-laird-linux-gnueabihf"
 
 config BR2_PACKAGE_PROVIDES_TOOLCHAIN_EXTERNAL
 	default "toolchain-external-laird-arm"
