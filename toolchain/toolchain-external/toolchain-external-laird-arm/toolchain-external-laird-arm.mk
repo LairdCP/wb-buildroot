@@ -4,9 +4,8 @@
 #
 ################################################################################
 
-TOOLCHAIN_EXTERNAL_LAIRD_ARM_VERSION = 2018.02-2
-TOOLCHAIN_EXTERNAL_LAIRD_ARM_SITE = https://toolchains.bootlin.com/downloads/releases/toolchains/armv7-eabihf/tarballs
-
-TOOLCHAIN_EXTERNAL_LAIRD_ARM_SOURCE = armv7-eabihf--glibc--stable-$(TOOLCHAIN_EXTERNAL_LAIRD_ARM_VERSION).tar.bz2
+TOOLCHAIN_EXTERNAL_LAIRD_ARM_VERSION = 7.0.0.271
+TOOLCHAIN_EXTERNAL_LAIRD_ARM_SITE = https://files.devops.rfpros.com/builds/linux/toolchain/$(TOOLCHAIN_EXTERNAL_LAIRD_ARM_VERSION)
+TOOLCHAIN_EXTERNAL_LAIRD_ARM_SOURCE = som60_toolchain-laird-$(TOOLCHAIN_EXTERNAL_LAIRD_ARM_VERSION).tar.gz
 
 $(eval $(toolchain-external-package))
