@@ -40,16 +40,16 @@ cp board/laird/mfg-reg/rootfs-additions/tcmd.sh ${TARGET_DIR}/usr/bin
 elif [[ "${BR2_LRD_PRODUCT}" == regCypress* ]]; then
 
 echo "/usr/bin/wl
-/lib/firmware/brcm/bcm4339/brcmfmac4339-sdio-mfg.bin
-/lib/firmware/brcm/bcm4339/brcmfmac4339-sdio.bin
-/lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio-mfg.bin
-/lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio.bin" \
+/lib/firmware/brcm/brcmfmac4339-sdio-mfg.bin
+/lib/firmware/brcm/brcmfmac4339-sdio.bin
+/lib/firmware/brcm//brcmfmac43430-sdio-mfg.bin
+/lib/firmware/brcm//brcmfmac43430-sdio.bin" \
 > "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
 
-ln -srf ${TARGET_DIR}/lib/firmware/brcm/bcm4339/brcmfmac4339-sdio-mfg.bin \
-	${TARGET_DIR}/lib/firmware/brcm/bcm4339/brcmfmac4339-sdio.bin
-ln -srf ${TARGET_DIR}/lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio-mfg.bin \
-	${TARGET_DIR}/lib/firmware/brcm/bcm4343w/brcmfmac43430-sdio.bin
+ln -srf ${TARGET_DIR}/lib/firmware/brcm/brcmfmac4339-sdio-mfg.bin \
+	${TARGET_DIR}/lib/firmware/brcm/brcmfmac4339-sdio.bin
+ln -srf ${TARGET_DIR}/lib/firmware/brcm/brcmfmac43430-sdio-mfg.bin \
+	${TARGET_DIR}/lib/firmware/brcm/brcmfmac43430-sdio.bin
 
 else
 exit 1
