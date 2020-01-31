@@ -44,43 +44,20 @@ endif
 ifneq ($(filter y,$(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343) $(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343_MFG)),)
 
 BRCM_DIR = $(TARGET_DIR)/lib/firmware/brcm
-BCM4343_DIR = $(BRCM_DIR)/bcm4343w
 
 define LAIRD_FW_BCM4343_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/bcm4343w $(BRCM_DIR)
-	find $(BCM4343_DIR) -type d -exec chmod 755 {} \;
-	find $(BCM4343_DIR) -type f -exec chmod 644 {} \;
-
-	ln -rsf $(BCM4343_DIR)/4343w.hcd $(BRCM_DIR)/4343w.hcd
-	ln -rsf $(BCM4343_DIR)/4343w.hcd $(BRCM_DIR)/BCM43430A1.hcd
-	ln -rsf $(BCM4343_DIR)/brcmfmac43430-sdio-prod.bin $(BCM4343_DIR)/brcmfmac43430-sdio.bin
-	ln -rsf $(BCM4343_DIR)/brcmfmac43430-sdio-prod.bin $(BRCM_DIR)/brcmfmac43430-sdio.bin
-	ln -rsf $(BCM4343_DIR)/brcmfmac43430-sdio.clm_blob $(BRCM_DIR)/brcmfmac43430-sdio.clm_blob
-
-	ln -rsf $(BCM4343_DIR)/brcmfmac43430-sdio-fcc.txt $(BCM4343_DIR)/brcmfmac43430-sdio.txt
-	ln -rsf $(BCM4343_DIR)/brcmfmac43430-sdio-fcc.txt $(BRCM_DIR)/brcmfmac43430-sdio.txt
+	cp -rad $(@D)/brcm/* $(BRCM_DIR)
 endef
 endif
 
 ifneq ($(filter y,$(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339) $(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339_MFG)),)
 
 BRCM_DIR = $(TARGET_DIR)/lib/firmware/brcm
-BCM4339_DIR = $(BRCM_DIR)/bcm4339
 
 define LAIRD_FW_BCM4339_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/bcm4339 $(BRCM_DIR)
-	find $(BCM4343_DIR) -type d -exec chmod 755 {} \;
-	find $(BCM4343_DIR) -type f -exec chmod 644 {} \;
-
-	ln -rsf $(BCM4339_DIR)/4339.hcd $(BRCM_DIR)/4339.hcd
-	ln -rsf $(BCM4339_DIR)/4339.hcd $(BRCM_DIR)/BCM4335C0.hcd
-	ln -rsf $(BCM4339_DIR)/brcmfmac4339-sdio-prod.bin $(BCM4339_DIR)/brcmfmac4339-sdio.bin
-	ln -rsf $(BCM4339_DIR)/brcmfmac4339-sdio-prod.bin $(BRCM_DIR)/brcmfmac4339-sdio.bin
-
-	ln -rsf $(BCM4339_DIR)/brcmfmac4339-sdio-fcc.txt $(BCM4339_DIR)/brcmfmac4339-sdio.txt
-	ln -rsf $(BCM4339_DIR)/brcmfmac4339-sdio-fcc.txt $(BRCM_DIR)/brcmfmac4339-sdio.txt
+	cp -rad $(@D)/brcm/* $(BRCM_DIR)
 endef
 endif
 
