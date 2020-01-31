@@ -17,16 +17,19 @@ create_bcm4343w_firmware_zipfile()
 	local FIRMWARE=${2}
 
 	local BRCM_DIR=${FW_DIR}/brcm
-	local BCM4343_DIR=${FW_DIR}/brcm/bcm4343w
 
 	ln -rsf ${FW_DIR}/regulatory_${DOMAIN}.db ${FW_DIR}/regulatory.db
-	ln -rsf ${BCM4343_DIR}/brcmfmac43430-sdio-${DOMAIN}.txt ${BCM4343_DIR}/brcmfmac43430-sdio.txt
-	ln -rsf ${BCM4343_DIR}/brcmfmac43430-sdio-${DOMAIN}.txt ${BRCM_DIR}/brcmfmac43430-sdio.txt
+	ln -rsf ${BRCM_DIR}/brcmfmac43430-sdio-${DOMAIN}.txt ${BRCM_DIR}/brcmfmac43430-sdio.txt
 
 	(
 	cd ${TARGET_DIR}
-	tar -cjf "${BINARIES_DIR}/${FIRMWARE}.tar.bz2" --exclude *-mfg.bin \
-		lib/firmware/brcm/*4343* \
+	tar -cjf "${BINARIES_DIR}/${FIRMWARE}.tar.bz2" \
+		lib/firmware/brcm/BCM43430A1.hcd \
+		lib/firmware/brcm/brcmfmac43430-sdio.bin \
+		lib/firmware/brcm/brcmfmac43430-sdio.clm_blob \
+		lib/firmware/brcm/brcmfmac43430-sdio-${DOMAIN}.txt \
+		lib/firmware/brcm/brcmfmac43430-sdio-prod.bin \
+		lib/firmware/brcm/brcmfmac43430-sdio.txt \
 		lib/firmware/regulatory_${DOMAIN}.db lib/firmware/regulatory.db
 	)
 
@@ -39,16 +42,18 @@ create_bcm4339_firmware_zipfile()
 	local FIRMWARE=${2}
 
 	local BRCM_DIR=${FW_DIR}/brcm
-	local BCM4339_DIR=${FW_DIR}/brcm/bcm4339
 
 	ln -rsf ${FW_DIR}/regulatory_${DOMAIN}.db ${FW_DIR}/regulatory.db
-	ln -rsf ${BCM4339_DIR}/brcmfmac4339-sdio-${DOMAIN}.txt ${BCM4339_DIR}/brcmfmac4339-sdio.txt
-	ln -rsf ${BCM4339_DIR}/brcmfmac4339-sdio-${DOMAIN}.txt ${BRCM_DIR}/brcmfmac4339-sdio.txt
+	ln -rsf ${BRCM_DIR}/brcmfmac4339-sdio-${DOMAIN}.txt ${BRCM_DIR}/brcmfmac4339-sdio.txt
 
 	(
 	cd ${TARGET_DIR}
-	tar -cjf "${BINARIES_DIR}/${FIRMWARE}.tar.bz2" --exclude *-mfg.bin \
-		lib/firmware/brcm/*433* \
+	tar -cjf "${BINARIES_DIR}/${FIRMWARE}.tar.bz2" \
+		lib/firmware/brcm/BCM4335C0.hcd \
+		lib/firmware/brcm/brcmfmac4339-sdio.bin \
+		lib/firmware/brcm/brcmfmac4339-sdio-${DOMAIN}.txt \
+		lib/firmware/brcm/brcmfmac4339-sdio-prod.bin \
+		lib/firmware/brcm/brcmfmac4339-sdio.txt \
 		lib/firmware/regulatory_${DOMAIN}.db lib/firmware/regulatory.db
 	)
 
