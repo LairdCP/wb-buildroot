@@ -1,0 +1,61 @@
+diff -Naur a/plugins/gemalto.c b/plugins/gemalto.c
+--- a/plugins/gemalto.c	2020-02-04 18:21:09.970393115 +0000
++++ b/plugins/gemalto.c	2020-02-04 19:50:36.460221666 +0000
+@@ -172,7 +172,8 @@
+ 	struct ofono_sim *sim = data->sim;
+ 
+ 	const char *sim_status = "simstatus";
+-	const char *ind_str;
++	const char *iccid = "iccid";
++	const char *ind_str, *iccid_str;
+ 	int status;
+ 	GAtResultIter iter;
+ 
+@@ -185,6 +186,23 @@
+ 	if (!g_at_result_iter_next_unquoted_string(&iter, &ind_str))
+ 		return;
+ 
++	if (g_str_equal(iccid, ind_str)) {
++
++		if (!g_at_result_iter_next_string(&iter, &iccid_str))
++			return;
++
++		if (strlen(iccid_str) > 0) {
++			/* ICCID valid, Start SIM check */
++			data->sim_state_query = at_util_sim_state_query_new(data->app,
++						1, 20, sim_ready_cb, modem,
++						NULL);
++		} else {
++			/* Empty ICCID indication means SIM was removed */
++			ofono_sim_inserted_notify(sim, FALSE);
++		}
++		return;
++	}
++
+ 	if (!g_str_equal(sim_status, ind_str))
+ 		return;
+ 
+@@ -217,6 +235,7 @@
+ 	}
+ }
+ 
++
+ static void sim_state_cb(gboolean present, gpointer user_data)
+ {
+ 	struct ofono_modem *modem = user_data;
+@@ -232,8 +251,15 @@
+ 	g_at_chat_register(data->app, "+CIEV:",
+ 			gemalto_ciev_notify, FALSE, modem, NULL);
+ 
++	/*
++	 * Request both "simstatus" and "iccid" indications, since
++	 * different Gemalto modems implement one or both
++	 */
+ 	g_at_chat_send(data->app, "AT^SIND=\"simstatus\",1", none_prefix,
+ 			NULL, NULL, NULL);
++
++	g_at_chat_send(data->app, "AT^SIND=\"iccid\",1", none_prefix,
++			NULL, NULL, NULL);
+ }
+ 
+ static void cfun_enable(gboolean ok, GAtResult *result, gpointer user_data)
