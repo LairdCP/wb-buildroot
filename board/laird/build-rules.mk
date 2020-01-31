@@ -45,7 +45,7 @@ $(addsuffix -linux-savedefconfig,$(TARGETS)): %-linux-savedefconfig:
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* linux-update-defconfig
 
 .PHONY: $(addsuffix -uboot-menuconfig,$(TARGETS))
-$(addsuffix -uboot-menuconfig,$(TARGETS)): %:
+$(addsuffix -uboot-menuconfig,$(TARGETS)): %-uboot-menuconfig:
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* uboot-menuconfig
 
 .PHONY: $(addsuffix -uboot-savedefconfig,$(TARGETS))
