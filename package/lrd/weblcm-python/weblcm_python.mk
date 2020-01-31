@@ -43,6 +43,9 @@ define WEBLCM_PYTHON_INSTALL_TARGET_FILES
 	$(WEBLCM_PYTHON_FIX_TIME)
 	mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
 	ln -sf $(TARGET_DIR)/etc/systemd/system/weblcm-python.service $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
+	$(INSTALL) -D -m 644 $(WEBLCM_PYTHON_SITE)/swupdate.service $(TARGET_DIR)/etc/systemd/system
+	ln -sf $(TARGET_DIR)/etc/systemd/system/swupdate.service $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
+	$(INSTALL) -D -m 755 $(WEBLCM_PYTHON_SITE)/swupdate.sh  $(TARGET_DIR)/usr/sbin/
 
 endef
 
