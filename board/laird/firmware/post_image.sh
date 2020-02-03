@@ -11,10 +11,9 @@ FW_DIR="${TARGET_DIR}/lib/firmware"
 
 [ -n "${VERSION}" ] && RELEASE_SUFFIX="-${VERSION}"
 
-create_bcm4343w_firmware_zipfile()
+create_bcm4343w_firmware_archive()
 {
 	local DOMAIN=${1}
-	local FIRMWARE=${2}
 
 	local BRCM_DIR=${FW_DIR}/brcm
 
@@ -23,7 +22,7 @@ create_bcm4343w_firmware_zipfile()
 
 	(
 	cd ${TARGET_DIR}
-	tar -cjf "${BINARIES_DIR}/${FIRMWARE}.tar.bz2" \
+	tar -cjf "${BINARIES_DIR}/laird-lwb-${DOMAIN}-firmware${RELEASE_SUFFIX}.tar.bz2" \
 		lib/firmware/brcm/BCM43430A1.hcd \
 		lib/firmware/brcm/brcmfmac43430-sdio.bin \
 		lib/firmware/brcm/brcmfmac43430-sdio.clm_blob \
@@ -32,14 +31,11 @@ create_bcm4343w_firmware_zipfile()
 		lib/firmware/brcm/brcmfmac43430-sdio.txt \
 		lib/firmware/regulatory_${DOMAIN}.db lib/firmware/regulatory.db
 	)
-
-	zip -mj ${BINARIES_DIR}/${FIRMWARE}${RELEASE_SUFFIX}.zip ${BINARIES_DIR}/${FIRMWARE}.tar.bz2
 }
 
-create_bcm4339_firmware_zipfile()
+create_bcm4339_firmware_archive()
 {
 	local DOMAIN=${1}
-	local FIRMWARE=${2}
 
 	local BRCM_DIR=${FW_DIR}/brcm
 
@@ -48,7 +44,7 @@ create_bcm4339_firmware_zipfile()
 
 	(
 	cd ${TARGET_DIR}
-	tar -cjf "${BINARIES_DIR}/${FIRMWARE}.tar.bz2" \
+	tar -cjf "${BINARIES_DIR}/laird-lwb5-${DOMAIN}-firmware${RELEASE_SUFFIX}.tar.bz2" \
 		lib/firmware/brcm/BCM4335C0.hcd \
 		lib/firmware/brcm/brcmfmac4339-sdio.bin \
 		lib/firmware/brcm/brcmfmac4339-sdio-${DOMAIN}.txt \
@@ -56,11 +52,9 @@ create_bcm4339_firmware_zipfile()
 		lib/firmware/brcm/brcmfmac4339-sdio.txt \
 		lib/firmware/regulatory_${DOMAIN}.db lib/firmware/regulatory.db
 	)
-
-	zip -mj ${BINARIES_DIR}/${FIRMWARE}${RELEASE_SUFFIX}.zip ${BINARIES_DIR}/${FIRMWARE}.tar.bz2
 }
 
-create_60_firmware_zipfile()
+create_60_firmware_archive()
 {
 	grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_${1^^}60_${2^^}_${3^^}=y" ${BR2_CONFIG} || return
 
@@ -77,19 +71,19 @@ create_60_firmware_zipfile()
 		lib/firmware/regulatory_${FW_PROD}.db lib/firmware/regulatory.db
 }
 
-create_60_firmware_zipfile ST sdio uart
-create_60_firmware_zipfile ST sdio sdio
-create_60_firmware_zipfile ST pcie uart
-create_60_firmware_zipfile ST pcie usb
-create_60_firmware_zipfile ST usb uart
-create_60_firmware_zipfile ST usb usb
+create_60_firmware_archive ST sdio uart
+create_60_firmware_archive ST sdio sdio
+create_60_firmware_archive ST pcie uart
+create_60_firmware_archive ST pcie usb
+create_60_firmware_archive ST usb uart
+create_60_firmware_archive ST usb usb
 
-create_60_firmware_zipfile SU sdio uart
-create_60_firmware_zipfile SU sdio sdio
-create_60_firmware_zipfile SU pcie uart
-create_60_firmware_zipfile SU pcie usb
-create_60_firmware_zipfile SU usb uart
-create_60_firmware_zipfile SU usb usb
+create_60_firmware_archive SU sdio uart
+create_60_firmware_archive SU sdio sdio
+create_60_firmware_archive SU pcie uart
+create_60_firmware_archive SU pcie usb
+create_60_firmware_archive SU usb uart
+create_60_firmware_archive SU usb usb
 
 if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM60=y" ${BR2_CONFIG}; then
 	FW_FILE=$(basename ${FW_DIR}/lrdmwl/88W8997_SOM_sdio_uart_*.bin)
@@ -105,16 +99,16 @@ if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM60=y" ${BR2_CONFIG}; then
 fi
 
 if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343=y" ${BR2_CONFIG}; then
-create_bcm4343w_firmware_zipfile fcc  480-0079
-create_bcm4343w_firmware_zipfile etsi 480-0080
-create_bcm4343w_firmware_zipfile jp   480-0116
+create_bcm4343w_firmware_archive fcc
+create_bcm4343w_firmware_archive etsi
+create_bcm4343w_firmware_archive jp
 fi
 
 if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339=y" ${BR2_CONFIG}; then
-create_bcm4339_firmware_zipfile fcc  480-0081
-create_bcm4339_firmware_zipfile etsi 480-0082
-create_bcm4339_firmware_zipfile ic   480-0094
-create_bcm4339_firmware_zipfile jp   480-0095
+create_bcm4339_firmware_archive fcc
+create_bcm4339_firmware_archive etsi
+create_bcm4339_firmware_archive ic
+create_bcm4339_firmware_archive jp
 fi
 
 if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_AR6003=y" ${BR2_CONFIG}; then
