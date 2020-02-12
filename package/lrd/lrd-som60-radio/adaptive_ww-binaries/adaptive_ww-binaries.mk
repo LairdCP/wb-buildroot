@@ -1,6 +1,7 @@
 ifneq ($(BR2_LRD_DEVEL_BUILD),y)
 ADAPTIVE_WW_BINARIES_VERSION = $(call qstrip,$(BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE))
 ADAPTIVE_WW_BINARIES_LICENSE = LGPL-2.1
+ADAPTIVE_WW_BINARIES_STRIP_COMPONENTS = 0
 
 ifeq ($(BR2_PACKAGE_LIBOPENSSL_1_0_2),y)
 ADAPTIVE_WW_BINARIES_TYPE1 = _openssl_1_0_2
@@ -23,6 +24,7 @@ endef
 define ADAPTIVE_WW_BINARIES_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -m 0644 -D $(@D)/usr/lib/systemd/system/awm.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/awm.service
+	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
 	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/awm.service \
 		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/awm.service
 endef
