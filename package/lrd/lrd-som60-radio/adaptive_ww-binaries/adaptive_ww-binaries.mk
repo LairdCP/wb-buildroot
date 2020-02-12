@@ -17,8 +17,19 @@ else
   ADAPTIVE_WW_BINARIES_SITE = https://github.com/LairdCP/SOM60-Release-Packages/releases/download/LRD-REL-$(ADAPTIVE_WW_BINARIES_VERSION)
 endif
 
+ifeq ($(BR2_PACKAGE_ADAPTIVE_WW_BINARIES_REGPWRDB),y)
+define AWM_BINARIES_REGPWRDB_INSTALL_TARGET_CMDS
+	$(INSTALL) -D -m 0644 $(@D)/lib/firmware/regpwr.db $(TARGET_DIR)/lib/firmware/regpwr.db
+endef
+endif
+
+define AWM_BINARIES_INSTALL_TARGET_CMDS
+	$(INSTALL) -D -m 0755 $(@D)/usr/bin/adaptive_ww $(TARGET_DIR)/usr/bin/adaptive_ww
+endef
+
 define ADAPTIVE_WW_BINARIES_INSTALL_TARGET_CMDS
-	$(INSTALL) -m 0755 -D $(@D)/usr/bin/adaptive_ww $(TARGET_DIR)/usr/bin
+	$(AWM_BINARIES_REGPWRDB_INSTALL_TARGET_CMDS)
+	$(AWM_BINARIES_INSTALL_TARGET_CMDS)
 endef
 
 define ADAPTIVE_WW_BINARIES_INSTALL_INIT_SYSTEMD

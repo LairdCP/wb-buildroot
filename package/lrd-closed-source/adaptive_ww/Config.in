@@ -7,7 +7,7 @@ config BR2_PACKAGE_ADAPTIVE_WW
 
 if BR2_PACKAGE_ADAPTIVE_WW
 
-config BR2_PACKAGE_ADAPTVE_WW_REGPWRDB
+config BR2_PACKAGE_ADAPTIVE_WW_REGPWRDB
 	bool "Adaptive World Mode Regulatory Power Database"
 	default y
 	help
