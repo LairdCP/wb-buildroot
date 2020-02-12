@@ -33,7 +33,7 @@ define AWM_REGPWRDB_INSTALL_TARGET_CMDS
 endef
 endif
 
-ifeq ($(BR2_LRD_DEVEL_BUILD),y)
+ifneq ($(BR2_LRD_DEVEL_BUILD),y)
 define AWM_STARTUP_INSTALL_TARGET_CMDS
 	$(INSTALL) -m 0644 -D $(@D)/awm/awm.service $(TARGET_DIR)/usr/lib/systemd/system/awm.service
 	$(INSTALL) -m 0755 -D $(@D)/awm/S30adaptive-ww $(TARGET_DIR)/etc/init.d/S30adaptive-ww
