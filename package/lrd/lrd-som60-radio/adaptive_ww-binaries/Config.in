@@ -5,3 +5,11 @@ config BR2_PACKAGE_ADAPTIVE_WW_BINARIES
 
 	help
 	  Extracts adaptive_ww from adaptive_ww-arm release and installs them on the target.
+
+if BR2_PACKAGE_ADAPTIVE_WW_BINARIES
+config BR2_PACKAGE_ADAPTIVE_WW_BINARIES_REGPWRDB
+	bool "Adaptive World Mode Regulatory Powers Database"
+	default y
+	help
+		A default Adaptive World Mode Regulatory Powers Database
+endif

@@ -27,13 +27,13 @@ endef
 #
 #Install
 #
-ifeq ($(BR2_PACKAGE_ADAPTVE_WW_REGPWRDB),y)
+ifeq ($(BR2_PACKAGE_ADAPTIVE_WW_REGPWRDB),y)
 define AWM_REGPWRDB_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 644 $(@D)/lpt/db/regpwr.db $(TARGET_DIR)/lib/firmware/
+	$(INSTALL) -D -m 0644 $(@D)/lpt/db/regpwr.db $(TARGET_DIR)/lib/firmware/regpwr.db
 endef
 endif
 
-ifneq ($(BR2_LRD_DEVEL_BUILD),y)
+ifeq ($(BR2_INIT_NONE),y)
 define AWM_STARTUP_INSTALL_TARGET_CMDS
 	$(INSTALL) -m 0644 -D $(@D)/awm/awm.service $(TARGET_DIR)/usr/lib/systemd/system/awm.service
 	$(INSTALL) -m 0755 -D $(@D)/awm/S30adaptive-ww $(TARGET_DIR)/etc/init.d/S30adaptive-ww
@@ -43,7 +43,7 @@ endif
 define AWM_ADAPTIVE_WW_INSTALL_TARGET_CMDS
 #Note: Do *NOT* install lpt on target.  This utility is for internal use only by FAEs to build
 #      the txpower database used by adaptive ww.
-	$(INSTALL) -D -m 755 $(@D)/awm/bin/adaptive_ww $(TARGET_DIR)/usr/bin/adaptive_ww
+	$(INSTALL) -D -m 0755 $(@D)/awm/bin/adaptive_ww $(TARGET_DIR)/usr/bin/adaptive_ww
 endef
 
 define ADAPTIVE_WW_INSTALL_TARGET_CMDS
