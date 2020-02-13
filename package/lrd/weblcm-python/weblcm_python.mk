@@ -21,7 +21,7 @@ endif
 
 define WEBLCM_PYTHON_INSTALL_TARGET_FILES
 	$(INSTALL) -D -m 755 $(@D)/dist/weblcm_python-1.0-py$(TARGET_PYTHON_VERSION).egg $(TARGET_DIR)/usr/bin/weblcm-python
-	mkdir -p -m 0775 $(TARGET_DIR)/etc/weblcm-python
+	mkdir -p -m 0775 $(TARGET_DIR)/etc/weblcm-python/ssl
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/assets/css
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/assets/img
@@ -30,6 +30,8 @@ define WEBLCM_PYTHON_INSTALL_TARGET_FILES
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/html
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/plugins/
 	$(INSTALL) -D -m 644 $(WEBLCM_PYTHON_SITE)/*.ini $(TARGET_DIR)/etc/weblcm-python/
+	$(INSTALL) -D -m 644 $(WEBLCM_PYTHON_SITE)/ssl/server.crt $(TARGET_DIR)/etc/weblcm-python/ssl/
+	$(INSTALL) -D -m 644 $(WEBLCM_PYTHON_SITE)/ssl/server.key $(TARGET_DIR)/etc/weblcm-python/ssl/
 	$(INSTALL) -D -m 755 $(WEBLCM_PYTHON_SITE)/html/* $(TARGET_DIR)/var/www/html/
 	$(INSTALL) -D -m 755 $(WEBLCM_PYTHON_SITE)/assets/fonts/* $(TARGET_DIR)/var/www/assets/fonts/
 	$(INSTALL) -D -m 644 $(WEBLCM_PYTHON_SITE)/assets/css/*.css $(TARGET_DIR)/var/www/assets/css/
