@@ -11,6 +11,11 @@ config BR2_PACKAGE_SDCSUPP_WPA_CLI
 	help
 	  Install wpa_cli command line utility
 
+config BR2_PACKAGE_SDCSUPP_WPA_PASSPHRASE
+	bool "Install wpa_passphrase binary"
+	help
+	  Install wpa_passphrase command line utility.
+
 config BR2_PACKAGE_SDCSUPP_LEGACY
 	bool "SDC Supplicant Legacy"
 
