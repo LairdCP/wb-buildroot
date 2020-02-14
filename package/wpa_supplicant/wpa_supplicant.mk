@@ -208,7 +208,7 @@ endif
 ifeq ($(BR2_PACKAGE_WPA_SUPPLICANT_PASSPHRASE),y)
 define WPA_SUPPLICANT_INSTALL_PASSPHRASE
 	$(INSTALL) -m 0755 -D $(@D)/$(WPA_SUPPLICANT_SUBDIR)/wpa_passphrase \
-		$(TARGET_DIR)/usr/sbin/wpa_passphrase
+		$(TARGET_DIR)/usr/bin/wpa_passphrase
 endef
 endif
 
