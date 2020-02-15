@@ -1,6 +1,6 @@
 config BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE
 	string "SOM60 radio stack version"
-	default "0.0.0.0"
+	default "8.0.0.8"
 	depends on BR2_LRD_SOM60_RADIO || BR2_LRD_SOM60_FIPS_RADIO
 	help
 	Version number for radio packages.
