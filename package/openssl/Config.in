@@ -77,7 +77,7 @@ endif
 if BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES
 config BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES_VERSION_VALUE
 	string "Laird Openssl FIPS binaries version"
-	default "0.0.0.0"
+	default "7.0.0.299"
 
 endif
 

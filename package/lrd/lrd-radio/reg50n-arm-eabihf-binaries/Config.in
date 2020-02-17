@@ -2,6 +2,5 @@ config BR2_PACKAGE_REG50N_ARM_EABIHF_BINARIES
 	bool "50 series regulatory tools"
 	default n
 	select BR2_PACKAGE_LIBEDIT
-	depends on BR2_LRD_WB50N_SYSD_RADIO || BR2_LRD_WB50N_SYSD_FIPS_RADIO
 	help
 	  This package installs 50 series regulatory tools.
