@@ -1,0 +1,106 @@
+choice
+	prompt "Radio Stack"
+
+	config BR2_LRD_NO_RADIO
+		bool "None"
+
+	config BR2_LRD_SOM60_RADIO
+		bool "SOM60 Radio"
+		select BR2_PACKAGE_SOM60_FIRMWARE_BINARIES
+		select BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES
+		select BR2_PACKAGE_LINUX_BACKPORTS
+		select BR2_PACKAGE_ADAPTIVE_WW_BINARIES
+		select BR2_PACKAGE_LRD_NETWORK_MANAGER
+
+	config BR2_LRD_SOM60_FIPS_RADIO
+		bool "SOM60 FIPS Radio"
+		select BR2_PACKAGE_SOM60_FIRMWARE_BINARIES
+		select BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES
+		select BR2_PACKAGE_LINUX_BACKPORTS
+		select BR2_PACKAGE_ADAPTIVE_WW_BINARIES
+		select BR2_PACKAGE_LRD_NETWORK_MANAGER
+
+	config BR2_LRD_WB50N_SYSD_RADIO
+		bool "WB50N SYSD Radio"
+		select BR2_PACKAGE_WB50N_FIRMWARE_BINARIES
+		select BR2_PACKAGE_WB50N_SYSD_SUMMIT_SUPPLICANT_BINARIES
+		select BR2_PACKAGE_LINUX_BACKPORTS
+		select BR2_PACKAGE_LRD_NETWORK_MANAGER
+
+	config BR2_LRD_WB50N_SYSD_FIPS_RADIO
+		bool "WB50N SYSD FIPS_Radio"
+		select BR2_PACKAGE_WB50N_FIRMWARE_BINARIES
+		select BR2_PACKAGE_WB50N_SYSD_SUMMIT_SUPPLICANT_BINARIES
+		select BR2_PACKAGE_LINUX_BACKPORTS
+		select BR2_PACKAGE_LRD_NETWORK_MANAGER
+
+	config BR2_LRD_WB50N_LEGACY_RADIO
+		bool "WB50N Legacy Radio"
+		select BR2_PACKAGE_WB50N_FIRMWARE_BINARIES
+		select BR2_PACKAGE_WB_LEGACY_SUMMIT_SUPPLICANT_BINARIES
+		select BR2_PACKAGE_LINUX_BACKPORTS
+
+	config BR2_LRD_WB45N_RADIO
+		bool "WB45N Radio"
+		select BR2_PACKAGE_WB45N_FIRMWARE_BINARIES
+		select BR2_PACKAGE_WB_LEGACY_SUMMIT_SUPPLICANT_BINARIES
+endchoice
+
+comment "Please config openssl in Target packages->Libraries/Crypto/Openssl"
+depends on !BR2_LRD_NO_RADIO
+comment "Please config linux-backports in Target packages->Hardware handling->linux-backports"
+depends on !BR2_LRD_NO_RADIO && !BR2_LRD_WB45N_RADIO
+comment "Please config lrd-network-manager in Laird->Packages->lrd-networkmanager"
+depends on !BR2_LRD_NO_RADIO && !BR2_LRD_WB50N_LEGACY_RADIO && !BR2_LRD_WB45N_RADIO
+
+config BR2_PACKAGE_LRD_60_RADIO_STACK_VERSION_VALUE
+	string "SOM60 radio stack version"
+	depends on BR2_LRD_SOM60_RADIO || BR2_LRD_SOM60_FIPS_RADIO
+	default "7.0.0.296"
+	help
+	Version number for radio packages.
+
+config BR2_PACKAGE_LRD_50_RADIO_STACK_VERSION_VALUE
+	string "WB radio stack version"
+	depends on BR2_LRD_WB50N_SYSD_RADIO || BR2_LRD_WB50N_SYSD_FIPS_RADIO || BR2_LRD_WB50N_LEGACY_RADIO
+	default "7.0.0.296"
+	help
+	  Version number for radio packages.
+
+config BR2_PACKAGE_LRD_45_RADIO_STACK_VERSION_VALUE
+	string "WB radio stack version"
+	depends on BR2_LRD_WB45N_RADIO
+	default "7.0.0.296"
+	help
+	  Version number for radio packages.
+
+config BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE
+	string
+	depends on !BR2_LRD_NO_RADIO
+	default BR2_PACKAGE_LRD_60_RADIO_STACK_VERSION_VALUE if BR2_LRD_SOM60_RADIO || BR2_LRD_SOM60_FIPS_RADIO
+	default BR2_PACKAGE_LRD_50_RADIO_STACK_VERSION_VALUE if BR2_LRD_WB50N_SYSD_RADIO || BR2_LRD_WB50N_SYSD_FIPS_RADIO || BR2_LRD_WB50N_LEGACY_RADIO
+	default BR2_PACKAGE_LRD_45_RADIO_STACK_VERSION_VALUE if BR2_LRD_WB45N_RADIO
+
+if BR2_LRD_SOM60_RADIO || BR2_LRD_SOM60_FIPS_RADIO
+source "package/lrd/lrd-radio/summit-supplicant-binaries/Config.in"
+source "package/lrd/lrd-radio/som60-firmware-binaries/Config.in"
+source "package/lrd/lrd-radio/adaptive_ww-binaries/Config.in"
+source "package/lrd/lrd-radio/mfg60n-arm-eabihf-binaries/Config.in"
+endif
+
+if BR2_LRD_WB50N_SYSD_RADIO || BR2_LRD_WB50N_SYSD_FIPS_RADIO
+source "package/lrd/lrd-radio/summit-supplicant-binaries/Config.in"
+source "package/lrd/lrd-radio/wb50n-firmware-binaries/Config.in"
+source "package/lrd/lrd-radio/reg50n-arm-eabihf-binaries/Config.in"
+endif
+
+if BR2_LRD_WB50N_LEGACY_RADIO
+source "package/lrd/lrd-radio/wb-legacy-summit-supplicant-binaries/Config.in"
+source "package/lrd/lrd-radio/wb50n-firmware-binaries/Config.in"
+source "package/lrd/lrd-radio/reg50n-arm-eabihf-binaries/Config.in"
+endif
+
+if BR2_LRD_WB45N_RADIO
+source "package/lrd/lrd-radio/wb-legacy-summit-supplicant-binaries/Config.in"
+source "package/lrd/lrd-radio/wb45n-firmware-binaries/Config.in"
+endif

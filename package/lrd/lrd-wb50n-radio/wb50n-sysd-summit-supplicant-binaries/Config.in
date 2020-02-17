@@ -1,8 +1,0 @@
-config BR2_PACKAGE_WB50N_SYSD_SUMMIT_SUPPLICANT_BINARIES
-	bool "WB50n SYSD Summit Supplicant ARM EABIHF Binaries Installer"
-	select BR2_PACKAGE_LIBNL
-	select BR2_PACKAGE_DBUS
-	select BR2_PACKAGE_SDCSUPP if BR2_LRD_DEVEL_BUILD="y"
-	depends on BR2_LRD_WB50N_SYSD_RADIO || BR2_LRD_WB50N_SYSD_FIPS_RADIO
-	help
-	  Extracts sdcsupp, wpa_cli binaries from summit supplicant release and install them on the target.

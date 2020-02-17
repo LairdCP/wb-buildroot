@@ -3,7 +3,6 @@ config BR2_PACKAGE_WB50N_FIRMWARE_BINARIES
 	select BR2_PACKAGE_LAIRD_FIRMWARE if BR2_LRD_DEVEL_BUILD="y"
 	select BR2_PACKAGE_LAIRD_FIRMWARE_AR6004 if BR2_LRD_DEVEL_BUILD="y"
 	select BR2_PACKAGE_WIRELESS_REGDB if BR2_LRD_DEVEL_BUILD="y"
-	depends on BR2_LRD_WB50N_SYSD_RADIO || BR2_LRD_WB50N_SYSD_FIPS_RADIO || BR2_LRD_WB50N_LEGACY_RADIO
 	help
 	  Extracts the Laird wb50n wireless firmware binaries from the
 	  binary firmware release and install them on the target.

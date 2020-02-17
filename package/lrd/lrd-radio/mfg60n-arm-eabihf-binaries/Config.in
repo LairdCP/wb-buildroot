@@ -2,6 +2,5 @@ config BR2_PACKAGE_MFG60N_ARM_EABIHF_BINARIES
 	bool "60 series manufacturing tools binaries"
 	default n
 	select BR2_PACKAGE_LIBEDIT
-	depends on BR2_LRD_SOM60_RADIO || BR2_LRD_SOM60_FIPS_RADIO
 	help
 	  This package installs 60 series manufacturing tools.
