@@ -190,15 +190,18 @@ if (( ${SD} )) ; then
 		dd if=${BINARIES_DIR}/boot.bin of=${BINARIES_DIR}/pmecc.bin bs=208 count=1
 
 		tar -C ${BINARIES_DIR} -rf ${RELEASE_FILE} \
+			--owner=0 --group=0 --numeric-owner \
 			pmecc.bin u-boot-spl.dtb u-boot-spl-nodtb.bin u-boot.dtb \
 			u-boot-nodtb.bin u-boot.its kernel-nosig.itb sw-description
 
 		tar -C ${HOST_DIR}/usr/bin -rf ${RELEASE_FILE} \
+			--owner=0 --group=0 --numeric-owner \
 			fdtget fdtput mkimage genimage
 	fi
 
 	bzip2 -f ${RELEASE_FILE}
 else
 	tar -C ${BINARIES_DIR} -cjf ${RELEASE_FILE}.bz2 \
+		--owner=0 --group=0 --numeric-owner \
 		u-boot-spl.bin u-boot.itb kernel.itb rootfs.tar mksdcard.sh mksdimg.sh
 fi

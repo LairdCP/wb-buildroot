@@ -66,6 +66,7 @@ create_60_firmware_archive()
 
 	tar -cjf "${BINARIES_DIR}/laird-${FW_PROD}-firmware-${2}-${3}${RELEASE_SUFFIX}.tar.bz2" \
 		-C ${TARGET_DIR} \
+		--owner=0 --group=0 --numeric-owner \
 		lib/firmware/lrdmwl/88W8997_${2}.bin \
 		lib/firmware/lrdmwl/${FW_FILE} \
 		lib/firmware/regulatory_${FW_PROD}.db lib/firmware/regulatory.db
@@ -93,6 +94,7 @@ if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM60=y" ${BR2_CONFIG}; then
 
 	tar -cjf "${BINARIES_DIR}/laird-som60-radio-firmware${RELEASE_SUFFIX}.tar.bz2" \
 		-C ${TARGET_DIR} \
+		--owner=0 --group=0 --numeric-owner \
 		lib/firmware/lrdmwl/88W8997_sdio.bin \
 		lib/firmware/lrdmwl/${FW_FILE} \
 		lib/firmware/regulatory_summit60.db lib/firmware/regulatory.db
@@ -115,6 +117,7 @@ if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_AR6003=y" ${BR2_CONFIG}; then
 ln -rsf ${FW_DIR}/regulatory_default.db ${FW_DIR}/regulatory.db
 tar -cjf "${BINARIES_DIR}/laird-ath6k-6003-firmware${RELEASE_SUFFIX}.tar.bz2" \
 	-C ${TARGET_DIR} \
+	--owner=0 --group=0 --numeric-owner \
 	lib/firmware/ath6k/AR6003 \
 	lib/firmware/regulatory_default.db \
 	lib/firmware/regulatory.db lib/firmware/regulatory.db.p7s
@@ -124,6 +127,7 @@ if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_AR6004=y" ${BR2_CONFIG}; then
 ln -rsf ${FW_DIR}/regulatory_default.db ${FW_DIR}/regulatory.db
 tar -cjf "${BINARIES_DIR}/laird-ath6k-6004-firmware${RELEASE_SUFFIX}.tar.bz2" \
 	-C ${TARGET_DIR} \
+	--owner=0 --group=0 --numeric-owner \
 	lib/firmware/ath6k/AR6004 \
 	lib/firmware/bluetopia \
 	lib/firmware/regulatory_default.db \

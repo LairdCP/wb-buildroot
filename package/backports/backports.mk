@@ -35,7 +35,9 @@ define HOST_BACKPORTS_BUILD_CMDS
 endef
 
 define HOST_BACKPORTS_INSTALL_CMDS
-	tar -cj -C $(BP_TREE) --transform "s,.,laird-backport-$(BACKPORTS_VERSION)," -f $(BP_OUT)/backports-laird-$(BACKPORTS_VERSION).tar.bz2 .
+	tar -cj -C $(BP_TREE) --transform "s,.,laird-backport-$(BACKPORTS_VERSION)," \
+		--owner=0 --group=0 --numeric-owner \
+		-f $(BP_OUT)/backports-laird-$(BACKPORTS_VERSION).tar.bz2 .
 endef
 
 $(eval $(host-generic-package))
