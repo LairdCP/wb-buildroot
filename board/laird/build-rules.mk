@@ -65,6 +65,7 @@ $(addsuffix -sdk,$(TARGETS)): %-sdk: $(OUTPUT_DIR)/%/.config
 $(addsuffix -sbom-gen,$(TARGETS)): %-sbom-gen:
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* sbom-gen
 	tar --exclude=*sources -C $(OUTPUT_DIR)/$*/legal-info/ \
+		--owner=0 --group=0 --numeric-owner \
 		-cjf $(OUTPUT_DIR)/$*/images/legal-info.tar.bz2 .
 
 # sbom target always creates legal-info, so legal-info target not really needed
@@ -72,12 +73,14 @@ $(addsuffix -sbom-gen,$(TARGETS)): %-sbom-gen:
 $(addsuffix -legal-info,$(TARGETS_ALL)): %-legal-info:
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* legal-info
 	tar --exclude=*sources -C $(OUTPUT_DIR)/$*/legal-info/ \
+		--owner=0 --group=0 --numeric-owner \
 		-cjf $(OUTPUT_DIR)/$*/images/legal-info.tar.bz2 .
 
 .PHONY: $(addsuffix -full,$(TARGETS))
 $(addsuffix -full,$(TARGETS)): %-full: % %-sbom-gen %-sdk
 	bzip2 -d $(call release_file,$*).bz2
-	tar -C $(OUTPUT_DIR)/$*/images -rf $(call release_file,$*)\
+	tar -C $(OUTPUT_DIR)/$*/images -rf $(call release_file,$*) \
+		--owner=0 --group=0 --numeric-owner \
 		legal-info.tar.bz2 host-sbom target-sbom $*-sdk.tar.gz
 	bzip2 $(call release_file,$*)
 
@@ -85,6 +88,7 @@ $(addsuffix -full,$(TARGETS)): %-full: % %-sbom-gen %-sdk
 $(addsuffix -full-legal,$(TARGETS)): %-full-legal: % %-legal-info
 	bzip2 -d $(call release_file,$*).bz2
 	tar -C "$(OUTPUT_DIR)/$*/images" -rf $(call release_file,$*) \
+		--owner=0 --group=0 --numeric-owner \
 		legal-info.tar.bz2
 	bzip2 $(call release_file,$*)
 
