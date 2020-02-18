@@ -29,7 +29,7 @@ endef
 #
 ifeq ($(BR2_PACKAGE_ADAPTIVE_WW_REGPWRDB),y)
 define AWM_REGPWRDB_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0644 $(@D)/lpt/db/regpwr.db $(TARGET_DIR)/lib/firmware/regpwr.db
+	$(INSTALL) -D -m 0644 $(@D)/lpt/db/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl/regpwr.db
 endef
 endif
 
@@ -69,7 +69,7 @@ endef
 #
 define ADAPTIVE_WW_UNINSTALL_TARGET_CMDS
 	rm -f $(TARGET_DIR)/usr/bin/adaptive_ww
-	rm -f $(TARGET_DIR)/lib/firmware/regpwr.db
+	rm -f $(TARGET_DIR)/lib/firmware/lrdmwl/regpwr.db
 endef
 
 $(eval $(generic-package))
