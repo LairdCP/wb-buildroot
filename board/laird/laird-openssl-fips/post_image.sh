@@ -14,7 +14,7 @@ RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}${RELEASE_SUFFIX}.tar"
 
 sed -n "s|^${PKGNAME},\(.*\.so\..*\)|\1|p" "${BUILD_DIR}/packages-file-list.txt" |\
 	tar --transform 's|^./|target/|' -cf "${RELEASE_FILE}" -C "${TARGET_DIR}" \
-		--owner=0 --group=0 --numeric-owner-T -
+		--owner=0 --group=0 --numeric-owner -T -
 
 sed -n "s|^${PKGNAME},\(.*bin/openssl\)|\1|p" "${BUILD_DIR}/packages-file-list.txt" |\
 	tar --transform 's|^./|target/|' -rf "${RELEASE_FILE}" -C "${TARGET_DIR}" \
