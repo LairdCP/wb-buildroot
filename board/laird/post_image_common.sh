@@ -33,6 +33,7 @@ if [ ${BR2_LRD_PLATFORM} == "wb45n" ]; then
 fi
 
 tar -cjf "${BR2_LRD_PRODUCT}-laird${RELEASE_SUFFIX}.tar.bz2" \
+	--owner=0 --group=0 --numeric-owner \
 	at91bs.bin u-boot.bin kernel.bin rootfs.bin \
 	fw_update fw_select fw_usi fw.txt \
 	$(ls userfs.bin sqroot.bin prep_nand_for_update 2>/dev/null)

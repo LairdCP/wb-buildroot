@@ -20,6 +20,7 @@ sed -i "2i#${VERSION}" "${TARGET_DIR}/reg_tools.sh"
 TARFILE="${BINARIES_DIR}/${RELEASE_FILE}.tar.bz2"
 
 tar -C "${TARGET_DIR}" -cjf "${TARFILE}" --transform 's,.*/,,' \
+	--owner=0 --group=0 --numeric-owner \
 	${RELEASE_FILE}.manifest \
 	$(sed 's,^/,,' "${TARGET_DIR}/${RELEASE_FILE}.manifest")
 

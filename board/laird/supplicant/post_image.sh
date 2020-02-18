@@ -23,6 +23,7 @@ sed -nE "s/^${PKGNAME},\.\///p" "${BUILD_DIR}/packages-file-list.txt" |\
 
 if [[ ${BR2_LRD_PRODUCT} == *legacy* ]]; then
 	tar -uf "${RELEASE_FILE}" -C "${STAGING_DIR}" \
+		--owner=0 --group=0 --numeric-owner \
 		usr/include/sdc_sdk.h \
 		usr/include/sdc_events.h \
 		usr/include/lrd_sdk_pil.h \
