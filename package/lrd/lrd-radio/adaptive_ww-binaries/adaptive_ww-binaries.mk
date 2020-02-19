@@ -19,7 +19,11 @@ endif
 
 ifeq ($(BR2_PACKAGE_ADAPTIVE_WW_BINARIES_REGPWRDB),y)
 define AWM_BINARIES_REGPWRDB_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0644 $(@D)/lib/firmware/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl/regpwr.db
+	if [ -e "$(@D)/lib/firmware/lrdmwl/regpwr.db" ]; then \
+		$(INSTALL) -D -m 0644 $(@D)/lib/firmware/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl/regpwr.db; \
+	else \
+		$(INSTALL) -D -m 0644 $(@D)/lib/firmware/regpwr.db $(TARGET_DIR)/lib/firmware/regpwr.db; \
+	fi
 endef
 endif
 
