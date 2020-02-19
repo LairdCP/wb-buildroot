@@ -28,7 +28,7 @@ endif
 
 
 LRD_NETWORK_MANAGER_INSTALL_STAGING = YES
-LRD_NETWORK_MANAGER_DEPENDENCIES = host-pkgconf udev gnutls \
+LRD_NETWORK_MANAGER_DEPENDENCIES = host-pkgconf udev gnutls libglib2 \
 	libgcrypt util-linux host-intltool readline libndp
 # Even though the COPYING file only contains the GPL-2.0 text, many
 # parts of network-manager are under LGPL-2.0. See the "Legal" section
