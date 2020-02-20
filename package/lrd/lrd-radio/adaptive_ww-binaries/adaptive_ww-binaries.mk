@@ -3,23 +3,23 @@ ADAPTIVE_WW_BINARIES_VERSION = $(call qstrip,$(BR2_PACKAGE_LRD_RADIO_STACK_VERSI
 ADAPTIVE_WW_BINARIES_LICENSE = LGPL-2.1
 ADAPTIVE_WW_BINARIES_STRIP_COMPONENTS = 0
 
-ifneq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES),)
+ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES),y)
 ADAPTIVE_WW_BINARIES_TYPE1 = _openssl_1_0_2
-else ifneq ($(BR2_PACKAGE_LIBOPENSSL_1_0_2),)
+else ifeq ($(BR2_PACKAGE_LIBOPENSSL_1_0_2),y)
 ADAPTIVE_WW_BINARIES_TYPE1 = _openssl_1_0_2
 else
 ADAPTIVE_WW_BINARIES_TYPE1 =
 endif
 
-ifneq ($(BR2_arm),)
-ifneq ($(BR2_ARM_EABIHF),)
+ifeq ($(BR2_arm),y)
+ifeq ($(BR2_ARM_EABIHF),y)
 ADAPTIVE_WW_BINARIES_TYPE2 = -arm-eabihf
 else
 ADAPTIVE_WW_BINARIES_TYPE2 = -arm-eabi
 endif
-else ifneq ($(BR2_aarch64),)
+else ifeq ($(BR2_aarch64),y)
 ADAPTIVE_WW_BINARIES_TYPE2 = -aarch64-eabihf
-else
+else ifeq ($(BR2_PACKAGE_ADAPTIVE_WW_BINARIES)$(BR_BUILDING),yy)
 $(error "Unknown architecture")
 endif
 
