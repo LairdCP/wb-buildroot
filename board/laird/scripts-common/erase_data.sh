@@ -5,6 +5,7 @@ DATA_SECRET_SRC=/data/secret
 DATA_SECRET_TARGET=${MOUNT_POINT}/secret
 DATA_NONSECRET_SRC=/data/misc
 DATA_NONSECRET_TARGET=${MOUNT_POINT}/misc
+do_data_migration=0
 
 exit_on_error() {
 	[ "${1}" == 1 ] && /bin/umount "${MOUNT_POINT}"
@@ -31,25 +32,34 @@ migrate_data() {
 	/bin/mount -o noatime -t ubifs "${1}" "${MOUNT_POINT}" || exit_on_error 0 "Mounting ${DATA_DEVICE} to ${MOUNT_POINT} Failed"
 	#Wipe data patition
 	rm -rf "${MOUNT_POINT}"/*
-	#Migrate secret data if exists
-	if [ -d "${DATA_SECRET_SRC}"  ]; then
-		#Needs keyring to access secret data
-		/bin/keyctl link @us @s
-		mkdir -p "${DATA_SECRET_TARGET}" || exit_on_error 1 "Directory Creation for ${DATA_SECRET_TARGET} Failed"
-		#migrate the secret data
-		/bin/rsync -rlptDW --exclude=.mounted "${DATA_SECRET_SRC}/" "${DATA_SECRET_TARGET}" || exit_on_error 1 "Data Copying.. Failed"
-	fi
-	#Migrate misc data if exists
-	if [ -d "${DATA_NONSECRET_SRC}"  ]; then
-		mkdir -p "${DATA_NONSECRET_TARGET}" || exit_on_error 1 "Directory Creation for ${DATA_NONSECRET_TARGET} Failed"
-		#migrate the misc data
-		/bin/rsync -rlptDW --exclude=.mounted "${DATA_NONSECRET_SRC}/" "${DATA_NONSECRET_TARGET}" || exit_on_error 1 "Data Copying.. Failed"
+	if [ ${do_data_migration} == 1 ]; then
+		#Migrate secret data if exists
+		if [ -d "${DATA_SECRET_SRC}"  ]; then
+			#keyutils is installed if securefs is enabled. Needs keyring to access secret data.
+			if [ -f /bin/keyctl  ]; then
+				/bin/keyctl link @us @s
+			fi
+			mkdir -p "${DATA_SECRET_TARGET}" || exit_on_error 1 "Directory Creation for ${DATA_SECRET_TARGET} Failed"
+			#migrate the secret data
+			/bin/rsync -rlptDW --exclude=.mounted "${DATA_SECRET_SRC}/" "${DATA_SECRET_TARGET}" || exit_on_error 1 "Data Copying.. Failed"
+		fi
+		#Migrate misc data if exists
+		if [ -d "${DATA_NONSECRET_SRC}"  ]; then
+			mkdir -p "${DATA_NONSECRET_TARGET}" || exit_on_error 1 "Directory Creation for ${DATA_NONSECRET_TARGET} Failed"
+			#migrate the misc data
+			/bin/rsync -rlptDW --exclude=.mounted "${DATA_NONSECRET_SRC}/" "${DATA_NONSECRET_TARGET}" || exit_on_error 1 "Data Copying.. Failed"
+		fi
 	fi
 	#Unmount the data device
 	/bin/umount "${MOUNT_POINT}" || exit_on_error 0 "Unmounting ${MOUNT_POINT} Failed"
 }
 
 mkdir -p "${MOUNT_POINT}" || exit_on_error 0 "Directory Creation for ${MOUNT_POINT} Failed"
+
+if [ "$#" -lt 2 ]; then
+	#Do data miscration if updating from nand
+	do_data_migration=1
+fi
 
 for name in ${1}; do
 	find_ubi_device "${name}"

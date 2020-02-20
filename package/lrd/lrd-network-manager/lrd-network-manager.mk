@@ -105,6 +105,12 @@ else
 LRD_NETWORK_MANAGER_CONF_OPTS += --disable-ovs
 endif
 
+ifeq ($(BR2_PACKAGE_LRD_FACTORY_RESET_TOOLKIT),y)
+define LRD_NETWORK_MANAGER_UPDATE_SERVICE
+	sed -i -e '/^ExecStart=/ s#.*#ExecStart=/usr/sbin/NetworkManager --no-daemon --config-dir=/data/secret/NetworkManager/conf.d --config=/data/secret/NetworkManager/NetworkManager.conf#g' $(TARGET_DIR)/usr/lib/systemd/system/NetworkManager.service
+endef
+endif
+
 define LRD_NETWORK_MANAGER_INSTALL_INIT_SYSV
 	$(INSTALL) -m 0755 -D package/network-manager/S45network-manager $(TARGET_DIR)/etc/init.d/S45network-manager
 endef
@@ -120,6 +126,8 @@ define LRD_NETWORK_MANAGER_INSTALL_INIT_SYSTEMD
 
 	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/NetworkManager-dispatcher.service \
 		$(TARGET_DIR)/etc/systemd/system/dbus-org.freedesktop.nm-dispatcher.service
+
+	$(LRD_NETWORK_MANAGER_UPDATE_SERVICE)
 endef
 
 $(eval $(autotools-package))
