@@ -17,4 +17,13 @@ define FSCRYPTCTL_INSTALL_TARGET_CMDS
 	$(INSTALL) -m 0755 -D $(@D)/fscryptctl $(TARGET_DIR)/usr/bin/fscryptctl
 endef
 
+define HOST_FSCRYPTCTL_BUILD_CMDS
+	$(HOST_MAKE_ENV) $(MAKE) -C $(@D)
+endef
+
+define HOST_FSCRYPTCTL_INSTALL_CMDS
+        $(INSTALL) -D -m 755 $(@D)/fscryptctl $(HOST_DIR)/bin/fscryptctl
+endef
+
 $(eval $(generic-package))
+$(eval $(host-generic-package))
