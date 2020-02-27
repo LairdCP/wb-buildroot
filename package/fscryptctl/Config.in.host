@@ -1,0 +1,4 @@
+config BR2_PACKAGE_HOST_FSCRYPTCTL
+        bool "host fscryptctl"
+        help
+          host fscryptctl
