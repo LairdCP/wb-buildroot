@@ -40,11 +40,13 @@ define WEBLCM_PYTHON_INSTALL_TARGET_FILES
 	$(INSTALL) -m 644 $(WEBLCM_PYTHON_SITE)/swupdate.service $(TARGET_DIR)/usr/lib/systemd/system/
 	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/swupdate.service $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/swupdate.service
 	$(INSTALL) -D -m 755 $(WEBLCM_PYTHON_SITE)/swupdate.sh  $(TARGET_DIR)/usr/sbin/swupdate.sh
+	$(INSTALL) -D -m 755 $(WEBLCM_PYTHON_SITE)/weblcm_file_import_export.sh  $(TARGET_DIR)/usr/sbin/weblcm_file_import_export.sh
 
 	mkdir -p $(TARGET_DIR)/etc/weblcm-python/ssl
 	$(INSTALL) -m 644 $(WEBLCM_PYTHON_SITE)/*.ini $(TARGET_DIR)/etc/weblcm-python/
 	$(INSTALL) -m 644 $(WEBLCM_PYTHON_SITE)/ssl/server.key $(TARGET_DIR)/etc/weblcm-python/ssl/
 	$(INSTALL) -m 644 $(WEBLCM_PYTHON_SITE)/ssl/server.crt $(TARGET_DIR)/etc/weblcm-python/ssl/
+	$(INSTALL) -m 644 $(WEBLCM_PYTHON_SITE)/ssl/ca.crt $(TARGET_DIR)/etc/weblcm-python/ssl/
 endef
 
 $(eval $(python-package))
