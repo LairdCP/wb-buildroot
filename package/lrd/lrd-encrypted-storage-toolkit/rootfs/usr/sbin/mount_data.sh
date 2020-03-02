@@ -25,6 +25,12 @@ case $1 in
 		SOURCE_NM_CONNECTIONS=/etc/NetworkManager/system-connections
 		[ -d ${SOURCE_NM_CONNECTIONS} ] && \
 			false | cp -i ${SOURCE_NM_CONNECTIONS}/* ${DATA_NM_CONNECTIONS}/ 2>/dev/null
+
+		# Check if mount_data success
+		if [[ -d ${DATA_NM_CONNECTIONS} && -n "$(ls -A ${DATA_NM_CONNECTIONS})" ]]
+		then
+			echo "Secure Boot Cycle Complete" > /dev/console
+		fi
 		;;
 
 	stop)
