@@ -41,6 +41,13 @@ if [ ${BR2_LRD_PLATFORM} == "wb50n" ]; then
 	fi
 fi
 
+word=$(stat -c "%s" ${BINARIES_DIR}/u-boot.bin)
+if [ $word -gt 393216 ]
+then
+        echo "u-boot size exceeded block limit, failed"
+        exit 1
+fi
+
 tar -cjf "${BR2_LRD_PRODUCT}-laird${RELEASE_SUFFIX}.tar.bz2" \
 	--owner=0 --group=0 --numeric-owner \
 	at91bs.bin u-boot.bin kernel.bin rootfs.bin \
