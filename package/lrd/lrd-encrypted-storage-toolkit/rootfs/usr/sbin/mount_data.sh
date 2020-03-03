@@ -17,14 +17,18 @@ case $1 in
 		FSCRYPT_KEY=ffffffffffffffff
 		fscryptctl set_policy ${FSCRYPT_KEY} ${DATA_SECRET}
 
-		# Create Network Manager directory
-		DATA_NM_CONNECTIONS=${DATA_SECRET}/NetworkManager/system-connections
-		mkdir -p ${DATA_NM_CONNECTIONS}
+		# Need to access the encrypted directory once so that the key
+		# gets loaded
+		touch ${DATA_SECRET}/.mounted
 
-		# cp default profiles to the new path
-		SOURCE_NM_CONNECTIONS=/etc/NetworkManager/system-connections
-		[ -d ${SOURCE_NM_CONNECTIONS} ] && \
-			false | cp -i ${SOURCE_NM_CONNECTIONS}/* ${DATA_NM_CONNECTIONS}/ 2>/dev/null
+		DATA_NM_CONNECTIONS=${DATA_SECRET}/NetworkManager/system-connections
+		if [ ! -d ${DATA_NM_CONNECTIONS} ]; then
+			# Create Network Manager directory
+			mkdir -p ${DATA_NM_CONNECTIONS}
+			# cp default profiles to the new path
+			SOURCE_NM_CONNECTIONS=/etc/NetworkManager/system-connections
+			[ "$(ls -A ${SOURCE_NM_CONNECTIONS}/)"  ] && cp -rf ${SOURCE_NM_CONNECTIONS}/* ${DATA_NM_CONNECTIONS}/ || echo "Warning: No default NetworkManager profiles available"
+		fi
 
 		# Check if mount_data success
 		if [[ -d ${DATA_NM_CONNECTIONS} && -n "$(ls -A ${DATA_NM_CONNECTIONS})" ]]
