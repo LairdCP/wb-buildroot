@@ -152,6 +152,13 @@ cat "${BINARIES_DIR}/u-boot-spl-nodtb.bin" "${BINARIES_DIR}/u-boot-spl-key.dtb" 
 
 rm -f "${BINARIES_DIR}/u-boot-spl-key.dtb"
 
+word=$(stat -c "%s" ${BINARIES_DIR}/u-boot.itb)
+if [ $word -gt 917504 ]
+then
+        echo "u-boot size exceeded block limit, failed"
+        exit 1
+fi
+
 if [ -n "${VERSION}" ]; then
 	RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird-${VERSION}.tar"
 else
