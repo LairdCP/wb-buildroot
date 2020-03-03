@@ -32,6 +32,15 @@ if [ ${BR2_LRD_PLATFORM} == "wb45n" ]; then
 	fi
 fi
 
+if [ ${BR2_LRD_PLATFORM} == "wb50n" ]; then
+	word=$(stat -c "%s" ${BINARIES_DIR}/kernel.bin)
+	if [ $word -gt 4980736 ]
+	then
+		echo "kernel size exceeded 38 block limit, failed"
+		exit 1
+	fi
+fi
+
 tar -cjf "${BR2_LRD_PRODUCT}-laird${RELEASE_SUFFIX}.tar.bz2" \
 	--owner=0 --group=0 --numeric-owner \
 	at91bs.bin u-boot.bin kernel.bin rootfs.bin \
