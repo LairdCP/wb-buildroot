@@ -1,11 +1,11 @@
 [Unit]
 Description= Do factory reset
 Wants=mount_data.service
+After=mount_data.service
 Before=weblcm-python.service NetworkManager.service
 
 [Service]
 Type=oneshot
-RemainAfterExit=yes
 ExecStart=/usr/sbin/do_factory_reset.sh check
 KeyringMode=inherit
 
