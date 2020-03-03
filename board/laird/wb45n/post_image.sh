@@ -11,11 +11,4 @@ set -x -e
 # source the common post image script
 source "board/laird/post_image_common.sh" "$IMAGESDIR"
 
-word=$(stat -c "%s" ${IMAGESDIR}/kernel.bin)
-if [ $word -gt 2359296 ]
-then
-	echo "kernel size exceeded 18 block limit, failed"
-	exit 1
-fi
-
 echo "WB45n POST IMAGE script: done."
