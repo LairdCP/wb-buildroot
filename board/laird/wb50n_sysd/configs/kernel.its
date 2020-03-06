@@ -34,7 +34,7 @@
 
 		script@1 {
 			description = "Boot script";
-			data = /incbin/("uboot.scr");
+			data = /incbin/("boot.scr");
 			type = "script";
 			arch = "arm";
 			compression = "none";

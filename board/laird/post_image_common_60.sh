@@ -8,7 +8,6 @@ set -x -e
 [ -z "${BR2_LRD_PRODUCT}" ] && \
 	BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
 
-GENIMAGE_CFG="${BOARD_DIR}/configs/genimage.cfg"
 GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
 
 
@@ -30,8 +29,7 @@ test -x ${genimage} || \
 test -x ${mkenvimage} || \
 	die "No mkenvimage found (host-uboot-tools has not been built?)"
 
-# Copy the boot.scr and u-boot.its for uboot
-cp -f ${BOARD_DIR}/configs/boot.scr ${BINARIES_DIR}/boot.scr
+# Copy the u-boot.its
 cp -f ${BOARD_DIR}/configs/u-boot.its ${BINARIES_DIR}/u-boot.its
 
 # Configure keys, boot script, and SWU tools when using encrypted toolkit
@@ -41,8 +39,8 @@ if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
 		mkdir -p ${BINARIES_DIR}/keys
 		cp ${DEVEL_KEYS}/* ${BINARIES_DIR}/keys/ -fr
 	fi
-	# Configure boot to use secure pre-systemd setup
-	sed 's,^initlrd=.*,initlrd="initlrd=/usr/sbin/pre-systemd-init.sh",g' -i ${BINARIES_DIR}/boot.scr
+	# Use verity boot script
+	cp -f ${BOARD_DIR}/configs/boot_verity.scr ${BINARIES_DIR}/boot.scr
 	# Copy scripts for SWU generation
 	if [[ "${BR2_LRD_PRODUCT}" =~ ^(som60x2|ig60ll)$ ]]; then
 		cp ${BOARD_DIR}/configs/sw-description-som60x2 ${BINARIES_DIR}/sw-description -fr
@@ -51,6 +49,13 @@ if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
 	fi
 	cp ${BOARD_DIR}/../scripts-common/erase_data.sh ${BINARIES_DIR}/ -fr
 	cp ${BOARD_DIR}/configs/u-boot-env.tgz ${BINARIES_DIR}/ -fr
+	# Build rootfs UBI with verity
+	GENIMAGE_CFG="${BOARD_DIR}/configs/genimage_verity.cfg"
+else
+	# Use standard boot script
+	cp -f ${BOARD_DIR}/configs/boot.scr ${BINARIES_DIR}/boot.scr
+	# Build rootfs UBI without verity
+	GENIMAGE_CFG="${BOARD_DIR}/configs/genimage.cfg"
 fi
 
 if (( ! ${SD} )) ; then
@@ -110,6 +115,8 @@ if ! grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
 	if (( ${SD} )); then
 		# Generate Atmel PMECC boot.bin from SPL
 		${mkimage} -T atmelimage -n $(${atmel_pmecc_params}) -d ${BINARIES_DIR}/u-boot-spl.bin ${BINARIES_DIR}/boot.bin
+		# Copy rootfs
+		cp ${BINARIES_DIR}/rootfs.squashfs ${BINARIES_DIR}/rootfs.bin
 	fi
 else
 	# Generate all secured artifacts (NAND, SWU packages)
