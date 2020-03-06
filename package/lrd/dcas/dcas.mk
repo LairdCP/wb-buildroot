@@ -27,8 +27,9 @@ define DCAS_BUILD_CMDS
 endef
 
 define DCAS_INSTALL_TARGET_CMDS
+	$(INSTALL) -d -m 700 $(TARGET_DIR)/root/.ssh
 	$(INSTALL) -D -m 755 $(@D)/dcas $(TARGET_DIR)/usr/bin/dcas
-	$(INSTALL) -D -m 755 $(@D)/support/etc/init.d/S99dcas $(TARGET_DIR)/etc/init.d/S99dcas
+	$(INSTALL) -D -m 755 $(@D)/support/etc/init.d/S99dcas $(TARGET_DIR)/etc/init.d/opt/S99dcas
 	$(INSTALL) -D -m 755 $(@D)/support/etc/dcas.conf $(TARGET_DIR)/etc/dcas.conf
 endef
 
