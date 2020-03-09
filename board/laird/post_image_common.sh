@@ -7,7 +7,11 @@ set -x -e
 
 BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
 
+if grep -qF "BR2_LINUX_KERNEL_APPENDED_DTB=y" ${BR2_CONFIG}; then
 cp "${BINARIES_DIR}/uImage."* "${BINARIES_DIR}/kernel.bin"
+else
+cp "${BINARIES_DIR}/uImage" "${BINARIES_DIR}/kernel.bin"
+fi
 cp "${BINARIES_DIR}/rootfs.ubi" "${BINARIES_DIR}/rootfs.bin"
 cp "${BINARIES_DIR}/at91bootstrap.bin" "${BINARIES_DIR}/at91bs.bin"
 
@@ -23,30 +27,14 @@ cd "${BINARIES_DIR}"
 ${TOPDIR}/board/laird/mkfwtxt.sh "${LAIRD_FW_TXT_URL}"
 ${TOPDIR}/board/laird/mkfwusi.sh
 
-if [ ${BR2_LRD_PLATFORM} == "wb45n" ]; then
-	word=$(stat -c "%s" ${BINARIES_DIR}/kernel.bin)
-	if [ $word -gt 2359296 ]
-	then
-		echo "kernel size exceeded 18 block limit, failed"
-		exit 1
-	fi
-fi
+size_check () {
+	[ $(stat -c "%s" ${BINARIES_DIR}/${1}) -le $((${2}*128*1024)) ] || \
+		{ echo "${1} size exceeded ${2} block limit, failed"; exit 1; }
+}
 
-if [ ${BR2_LRD_PLATFORM} == "wb50n" ]; then
-	word=$(stat -c "%s" ${BINARIES_DIR}/kernel.bin)
-	if [ $word -gt 4980736 ]
-	then
-		echo "kernel size exceeded 38 block limit, failed"
-		exit 1
-	fi
-fi
-
-word=$(stat -c "%s" ${BINARIES_DIR}/u-boot.bin)
-if [ $word -gt 393216 ]
-then
-        echo "u-boot size exceeded block limit, failed"
-        exit 1
-fi
+[[ "${BR2_LRD_PRODUCT}" == "wb50n"* ]] && limit=38 || limit=18
+size_check 'kernel.bin' ${limit}
+size_check 'u-boot.bin' 3
 
 tar -cjf "${BR2_LRD_PRODUCT}-laird${RELEASE_SUFFIX}.tar.bz2" \
 	--owner=0 --group=0 --numeric-owner \
