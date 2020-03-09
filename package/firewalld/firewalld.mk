@@ -51,4 +51,10 @@ endef
 
 FIREWALLD_POST_INSTALL_TARGET_HOOKS = FIREWALLD_FIX_CONFIG
 
+define FIREWALLD_INSTALL_INIT_SYSTEMD
+        $(INSTALL) -d $(TARGET_DIR)/etc/systemd/systemd/multi-user.target.wants
+        ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/firewalld.service \
+                $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
+endef
+
 $(eval $(autotools-package))
