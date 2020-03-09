@@ -128,7 +128,7 @@ size_check () {
 		{ echo "${1} size exceeded ${2} block limit, failed"; exit 1; }
 }
 
-size_check 'u-boot.bin' 7
+size_check 'u-boot.itb' 7
 
 if [ -n "${VERSION}" ]; then
 	RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird-${VERSION}.tar"
