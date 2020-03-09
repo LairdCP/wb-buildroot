@@ -123,13 +123,12 @@ else
 	. "${BOARD_DIR}/../post_image_secure.sh" "${BOARD_DIR}" "\nu-boot-env.tgz\nerase_data.sh"
 fi
 
+size_check () {
+	[ $(stat -c "%s" ${BINARIES_DIR}/${1}) -le $((${2}*128*1024)) ] || \
+		{ echo "${1} size exceeded ${2} block limit, failed"; exit 1; }
+}
 
-word=$(stat -c "%s" ${BINARIES_DIR}/u-boot.itb)
-if [ $word -gt 917504 ]
-then
-        echo "u-boot size exceeded block limit, failed"
-        exit 1
-fi
+size_check 'u-boot.bin' 7
 
 if [ -n "${VERSION}" ]; then
 	RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird-${VERSION}.tar"
