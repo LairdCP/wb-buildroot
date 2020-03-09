@@ -7,6 +7,7 @@ config BR2_PACKAGE_FIREWALLD
 	select BR2_PACKAGE_GETTEXT
 	select BR2_PACKAGE_PYTHON_SLIP_DBUS
 	select BR2_PACKAGE_NFTABLES
+	select BR2_PACKAGE_LIBNFTNL_JSON
 	help
 	  firewalld is as a firewall management tool for Linux operating
 	  systems. It provides firewall features by acting as a
