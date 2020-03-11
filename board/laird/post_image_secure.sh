@@ -51,7 +51,7 @@ test -x ${veritysetup} || \
 		die "No veritysetup found (host-cryptsetup has not been built?)"
 
 # Create keys if not present
-if [ ! -d ${BINARIES_DIR}/keys || ! -f ${BINARIES_DIR}/keys/dev.key ]; then
+if [ ! -d ${BINARIES_DIR}/keys ] || [ ! -f ${BINARIES_DIR}/keys/dev.key ]; then
 	${openssl} genrsa -out ${BINARIES_DIR}/keys/dev.key 2048
 	${openssl} req -batch -new -x509 -key ${BINARIES_DIR}/keys/dev.key -out ${BINARIES_DIR}/keys/dev.crt
 	dd if=/dev/random of=${BINARIES_DIR}/keys/key.bin bs=64 count=1
