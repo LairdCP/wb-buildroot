@@ -1,0 +1,13 @@
+--- a/core/pctl.c	2020-03-10 17:13:01.140330254 +0800
++++ b/core/pctl.c	2020-03-10 17:21:05.136762047 +0800
+@@ -236,6 +236,10 @@
+ 				hasdied = 1;
+ 				exitstatus = WEXITSTATUS(status);
+ 				printf("exited, status=%d\n", exitstatus);
++				if (exitstatus == 0) {
++					printf("Swupdate is successful\n");
++					printf("Please reboot to run the updated firmware\n");
++				}
+ 			} else if (WIFSIGNALED(status)) {
+ 				hasdied = 1;
+ 				exitstatus = WTERMSIG(status);
