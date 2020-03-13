@@ -41,14 +41,6 @@ if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
 	fi
 	# Use verity boot script
 	cp -f ${BOARD_DIR}/configs/boot_verity.scr ${BINARIES_DIR}/boot.scr
-	# Copy scripts for SWU generation
-	if [[ "${BR2_LRD_PRODUCT}" =~ ^(som60x2|ig60ll)$ ]]; then
-		cp ${BOARD_DIR}/configs/sw-description-som60x2 ${BINARIES_DIR}/sw-description -fr
-	else
-		cp ${BOARD_DIR}/configs/sw-description ${BINARIES_DIR}/ -fr
-	fi
-	cp ${BOARD_DIR}/../scripts-common/erase_data.sh ${BINARIES_DIR}/ -fr
-	cp ${BOARD_DIR}/configs/u-boot-env.tgz ${BINARIES_DIR}/ -fr
 	# Build rootfs UBI with verity
 	GENIMAGE_CFG="${BOARD_DIR}/configs/genimage_verity.cfg"
 else
@@ -64,6 +56,15 @@ if (( ! ${SD} )) ; then
 	# Copy mksdcard.sh and mksdimg.sh to images
 	cp ${BOARD_DIR}/../scripts-common/mksdcard.sh ${BINARIES_DIR}/
 	cp ${BOARD_DIR}/../scripts-common/mksdimg.sh ${BINARIES_DIR}/
+else
+	# Copy scripts for SWU generation
+	if [[ "${BR2_LRD_PRODUCT}" =~ ^(som60x2|ig60ll)$ ]]; then
+		cp ${BOARD_DIR}/configs/sw-description-som60x2 ${BINARIES_DIR}/sw-description -fr
+	else
+		cp ${BOARD_DIR}/configs/sw-description ${BINARIES_DIR}/ -fr
+	fi
+	cp ${BOARD_DIR}/../scripts-common/erase_data.sh ${BINARIES_DIR}/ -fr
+	cp ${BOARD_DIR}/configs/u-boot-env.tgz ${BINARIES_DIR}/ -fr
 fi
 
 # Generate kernel FIT image script
@@ -117,6 +118,10 @@ if ! grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
 		${mkimage} -T atmelimage -n $(${atmel_pmecc_params}) -d ${BINARIES_DIR}/u-boot-spl.bin ${BINARIES_DIR}/boot.bin
 		# Copy rootfs
 		cp ${BINARIES_DIR}/rootfs.squashfs ${BINARIES_DIR}/rootfs.bin
+		# Generate SWU
+		( cd ${BINARIES_DIR} && \
+			echo -e "sw-description\nboot.bin\nu-boot.itb\nkernel.itb\nrootfs.bin\nu-boot-env.tgz\nerase_data.sh" |\
+			cpio -ov -H crc > ${BINARIES_DIR}/${BR2_LRD_PRODUCT}.swu)
 	fi
 else
 	# Generate all secured artifacts (NAND, SWU packages)
@@ -147,7 +152,7 @@ if (( ${SD} )) ; then
 		--config "${GENIMAGE_CFG}"
 
 	tar -C ${BINARIES_DIR} -cf ${RELEASE_FILE} \
-		boot.bin u-boot.itb kernel.itb rootfs.bin
+		boot.bin u-boot.itb kernel.itb rootfs.bin ${BR2_LRD_PRODUCT}.swu
 
 	if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
 		tar -C ${BINARIES_DIR} -rf ${RELEASE_FILE} \
