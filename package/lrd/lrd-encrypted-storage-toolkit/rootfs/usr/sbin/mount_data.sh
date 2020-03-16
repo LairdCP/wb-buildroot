@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 DATA_MOUNT=/data
 
 case $1 in
@@ -30,11 +32,7 @@ case $1 in
 			[ "$(ls -A ${SOURCE_NM_CONNECTIONS}/)"  ] && cp -rf ${SOURCE_NM_CONNECTIONS}/* ${DATA_NM_CONNECTIONS}/ || echo "Warning: No default NetworkManager profiles available"
 		fi
 
-		# Check if mount_data success
-		if [[ -d ${DATA_NM_CONNECTIONS} && -n "$(ls -A ${DATA_NM_CONNECTIONS})" ]]
-		then
-			echo "Secure Boot Cycle Complete" > /dev/console
-		fi
+		echo "Secure Boot Cycle Complete" > /dev/console
 		;;
 
 	stop)
