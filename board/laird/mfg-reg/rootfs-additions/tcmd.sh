@@ -58,16 +58,17 @@ case ${1#--} in
       do_ ifrc -v -n wlan0 stop
     else
       do_ systemctl stop NetworkManager.service
+      do_ kill -9 `pidof sdcsupp`
       do_ modprobe -r ath6kl_sdio
       do_ sleep 3
     fi
     echo
     (
       if [ -z "$NM" ]; then
-        do_ modprobe ath6kl_core testmode=1
+        do_ modprobe ath6kl_core testmode=1 heart_beat_poll=0
         do_ modprobe ath6kl_sdio $ATH6K_SDIO_PARAMS
       else
-        do_ modprobe ath6kl_core testmode=1
+        do_ modprobe ath6kl_core testmode=1 heart_beat_poll=0
         do_ modprobe ath6kl_sdio
       fi
     )
