@@ -47,7 +47,8 @@ BRCM_DIR = $(TARGET_DIR)/lib/firmware/brcm
 
 define LAIRD_FW_BCM4343_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/* $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac43430* $(BRCM_DIR)
+	cp -rad $(@D)/brcm/BCM43430A1.hcd $(BRCM_DIR)
 endef
 endif
 
@@ -57,7 +58,42 @@ BRCM_DIR = $(TARGET_DIR)/lib/firmware/brcm
 
 define LAIRD_FW_BCM4339_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/* $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4339* $(BRCM_DIR)
+	cp -rad $(@D)/brcm/BCM4335C0.hcd $(BRCM_DIR)
+endef
+endif
+
+ifneq ($(filter y,$(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373) $(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_MFG)),)
+
+BRCM_DIR = $(TARGET_DIR)/lib/firmware/brcm
+
+NVRAM_FILE = $(@D)/brcm/brcmfmac4373-$(1)-$(2).txt
+FW_BASE_FILE = $(@D)/brcm/brcmfmac4373-usb-base-$(1).bin
+FW_FINAL_FILE = $(BRCM_DIR)/brcmfmac4373-usb-$(1)-$(2)-$(3).bin
+
+define make_bcm4373usb_fw
+	grep -v NVRAMRev $(call NVRAM_FILE,$(1),$(2)) > $(BRCM_DIR)/tmp_nvram.txt
+	$(@D)/brcm/bin/nvserial -a -o $(BRCM_DIR)/tmp_nvram.nvm $(BRCM_DIR)/tmp_nvram.txt
+	$(@D)/brcm/bin/trxv2 -f 0x20 \
+		-x $$(stat -c %s $(call FW_BASE_FILE,$(3))) \
+		-x 0x160881 \
+		-x $$(stat -c %s $(BRCM_DIR)/tmp_nvram.nvm) \
+		-o $(call FW_FINAL_FILE,$(1),$(2),$(3)) \
+		$(call FW_BASE_FILE,$(3)) $(BRCM_DIR)/tmp_nvram.nvm
+	rm -f $(BRCM_DIR)/tmp_nvram.*
+endef
+
+define LAIRD_FW_BCM4373_INSTALL_TARGET_CMDS
+	mkdir -p -m 0755 $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4373-sdio* $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4373*.txt $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4373.clm_blob $(BRCM_DIR)
+	cp -rad $(@D)/brcm/BCM4373A0* $(BRCM_DIR)
+	$(call make_bcm4373usb_fw,sa,fcc,prod)
+	$(call make_bcm4373usb_fw,sa,fcc,mfg)
+	$(call make_bcm4373usb_fw,div,fcc,prod)
+	$(call make_bcm4373usb_fw,div,fcc,mfg)
+	cd $(BRCM_DIR) && ln -srf brcmfmac4373-usb-div-fcc-prod.bin brcmfmac4373.bin
 endef
 endif
 
@@ -226,6 +262,7 @@ define LAIRD_FIRMWARE_INSTALL_TARGET_CMDS
 	$(LAIRD_FW_6004_PUBLIC_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4343_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4339_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4373_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_UART_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_SDIO_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_PCIE_UART_INSTALL_TARGET_CMDS)

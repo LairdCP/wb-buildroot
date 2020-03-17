@@ -54,6 +54,50 @@ create_bcm4339_firmware_archive()
 	)
 }
 
+create_bcm4373_sdio_uart_firmware_archive()
+{
+	local ANTENNA=${1}
+	local DOMAIN=${2}
+
+	local BRCM_DIR=${FW_DIR}/brcm
+
+	ln -rsf ${FW_DIR}/regulatory_${DOMAIN}.db ${FW_DIR}/regulatory.db
+	ln -rsf ${BRCM_DIR}/brcmfmac4373-${ANTENNA}-${DOMAIN}.txt ${BRCM_DIR}/brcmfmac4373-sdio.txt
+
+	(
+	cd ${TARGET_DIR}
+	tar -cjf "${BINARIES_DIR}/laird-lwb5plus-sdio-${ANTENNA}-${DOMAIN}-firmware${RELEASE_SUFFIX}.tar.bz2" \
+		lib/firmware/brcm/BCM4373A0.hcd \
+		lib/firmware/brcm/brcmfmac4373-sdio-prod.bin \
+		lib/firmware/brcm/brcmfmac4373-sdio.bin \
+		lib/firmware/brcm/brcmfmac4373-${ANTENNA}-${DOMAIN}.txt \
+		lib/firmware/brcm/brcmfmac4373-sdio.txt \
+		lib/firmware/brcm/brcmfmac4373.clm_blob \
+		lib/firmware/brcm/brcmfmac4373-sdio.clm_blob \
+		lib/firmware/regulatory_${DOMAIN}.db lib/firmware/regulatory.db
+	)
+}
+
+create_bcm4373_usb_usb_firmware_archive()
+{
+	local ANTENNA=${1}
+	local DOMAIN=${2}
+
+	local BRCM_DIR=${FW_DIR}/brcm
+
+	ln -rsf ${BRCM_DIR}/brcmfmac4373-usb-${ANTENNA}-${DOMAIN}-prod.bin ${BRCM_DIR}/brcmfmac4373.bin
+	ln -rsf ${FW_DIR}/regulatory_${DOMAIN}.db ${FW_DIR}/regulatory.db
+
+	(
+	cd ${TARGET_DIR}
+	tar -cjf "${BINARIES_DIR}/laird-lwb5plus-usb-${ANTENNA}-${DOMAIN}-firmware${RELEASE_SUFFIX}.tar.bz2" \
+		lib/firmware/brcm/brcmfmac4373-usb-${ANTENNA}-${DOMAIN}-prod.bin \
+		lib/firmware/brcm/brcmfmac4373.bin \
+		lib/firmware/brcm/brcmfmac4373.clm_blob \
+		lib/firmware/regulatory_${DOMAIN}.db lib/firmware/regulatory.db
+	)
+}
+
 create_60_firmware_archive()
 {
 	grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_${1^^}60_${2^^}_${3^^}=y" ${BR2_CONFIG} || return
@@ -111,6 +155,26 @@ create_bcm4339_firmware_archive fcc
 create_bcm4339_firmware_archive etsi
 create_bcm4339_firmware_archive ic
 create_bcm4339_firmware_archive jp
+fi
+
+if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373=y" ${BR2_CONFIG}; then
+create_bcm4373_sdio_uart_firmware_archive sa fcc
+create_bcm4373_sdio_uart_firmware_archive div fcc
+#create_bcm4373_sdio_uart_firmware_archive sa etsi
+#create_bcm4373_sdio_uart_firmware_archive div etsi
+#create_bcm4373_sdio_uart_firmware_archive sa ic
+#create_bcm4373_sdio_uart_firmware_archive div ic
+#create_bcm4373_sdio_uart_firmware_archive sa jp
+#create_bcm4373_sdio_uart_firmware_archive div jp
+
+create_bcm4373_usb_usb_firmware_archive sa fcc
+create_bcm4373_usb_usb_firmware_archive div fcc
+#create_bcm4373_usb_usb_firmware_archive sa etsi
+#create_bcm4373_usb_usb_firmware_archive div etsi
+#create_bcm4373_usb_usb_firmware_archive sa ic
+#create_bcm4373_usb_usb_firmware_archive div ic
+#create_bcm4373_usb_usb_firmware_archive sa jp
+#create_bcm4373_usb_usb_firmware_archive div jp
 fi
 
 if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_AR6003=y" ${BR2_CONFIG}; then
