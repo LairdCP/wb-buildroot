@@ -61,7 +61,7 @@ rm -f $TARGETDIR/etc/init.d/rcK
 
 # Copy the rootfs-additions-common in place first.
 # If necessary, these can be overwritten by the product specific rootfs-additions.
-tar c --exclude=.svn --exclude=.empty -C board/laird/rootfs-additions-common/ . | tar x -C $TARGETDIR/
+rsync -rlptDWK --exclude=.empty "board/laird/rootfs-additions-common/" "$TARGETDIR"
 
 # install libnl*.so.3 links
 ( cd "$TARGETDIR/usr/lib" \
@@ -93,7 +93,7 @@ gzip -c $TARGETDIR/etc/network/interfaces >$TARGETDIR/etc/network/interfaces~.gz
 # Create default firmware description file.
 # This may be overwritten by a proper release file.
 if [ -z "$LAIRD_RELEASE_STRING" ]; then
-  echo "Laird Linux development build `date +%Y%m%d`" \
+  echo "Laird Linux development build 0.${BR2_LRD_BRANCH}.0.0 $(date +%Y%m%d)" \
     > $TARGETDIR/etc/laird-release
 else
   echo "$LAIRD_RELEASE_STRING" > $TARGETDIR/etc/laird-release

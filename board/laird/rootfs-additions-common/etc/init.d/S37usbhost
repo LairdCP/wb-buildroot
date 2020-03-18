@@ -37,7 +37,7 @@ case $1 in
 			echo "Warning: SmartBASIC is still running"
 		fi
 		modprobe -r ohci_at91
-		modprobe -r ehci_atmel
+		modprobe -rq ehci_atmel
 		modprobe -r usb-storage
 		rv=$?
 	;;
@@ -47,7 +47,7 @@ case $1 in
 		[ ! -d /sys/class/net/usb0 ] \
 		|| { echo "  Warning: USB is already in device mode."; }
 
-		modprobe ehci_atmel
+		modprobe -q ehci_atmel && \
 		{ read -rst2 x < ${ehci_bus}; } 2>/dev/null
 		# enumerate and provide upto 2s delay - don't unload
 
