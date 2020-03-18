@@ -24,15 +24,26 @@ ls "${TARGET_DIR}/lib/firmware/lrdmwl/88W8997_mfg_"* | sed "s,^${TARGET_DIR},," 
 
 cp "${TARGET_DIR}/usr/lib/${LIBEDIT}" "${TARGET_DIR}/usr/lib/${LIBEDITLRD}"
 
-elif [[ "${BR2_LRD_PRODUCT}" == reg50* ]]; then
+elif [[ "${BR2_LRD_PRODUCT}" == reg50* ]] || [[ "${BR2_LRD_PRODUCT}" == reg45* ]]; then
+
+LIBEDIT=$(readlink $TARGET_DIR/usr/lib/libedit.so)
+LIBEDITLRD=${LIBEDIT/libedit./libedit.lrd.}
 
 echo "/usr/bin/lru
 /usr/sbin/smu_cli
-/usr/bin/tcmd.sh" \
+/usr/bin/tcmd.sh
+/usr/lib/${LIBEDITLRD}" \
 > "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
 
+if [[ "${BR2_LRD_PRODUCT}" == reg50* ]]; then
 ls "${TARGET_DIR}/lib/firmware/ath6k/AR6004/hw3.0/utf"* | sed "s,^${TARGET_DIR},," \
 	>> "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
+else
+ls "${TARGET_DIR}/lib/firmware/ath6k/AR6003/hw2.1.1/athtcmd"* | sed "s,^${TARGET_DIR},," \
+	>> "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
+fi
+
+cp "${TARGET_DIR}/usr/lib/${LIBEDIT}" "${TARGET_DIR}/usr/lib/${LIBEDITLRD}"
 
 # move tcmd.sh into package and add to manifest
 cp board/laird/mfg-reg/rootfs-additions/tcmd.sh ${TARGET_DIR}/usr/bin
