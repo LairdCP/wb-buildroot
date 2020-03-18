@@ -21,17 +21,15 @@ define FSWATCH_BUILD_CMDS
 endef
 
 define FSWATCH_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 755 $(@D)/fs_watch $(TARGET_DIR)/usr/bin/fs_watch
+	$(INSTALL) -D -t $(TARGET_DIR)/usr/bin -m 755 $(@D)/fs_watch
+endef
+
+define FSWATCH_INSTALL_INIT_SYSTEMV
+	$(INSTALL) -D -t $(TARGET_DIR)/etc/init.d -m 755 package/lrd/fswatch/S03fs_watch
 endef
 
 define FSWATCH_UNINSTALL_TARGET_CMDS
 	rm -f $(TARGET_DIR)/usr/bin/fs_watch
 endef
-
-define FSWATCH_INSTALL_INITSCRIPT
-	$(INSTALL) -D -m 755 package/lrd/fswatch/S03fs_watch $(TARGET_DIR)/etc/init.d/S03fs_watch
-endef
-
-FSWATCH_POST_INSTALL_TARGET_HOOKS += FSWATCH_INSTALL_INITSCRIPT
 
 $(eval $(generic-package))

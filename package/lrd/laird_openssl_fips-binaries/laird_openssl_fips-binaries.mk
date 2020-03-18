@@ -25,14 +25,10 @@ endif
 define LAIRD_OPENSSL_FIPS_BINARIES_INSTALL_TARGET_CMDS
 	tar -xjvf $($(PKG)_DL_DIR)/$(LAIRD_OPENSSL_FIPS_BINARIES_EXTRA_DOWNLOADS) -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch --strip-components=1 target
 	tar -xjvf $($(PKG)_DL_DIR)/$(LAIRD_OPENSSL_FIPS_BINARIES_EXTRA_DOWNLOADS) -C $(STAGING_DIR) --keep-directory-symlink --no-overwrite-dir --touch --strip-components=1 staging
-endef
-
 ifeq ($(BR2_PACKAGE_LIBOPENSSL_BIN),)
-define LAIRD_OPENSSL_FIPS_BINARIES_REMOVE_BIN
-	$(RM) -f $(TARGET_DIR)/usr/bin/openssl
-	$(RM) -f $(TARGET_DIR)/etc/ssl/misc/{CA.*,c_*}
-endef
-LAIRD_OPENSSL_FIPS_BINARIES_POST_INSTALL_TARGET_HOOKS += LAIRD_OPENSSL_FIPS_BINARIES_REMOVE_BIN
+        $(RM) -f $(TARGET_DIR)/usr/bin/openssl
+        $(RM) -f $(TARGET_DIR)/etc/ssl/misc/{CA.*,c_*}
 endif
+endef
 
 $(eval $(generic-package))
