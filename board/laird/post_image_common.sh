@@ -32,7 +32,12 @@ size_check () {
 		{ echo "${1} size exceeded ${2} block limit, failed"; exit 1; }
 }
 
-[[ "${BR2_LRD_PRODUCT}" == "wb50n"* ]] && limit=38 || limit=18
+case "${BR2_LRD_PRODUCT}" in
+	"wb50n"*) limit=38 ;;
+	"wb40n"*) limit=38 ;;
+	*)        limit=18 ;;
+esac
+
 size_check 'kernel.bin' ${limit}
 size_check 'u-boot.bin' 3
 
