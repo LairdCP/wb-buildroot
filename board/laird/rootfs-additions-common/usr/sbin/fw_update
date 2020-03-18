@@ -14,7 +14,7 @@
 #
 # contact: support@lairdconnect.com
 
-# Firmware Update Utility for WB50n
+# Firmware Update Utility for WB50n/WB45n/WB40n Legacy
 #
 VERSION=2.18
 SELF=${0##*/}
@@ -240,9 +240,20 @@ ls -l /bin/ash |grep -qo busybox || exit_error "busybox-ash required"
 x=$( grep -s 'Workgroup Bridge' /proc/device-tree/model \
   || sed -n 's/Hardware[ \t:]*\(.*\)/\1/p' /proc/cpuinfo )
 case $x in
+  *'Workgroup Bridge 40N'*) ### arch/arm/mach-at91/board-wb40n.c
+    wb=wb40n
+    NWBPS=1250000
+    memsz=32M
+    ;;
+  *'Workgroup Bridge 45N'*) ### arch/arm/mach-at91/board-dt.c
+    wb=wb45n
+    NWBPS=2000000
+    memsz=64M
+    ;;
   *'Workgroup Bridge 50N'*) ### arch/arm/boot/dts/wb50n.dts
     wb=wb50n
     NWBPS=4000000
+    memsz=64M
     ;;
   *) ### architecture unknown
     echo -e : ${x:-\\\r\\\c} >&2
@@ -875,7 +886,7 @@ then
       if $fw_setenv md5_$image $ROOTFS_MD5
       then
         rootfs=$ab
-	bootargs="console=ttyS0,115200 loglevel=4 rw noinitrd mem=64M rootfstype=ubifs root=ubi0:rootfs ubi.mtd=$mtdnum"
+        bootargs="console=ttyS0,115200 loglevel=4 rw noinitrd mem=$memsz rootfstype=ubifs root=ubi0:rootfs ubi.mtd=$mtdnum"
       fi
     fi
   fi
@@ -889,7 +900,7 @@ then
     if $fw_setenv md5_$image $SQROOT_MD5
     then
       rootfs=$ab
-      bootargs="console=ttyS0,115200 loglevel=4 ro noinitrd mem=64M rootfstype=squashfs ubi.block=0,0 root=/dev/ubiblock0_0 ubi.mtd=$mtdnum"
+      bootargs="console=ttyS0,115200 loglevel=4 ro noinitrd mem=$memsz rootfstype=squashfs ubi.block=0,0 root=/dev/ubiblock0_0 ubi.mtd=$mtdnum"
       # dont attempt to transfer if flashing to read-only filesystem
       if ! touch /.rw 2>/dev/null
       then
