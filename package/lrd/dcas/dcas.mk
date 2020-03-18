@@ -28,9 +28,12 @@ endef
 
 define DCAS_INSTALL_TARGET_CMDS
 	$(INSTALL) -d -m 700 $(TARGET_DIR)/root/.ssh
-	$(INSTALL) -D -m 755 $(@D)/dcas $(TARGET_DIR)/usr/bin/dcas
-	$(INSTALL) -D -m 755 $(@D)/support/etc/init.d/S99dcas $(TARGET_DIR)/etc/init.d/opt/S99dcas
-	$(INSTALL) -D -m 755 $(@D)/support/etc/dcas.conf $(TARGET_DIR)/etc/dcas.conf
+	$(INSTALL) -D -t $(TARGET_DIR)/usr/bin -m 755 $(@D)/dcas
+	$(INSTALL) -D -t $(TARGET_DIR)/etc -m 755 $(@D)/support/etc/dcas.conf
+endef
+
+define DCAS_INSTALL_INIT_SYSTEMV
+	$(INSTALL) -D -t $(TARGET_DIR)/etc/init.d/opt -m 755 $(@D)/support/etc/init.d/S99dcas
 endef
 
 define DCAS_UNINSTALL_TARGET_CMDS

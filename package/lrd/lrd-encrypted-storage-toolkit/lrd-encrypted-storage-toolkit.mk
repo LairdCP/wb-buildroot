@@ -4,11 +4,9 @@
 #
 #############################################################
 
-define POST_INSTALL_TARGET_HOOK
+define LRD_ENCRYPTED_STORAGE_TOOLKIT_INSTALL_TARGET_CMDS
 	rsync -rlptDWK package/lrd/lrd-encrypted-storage-toolkit/rootfs/ $(TARGET_DIR)/
-	cp -f  package/lrd/lrd-encrypted-storage-toolkit/configs/* $(BINARIES_DIR)/
+	$(INSTALL) -D -t $(BINARIES_DIR)/ package/lrd/lrd-encrypted-storage-toolkit/configs/*
 endef
-
-LRD_ENCRYPTED_STORAGE_TOOLKIT_POST_INSTALL_TARGET_HOOKS += POST_INSTALL_TARGET_HOOK
 
 $(eval $(generic-package))

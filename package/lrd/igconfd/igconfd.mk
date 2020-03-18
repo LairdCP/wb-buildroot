@@ -14,16 +14,18 @@ else
 IGCONFD_PYTHON_VERSION := 2.7
 endif
 
-
-define IGCONFD_INSTALL_TARGET_FILES
+define IGCONFD_INSTALL_TARGET_CMDS
         $(INSTALL) -D -m 755 $(@D)/dist/igconfd-1.0-py$(IGCONFD_PYTHON_VERSION).egg $(TARGET_DIR)/usr/bin/igconfd
-        $(INSTALL) -D -m 644 package/lrd/igconfd/igconfd.service $(TARGET_DIR)/etc/systemd/system
-        $(INSTALL) -D -m 644 package/lrd/igconfd/com.lairdtech.security.ConfigService.conf $(TARGET_DIR)/etc/dbus-1/system.d
-        mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-        ln -sf ../igconfd.service $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
 endef
 
-IGCONFD_POST_INSTALL_TARGET_HOOKS += IGCONFD_INSTALL_TARGET_FILES
+define IGCONFD_INSTALL_INIT_SYSTEMD
+        $(INSTALL) -D -m 644 -t $(TARGET_DIR)/etc/systemd/system \
+		package/lrd/igconfd/igconfd.service
+        $(INSTALL) -D -m 644 -t $(TARGET_DIR)/etc/dbus-1/system.d \
+		package/lrd/igconfd/com.lairdtech.security.ConfigService.conf
+        $(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
+        ln -rsf $(TARGET_DIR)/etc/systemd/system/igconfd.service $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/igconfd.service
+endef
 
 $(eval $(python-package))
 
