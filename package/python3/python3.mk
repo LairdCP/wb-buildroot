@@ -151,8 +151,9 @@ PYTHON3_CONF_OPTS += \
 	--disable-tk \
 	--disable-nis \
 	--disable-idle3 \
-	--disable-pyc-build
-
+	--disable-pyc-build \
+	--without-doc-strings \
+	--without-gcc
 #
 # Some of CPython's source code is generated using Python interpreter
 # and some helper tools such as "Programs/_freeze_importlib" or
