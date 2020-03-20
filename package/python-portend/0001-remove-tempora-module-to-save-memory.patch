@@ -1,0 +1,72 @@
+diff --git a/portend.py b/portend.py
+index 5aefa72..0a7ff7d 100644
+--- a/portend.py
++++ b/portend.py
+@@ -19,7 +19,7 @@ try:
+ except ImportError:
+     import collections as abc
+ 
+-from tempora import timing
++import datetime
+ 
+ 
+ def client_host(server_host):
+@@ -107,7 +107,13 @@ def free(host, port, timeout=float('Inf')):
+     if not host:
+         raise ValueError("Host values of '' or None are not allowed.")
+ 
+-    timer = timing.Timer(timeout)
++    if isinstance(timeout, datetime.timedelta):
++        timeout = timeout.total_seconds()
++
++    if timeout is None:
++        timeout = float('Inf')
++
++    start_time = datetime.datetime.utcnow()
+ 
+     while True:
+         try:
+@@ -115,7 +121,7 @@ def free(host, port, timeout=float('Inf')):
+             Checker(timeout=0.1).assert_free(host, port)
+             return
+         except PortNotFree:
+-            if timer.expired():
++            if (datetime.datetime.utcnow() - start_time).total_seconds() > timeout:
+                 raise Timeout("Port {port} not free on {host}.".format(**locals()))
+             # Politely wait.
+             time.sleep(0.1)
+@@ -141,12 +147,18 @@ def occupied(host, port, timeout=float('Inf')):
+     if not host:
+         raise ValueError("Host values of '' or None are not allowed.")
+ 
+-    timer = timing.Timer(timeout)
++    if isinstance(timeout, datetime.timedelta):
++        timeout = timeout.total_seconds()
++
++    if timeout is None:
++        timeout = float('Inf')
++
++    start_time = datetime.datetime.utcnow()
+ 
+     while True:
+         try:
+             Checker(timeout=0.5).assert_free(host, port)
+-            if timer.expired():
++            if (datetime.datetime.utcnow() - start_time).total_seconds() > timeout:
+                 raise Timeout("Port {port} not bound on {host}.".format(**locals()))
+             # Politely wait
+             time.sleep(0.1)
+diff --git a/setup.cfg b/setup.cfg
+index 54d04fd..798e138 100644
+--- a/setup.cfg
++++ b/setup.cfg
+@@ -21,7 +21,6 @@ py_modules = portend
+ include_package_data = true
+ python_requires = >=2.7
+ install_requires = 
+-	tempora>=1.8
+ setup_requires = setuptools_scm >= 1.15.0
+ 
+ [options.extras_require]
+--
+2.7.4

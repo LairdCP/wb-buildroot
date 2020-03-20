@@ -1,0 +1,25 @@
+diff --git a/MANIFEST.in b/MANIFEST.in
+new file mode 100644
+index 0000000..486babb
+--- /dev/null
++++ b/MANIFEST.in
+@@ -0,0 +1,3 @@
++prune cherrypy/test
++prune cherrypy/tutorial
++prune cherrypy/scaffold
+diff --git a/setup.py b/setup.py
+index ad211f5..96dc4fb 100755
+--- a/setup.py
++++ b/setup.py
+@@ -51,9 +51,7 @@ params = dict(
+     },
+     packages=[
+         'cherrypy', 'cherrypy.lib',
+-        'cherrypy.tutorial', 'cherrypy.test',
+         'cherrypy.process',
+-        'cherrypy.scaffold',
+     ],
+     entry_points={'console_scripts': ['cherryd = cherrypy.__main__:run']},
+     include_package_data=True,
+--
+2.7.4
