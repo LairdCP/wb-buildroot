@@ -1,20 +1,21 @@
 set -x -e
-TARGETDIR=$1
 
-export BR2_LRD_PLATFORM=wb50n
-echo "WB50n_RDVK POST BUILD script: starting..."
+BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
+BOARD_DIR="$(realpath $(dirname $0))"
+
+echo "${BR2_LRD_PRODUCT^^} POST BUILD script: starting..."
 
 # source the common post build script
-source "board/laird/post_build_common.sh" "$TARGETDIR"
+source "board/laird/post_build_common.sh" "${TARGET_DIR}"
 
 # fix rootfs-additions-common to come up without any wireless adapter by default
-mv $TARGETDIR/etc/init.d/S40wifi $TARGETDIR/etc/init.d/opt/
+mv ${TARGET_DIR}/etc/init.d/S40wifi ${TARGET_DIR}/etc/init.d/opt/
 
 # Copy the product specific rootfs additions
-tar c --exclude=.svn --exclude=.empty -C board/laird/wb50n_rdvk/rootfs-additions/ . | tar x -C $TARGETDIR/
+rsync -rlptDWK --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
 
 # Fixup and add debugfs to fstab
-grep -q "/sys/kernel/debug" $TARGETDIR/etc/fstab ||\
-	echo 'nodev /sys/kernel/debug   debugfs   defaults   0  0' >> $TARGETDIR/etc/fstab
+grep -q "/sys/kernel/debug" ${TARGET_DIR}/etc/fstab ||\
+	echo 'nodev /sys/kernel/debug   debugfs   defaults   0  0' >> ${TARGET_DIR}/etc/fstab
 
-echo "WB50n RDVK POST BUILD script: done."
+echo "${BR2_LRD_PRODUCT^^} POST BUILD script: done."
