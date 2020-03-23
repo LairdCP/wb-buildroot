@@ -14,6 +14,12 @@ else
 release_file = $(OUTPUT_DIR)/$(1)/images/$(1)-laird-$(VERSION).tar
 endif
 
+ifeq ($(VERSION),)
+release_name = $(1)-laird
+else
+release_name = $(1)-laird-$(VERSION)
+endif
+
 .NOTPARALLEL:
 
 .PHONY: all clean cleanall
@@ -93,6 +99,6 @@ $(addsuffix -full-legal,$(TARGETS)): %-full-legal: % %-legal-info
 	bzip2 $(call release_file,$*)
 
 .PHONY: $(addsuffix -sdk-only,$(TARGETS))
-$(addsuffix -sdk-only,$(TARGETS)): %-sdk-only: %-sdk
-	mv -f $(OUTPUT_DIR)/$*/images/$*-sdk.tar.gz $(call release_file,$*).gz
+$(addsuffix -sdk-only,$(TARGETS)): %-sdk-only: $(OUTPUT_DIR)/%/.config
+	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* BR2_SDK_PREFIX=$(call release_name,$*) sdk
 	sha256sum $(call release_file,$*).gz | sed 's, .*/, ,' > $(call release_file,$*).gz.sha
