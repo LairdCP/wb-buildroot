@@ -108,7 +108,7 @@ define LIBOPENSSL_1_0_2_CONFIGURE_CMDS
 			$(if $(BR2_STATIC_LIBS),zlib,zlib-dynamic) \
 			$(if $(BR2_STATIC_LIBS),no-dso) \
 			$(LIBOPENSSL_1_0_2_FIPS_CFG) \
-			-DDEVRANDOM='"/dev/hwrng"' \
+			-DDEVRANDOM='"/dev/hwrng","/dev/urandom"' \
 	)
 	$(SED) "s#-march=[-a-z0-9] ##" -e "s#-mcpu=[-a-z0-9] ##g" $(@D)/Makefile
 	$(SED) "s#-O[0-9]#$(LIBOPENSSL_1_0_2_CFLAGS)#" $(@D)/Makefile
