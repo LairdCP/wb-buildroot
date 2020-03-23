@@ -5,7 +5,11 @@
 ################################################################################
 
 TOOLCHAIN_EXTERNAL_LAIRD_ARM_VERSION = 7.0.0.276
+ifeq ($(BR2_ARM_EABIHF),y)
 TOOLCHAIN_EXTERNAL_LAIRD_ARM_SOURCE = som60_toolchain-laird-$(TOOLCHAIN_EXTERNAL_LAIRD_ARM_VERSION).tar.gz
+else
+TOOLCHAIN_EXTERNAL_LAIRD_ARM_SOURCE = wb4x_toolchain-laird-$(TOOLCHAIN_EXTERNAL_LAIRD_ARM_VERSION).tar.gz
+endif
 
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
 TOOLCHAIN_EXTERNAL_LAIRD_ARM_SITE = https://files.devops.rfpros.com/builds/linux/toolchain/$(TOOLCHAIN_EXTERNAL_LAIRD_ARM_VERSION)

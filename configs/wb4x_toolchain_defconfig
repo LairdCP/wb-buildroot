@@ -1,6 +1,4 @@
 BR2_arm=y
-BR2_cortex_a5=y
-BR2_ARM_ENABLE_VFP=y
 BR2_DL_DIR="$(HOME)/.br2_dl_dir"
 BR2_CCACHE=y
 BR2_CCACHE_DIR="$(BR2_DL_DIR)/.buildroot-ccache"
