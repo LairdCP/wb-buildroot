@@ -14,13 +14,13 @@ rm -f "${TARGET_DIR}/etc/resolv.conf"
 # This may be overwritten by a proper release file.
 LOCRELSTR="${LAIRD_RELEASE_STRING}"
 if [ -z "${LOCRELSTR}" ] || [ "${LOCRELSTR}" == "0.0.0.0" ]; then
-	LOCRELSTR="Laird Linux development build 0.${BR2_LRD_BRANCH}.0.0 $(date +%Y%m%d)"
+	LOCRELSTR="Summit Linux development build 0.${BR2_LRD_BRANCH}.0.0 $(date +%Y%m%d)"
 fi
 echo "${LOCRELSTR}" > "${TARGET_DIR}/etc/laird-release"
 echo "${LOCRELSTR}" > "${TARGET_DIR}/etc/issue"
 
 echo -ne \
-"NAME=Laird Linux\n"\
+"NAME=Summit Linux\n"\
 "VERSION=$LOCRELSTR\n"\
 "ID=buildroot\n"\
 "VERSION_ID=${LOCRELSTR##* }\n"\

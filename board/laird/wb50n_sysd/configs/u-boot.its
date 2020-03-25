@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Laird
+ * Copyright (C) 2018-2020 Laird Connectivity
  *
  * Minimal dts for a SPL FIT image payload.
  *
@@ -41,7 +41,7 @@
 	configurations {
 		default = "conf";
 		conf {
-			description = "Laird SOM60";
+			description = "WB50N";
 			firmware = "uboot";
 			fdt = "fdt";
 			signature {

@@ -118,7 +118,7 @@ builds to work as expected without polluting the main repositories
 default.xml Manifest
 --------------------
 
-The `default.xml` manifest is the primary manifest from which Laird developers work with
+The `default.xml` manifest is the primary manifest from which Laird Connectivity developers work with
 the WB codebase. As such, it should be able to build all types of builds, including customer
 builds, out-of-the-box. The customer repositories are listed last. Simply copy the two
 `project` definitions for the two customer repositories to the bottom of the manifest and
