@@ -1,4 +1,4 @@
-menu "Laird"
+menu "Laird Connectivity"
 
 	config BR2_LRD_DEVEL_BUILD
 	bool

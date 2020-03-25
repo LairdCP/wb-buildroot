@@ -1,12 +1,12 @@
 /dts-v1/;
 
 / {
-	description = "Laird FIT Image";
+	description = "Summit FIT Image";
 	#address-cells = <1>;
 
 	images {
 		kernel@1 {
-			description = "Laird Linux Kernel";
+			description = "Summit Linux Kernel";
 			data = /incbin/("Image.gz");
 			type = "kernel";
 			arch = "arm";
@@ -47,7 +47,7 @@
 	configurations {
 		default = "config@1";
 		config@1 {
-			description = "Laird Linux kernel with FDT blob";
+			description = "Summit Linux kernel with FDT blob";
 			kernel = "kernel@1";
 			fdt = "fdt@1";
 			loadables = "script@1";

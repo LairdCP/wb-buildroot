@@ -93,7 +93,7 @@ gzip -c $TARGETDIR/etc/network/interfaces >$TARGETDIR/etc/network/interfaces~.gz
 # Create default firmware description file.
 # This may be overwritten by a proper release file.
 if [ -z "$LAIRD_RELEASE_STRING" ]; then
-  echo "Laird Linux development build 0.${BR2_LRD_BRANCH}.0.0 $(date +%Y%m%d)" \
+  echo "Summit Linux development build 0.${BR2_LRD_BRANCH}.0.0 $(date +%Y%m%d)" \
     > $TARGETDIR/etc/laird-release
 else
   echo "$LAIRD_RELEASE_STRING" > $TARGETDIR/etc/laird-release
