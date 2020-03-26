@@ -1,116 +1,125 @@
 #!/usr/bin/env bash
 
-LEGAL_INFO_DIR=$1
-SBOM_TARGET=$2
-LRD_EXTERNALS=`pwd`/package/lrd/externals
-LRD_CLOSED_SRC_EXTERNALS=`pwd`/package/lrd-closed-source/externals
+LEGAL_INFO_DIR=${1}
+SBOM_TARGET=${2}
+LRD_EXTERNALS=${PWD}/package/lrd/externals
+LRD_CLOSED_SRC_EXTERNALS=${PWD}/package/lrd-closed-source/externals
 TARGET_NAME=${BASE_DIR##*/}
-OLD_UBOOT=("wb45n_legacy" "wb45n_devel" "wb50n_legacy" "wb50n_rdvk")
-UBOOT_DIR="u-boot-som60"
 
-for i in "${OLD_UBOOT[@]}";
-do
-	if [ $i = $TARGET_NAME ]
-	then
-        echo $i
-		UBOOT_DIR="u-boot"
-    fi
-done
-
-
-#Kernel version
-KVER_FILE=$LRD_EXTERNALS/kernel/Makefile
-KVER=$(awk '/^VERSION/ {print $3}' $KVER_FILE)
-KPATCH=$(awk '/^PATCHLEVEL/ {if ($3!="") print "."$3 }' $KVER_FILE)
-KSUB=$(awk '/^SUBLEVEL/ {if($3!="") print "."$3}' $KVER_FILE)
-KERNEL_VER="|linux_kernel|"$KVER$KPATCH$KSUB
-
-#at91bootstrap3
-AT91VER_FILE=$LRD_EXTERNALS/at91bootstrap3/Makefile
-AT91BOOT_VER=$(awk '/^VERSION/ {if ($3!="") print $3}' $AT91VER_FILE)
-AT91BOOTSTRAP3_VER="|at91bootstrap3|"$AT91BOOT_VER
-
-#UBoot - Gets version info from build directory unless externals
-UVER_FILE=$LRD_EXTERNALS/$UBOOT_DIR/Makefile
-UBOOTVER=$(awk '/^VERSION/ {print $3}' $UVER_FILE)
-UBOOTPATCH=$(awk '/^PATCHLEVEL/ {if ($3 !="") print "."$3}' $UVER_FILE)
-UBOOTSUB=$(awk '/^SUBLEVEL/ {if ($3 !="") print "."$3}' $UVER_FILE)
-UBOOT_VER="|uboot|"$UBOOTVER$UBOOTPATCH$UBOOTSUB
-
-#DCAS
-DVER_FILE=$LRD_EXTERNALS/dcas/Makefile
-DCASVER=$(awk '/^VERSION/ {print $3}' $DVER_FILE)
-DCASPATCH=$(awk '/^PATCHLEVEL/ {if ($3 != "")print "."$3}' $DVER_FILE)
-DCASSUB=$(awk '/^SUBLEVEL/ {if ($3 != "") print "."$3}' $DVER_FILE)
-DCAS_VER="|dcas|"$DCASVER$DCASPATCH$DCASSUB
-
-#Eventmon
-EVER_FILE=$LRD_EXTERNALS/eventmon/event_mon.c
-EVER=$(awk '/define LRD_EVENT_MON_VERSION_MAJOR/ {print $3}' $EVER_FILE )
-EPATCH=$(awk '/define LRD_EVENT_MON_VERSION_MINOR/ {if ($3 != "") print "."$3}' $EVER_FILE)
-ESUB=$(awk '/define LRD_EVENT_MON_VERSION_REVISION/ {if ($3 != "") print "."$3}' $EVER_FILE)
-ESUBRV=$(awk '/define LRD_EVENT_MON_VERSION_SUB_REVISION/ {if ($3 != "") print "."$3}' $EVER_FILE)
-EVENTMON_VER="|eventmon|"$EVER$EPATCH$ESUB$ESUBRV
-
-#php_sdk
-PVER_FILE=$LRD_EXTERNALS/php_sdk/php_sdk.i
-PHVER=$(awk '/define LRD_PHP_SDK_VERSION_MAJOR/ {print $3}' $PVER_FILE )
-PHPATCH=$(awk '/define LRD_PHP_SDK_VERSION_MINOR/ {if ($3 != "") print "."$3}' $PVER_FILE)
-PHSUB=$(awk '/define LRD_PHP_SDK_VERSION_REVISION/ {if ($3 != "") print "."$3}' $PVER_FILE)
-PHSUBRV=$(awk '/define LRD_PHP_VERSION_SUB_REVISION/ {if ($3 != "") print "."$3}' $PVER_FILE)
-PHP_SDK_VER="|php_sdk|"$PHVER$PHPATCH$PHSUB$PHSUBRV
-
-#Sterling Supplicant
-SSVER_FILE=$LRD_EXTERNALS/sterling_supplicant/src/common/version.h
-SSVER=$(awk '/define VERSION_STR / {if ($3 != "") print $3}' $SSVER_FILE | sed -e 's|["]||g')
-STERLING_SUPP_VER="|wpa_supplicant|"$SSVER
-
-#wpa_supplicant
-WSVER_FILE=$LRD_CLOSED_SRC_EXTERNALS/wpa_supplicant/src/common/version.h
-WSVER=$(awk '/define VERSION_STR / {if ($3 != "") print $3}' $WSVER_FILE | sed -e 's|["]||g')
-WPA_SUPP_VER="|wpa_supplicant|"$WSVER
-
-
-#Network Manager
-NMVER_FILE=$LRD_EXTERNALS/lrd-network-manager/configure.ac
-NMVER=$(awk '/nm_major_version/ {print $2}' $NMVER_FILE | sed 's/)//g' | sed 's/\[//g' | sed 's/\]//g')
-NMPATCH=$(awk '/nm_minor_version/ {if ($2!="")print "."$2}' $NMVER_FILE | sed 's/)//g' | sed 's/\[//g' | sed 's/\]//g')
-NMSUB=$(awk '/nm_micro_version/ {if ($2!="")print "."$2}' $NMVER_FILE | sed 's/)//g' | sed 's/\[//g' | sed 's/\]//g')
-LRD_NETWORK_VER="|networkmanager|"$NMVER$NMPATCH$NMSUB
-
-#Reads Warning generated from make legal-info and fix those packages
-
-read_packages()
-{
-PACKAGES=$(awk '/WARNING/ {print $2}' $LEGAL_INFO_DIR/README | sed 's/://' | sort -u)
-for i in $PACKAGES
-do
-    case "$i" in
-    linux)
-         echo $KERNEL_VER >> $SBOM_TARGET;;
-    at91bootstrap3)
-         echo $AT91BOOTSTRAP3_VER >> $SBOM_TARGET;;
-    eventmon)
-         echo $EVENTMON_VER >> $SBOM_TARGET;;
-    uboot)
-         echo $UBOOT_VER >> $SBOM_TARGET;;
-    dcas)
-         echo $DCAS_VER >> $SBOM_TARGET;;
-    lrd-network-manager)
-         echo $LRD_NETWORK_VER >> $SBOM_TARGET;;
-    php_sdk)
-         echo $PHP_SDK_VER >> $SBOM_TARGET;;
-    sterling_supplicant)
-         echo $STERLING_SUPP_VER >> $SBOM_TARGET;;
-    wpa_supplicant)
-         echo $WPA_SUPP_VER >> $SBOM_TARGET;;
-    *);;
-	esac
-done
+# Kernel version
+kernel_ver() {
+	local KVER_FILE=${LRD_EXTERNALS}/kernel/Makefile
+	local KVER=$(awk '/^VERSION/ {print $3}' ${KVER_FILE})
+	local KPATCH=$(awk '/^PATCHLEVEL/ {if ($3!="") print "."$3 }' ${KVER_FILE})
+	local KSUB=$(awk '/^SUBLEVEL/ {if($3!="") print "."$3}' ${KVER_FILE})
+	local KERNEL_VER="|linux|"${KVER}${KPATCH}${KSUB}
+	echo ${KERNEL_VER} >> ${SBOM_TARGET}
 }
 
-#####Main body of script
+# at91bootstrap3
+at91bootstrap3_ver() {
+	local AT91VER_FILE=${LRD_EXTERNALS}/at91bootstrap3/Makefile
+	local AT91BOOT_VER=$(awk '/^VERSION/ {if ($3!="") print $3}' ${AT91VER_FILE})
+	local AT91BOOTSTRAP3_VER="|at91bootstrap3|"${AT91BOOT_VER}
+	echo ${AT91BOOTSTRAP3_VER} >> ${SBOM_TARGET}
+}
+
+# U-Boot - Gets version info from build directory unless externals
+uboot_ver() {
+	local UBOOT_DIR
+
+	case "${TARGET_NAME}" in
+		*_legacy)   UBOOT_DIR="u-boot" ;;
+		wb40n_*)    UBOOT_DIR="u-boot" ;;
+		wb50n_rdvk) UBOOT_DIR="u-boot" ;;
+		*)          UBOOT_DIR="u-boot-som60" ;;
+	esac
+
+	local UVER_FILE=${LRD_EXTERNALS}/${UBOOT_DIR}/Makefile
+	local UBOOTVER=$(awk '/^VERSION/ {print $3}' ${UVER_FILE})
+	local UBOOTPATCH=$(awk '/^PATCHLEVEL/ {if ($3 !="") print "."$3}' ${UVER_FILE})
+	local UBOOTSUB=$(awk '/^SUBLEVEL/ {if ($3 !="") print "."$3}' ${UVER_FILE})
+	local UBOOT_VER="|uboot|"${UBOOTVER}${UBOOTPATCH}${UBOOTSUB}
+	echo ${UBOOT_VER} >> ${SBOM_TARGET}
+}
+
+# DCAS
+dcas_ver() {
+	local DVER_FILE=${LRD_EXTERNALS}/dcas/Makefile
+	local DCASVER=$(awk '/^VERSION/ {print $3}' ${DVER_FILE})
+	local DCASPATCH=$(awk '/^PATCHLEVEL/ {if ($3 != "")print "."$3}' ${DVER_FILE})
+	local DCASSUB=$(awk '/^SUBLEVEL/ {if ($3 != "") print "."$3}' ${DVER_FILE})
+	local DCAS_VER="|dcas|"${DCASVER}${DCASPATCH}${DCASSUB}
+	echo ${DCAS_VER} >> ${SBOM_TARGET}
+}
+
+# Eventmon
+eventmon_ver() {
+	local EVER_FILE=${LRD_EXTERNALS}/eventmon/event_mon.c
+	local EVER=$(awk '/define LRD_EVENT_MON_VERSION_MAJOR/ {print $3}' $EVER_FILE )
+	local EPATCH=$(awk '/define LRD_EVENT_MON_VERSION_MINOR/ {if ($3 != "") print "."$3}' ${EVER_FILE})
+	local ESUB=$(awk '/define LRD_EVENT_MON_VERSION_REVISION/ {if ($3 != "") print "."$3}' ${EVER_FILE})
+	local ESUBRV=$(awk '/define LRD_EVENT_MON_VERSION_SUB_REVISION/ {if ($3 != "") print "."$3}' ${EVER_FILE})
+	local EVENTMON_VER="|eventmon|"${EVER}${EPATCH}${ESUB}${ESUBRV}
+	echo ${EVENTMON_VER} >> ${SBOM_TARGET}
+}
+
+# php_sdk
+php_sdk_ver() {
+	local PVER_FILE=${LRD_EXTERNALS}/php_sdk/php_sdk.i
+	local PHVER=$(awk '/define LRD_PHP_SDK_VERSION_MAJOR/ {print $3}' ${PVER_FILE} )
+	local PHPATCH=$(awk '/define LRD_PHP_SDK_VERSION_MINOR/ {if ($3 != "") print "."$3}' ${PVER_FILE})
+	local PHSUB=$(awk '/define LRD_PHP_SDK_VERSION_REVISION/ {if ($3 != "") print "."$3}' ${PVER_FILE})
+	local PHSUBRV=$(awk '/define LRD_PHP_VERSION_SUB_REVISION/ {if ($3 != "") print "."$3}' ${PVER_FILE})
+	local PHP_SDK_VER="|php_sdk|"${PHVER}${PHPATCH}${PHSUB}${PHSUBRV}
+	echo ${PHP_SDK_VER} >> ${SBOM_TARGET}
+}
+
+# Sterling Supplicant
+sterling_supplicant_ver() {
+	local SSVER_FILE=${LRD_EXTERNALS}/sterling_supplicant/src/common/version.h
+	local SSVER=$(awk '/define VERSION_STR / {if ($3 != "") print $3}' ${SSVER_FILE} | sed -e 's|["]||g')
+	local STERLING_SUPP_VER="|wpa_supplicant|"${SSVER}
+	echo ${STERLING_SUPP_VER} >> ${SBOM_TARGET}
+}
+
+# wpa_supplicant
+sdcsupp_ver() {
+	local WSVER_FILE=${LRD_CLOSED_SRC_EXTERNALS}/wpa_supplicant/src/common/version.h
+	local WSVER=$(awk '/define VERSION_STR / {if ($3 != "") print $3}' ${WSVER_FILE} | sed -e 's|["]||g')
+	local WPA_SUPP_VER="|sdcsupp|"${WSVER}
+	echo ${WPA_SUPP_VER} >> ${SBOM_TARGET}
+}
+
+# Network Manager
+network_manager_ver() {
+	local NMVER_FILE=${LRD_EXTERNALS}/lrd-network-manager/configure.ac
+	local NMVER=$(awk '/nm_major_version/ {print $2}' ${NMVER_FILE} | sed 's/)//g' | sed 's/\[//g' | sed 's/\]//g')
+	local NMPATCH=$(awk '/nm_minor_version/ {if ($2!="")print "."$2}' ${NMVER_FILE} | sed 's/)//g' | sed 's/\[//g' | sed 's/\]//g')
+	local NMSUB=$(awk '/nm_micro_version/ {if ($2!="")print "."$2}' ${NMVER_FILE} | sed 's/)//g' | sed 's/\[//g' | sed 's/\]//g')
+	local LRD_NETWORK_VER="|networkmanager|"${NMVER}${NMPATCH}${NMSUB}
+	echo ${LRD_NETWORK_VER} >> ${SBOM_TARGET}
+}
+
+# Reads Warning generated from make legal-info and fix those packages
+
+##### Main body of script
 echo
-echo "Generating SBOM for $TARGET_NAME [ Started ]"
-read_packages
-echo "SBOM Generated $BINARIES_DIR [ Done ]"
+echo "Generating SBOM for ${TARGET_NAME} [ Started ]"
+
+PACKAGES=$(awk '/WARNING/ {print $2}' ${LEGAL_INFO_DIR}/README | sed 's/://' | sort -u)
+for i in ${PACKAGES}; do
+	case "$i" in
+		linux)               kernel_ver ;;
+		at91bootstrap3)      at91bootstrap3_ver ;;
+		eventmon)            eventmon_ver ;;
+		uboot)               uboot_ver ;;
+		dcas)                dcas_ver ;;
+		lrd-network-manager) network_manager_ver ;;
+		php_sdk)             php_sdk_ver ;;
+		wpa_supplicant)      sterling_supplicant_ver ;;
+		sdcsupp)             sdcsupp_ver ;;
+	esac
+done
+
+echo "SBOM Generated ${BINARIES_DIR} [ Done ]"
