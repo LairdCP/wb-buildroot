@@ -16,6 +16,7 @@
 #	zImage				Kernel
 #	at91-??.dtb			Kernel FDT
 #	rootfs.squashfs			RootFS
+#	$ADD_FILES			Additional files passed in by post_image_common_60.sh
 #	sw-description (optional)	Partial SWU generation script
 #	sw-description-full (optional)	Full SWU generation script
 #
@@ -31,7 +32,7 @@
 echo "${BR2_LRD_PRODUCT^^} POST IMAGE SECURE script: starting..."
 
 BOARD_DIR="${1}"
-ADD_SWU_FILES="${2}"
+ADD_FILES="${2}"
 
 # enable tracing and exit on errors
 set -x -e
@@ -126,7 +127,7 @@ do
 done
 rm -rf ${BINARIES_DIR}/unsecured_images/
 
-SWU_COMPONENT=(boot.bin u-boot.itb kernel.itb rootfs.bin)
+SWU_COMPONENT=(boot.bin u-boot.itb kernel.itb rootfs.bin ${ADD_FILES})
 
 # Embed component hashes in SWU scripts
 for i in ${SWU_COMPONENT[@]}
@@ -152,6 +153,8 @@ do
 		fi
 	fi
 done
+
+ADD_SWU_FILES="\n${ADD_FILES// /\\n}"
 
 # Generate partial SWU (no bootloaders)
 if [ -f ${BINARIES_DIR}/sw-description ]; then

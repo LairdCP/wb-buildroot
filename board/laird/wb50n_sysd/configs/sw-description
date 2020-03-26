@@ -10,11 +10,13 @@ software =
 					filename = "kernel.itb";
 					volume = "kernel_a";
 					installed-directly = true;
+					sha256 = "@kernel.itb.sha256"
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_a";
 					installed-directly = true;
+					sha256 = "@rootfs.bin.sha256"
 				}
 			);
 			scripts: (
@@ -22,6 +24,7 @@ software =
 					filename = "erase_data.sh";
 					type = "postinstall";
 					data = "rootfs_data_a";
+					sha256 = "@erase_data.sh.sha256"
 				}
 			);
 
@@ -39,12 +42,14 @@ software =
 					filename = "kernel.itb";
 					volume = "kernel_b";
 					installed-directly = true;
+					sha256 = "@kernel.itb.sha256"
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
 					installed-directly = true;
-				}
+					sha256 = "@rootfs.bin.sha256"
+				},
 			);
 
 			scripts: (
@@ -52,6 +57,7 @@ software =
 					filename = "erase_data.sh";
 					type = "postinstall";
 					data = "rootfs_data_b";
+					sha256 = "@erase_data.sh.sha256"
 				}
 			);
 
@@ -69,21 +75,25 @@ software =
 					filename = "boot.bin";
 					mtdname = "u-boot-spl";
 					type = "flash";
+					sha256 = "@boot.bin.sha256"
 				},
 				{
 					filename = "u-boot.itb";
 					mtdname = "u-boot";
 					type = "flash";
+					sha256 = "@u-boot.itb.sha256"
 				},
 				{
 					filename = "kernel.itb";
 					volume = "kernel_a";
 					installed-directly = true;
+					sha256 = "@kernel.itb.sha256"
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_a";
 					installed-directly = true;
+					sha256 = "@rootfs.bin.sha256"
 				},
 			);
 
@@ -92,6 +102,7 @@ software =
 					filename = "erase_data.sh";
 					type = "postinstall";
 					data = "rootfs_data_a";
+					sha256 = "@erase_data.sh.sha256"
 				}
 			);
 
@@ -109,21 +120,25 @@ software =
 					filename = "boot.bin";
 					mtdname = "u-boot-spl";
 					type = "flash";
+					sha256 = "@boot.bin.sha256"
 				},
 				{
 					filename = "u-boot.itb";
 					mtdname = "u-boot";
 					type = "flash";
+					sha256 = "@u-boot.itb.sha256"
 				},
 				{
 					filename = "kernel.itb";
 					volume = "kernel_b";
 					installed-directly = true;
+					sha256 = "@kernel.itb.sha256"
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
 					installed-directly = true;
+					sha256 = "@rootfs.bin.sha256"
 				},
 			);
 
@@ -132,6 +147,7 @@ software =
 					filename = "erase_data.sh";
 					type = "postinstall";
 					data = "rootfs_data_b";
+					sha256 = "@erase_data.sh.sha256"
 				}
 			);
 
@@ -182,7 +198,6 @@ software =
 					size = 6221824; /* in bytes */
 				}
 			);
-
 			images: (
 				{
 					filename = "boot.bin";
