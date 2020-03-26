@@ -1,6 +1,6 @@
 BOARD_DIR="${1}"
 SD=${2}
-DEVEL_KEYS="${3}"
+ENCRYPTED_TOOLKIT_DIR="${3}"
 
 # enable tracing and exit on errors
 set -x -e
@@ -34,10 +34,12 @@ cp -f ${BOARD_DIR}/configs/u-boot.its ${BINARIES_DIR}/u-boot.its
 
 # Configure keys, boot script, and SWU tools when using encrypted toolkit
 if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
-	# Copy dev keys if present
-	if [ -f ${DEVEL_KEYS}/dev.key ]; then
+	# Copy keys if present
+	if [ -f ${ENCRYPTED_TOOLKIT_DIR}/dev.key ]; then
 		mkdir -p ${BINARIES_DIR}/keys
-		cp ${DEVEL_KEYS}/* ${BINARIES_DIR}/keys/ -fr
+		rsync -rv --exclude=sw-description ${ENCRYPTED_TOOLKIT_DIR}/* ${BINARIES_DIR}/keys/
+	else
+		echo "Encrypted toolkit keys not present" ; exit 1
 	fi
 	# Use verity boot script
 	cp -f ${BOARD_DIR}/configs/boot_verity.scr ${BINARIES_DIR}/boot.scr
@@ -62,6 +64,9 @@ else
 		cp ${BOARD_DIR}/configs/sw-description-som60x2 ${BINARIES_DIR}/sw-description -fr
 	else
 		cp ${BOARD_DIR}/configs/sw-description ${BINARIES_DIR}/ -fr
+	fi
+	if [ -f ${ENCRYPTED_TOOLKIT_DIR}/sw-description ]; then
+		cp ${ENCRYPTED_TOOLKIT_DIR}/sw-description ${BINARIES_DIR}/ -fr
 	fi
 	cp ${BOARD_DIR}/../scripts-common/erase_data.sh ${BINARIES_DIR}/ -fr
 	cp ${BOARD_DIR}/configs/u-boot-env.tgz ${BINARIES_DIR}/ -fr
@@ -107,6 +112,17 @@ if grep -qF "BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES=y" ${BR2_CONFIG}; then
 	hash_check ${TARGET_DIR}/usr/lib libcrypto.so.1.0.0
 fi
 
+# Check if hashing is enabled in generated swupdate config file in build directory
+if ! grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf; then
+	# Remove sha lines in SWU scripts
+	if [ -f ${BINARIES_DIR}/sw-description ]; then
+		sed -i -e "/sha256/d" ${BINARIES_DIR}/sw-description
+	fi
+	if [ -f ${BINARIES_DIR}/sw-description-full ]; then
+		sed -i -e "/sha256/d" ${BINARIES_DIR}/sw-description-full
+	fi
+fi
+
 if ! grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
 	# Generate non-secured artifacts
 	echo "# entering ${BINARIES_DIR} for the next command"
@@ -125,7 +141,7 @@ if ! grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
 	fi
 else
 	# Generate all secured artifacts (NAND, SWU packages)
-	. "${BOARD_DIR}/../post_image_secure.sh" "${BOARD_DIR}" "\nu-boot-env.tgz\nerase_data.sh"
+	. "${BOARD_DIR}/../post_image_secure.sh" "${BOARD_DIR}" "u-boot-env.tgz erase_data.sh"
 fi
 
 size_check () {
