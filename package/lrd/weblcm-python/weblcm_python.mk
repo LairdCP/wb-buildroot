@@ -2,6 +2,7 @@
 # Laird Web Configuration Utility
 #####################################################################
 
+WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_SWUPDATE_KEY_LOCATION))
 WEBLCM_PYTHON_VERSION = local
 WEBLCM_PYTHON_SITE = package/lrd/externals/weblcm-python
 WEBLCM_PYTHON_SITE_METHOD = local
@@ -17,6 +18,11 @@ define WEBLCM_PYTHON_FIX_TIME
 endef
 endif
 
+define WEBLCM_PYTHON_SET_KEY_LOCATION
+	grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf \
+		&& sed -i -e 's=swupdate=swupdate -k $(WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE)=g' $(TARGET_DIR)/usr/sbin/swupdate.sh
+endef
+
 define WEBLCM_PYTHON_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/dist/weblcm_python-1.0-py$(TARGET_PYTHON_VERSION).egg $(TARGET_DIR)/usr/bin/weblcm-python
 
@@ -31,6 +37,7 @@ define WEBLCM_PYTHON_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -t $(TARGET_DIR)/var/www/ $(WEBLCM_PYTHON_SITE)/plugins
 
 	$(INSTALL) -D -t $(TARGET_DIR)/usr/sbin -m 755 $(WEBLCM_PYTHON_SITE)/swupdate.sh
+	$(WEBLCM_PYTHON_SET_KEY_LOCATION)
 	$(INSTALL) -D -t $(TARGET_DIR)/usr/sbin -m 755 $(WEBLCM_PYTHON_SITE)/weblcm_file_import_export.sh
 
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python -m 644 $(WEBLCM_PYTHON_SITE)/*.ini
