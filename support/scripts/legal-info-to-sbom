@@ -101,6 +101,28 @@ network_manager_ver() {
 	echo ${LRD_NETWORK_VER} >> ${SBOM_TARGET}
 }
 
+# mfg60n
+mfg60n_ver() {
+	local MFGVER_FILE=${LRD_CLOSED_SRC_EXTERNALS}/mfg60n/lru/src/version.h
+	local MFGVER=$(awk '/define LRU_BUILD_MAJOR/ {print $3}' ${MFGVER_FILE} )
+	local MFGPATCH=$(awk '/define LRU_BUILD_MINOR/ {if ($3 != "") print "."$3}' ${MFGVER_FILE})
+	local MFGSUB=$(awk '/define LRU_BUILD_REVISION/ {if ($3 != "") print "."$3}' ${MFGVER_FILE})
+	local MFGSUBRV=$(awk '/define LRU_BUILD_SUB_REVISION/ {if ($3 != "") print "."$3}' ${MFGVER_FILE})
+	local MFG_TOOLS_VER="|mfg60n|"${MFGVER}${MFGPATCH}${MFGSUB}${MFGSUBRV}
+	echo ${MFG_TOOLS_VER} >> ${SBOM_TARGET}
+}
+
+# AWM
+awm_ver() {
+	local AWMVER_FILE=${LRD_CLOSED_SRC_EXTERNALS}/adaptive_ww/common/version.h
+	local AWMVER=$(awk '/define WW_BUILD_MAJOR/ {print $3}' ${AWMVER_FILE} )
+	local AWMPATCH=$(awk '/define WW_BUILD_MINOR/ {if ($3 != "") print "."$3}' ${AWMVER_FILE})
+	local AWMSUB=$(awk '/define WW_BUILD_REVISION/ {if ($3 != "") print "."$3}' ${AWMVER_FILE})
+	local AWMSUBRV=$(awk '/define WW_BUILD_SUB_REVISION/ {if ($3 != "") print "."$3}' ${AWMVER_FILE})
+	local AWM_VER="|adaptive_ww|"${AWMVER}${AWMPATCH}${AWMSUB}${AWMSUBRV}
+	echo ${AWM_VER} >> ${SBOM_TARGET}
+}
+
 # Reads Warning generated from make legal-info and fix those packages
 
 ##### Main body of script
@@ -119,6 +141,8 @@ for i in ${PACKAGES}; do
 		php_sdk)             php_sdk_ver ;;
 		wpa_supplicant)      sterling_supplicant_ver ;;
 		sdcsupp)             sdcsupp_ver ;;
+		adaptive_ww)         awm_ver ;;
+		mfg60n)              mfg60n_ver ;;
 	esac
 done
 
