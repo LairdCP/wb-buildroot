@@ -32,6 +32,7 @@ define WEBLCM_PYTHON_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/css -m 644 $(WEBLCM_PYTHON_SITE)/assets/css/*.css
 	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/img -m 644 $(WEBLCM_PYTHON_SITE)/assets/img/*.png
 	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/js -m 644 $(WEBLCM_PYTHON_SITE)/assets/js/*.js
+	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/i18n -m 644 $(WEBLCM_PYTHON_SITE)/assets/i18n/*.json
 	$(INSTALL) -D -t $(TARGET_DIR)/var/www -m 644 $(WEBLCM_PYTHON_SITE)/LICENSE
 
 	cp -fr $(WEBLCM_PYTHON_SITE)/plugins $(TARGET_DIR)/var/www/
@@ -39,7 +40,7 @@ define WEBLCM_PYTHON_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -t $(TARGET_DIR)/usr/sbin -m 755 $(WEBLCM_PYTHON_SITE)/swupdate.sh
 	$(WEBLCM_PYTHON_SET_KEY_LOCATION)
 	$(INSTALL) -D -t $(TARGET_DIR)/usr/sbin -m 755 $(WEBLCM_PYTHON_SITE)/weblcm_file_import_export.sh
-
+	$(INSTALL) -D -t $(TARGET_DIR)/usr/sbin -m 755 $(WEBLCM_PYTHON_SITE)/weblcm_update_checking.sh
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python -m 644 $(WEBLCM_PYTHON_SITE)/*.ini
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(WEBLCM_PYTHON_SITE)/ssl/server.key
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(WEBLCM_PYTHON_SITE)/ssl/server.crt
