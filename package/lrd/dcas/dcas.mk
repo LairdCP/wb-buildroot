@@ -32,7 +32,7 @@ define DCAS_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -t $(TARGET_DIR)/etc -m 755 $(@D)/support/etc/dcas.conf
 endef
 
-define DCAS_INSTALL_INIT_SYSTEMV
+define DCAS_INSTALL_INIT_SYSV
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/init.d/opt -m 755 $(@D)/support/etc/init.d/S99dcas
 endef
 

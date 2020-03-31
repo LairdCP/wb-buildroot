@@ -24,7 +24,7 @@ define FSWATCH_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -t $(TARGET_DIR)/usr/bin -m 755 $(@D)/fs_watch
 endef
 
-define FSWATCH_INSTALL_INIT_SYSTEMV
+define FSWATCH_INSTALL_INIT_SYSV
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/init.d -m 755 package/lrd/fswatch/S03fs_watch
 endef
 
