@@ -19,8 +19,8 @@ endef
 endif
 
 define WEBLCM_PYTHON_SET_KEY_LOCATION
-	grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf \
-		&& sed -i -e 's=swupdate=swupdate -k $(WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE)=g' $(TARGET_DIR)/usr/sbin/swupdate.sh
+	 ! grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf \
+		|| sed -i -e 's=swupdate=swupdate -k $(WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE)=g' $(TARGET_DIR)/usr/sbin/swupdate.sh
 endef
 
 define WEBLCM_PYTHON_INSTALL_TARGET_CMDS
@@ -34,7 +34,7 @@ define WEBLCM_PYTHON_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/js -m 644 $(WEBLCM_PYTHON_SITE)/assets/js/*.js
 	$(INSTALL) -D -t $(TARGET_DIR)/var/www -m 644 $(WEBLCM_PYTHON_SITE)/LICENSE
 
-	$(INSTALL) -D -t $(TARGET_DIR)/var/www/ $(WEBLCM_PYTHON_SITE)/plugins
+	cp -fr $(WEBLCM_PYTHON_SITE)/plugins $(TARGET_DIR)/var/www/
 
 	$(INSTALL) -D -t $(TARGET_DIR)/usr/sbin -m 755 $(WEBLCM_PYTHON_SITE)/swupdate.sh
 	$(WEBLCM_PYTHON_SET_KEY_LOCATION)
