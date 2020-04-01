@@ -56,6 +56,8 @@ create_bcm4339_firmware_archive()
 
 create_bcm4373_sdio_uart_firmware_archive()
 {
+	grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_${1^^}_${2^^}=y" ${BR2_CONFIG} || return
+
 	local ANTENNA=${1}
 	local DOMAIN=${2}
 
@@ -80,6 +82,8 @@ create_bcm4373_sdio_uart_firmware_archive()
 
 create_bcm4373_usb_usb_firmware_archive()
 {
+	grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_${1^^}_${2^^}=y" ${BR2_CONFIG}	|| return
+
 	local ANTENNA=${1}
 	local DOMAIN=${2}
 
@@ -157,7 +161,6 @@ create_bcm4339_firmware_archive ic
 create_bcm4339_firmware_archive jp
 fi
 
-if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373=y" ${BR2_CONFIG}; then
 create_bcm4373_sdio_uart_firmware_archive sa fcc
 create_bcm4373_sdio_uart_firmware_archive div fcc
 #create_bcm4373_sdio_uart_firmware_archive sa etsi
@@ -175,7 +178,6 @@ create_bcm4373_usb_usb_firmware_archive div fcc
 #create_bcm4373_usb_usb_firmware_archive div ic
 #create_bcm4373_usb_usb_firmware_archive sa jp
 #create_bcm4373_usb_usb_firmware_archive div jp
-fi
 
 if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_AR6003=y" ${BR2_CONFIG}; then
 ln -rsf ${FW_DIR}/regulatory_default.db ${FW_DIR}/regulatory.db

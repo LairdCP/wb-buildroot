@@ -45,42 +45,183 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB"
 	help
-	  Install Laird's firmware, calibration data and Bluetooth firmware
-	  for the LWB Sterling radio.
+	  Install Laird's firmware for the LWB Sterling radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343_MFG
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB MFG"
 	help
-	  Install Laird's firmware, manufacturing test firmware
+	  Install Laird's manufacturing test firmware
 	  for the LWB Sterling radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5"
 	help
-	  Install Laird's firmware, calibration data and Bluetooth firmware
-	  for the LWB5 Sterling radio.
+	  Install Laird's firmware for the LWB5 Sterling radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339_MFG
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5 MFG"
 	help
-	  Install Laird's firmware, manufacturing test firmware
+	  Install Laird's manufacturing test firmware
 	  for the LWB5 Sterling radio.
 
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_FCC
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+"
+	bool "Laird LWB5+ SDIO diversity (FCC)"
 	help
-	  Install Laird's firmware, calibration data and Bluetooth firmware
-	  for the LWB5+ Sterling radio.
+	  Install Laird's firmware for the LWB5+ Sterling radio with
+	  SDIO/UART interface and antenna diversity for the FCC regulatory
+	  domain.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_FCC
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB5+ SDIO (FCC)"
+	help
+	  Install Laird's firmware for the LWB5+ Sterling radio with
+	  SDIO/UART interface for the FCC regulatory domain.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_FCC
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB5+ USB diversity (FCC)"
+	help
+	  Install Laird's firmware for the LWB5+ Sterling radio with
+	  USB/USB interface and antenna diversity for the FCC regulatory
+	  domain.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_FCC
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB5+ USB (FCC)"
+	help
+	  Install Laird's firmware for the LWB5+ Sterling radio with
+	  USB/USB interface for the FCC regulatory domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_ETSI
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ SDIO diversity (ETSI)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  SDIO/UART interface and antenna diversity for the ETSI regulatory
+#	  domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_ETSI
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ SDIO (ETSI)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  SDIO/UART interface for the ETSI regulatory domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_ETSI
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ USB diversity (ETSI)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  USB/USB interface and antenna diversity for the ETSI regulatory
+#	  domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_ETSI
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ USB (ETSI)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  USB/USB interface for the ETSI regulatory domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_IC
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ SDIO diversity (IC)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  SDIO/UART interface and antenna diversity for the IC regulatory
+#	  domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_IC
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ SDIO (IC)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  SDIO/UART interface for the IC regulatory domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_IC
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ USB diversity (IC)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  USB/USB interface and antenna diversity for the IC regulatory
+#	  domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_IC
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ USB (IC)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  USB/USB interface for the IC regulatory domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_KCC
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ SDIO diversity (KCC)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  SDIO/UART interface and antenna diversity for the KCC regulatory
+#	  domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_KCC
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ SDIO (KCC)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  SDIO/UART interface for the KCC regulatory domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_KCC
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ USB diversity (KCC)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  USB/USB interface and antenna diversity for the KCC regulatory
+#	  domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_KCC
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ USB (KCC)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  USB/USB interface for the KCC regulatory domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_TELEC
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ SDIO diversity (TELEC)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  SDIO/UART interface and antenna diversity for the TELEC regulatory
+#	  domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_TELEC
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ SDIO (TELEC)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  SDIO/UART interface for the TELEC regulatory domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_TELEC
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ USB diversity (TELEC)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  USB/USB interface and antenna diversity for the TELEC regulatory
+#	  domain.
+
+#config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_TELEC
+#	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+#	bool "Laird LWB5+ USB (TELEC)"
+#	help
+#	  Install Laird's firmware for the LWB5+ Sterling radio with
+#	  USB/USB interface for the TELEC regulatory domain.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_MFG
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5+ MFG"
 	help
-	  Install Laird's firmware, manufacturing test firmware
+	  Install Laird's manufacturing test firmware
 	  for the LWB5+ Sterling radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_MRVL_SD8997

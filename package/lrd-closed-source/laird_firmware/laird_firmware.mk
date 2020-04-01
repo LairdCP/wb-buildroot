@@ -3,6 +3,8 @@ LAIRD_FIRMWARE_SITE = package/lrd-closed-source/externals/firmware
 LAIRD_FIRMWARE_SITE_METHOD = local
 LAIRD_ADD_SOM_SYMLINK = y
 
+BRCM_DIR = $(TARGET_DIR)/lib/firmware/brcm
+
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_AR6003),y)
 define LAIRD_FW_6003_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/ath6k
@@ -41,37 +43,48 @@ define LAIRD_FW_6004_PUBLIC_INSTALL_TARGET_CMDS
 endef
 endif
 
-ifneq ($(filter y,$(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343) $(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343_MFG)),)
-
-BRCM_DIR = $(TARGET_DIR)/lib/firmware/brcm
-
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343),y)
 define LAIRD_FW_BCM4343_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac43430* $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac43430-sdio-prod.bin $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac43430-sdio.bin $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac43430-sdio*.txt $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac43430-sdio.clm_blob $(BRCM_DIR)
 	cp -rad $(@D)/brcm/BCM43430A1.hcd $(BRCM_DIR)
 endef
 endif
 
-ifneq ($(filter y,$(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339) $(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339_MFG)),)
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343_MFG),y)
+define LAIRD_FW_BCM4343_MFG_INSTALL_TARGET_CMDS
+	mkdir -p -m 0755 $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac43430-sdio-mfg.bin $(BRCM_DIR)
+endef
+endif
 
-BRCM_DIR = $(TARGET_DIR)/lib/firmware/brcm
-
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339),y)
 define LAIRD_FW_BCM4339_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac4339* $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4339-sdio-prod.bin $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4339-sdio.bin $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4339-sdio*.txt $(BRCM_DIR)
 	cp -rad $(@D)/brcm/BCM4335C0.hcd $(BRCM_DIR)
 endef
 endif
 
-ifneq ($(filter y,$(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373) $(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_MFG)),)
-
-BRCM_DIR = $(TARGET_DIR)/lib/firmware/brcm
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339_MFG),y)
+define LAIRD_FW_BCM4339_MFG_INSTALL_TARGET_CMDS
+	mkdir -p -m 0755 $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4339-sdio-mfg.bin $(BRCM_DIR)
+endef
+endif
 
 NVRAM_FILE = $(@D)/brcm/brcmfmac4373-$(1)-$(2).txt
 FW_BASE_FILE = $(@D)/brcm/brcmfmac4373-usb-base-$(1).bin
 FW_FINAL_FILE = $(BRCM_DIR)/brcmfmac4373-usb-$(1)-$(2)-$(3).bin
 
 define make_bcm4373usb_fw
+	mkdir -p -m 0755 $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4373.clm_blob $(BRCM_DIR)
 	grep -v NVRAMRev $(call NVRAM_FILE,$(1),$(2)) > $(BRCM_DIR)/tmp_nvram.txt
 	$(@D)/brcm/bin/nvserial -a -o $(BRCM_DIR)/tmp_nvram.nvm $(BRCM_DIR)/tmp_nvram.txt
 	$(@D)/brcm/bin/trxv2 -f 0x20 \
@@ -81,21 +94,51 @@ define make_bcm4373usb_fw
 		-o $(call FW_FINAL_FILE,$(1),$(2),$(3)) \
 		$(call FW_BASE_FILE,$(3)) $(BRCM_DIR)/tmp_nvram.nvm
 	rm -f $(BRCM_DIR)/tmp_nvram.*
+	cd $(BRCM_DIR) && ln -srf brcmfmac4373-usb-$(1)-$(2)-prod.bin brcmfmac4373.bin
 endef
 
-define LAIRD_FW_BCM4373_INSTALL_TARGET_CMDS
+define make_bcm4373sdio_fw
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac4373-sdio* $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac4373*.txt $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac4373.clm_blob $(BRCM_DIR)
-	cp -rad $(@D)/brcm/BCM4373A0* $(BRCM_DIR)
-	$(call make_bcm4373usb_fw,sa,fcc,prod)
-	$(call make_bcm4373usb_fw,sa,fcc,mfg)
-	$(call make_bcm4373usb_fw,div,fcc,prod)
-	$(call make_bcm4373usb_fw,div,fcc,mfg)
-	cd $(BRCM_DIR) && ln -srf brcmfmac4373-usb-div-fcc-prod.bin brcmfmac4373.bin
+	cp -rad $(@D)/brcm/brcmfmac4373*.clm_blob $(BRCM_DIR)
+	cp -rad $(@D)/brcm/BCM4373A0.hcd $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4373-$(1)-$(2).txt $(BRCM_DIR)
+	cd $(BRCM_DIR) && ln -srf brcmfmac4373-$(1)-$(2).txt brcmfmac4373-sdio.txt
+	cp -rad $(@D)/brcm/brcmfmac4373-sdio-prod.bin $(BRCM_DIR)
+	cd $(BRCM_DIR) && ln -srf brcmfmac4373-sdio-prod.bin brcmfmac4373-sdio.bin
+endef
+
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_FCC),y)
+define LAIRD_FW_BCM4373_SDIO_DIV_FCC_INSTALL_TARGET_CMDS
+	$(call make_bcm4373sdio_fw,div,fcc)
 endef
 endif
+
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_FCC),y)
+define LAIRD_FW_BCM4373_SDIO_SA_FCC_INSTALL_TARGET_CMDS
+	$(call make_bcm4373sdio_fw,sa,fcc)
+endef
+endif
+
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_FCC),y)
+define LAIRD_FW_BCM4373_USB_DIV_FCC_INSTALL_TARGET_CMDS
+	$(call make_bcm4373usb_fw,div,fcc,prod)
+endef
+endif
+
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_FCC),y)
+define LAIRD_FW_BCM4373_USB_SA_FCC_INSTALL_TARGET_CMDS
+	$(call make_bcm4373usb_fw,sa,fcc,prod)
+endef
+endif
+
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_MFG),y)
+define LAIRD_FW_BCM4373_MFG_INSTALL_TARGET_CMDS
+	$(call make_bcm4373usb_fw,div,fcc,mfg)
+	$(call make_bcm4373usb_fw,sa,fcc,mfg)
+	cp -rad $(@D)/brcm/brcmfmac4373-sdio-mfg.bin $(BRCM_DIR)
+endef
+endif
+
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_SDIO_UART),y)
 define LAIRD_FW_LRDMWL_ST60_SDIO_UART_INSTALL_TARGET_CMDS
@@ -261,8 +304,14 @@ define LAIRD_FIRMWARE_INSTALL_TARGET_CMDS
 	$(LAIRD_FW_6004_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_6004_PUBLIC_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4343_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4343_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4339_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4339_MFG_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4373_SDIO_DIV_FCC_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4373_SDIO_SA_FCC_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4373_USB_DIV_FCC_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4373_USB_SA_FCC_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4373_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_UART_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_SDIO_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_PCIE_UART_INSTALL_TARGET_CMDS)
