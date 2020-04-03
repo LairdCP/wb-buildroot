@@ -12,9 +12,21 @@ config BR2_PACKAGE_WEBLCM_PYTHON
 	select BR2_PACKAGE_UNZIP
 	select BR2_PACKAGE_LRD_FACTORY_RESET_TOOLKIT
 
+
+if BR2_PACKAGE_WEBLCM_PYTHON
+
+config BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_USERNAME
+	string "default root user name"
+	default "root"
+
+config BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_PASSWORD
+	string "default root user password"
+	default "summit"
+
 config BR2_PACKAGE_WEBLCM_PYTHON_SWUPDATE_KEY_LOCATION
 	string "swupdate key location"
-	depends on BR2_PACKAGE_WEBLCM_PYTHON
 	default "/data/secret/swupdate/dev.crt"
 	help
 	  Location to key used to verify signed swupdate images.
+
+endif
