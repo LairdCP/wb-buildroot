@@ -1,21 +1,24 @@
 BOARD_DIR="${1}"
-SD=${2}
-ENCRYPTED_TOOLKIT_DIR="${3}"
+BUILD_TYPE="${2}"
 
 # enable tracing and exit on errors
 set -x -e
 
 [ -z "${BR2_LRD_PRODUCT}" ] && \
-	BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
+	export BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
 
-GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
+echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: starting..."
 
+# Determine if we are building SD card image
+[[ "${BUILD_TYPE}" == *sd ]] && SD=1 || SD=0
+
+# Determine if encrypted image being built
+grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG} \
+	&& ENCRYPTED_TOOLKIT=1 || ENCRYPTED_TOOLKIT=0
 
 # Tooling checks
 mkimage=${HOST_DIR}/bin/mkimage
 atmel_pmecc_params=${BUILD_DIR}/uboot-custom/tools/atmel_pmecc_params
-genimage=${HOST_DIR}/bin/genimage
-mkenvimage=${HOST_DIR}/bin/mkenvimage
 fipshmac=${HOST_DIR}/bin/fipshmac
 
 die() { echo "$@" >&2; exit 1; }
@@ -24,63 +27,8 @@ test -x ${mkimage} || \
 	die "No mkimage found (host-uboot-tools has not been built?)"
 test -x ${atmel_pmecc_params} || \
 	die "no atmel_pmecc_params found (uboot has not been built?)"
-test -x ${genimage} || \
-	die "No genimage found (host-genimage has not been built?)"
-test -x ${mkenvimage} || \
-	die "No mkenvimage found (host-uboot-tools has not been built?)"
 
-# Copy the u-boot.its
-cp -f ${BOARD_DIR}/configs/u-boot.its ${BINARIES_DIR}/u-boot.its
-
-# Configure keys, boot script, and SWU tools when using encrypted toolkit
-if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
-	# Copy keys if present
-	if [ -f ${ENCRYPTED_TOOLKIT_DIR}/dev.key ]; then
-		mkdir -p ${BINARIES_DIR}/keys
-		rsync -rv --exclude=sw-description ${ENCRYPTED_TOOLKIT_DIR}/* ${BINARIES_DIR}/keys/
-	else
-		echo "Encrypted toolkit keys not present" ; exit 1
-	fi
-	# Use verity boot script
-	cp -f ${BOARD_DIR}/configs/boot_verity.scr ${BINARIES_DIR}/boot.scr
-	# Build rootfs UBI with verity
-	GENIMAGE_CFG="${BOARD_DIR}/configs/genimage_verity.cfg"
-else
-	# Use standard boot script
-	cp -f ${BOARD_DIR}/configs/boot.scr ${BINARIES_DIR}/boot.scr
-	# Build rootfs UBI without verity
-	GENIMAGE_CFG="${BOARD_DIR}/configs/genimage.cfg"
-fi
-
-if (( ! ${SD} )) ; then
-	cp -f ${BINARIES_DIR}/boot.scr ${BINARIES_DIR}/uboot.scr
-
-	# Copy mksdcard.sh and mksdimg.sh to images
-	cp ${BOARD_DIR}/../scripts-common/mksdcard.sh ${BINARIES_DIR}/
-	cp ${BOARD_DIR}/../scripts-common/mksdimg.sh ${BINARIES_DIR}/
-else
-	# Copy scripts for SWU generation
-	if [[ "${BR2_LRD_PRODUCT}" =~ ^(som60x2|ig60ll)$ ]]; then
-		cp ${BOARD_DIR}/configs/sw-description-som60x2 ${BINARIES_DIR}/sw-description -fr
-	else
-		cp ${BOARD_DIR}/configs/sw-description ${BINARIES_DIR}/ -fr
-	fi
-	if [ -f ${ENCRYPTED_TOOLKIT_DIR}/sw-description ]; then
-		cp ${ENCRYPTED_TOOLKIT_DIR}/sw-description ${BINARIES_DIR}/ -fr
-	fi
-	cp ${BOARD_DIR}/../scripts-common/erase_data.sh ${BINARIES_DIR}/ -fr
-	cp ${BOARD_DIR}/configs/u-boot-env.tgz ${BINARIES_DIR}/ -fr
-fi
-
-# Generate kernel FIT image script
-# kernel.its references zImage and at91-dvk_som60.dtb, and all three
-# files must be in current directory for mkimage.
-DTB="$(sed -n 's/^BR2_LINUX_KERNEL_INTREE_DTS_NAME="\(.*\)"$/\1/p' ${BR2_CONFIG})"
-# Look for DTB in custom path
-[ -z ${DTB} ] && \
-	DTB="$(sed 's,BR2_LINUX_KERNEL_CUSTOM_DTS_PATH="\(.*\)",\1,; s,\s,\n,g' ${BR2_CONFIG} | sed -n 's,.*/\(.*\).dts$,\1,p')"
-
-sed "s/at91-dvk_som60/${DTB}/g" ${BOARD_DIR}/configs/kernel.its > ${BINARIES_DIR}/kernel.its || exit 1
+(cd "${BINARIES_DIR}" && "${mkimage}" -f u-boot.scr.its u-boot.scr.itb) || exit 1
 
 IMAGE_NAME=Image
 
@@ -115,33 +63,30 @@ fi
 # Check if hashing is enabled in generated swupdate config file in build directory
 if ! grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf; then
 	# Remove sha lines in SWU scripts
-	if [ -f ${BINARIES_DIR}/sw-description ]; then
+	[ ! -f ${BINARIES_DIR}/sw-description ] || \
 		sed -i -e "/sha256/d" ${BINARIES_DIR}/sw-description
-	fi
-	if [ -f ${BINARIES_DIR}/sw-description-full ]; then
-		sed -i -e "/sha256/d" ${BINARIES_DIR}/sw-description-full
-	fi
 fi
 
-if ! grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
+ALL_SWU_FILES="sw-description boot.bin u-boot.itb kernel.itb rootfs.bin u-boot-env.tgz erase_data.sh"
+
+if [ ${ENCRYPTED_TOOLKIT} -eq 0 ]; then
 	# Generate non-secured artifacts
 	echo "# entering ${BINARIES_DIR} for the next command"
-	(cd ${BINARIES_DIR} && ${mkimage} -f kernel.its kernel.itb) || exit 1
-	(cd "${BINARIES_DIR}" && "${mkimage}" -f u-boot.its u-boot.itb) || exit 1
+	(cd ${BINARIES_DIR} && ${mkimage} -f kernel.its kernel.itb && ${mkimage} -f u-boot.its u-boot.itb) || exit 1
 	cat "${BINARIES_DIR}/u-boot-spl-nodtb.bin" "${BINARIES_DIR}/u-boot-spl.dtb" > "${BINARIES_DIR}/u-boot-spl.bin"
-	if (( ${SD} )); then
+	if [ ${SD} -eq 0 ]; then
 		# Generate Atmel PMECC boot.bin from SPL
 		${mkimage} -T atmelimage -n $(${atmel_pmecc_params}) -d ${BINARIES_DIR}/u-boot-spl.bin ${BINARIES_DIR}/boot.bin
 		# Copy rootfs
-		cp ${BINARIES_DIR}/rootfs.squashfs ${BINARIES_DIR}/rootfs.bin
+		ln -rsf ${BINARIES_DIR}/rootfs.squashfs ${BINARIES_DIR}/rootfs.bin
 		# Generate SWU
 		( cd ${BINARIES_DIR} && \
-			echo -e "sw-description\nboot.bin\nu-boot.itb\nkernel.itb\nrootfs.bin\nu-boot-env.tgz\nerase_data.sh" |\
-			cpio -ov -H crc > ${BINARIES_DIR}/${BR2_LRD_PRODUCT}.swu)
+			echo -e "${ALL_SWU_FILES// /\\n}" |\
+			cpio -ovL -H crc > ${BINARIES_DIR}/${BR2_LRD_PRODUCT}.swu)
 	fi
 else
 	# Generate all secured artifacts (NAND, SWU packages)
-	. "${BOARD_DIR}/../post_image_secure.sh" "${BOARD_DIR}" "u-boot-env.tgz erase_data.sh"
+	"${BOARD_DIR}/../post_image_secure.sh" "${BOARD_DIR}" "${ALL_SWU_FILES}"
 fi
 
 size_check () {
@@ -149,7 +94,7 @@ size_check () {
 		{ echo "${1} size exceeded ${2} block limit, failed"; exit 1; }
 }
 
-size_check 'u-boot.itb' 7
+size_check u-boot.itb 7
 
 if [ -n "${VERSION}" ]; then
 	RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird-${VERSION}.tar"
@@ -157,34 +102,27 @@ else
 	RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird.tar"
 fi
 
-if (( ${SD} )) ; then
-	# Build the UBI
-	rm -rf "${GENIMAGE_TMP}"
-	${genimage}                          \
-		--rootpath "${TARGET_DIR}"     \
-		--tmppath "${GENIMAGE_TMP}"    \
-		--inputpath "${BINARIES_DIR}"  \
-		--outputpath "${BINARIES_DIR}" \
-		--config "${GENIMAGE_CFG}"
-
-	tar -C ${BINARIES_DIR} -cf ${RELEASE_FILE} \
+if [ ${SD} -eq 0 ]; then
+	tar -C ${BINARIES_DIR} -chf ${RELEASE_FILE} \
 		boot.bin u-boot.itb kernel.itb rootfs.bin ${BR2_LRD_PRODUCT}.swu
 
-	if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
-		tar -C ${BINARIES_DIR} -rf ${RELEASE_FILE} \
+	if [ ${ENCRYPTED_TOOLKIT} -ne 0 ]; then
+		tar -C ${BINARIES_DIR} -rhf ${RELEASE_FILE} \
 			--owner=0 --group=0 --numeric-owner \
 			pmecc.bin u-boot-spl.dtb u-boot-spl-nodtb.bin u-boot.dtb \
-			u-boot-nodtb.bin u-boot.its kernel-nosig.itb sw-description \
-			 ${BR2_LRD_PRODUCT}.swu
+			u-boot-nodtb.bin u-boot.its kernel-nosig.itb u-boot.scr.itb \
+			sw-description ${BR2_LRD_PRODUCT}.swu
 
-		tar -C ${HOST_DIR}/usr/bin -rf ${RELEASE_FILE} \
+		tar -C ${HOST_DIR}/usr/bin -rhf ${RELEASE_FILE} \
 			--owner=0 --group=0 --numeric-owner \
-			fdtget fdtput mkimage genimage
+			fdtget fdtput mkimage
 	fi
 
 	bzip2 -f ${RELEASE_FILE}
 else
-	tar -C ${BINARIES_DIR} -cjf ${RELEASE_FILE}.bz2 \
+	tar -C ${BINARIES_DIR} -chjf ${RELEASE_FILE}.bz2 \
 		--owner=0 --group=0 --numeric-owner \
 		u-boot-spl.bin u-boot.itb kernel.itb rootfs.tar mksdcard.sh mksdimg.sh
 fi
+
+echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: done."
