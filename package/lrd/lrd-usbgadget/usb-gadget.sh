@@ -24,6 +24,8 @@ create_gadgets () {
 
 	[ -z "${proto}" ] && proto=rndis
 
+	modprobe usb_f_fs usb_f_${proto}
+
 	for udc_name in $(ls ${UDC_DIR}); do
 		mkdir ${GADGET_DIR}/g${counter}
 		cd ${GADGET_DIR}/g${counter}
