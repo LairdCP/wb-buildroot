@@ -1,0 +1,3 @@
+load mmc 0 0x21000000 kernel.itb
+source 0x21000000:script
+bootm 0x21000000

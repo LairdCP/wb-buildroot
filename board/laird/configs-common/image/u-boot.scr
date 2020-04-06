@@ -1,0 +1,10 @@
+if test ${bootside} = a; then
+	setenv bootvol 1
+else
+	setenv bootvol 4
+fi
+
+ubi part ubi
+ubi read 0x21000000 kernel_${bootside}
+source 0x21000000:script
+bootm 0x21000000
