@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (c) 2018, Laird
+# Copyright (c) 2018-2020, Laird Connectivity
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
@@ -20,11 +20,11 @@ create_gadgets () {
 	proto=${1}
 	counter=0
 
-	[ -d "${GADGET_DIR}" ] || exit 1;
-
 	[ -z "${proto}" ] && proto=rndis
 
 	modprobe usb_f_fs usb_f_${proto}
+
+	[ -d "${GADGET_DIR}" ] || exit 1;
 
 	for udc_name in $(ls ${UDC_DIR}); do
 		mkdir ${GADGET_DIR}/g${counter}
