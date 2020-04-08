@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 DRIVE=${1}
 ARG=${1##*/}
 SRCDIR=${0%/*}
@@ -40,11 +42,27 @@ case "${ARG}" in
         ;;
 esac
 
+which udisksctl > /dev/null && udisk=1 || udisk=0
+
+unmount_all() {
+	local drives="$(mount |grep -oP "^${1}\d+")"
+
+	for f in ${drives} ; do
+		if [ ${udisk} -ne 0 ]; then
+			udisksctl unmount -f -b ${f} >/dev/null
+		else
+			umount -f ${f} >/dev/null
+		fi
+	done
+
+	[ -z "${drives}" ] || sleep 1
+}
+
 # Un-mount all mounted partitions
-umount -f ${DRIVE}? 2> /dev/null
+unmount_all ${DRIVE}
 
 # Check if device is busy
-hdparm -z ${DRIVE} >/dev/null || exit
+hdparm -z ${DRIVE} >/dev/null
 
 echo "[Partitioning ${DRIVE}...]"
 
@@ -62,6 +80,7 @@ parted -s ${DRIVE} mklabel msdos unit MiB \
 [ $? -ne 0 ] && exit
 
 sync
+sleep 1
 
 echo "[Making file systems...]"
 
@@ -78,14 +97,14 @@ MNT_ROOTFS=/mnt/${PART_ROOTFS##*/}
 
 # Copy files to boot partition
 mkdir -p ${MNT_BOOT}
-mount ${PART_BOOT} ${MNT_BOOT} || exit
+mount ${PART_BOOT} ${MNT_BOOT}
 
 cp ${SRCDIR}/u-boot-spl.bin ${MNT_BOOT}/boot.bin
 cp ${SRCDIR}/u-boot.itb ${MNT_BOOT}
 cp ${SRCDIR}/kernel.itb ${MNT_BOOT}
 sync
 
-umount ${MNT_BOOT} && rm -rf ${MNT_BOOT}
+umount -f ${MNT_BOOT} && rm -rf ${MNT_BOOT}
 
 # Copy files to rootfs partition
 mkdir -p ${MNT_ROOTFS}
@@ -95,6 +114,7 @@ tar xf ${SRCDIR}/rootfs.tar -C ${MNT_ROOTFS}
 sync
 
 umount ${MNT_ROOTFS} && rm -rf ${MNT_ROOTFS}
-umount -f ${DRIVE}? 2> /dev/null
+
+unmount_all ${DRIVE}
 
 echo "[Done]"
