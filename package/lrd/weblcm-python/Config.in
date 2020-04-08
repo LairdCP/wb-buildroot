@@ -29,4 +29,12 @@ config BR2_PACKAGE_WEBLCM_PYTHON_SWUPDATE_KEY_LOCATION
 	help
 	  Location to key used to verify signed swupdate images.
 
+config BR2_PACKAGE_WEBLCM_PYTHON_ENABLE_CONNECTION_WIRED
+	bool "Enable Wired Connection"
+	default y
+
+config BR2_PACKAGE_WEBLCM_PYTHON_ENABLE_CONNECTION_WIFI
+	bool "Enable Wifi Connection"
+	default y
+
 endif
