@@ -111,7 +111,7 @@ if [ ${SD} -eq 0 ]; then
 			--owner=0 --group=0 --numeric-owner \
 			pmecc.bin u-boot-spl.dtb u-boot-spl-nodtb.bin u-boot.dtb \
 			u-boot-nodtb.bin u-boot.its kernel-nosig.itb u-boot.scr.itb \
-			sw-description ${BR2_LRD_PRODUCT}.swu
+			sw-description
 
 		tar -C ${HOST_DIR}/usr/bin -rhf ${RELEASE_FILE} \
 			--owner=0 --group=0 --numeric-owner \
