@@ -1,0 +1,13 @@
+diff -Naur a/suricatta/common.c b/suricatta/common.c
+--- a/suricatta/common.c	2019-11-29 13:47:39.000000000 +0000
++++ b/suricatta/common.c	2020-04-06 15:52:01.880000000 +0000
+@@ -21,6 +21,9 @@
+ 	get_field(LIBCFG_PARSER, elem, "retry",
+ 		&chan->retries);
+ 
++	get_field(LIBCFG_PARSER, elem, "timeout",
++		&chan->low_speed_timeout);
++
+ 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "retrywait", tmp);
+ 	if (strlen(tmp))
+ 		chan->retry_sleep =
