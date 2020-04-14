@@ -29,6 +29,10 @@ if [[ ${BR2_LRD_PRODUCT} == *legacy* ]]; then
 		usr/include/lrd_sdk_pil.h \
 		usr/include/lrd_sdk_eni.h \
 		usr/lib/libsdc_sdk.so
+else
+	tar -uf "${RELEASE_FILE}" -C "${STAGING_DIR}" \
+		--owner=0 --group=0 --numeric-owner \
+		usr/include/wpa_ctrl.h
 fi
 
 bzip2 -f "${RELEASE_FILE}"
