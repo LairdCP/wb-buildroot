@@ -169,8 +169,6 @@ WPA_SUPPLICANT_CONFIG_SET += CONFIG_BUILD_WPA_CLIENT_SO
 define WPA_SUPPLICANT_INSTALL_WPA_CLIENT_SO
 	$(INSTALL) -m 0644 -D $(@D)/$(WPA_SUPPLICANT_SUBDIR)/libwpa_client.so \
 		$(TARGET_DIR)/usr/lib/libwpa_client.so
-	$(INSTALL) -m 0644 -D $(@D)/src/common/wpa_ctrl.h \
-		$(TARGET_DIR)/usr/include/wpa_ctrl.h
 endef
 define WPA_SUPPLICANT_INSTALL_STAGING_WPA_CLIENT_SO
 	$(INSTALL) -m 0644 -D $(@D)/$(WPA_SUPPLICANT_SUBDIR)/libwpa_client.so \

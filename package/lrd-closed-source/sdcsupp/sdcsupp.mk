@@ -83,13 +83,33 @@ define SDCSUPP_INSTALL_DBUS
 	$(SDCSUPP_INSTALL_DBUS_NEW)
 endef
 
+define SDCSUPP_INSTALL_WPA_CLIENT_SO
+	$(INSTALL) -m 0644 -D $(@D)/$(WPA_SUPPLICANT_SUBDIR)/libwpa_client.so \
+		$(TARGET_DIR)/usr/lib/libwpa_client.so
+endef
+
+# install the wpa_client library
+SDCSUPP_INSTALL_STAGING = YES
+
+define SDCSUPP_INSTALL_STAGING_WPA_CLIENT_SO
+	$(INSTALL) -m 0644 -D $(@D)/$(WPA_SUPPLICANT_SUBDIR)/libwpa_client.so \
+		$(STAGING_DIR)/usr/lib/libwpa_client.so
+	$(INSTALL) -m 0644 -D $(@D)/src/common/wpa_ctrl.h \
+		$(STAGING_DIR)/usr/include/wpa_ctrl.h
+endef
+
 endif
+
+define SDCSUPP_INSTALL_STAGING_CMDS
+	$(SDCSUPP_INSTALL_STAGING_WPA_CLIENT_SO)
+endef
 
 define SDCSUPP_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(SDCSUPP_D)/sdcsupp $(SDCSUPP_TARGET_DIR)$(SDCSUPP_BINDIR)/sdcsupp
 	$(SDCSUPP_INSTALL_WPA_CLI)
 	$(SDCSUPP_INSTALL_WPA_PASSPHRASE)
 	$(SDCSUPP_INSTALL_DBUS)
+	$(SDCSUPP_INSTALL_WPA_CLIENT_SO)
 endef
 
 define SDCSUPP_INSTALL_INIT_SYSTEMD
