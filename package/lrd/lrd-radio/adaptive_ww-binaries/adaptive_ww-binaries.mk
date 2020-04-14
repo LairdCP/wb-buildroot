@@ -18,7 +18,7 @@ else
 ADAPTIVE_WW_BINARIES_TYPE2 = -arm-eabi
 endif
 else ifeq ($(BR2_aarch64),y)
-ADAPTIVE_WW_BINARIES_TYPE2 = -aarch64-eabihf
+ADAPTIVE_WW_BINARIES_TYPE2 = -arm-eabiaarch64
 else ifeq ($(BR2_PACKAGE_ADAPTIVE_WW_BINARIES)$(BR_BUILDING),yy)
 $(error "Unknown architecture")
 endif
@@ -51,15 +51,15 @@ define ADAPTIVE_WW_BINARIES_INSTALL_TARGET_CMDS
 endef
 
 define ADAPTIVE_WW_BINARIES_INSTALL_INIT_SYSTEMD
-	$(INSTALL) -m 0644 -D $(@D)/usr/lib/systemd/system/awm.service \
-		$(TARGET_DIR)/usr/lib/systemd/system/awm.service
+	$(INSTALL) -m 0644 -D $(@D)/usr/lib/systemd/system/adaptive_ww.service \
+		$(TARGET_DIR)/usr/lib/systemd/system/adaptive_ww.service
 	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/awm.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/awm.service
+	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/adaptive_ww.service \
+		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/adaptive_ww.service
 endef
 
 define ADAPTIVE_WW_BINARIES_INSTALL_INIT_SYSV
-	$(INSTALL) -m 0755 -D $(@D)/etc/init.d/S30adaptive-ww $(TARGET_DIR)/etc/init.d/S30adaptive-ww
+	$(INSTALL) -m 0755 -D $(@D)/etc/init.d/adaptive_ww $(TARGET_DIR)/etc/init.d/S30adaptive_ww
 endef
 
 endif

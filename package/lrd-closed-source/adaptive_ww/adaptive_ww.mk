@@ -35,8 +35,8 @@ endif
 
 ifeq ($(BR2_INIT_NONE),y)
 define AWM_STARTUP_INSTALL_TARGET_CMDS
-	$(INSTALL) -m 0644 -D $(@D)/awm/awm.service $(TARGET_DIR)/usr/lib/systemd/system/awm.service
-	$(INSTALL) -m 0755 -D $(@D)/awm/S30adaptive-ww $(TARGET_DIR)/etc/init.d/S30adaptive-ww
+	$(INSTALL) -m 0644 -D $(@D)/awm/adaptive_ww.service $(TARGET_DIR)/usr/lib/systemd/system/adaptive_ww.service
+	$(INSTALL) -m 0755 -D $(@D)/awm/adaptive_ww $(TARGET_DIR)/etc/init.d/adaptive_ww
 endef
 endif
 
@@ -53,15 +53,15 @@ define ADAPTIVE_WW_INSTALL_TARGET_CMDS
 endef
 
 define ADAPTIVE_WW_INSTALL_INIT_SYSTEMD
-	$(INSTALL) -m 0644 -D $(@D)/awm/awm.service \
-		$(TARGET_DIR)/usr/lib/systemd/system/awm.service
+	$(INSTALL) -m 0644 -D $(@D)/awm/adaptive_ww.service \
+		$(TARGET_DIR)/usr/lib/systemd/system/adaptive_ww.service
 	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/awm.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/awm.service
+	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/adaptive_ww.service \
+		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/adaptive_ww.service
 endef
 
 define ADAPTIVE_WW_INSTALL_INIT_SYSV
-	$(INSTALL) -m 0755 -D $(@D)/awm/S30adaptive-ww $(TARGET_DIR)/etc/init.d/S30adaptive-ww
+	$(INSTALL) -m 0755 -D $(@D)/awm/adaptive_ww $(TARGET_DIR)/etc/init.d/adaptive_ww
 endef
 
 #
