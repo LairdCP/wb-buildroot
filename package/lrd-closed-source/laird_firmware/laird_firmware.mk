@@ -94,7 +94,7 @@ define make_bcm4373usb_fw
 		-o $(call FW_FINAL_FILE,$(1),$(2),$(3)) \
 		$(call FW_BASE_FILE,$(3)) $(BRCM_DIR)/tmp_nvram.nvm
 	rm -f $(BRCM_DIR)/tmp_nvram.*
-	cd $(BRCM_DIR) && ln -srf brcmfmac4373-usb-$(1)-$(2)-prod.bin brcmfmac4373.bin
+	[[ $(3) = mfg ]] || (cd $(BRCM_DIR) && ln -srf brcmfmac4373-usb-$(1)-$(2)-prod.bin brcmfmac4373.bin)
 endef
 
 define make_bcm4373sdio_fw
