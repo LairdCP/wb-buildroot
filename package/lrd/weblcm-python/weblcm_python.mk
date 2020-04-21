@@ -32,7 +32,7 @@ endif
 
 define POST_INSTALL_TARGET_HOOKS
 	 ! grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf \
-		|| sed -i -e 's=swupdate=swupdate -k $(WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE)=g' $(TARGET_DIR)/usr/sbin/swupdate.sh
+		|| sed -i -e 's=swupdate=swupdate -k $(WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE) --cert-purpose codeSigning=g' $(TARGET_DIR)/usr/sbin/swupdate.sh
 
 	sed -i -e '/^default_/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 	sed -i -e '/\[weblcm\]/a default_username: \"$(WEBLCM_PYTHON_DEFAULT_USERNAME)\"\ndefault_password: \"$(WEBLCM_PYTHON_DEFAULT_PASSWORD)\"' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
