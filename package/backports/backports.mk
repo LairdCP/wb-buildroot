@@ -26,7 +26,7 @@ BP_LRDMWL_GIT_DIR := $(BP_LRDMWL_DIR)/.git
 
 define HOST_BACKPORTS_BUILD_CMDS
 	rm -rf $(BP_LRDMWL_GIT_DIR)/shallow
-	$(@D)/gentree.py --clean --copy-list $(@D)/copy-list --base-name "Laird Linux" \
+	$(@D)/gentree.py --clean --copy-list $(@D)/copy-list --base-name "Summit Linux" \
 			       $(BP_LINUX_DIR) \
 			       $(BP_TREE_WORKING)
 	sed -i 's|\(BACKPORTS_VERSION=\).*|\1\"v$(BACKPORTS_VERSION)\"|g' $(BP_TREE_WORKING)/versions
