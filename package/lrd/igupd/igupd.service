@@ -7,11 +7,6 @@ After=network.target deviced.service rodata.mount
 BusName=com.lairdtech.security.UpdateService
 ExecStart=python3 /usr/bin/igupd
 KeyringMode=inherit
-Restart=always
-RestartSec=5
-StartLimitAction=reboot
-StartLimitInterval=120
-StartLimitBurst=5
 
 [Install]
 WantedBy=multi-user.target
