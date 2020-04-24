@@ -7,11 +7,6 @@ After=network.target igprovd.service
 Type=notify
 ExecStart=python3 /usr/bin/igconfd
 KeyringMode=inherit
-Restart=always
-RestartSec=5
-StartLimitAction=reboot
-StartLimitInterval=120
-StartLimitBurst=5
 
 [Install]
 WantedBy=multi-user.target
