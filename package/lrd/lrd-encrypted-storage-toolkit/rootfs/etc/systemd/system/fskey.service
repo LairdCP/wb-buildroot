@@ -7,6 +7,3 @@ Type=oneshot
 RemainAfterExit=yes
 ExecStart=keyctl search %:_builtin_fs_keys logon fscrypt:ffffffffffffffff @us
 KeyringMode=inherit
-
-[Install]
-WantedBy=local-fs.target
