@@ -1,0 +1,22 @@
+--- a/dbus/service.py	2020-04-24 18:25:06.490475672 +0800
++++ b/dbus/service.py	2020-04-24 18:24:33.790423893 +0800
+@@ -265,7 +265,8 @@
+                       '%s: %s', retval, signature, e.__class__, e)
+         raise
+ 
+-    connection.send_message(reply)
++    if not message.get_no_reply():
++        connection.send_message(reply)
+ 
+ def _method_reply_error(connection, message, exception):
+     name = getattr(exception, '_dbus_error_name', None)
+@@ -292,7 +293,8 @@
+             exception))
+     reply = ErrorMessage(message, name, contents)
+ 
+-    connection.send_message(reply)
++    if not message.get_no_reply():
++        connection.send_message(reply)
+ 
+ 
+ class InterfaceType(type):
