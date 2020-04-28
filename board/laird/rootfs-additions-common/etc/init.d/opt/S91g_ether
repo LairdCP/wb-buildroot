@@ -1,6 +1,7 @@
 #!/bin/sh
 
-# Copyright (c) 2015, Laird Connectivity
+# Copyright (c) 2018-2020, Laird Connectivity
+#
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
@@ -11,106 +12,107 @@
 # LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
-#
-# contact: support@lairdconnect.com
 
-# g_ether - init for wbXXn
-#
-# This init only loads/unloads the hw-phy gadget driver for a USB interface.
-# Configuration is handled via helpers in /etc/network. See the /e/n/i file.
+UDC_DIR=/sys/class/udc
+GADGET_DIR=/sys/kernel/config/usb_gadget
 
+create_gadgets () {
+	proto=${1}
+	counter=0
 
-iface=usb0
+	[ -n "${proto}" ] || proto=rndis
 
-await_interface() {
-  # args: <class/iface> [<milliseconds> [{up|down}]]
-  let n=0 w=${2:-0}
-  while : wait increments of 10ms for address
-  do
-    { mac=; read -rs mac </sys/class/${1}/address; } 2>/dev/null
-    test "${mac/??:??:??:??:??:??/up}" == "up" && break
-    test "$3" == "down" && break
-    test $n -lt $w && let n+=10 && usleep 9999 || break
-  done
-  test $n -ge 10 && echo -en "  ...waited ${n}ms${mac:+\n}${3:+\n}"
-  test -n "$mac" && rv=0 || rv=1
-  return $rv
+	modprobe -q atmel_usba_udc at91_udc
+	modprobe usb_f_fs usb_f_${proto}
+
+	mount | grep -q '/sys/kernel/config' || \
+		mount -t configfs none /sys/kernel/config
+
+	[ -d "${GADGET_DIR}" ] || exit 1;
+
+	for udc_name in $(ls ${UDC_DIR}); do
+		mkdir ${GADGET_DIR}/g${counter}
+		cd ${GADGET_ DIR}/g${counter}
+
+		echo 0x0525 > idVendor
+
+		if [ ${proto} == rndis ] || [ ${proto} == ncm ]; then
+			echo 0xa4a2 > idProduct
+			echo "1" > os_desc/use
+			echo "0xcd" > os_desc/b_vendor_code
+			echo "MSFT100" > os_desc/qw_sign
+		else
+			echo 0xa4a1 > idProduct
+		fi
+
+		mkdir strings/0x409
+		if [ -e /sys/devices/soc0/soc_uid ]; then
+			cat /sys/devices/soc0/soc_uid > strings/0x409/serialnumber
+		else
+			echo "deadbeefdeadbeef" > strings/0x409/serialnumber
+		fi
+
+		echo "Laird Connectivity" > strings/0x409/manufacturer
+		echo "$(cat /sys/firmware/devicetree/base/model)" > strings/0x409/product
+
+		mkdir -p configs/c.1/strings/0x409
+		echo "USB Ethernet Configuration" > configs/c.1/strings/0x409/configuration
+
+		# Create Ethernet config
+		mkdir -p functions/${proto}.usb${counter}
+		cd functions/${proto}.usb${counter}
+
+		if [ ${proto} == rndis ]; then
+			echo "ef" > class
+			echo "04" > subclass
+			echo "01" > protocol
+
+			echo "RNDIS" > os_desc/interface.rndis/compatible_id
+			echo "5162001" > os_desc/interface.rndis/sub_compatible_id
+		elif [ ${proto} == ncm ]; then
+			echo "WINNCM" > os_desc/interface.ncm/compatible_id
+		fi
+
+		echo "DE:AD:BE:EF:00:00" > dev_addr
+		echo "DE:AD:BE:EF:01:00" > host_addr
+
+		cd ../..
+
+		ln -s functions/${proto}.usb${counter} configs/c.1
+		ln -s configs/c.1 os_desc
+
+		echo ${udc_name} > UDC
+
+		counter=$((counter+1))
+	done
 }
 
-start() {
-  echo "Enabling USB gadget ethernet"
+destroy_gadgets () {
+	counter=0
 
-  # store the dev_addr created by driver if not set
-  if ! grep -sq 'dev_addr=' /etc/modprobe.d/g_ether.conf
-  then
-    default_local_mac=de:ad:be:ef:00:01
+	for udc_name in $(ls ${UDC_DIR}); do
+		gadget="${GADGET_DIR}/g${counter}"
 
-    echo "  storing g_ether default device address"
-    echo "options g_ether dev_addr=$default_local_mac" >>/etc/modprobe.d/g_ether.conf
-  fi
+		if [ -e ${gadget} ]; then
+			echo "" > ${gadget}/UDC
+			rm -rf ${gadget} 2>/dev/null
+			rm -rf ${gadget} 2>/dev/null
+		fi
 
-  if ! grep -sq 'host_addr=' /etc/modprobe.d/g_ether.conf
-  then
-    default_remote_mac=de:ad:be:ef:00:02
-
-    echo "  storing g_ether default host device address"
-    echo "options g_ether host_addr=$default_remote_mac" >>/etc/modprobe.d/g_ether.conf
-  fi
-
-  modprobe atmel_usba_udc
-  modprobe g_ether
-
-  await_interface net/$iface 1200 up \
-  || { echo "  Error: g_ether $iface n/a?"; return; }
-
-  ip link set dev $iface up
-  rv=$?
+		counter=$((counter+1))
+	done
 }
 
-stop() {
-  echo "Disabling USB gadget ethernet"
+case "$1" in
+	start)
+		create_gadgets $2
+		;;
 
-  ip addr flush dev $iface 0.0.0.0 2>/dev/null \
-  && ip link set dev $iface down
+	stop)
+		destroy_gadgets
+		;;
 
-  await_interface net/$iface 600 down
- 
-  modprobe -r g_ether usb_f_ecm libcomposite atmel_usba_udc udc_core
-  rv=$?
-}
-
-rv=1
-case $1 in
-  stop)
-    stop
-    ;;
-
-  start)
-    start
-    ;;
-
-  status)
-    echo -n STATUS=
-    ##
-    ## note: cable/link detect change down|up may take awhile
-    ##
-    if await_interface net/$iface
-    then
-      grep -s . /sys/class/net/$iface/operstate
-      grep -s . /sys/class/net/$iface/uevent
-      echo MAC=$mac
-    else
-      echo n/a
-    fi
-    ;;
-
-  restart)
-    stop
-    start
-    ;;
-
-  *)
-    echo "Usage: $0 {stop|start|status|restart}"
-    ;;
+	*)
+		echo $"Usage: $0 {start|stop} {rndis|ncm|ecm|eem}"
+		exit 1
 esac
-exit $rv
