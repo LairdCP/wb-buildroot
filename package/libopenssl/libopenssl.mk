@@ -87,6 +87,7 @@ define LIBOPENSSL_CONFIGURE_CMDS
 			no-fuzz-libfuzzer \
 			no-fuzz-afl \
 			$(if $(BR2_STATIC_LIBS),zlib,zlib-dynamic) \
+			--with-rand-seed=devrandom -DDEVRANDOM='"\"/dev/hwrng\",\"/dev/urandom\""' \
 	)
 	$(SED) "s#-march=[-a-z0-9] ##" -e "s#-mcpu=[-a-z0-9] ##g" $(@D)/Makefile
 	$(SED) "s#-O[0-9s]#$(LIBOPENSSL_CFLAGS)#" $(@D)/Makefile

@@ -143,6 +143,9 @@ $(2)_KCONFIG_RULES = \
 # Since the file could be a defconfig file it needs to be expanded to a
 # full .config first.
 $$($(2)_DIR)/$$($(2)_KCONFIG_STAMP_DOTCONFIG): $$($(2)_KCONFIG_FILE) $$($(2)_KCONFIG_FRAGMENT_FILES)
+	$$(Q)$$(if $$($(2)_KCONFIG_DEFCONFIG), \
+ 		$$($(2)_KCONFIG_MAKE) $$($(2)_KCONFIG_DEFCONFIG), \
+		$$(INSTALL) -m 0644 -D $$($(2)_KCONFIG_FILE) $$(@D)/$$($(2)_KCONFIG_DOTCONFIG))
 	$$(call prepare-per-package-directory,$$($(2)_KCONFIG_DEPENDENCIES))
 	$$(call kconfig-package-merge-config,$(2),$$(@D)/$$($(2)_KCONFIG_DOTCONFIG),\
 		$$($(2)_KCONFIG_FRAGMENT_FILES))

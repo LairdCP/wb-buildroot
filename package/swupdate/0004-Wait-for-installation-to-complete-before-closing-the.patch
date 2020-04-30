@@ -1,20 +1,10 @@
-diff --git a/corelib/stream_interface.c b/corelib/stream_interface.c
-index b7971d6..89db617 100644
 --- a/corelib/stream_interface.c
 +++ b/corelib/stream_interface.c
-@@ -384,7 +384,6 @@ void *network_initializer(void *data)
- 		 * (flash images) from the install image
- 		 */
- 		ret = extract_files(inst.fd, software);
--		close(inst.fd);
- 
- 		/* do carry out the installation (flash programming) */
- 		if (ret == 0) {
-@@ -433,6 +432,7 @@ void *network_initializer(void *data)
+@@ -574,6 +574,7 @@
  		notify(IDLE, RECOVERY_NO_ERROR, INFOLEVEL, "Waiting for requests...");
  
  		/* release temp files we may have created */
-+                close(inst.fd);
++		close(inst.fd);
  		cleanup_files(software);
  	}
  

@@ -1,7 +1,7 @@
---- busybox-1.23.2/networking/ifplugd.c	2015-09-22 18:57:38.292697948 -0500
-+++ busybox-1.23.2/networking/ifplugd.c	2015-09-22 18:57:38.292697948 -0500
-@@ -100,8 +100,10 @@
- 
+--- busybox-1.31.1/networking/ifplugd.c 2020-04-01 18:57:38.292697948 -0500
++++ busybox-1.31.1/networking/ifplugd.c 2020-04-01 18:57:38.292697948 -0500
+@@ -124,8 +124,10 @@
+
  enum { // interface status
  	IFSTATUS_ERR = -1,
 -	IFSTATUS_DOWN = 0,
@@ -13,7 +13,7 @@
  };
  
  enum { // constant fds
-@@ -289,11 +291,33 @@
+@@ -313,11 +315,33 @@
  	{ "IFF_RUNNING"       , &detect_link_iff     },
  };
  
@@ -50,7 +50,7 @@
  }
  
  static int run_script(const char *action)
-@@ -327,13 +351,19 @@
+@@ -349,13 +373,19 @@
  	return (option_mask32 & FLAG_IGNORE_RETVAL) ? 0 : r;
  }
  
@@ -71,7 +71,7 @@
  	set_ifreq_to_ifname(&ifrequest);
  	if (network_ioctl(SIOCGIFFLAGS, &ifrequest, "getting interface flags") < 0) {
  		G.iface_exists = 0;
-@@ -360,12 +390,12 @@
+@@ -386,12 +416,12 @@
  #endif
  }
  
@@ -85,8 +85,8 @@
  	struct ifreq ifrequest;
  	struct ethtool_drvinfo driver_info;
  
-@@ -391,24 +421,23 @@
- 		bb_error_msg("using interface %s%s with driver<%s> (version: %s)",
+@@ -417,24 +447,23 @@
+ 		bb_info_msg("using interface %s%s with driver<%s> (version: %s)",
  			G.iface, buf, driver_info.driver, driver_info.version);
  	}
 -#endif
@@ -113,7 +113,7 @@
  
  	if (G.api_method_num == API_AUTO) {
  		int i;
-@@ -438,15 +467,10 @@
+@@ -464,15 +493,10 @@
  			bb_error_msg("can't detect link status");
  	}
  
@@ -130,7 +130,7 @@
  {
  	int iface_len;
  	/* Buffer was 1K, but on linux-3.9.9 it was reported to be too small.
-@@ -500,6 +524,11 @@
+@@ -526,6 +550,11 @@
  						) {
  							G.iface_exists = (mhdr->nlmsg_type == RTM_NEWLINK);
  						}
@@ -142,7 +142,7 @@
  					}
  					attr = RTA_NEXT(attr, attr_len);
  				}
-@@ -615,12 +644,17 @@
+@@ -632,12 +661,17 @@
  		G.iface_exists = (network_ioctl(SIOCGIFINDEX, &ifrequest, NULL) == 0);
  	}
  
@@ -165,7 +165,7 @@
  	iface_status_str = strstatus(iface_status);
  
  	if (opts & FLAG_MONITOR) {
-@@ -650,6 +684,7 @@
+@@ -667,6 +701,7 @@
  	delay_time = 0;
  	while (1) {
  		int iface_status_old;
@@ -173,7 +173,7 @@
  
  		switch (bb_got_signal) {
  		case SIGINT:
-@@ -675,44 +710,59 @@
+@@ -694,43 +729,58 @@
  			goto exiting;
  		}
  
@@ -191,7 +191,7 @@
  			if (G.iface_exists < 0) /* error */
  				goto exiting;
  			if (iface_exists_old != G.iface_exists) {
- 				bb_error_msg("interface %sappeared",
+ 				bb_info_msg("interface %sappeared",
  						G.iface_exists ? "" : "dis");
  				if (G.iface_exists)
 -					maybe_up_new_iface();
@@ -225,7 +225,7 @@
  		iface_status_str = strstatus(iface_status);
  
  		if (iface_status_old != iface_status) {
- 			bb_error_msg("link is %s", iface_status_str);
+ 			bb_info_msg("link is %s", iface_status_str);
  
 +			if (iface_status == IFSTATUS_DORMANT) {
 +				continue; /* ignore for now */
@@ -239,12 +239,11 @@
 -				if (iface_status == IFSTATUS_UP)
 +				if (iface_status >= IFSTATUS_UP) {
 +					iface_status = IFSTATUS_UP;
- 					delay_time += G.delay_up;
 +				}
+ 					delay_time += G.delay_up;
  				if (iface_status == IFSTATUS_DOWN)
  					delay_time += G.delay_down;
- #if 0  /* if you are back in 1970... */
-@@ -723,6 +773,7 @@
+@@ -742,6 +792,7 @@
  #endif
  			}
  		}

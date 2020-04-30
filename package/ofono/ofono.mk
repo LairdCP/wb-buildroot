@@ -23,6 +23,8 @@ OFONO_CONF_OPTS = \
 	--with-dbusconfdir=/etc \
 	$(if $(BR2_INIT_SYSTEMD),--with-systemdunitdir=/usr/lib/systemd/system)
 
+OFONO_AUTORECONF = YES
+
 # N.B. Qualcomm QMI modem support requires O_CLOEXEC; so
 # make sure that it is defined.
 OFONO_CONF_ENV += CFLAGS="$(TARGET_CFLAGS) -D_GNU_SOURCE"

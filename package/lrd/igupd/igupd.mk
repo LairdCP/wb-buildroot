@@ -9,7 +9,7 @@ IGUPD_SETUP_TYPE = setuptools
 IGUPD_BUILD_OPTS = bdist_egg --exclude-source-files
 
 ifeq ($(BR2_PACKAGE_PYTHON3),y)
-IGUPD_PYTHON_VERSION := 3.7
+IGUPD_PYTHON_VERSION := 3.8
 else
 IGUPD_PYTHON_VERSION := 2.7
 endif

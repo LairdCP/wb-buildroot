@@ -1,43 +1,42 @@
---- busybox-1.21.1/networking/udhcp/dhcpc.c
-+++ busybox-1.21.1/networking/udhcp/dhcpc.c
-@@ -1074,6 +1074,7 @@ static void perform_renew(void)
+--- busybox-1.31.1/networking/udhcp/dhcpc.c
++++ busybox-1.31.1/networking/udhcp/dhcpc.c
+@@ -1122,6 +1122,7 @@
  	case RENEWING:
  	case REBINDING:
- 		state = RENEW_REQUESTED;
+ 		client_data.state = RENEW_REQUESTED;
 +		udhcp_run_script(NULL, "renewing");
  		break;
  	case RENEW_REQUESTED: /* impatient are we? fine, square 1 */
  		udhcp_run_script(NULL, "deconfig");
-@@ -1106,6 +1107,7 @@ static void perform_release(uint32_t server_addr, uint32_t requested_ip)
+@@ -1164,6 +1165,7 @@
  
  	change_listen_mode(LISTEN_NONE);
- 	state = RELEASED;
+ 	client_data.state = RELEASED;
 +	udhcp_run_script(NULL, "released");
  }
  
  static uint8_t* alloc_dhcp_option(int code, const char *str, int extra)
-@@ -1488,6 +1490,7 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
+@@ -1523,6 +1525,7 @@
  			case BOUND:
  				/* 1/2 lease passed, enter renewing state */
- 				state = RENEWING;
+ 				client_data.state = RENEWING;
 +				udhcp_run_script(NULL, "renewing");
- 				client_config.first_secs = 0; /* make secs field count from 0 */
+ 				client_data.first_secs = 0; /* make secs field count from 0 */
  				change_listen_mode(LISTEN_KERNEL);
- 				log1("Entering renew state");
-@@ -1512,6 +1515,7 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
- 				/* Timed out, enter rebinding state */
- 				log1("Entering rebinding state");
- 				state = REBINDING;
+ 				log1("entering renew state");
+@@ -1560,6 +1563,7 @@
+ 				/* Timed out or error, enter rebinding state */
+ 				log1("entering rebinding state");
+ 				client_data.state = REBINDING;
 +				udhcp_run_script(NULL, "rebinding");
  				/* fall right through */
  			case REBINDING:
  				/* Switch to bcast receive */
-@@ -1660,6 +1664,7 @@ int udhcpc_main(int argc UNUSED_PARAM, char **argv)
+@@ -1712,6 +1716,7 @@
  
  				/* enter requesting state */
- 				state = REQUESTING;
+ 				client_data.state = REQUESTING;
 +				udhcp_run_script(NULL, "requesting");
  				timeout = 0;
  				packet_num = 0;
  				already_waited_sec = 0;
-

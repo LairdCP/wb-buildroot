@@ -1,0 +1,11 @@
+--- busybox-1.31.1/libbb/update_passwd.c 2020-04-01 18:57:38.292697948 -0500
++++ busybox-1.31.1/libbb/update_passwd.c 2020-04-01 18:57:38.292697948 -0500
+@@ -270,7 +270,7 @@
+ 			if (shadow && *cp == ':') {
+ 				/* /etc/shadow's field 3 (passwd change date) needs updating */
+ 				/* move past old change date */
+-				unsigned time_days = (unsigned long)(time(NULL)) / (24*60*60);
++				unsigned time_days = (unsigned long)(time(NULL)) / (24*60*60) +1;
+ 
+ 				if (time_days == 0) {
+ 					/* 0 as change date has special meaning, avoid it */
