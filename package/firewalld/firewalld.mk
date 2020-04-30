@@ -21,11 +21,7 @@ FIREWALLD_CONF_OPTS = \
 	--with-ebtables-restore=no \
 	--with-ipset=no
 
-ifeq ($(BR2_PACKAGE_PYTHON),y)
 FIREWALLD_DEPENDENCIES  += python-gobject
-else
-FIREWALLD_DEPENDENCIES  += python3-gobject
-endif
 
 define FIREWALLD_RUN_INTLTOOLIZE
 	echo $(PATH)

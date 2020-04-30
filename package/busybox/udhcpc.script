@@ -1,9 +1,10 @@
 #!/bin/sh
+
 # udhcpc script edited by Tim Riker <Tim@Rikers.org>
 
-RESOLV_CONF="/etc/resolv.conf"
+[ -z "$1" ] && echo "Error: should be called from udhcpc" && exit 1
 
-[ -n "$1" ] || { echo "Error: should be called from udhcpc"; exit 1; }
+RESOLV_CONF="/etc/resolv.conf"
 
 NETMASK=""
 if command -v ip >/dev/null; then
@@ -13,6 +14,28 @@ else
 fi
 BROADCAST="broadcast +"
 [ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
+
+# Handle stateful DHCPv6 like DHCPv4
+[ -n "$ipv6" ] && ip="$ipv6/128"
+
+if [ -z "${IF_WAIT_DELAY}" ]; then
+	IF_WAIT_DELAY=10
+fi
+
+wait_for_ipv6_default_route() {
+	printf "Waiting for IPv6 default route to appear"
+	while [ $IF_WAIT_DELAY -gt 0 ]; do
+		if [ -z "$(ip -6 route list | grep default)" ]; then
+			printf "\n"
+			return
+		fi
+		sleep 1
+		printf "."
+		: $((IF_WAIT_DELAY -= 1))
+	done
+	printf " timeout!\n"
+}
+
 
 case "$1" in
 	deconfig)
@@ -72,4 +95,3 @@ case "$1" in
 esac
 
 exit 0
-

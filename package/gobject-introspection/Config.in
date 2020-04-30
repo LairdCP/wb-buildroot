@@ -6,13 +6,13 @@ config BR2_PACKAGE_GOBJECT_INTROSPECTION
 	depends on BR2_USE_WCHAR # python3, libglib2 -> gettext
 	depends on !BR2_STATIC_LIBS
 	depends on !BR2_MIPS_NABI32
+	select BR2_PACKAGE_PYTHON3 if !BR2_PACKAGE_PYTHON
 	select BR2_PACKAGE_LIBFFI
 	select BR2_PACKAGE_ZLIB
 	select BR2_PACKAGE_LIBGLIB2
 	select BR2_PACKAGE_HOST_PRELINK_CROSS
 	select BR2_PACKAGE_HOST_QEMU
 	select BR2_PACKAGE_HOST_QEMU_LINUX_USER_MODE
-	select BR2_PACKAGE_PYTHON3 if !BR2_PACKAGE_PYTHON
 	help
 	  GObject introspection is a middleware layer between C
 	  libraries (using GObject) and language bindings. The C library

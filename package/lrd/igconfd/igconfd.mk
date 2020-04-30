@@ -9,7 +9,7 @@ IGCONFD_SETUP_TYPE = setuptools
 IGCONFD_BUILD_OPTS = bdist_egg --exclude-source-files
 
 ifeq ($(BR2_PACKAGE_PYTHON3),y)
-IGCONFD_PYTHON_VERSION := 3.7
+IGCONFD_PYTHON_VERSION := 3.8
 else
 IGCONFD_PYTHON_VERSION := 2.7
 endif

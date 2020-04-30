@@ -1,5 +1,7 @@
 config BR2_PACKAGE_PYTHON_FUTURE
 	bool "python-future"
+	depends on BR2_PACKAGE_PYTHON
 	help
-	  futures is the Python package that provides ability to execute
-	  Python 3 packages on Python 2
+	  Easy, clean, reliable Python 2/3 compatibility.
+
+	  http://python-future.org
