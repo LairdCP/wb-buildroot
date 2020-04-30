@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-OPENCV3_VERSION = 3.4.3
+OPENCV3_VERSION = 3.4.9
 OPENCV3_SITE = $(call github,opencv,opencv,$(OPENCV3_VERSION))
 OPENCV3_INSTALL_STAGING = YES
 OPENCV3_LICENSE = BSD-3-Clause
@@ -13,14 +13,13 @@ OPENCV3_SUPPORTS_IN_SOURCE_BUILD = NO
 
 OPENCV3_CXXFLAGS = $(TARGET_CXXFLAGS)
 
-# Uses __atomic_fetch_add_4
-ifeq ($(BR2_TOOLCHAIN_HAS_LIBATOMIC),y)
-OPENCV3_CXXFLAGS += -latomic
-endif
-
 # Fix c++11 build with missing std::exception_ptr
 ifeq ($(BR2_TOOLCHAIN_HAS_GCC_BUG_64735),y)
 OPENCV3_CXXFLAGS += -DCV__EXCEPTION_PTR=0
+endif
+
+ifeq ($(BR2_TOOLCHAIN_HAS_GCC_BUG_68485),y)
+OPENCV3_CXXFLAGS += -O0
 endif
 
 # OpenCV component options
@@ -105,17 +104,15 @@ OPENCV3_CONF_OPTS += \
 
 # Hardware support options.
 #
-# * PowerPC support is turned off since its only effect is altering CFLAGS,
-#   adding '-mcpu=G3 -mtune=G5' to them, which is already handled by Buildroot.
+# * PowerPC and VFPv3 support are turned off since their only effects
+#   are altering CFLAGS, adding '-mcpu=G3 -mtune=G5' or '-mfpu=vfpv3'
+#   to them, which is already handled by Buildroot.
+# * NEON logic is needed as it is not only used to add CFLAGS, but
+#   also to enable additional NEON code.
 OPENCV3_CONF_OPTS += \
 	-DENABLE_POWERPC=OFF \
-	-DENABLE_NEON=$(if $(BR2_ARM_CPU_HAS_NEON),ON,OFF)
-
-ifeq ($(BR2_ARCH_IS_64):$(BR2_ARM_CPU_HAS_VFPV3),:y)
-OPENCV3_CONF_OPTS += -DENABLE_VFPV3=ON
-else
-OPENCV3_CONF_OPTS += -DENABLE_VFPV3=OFF
-endif
+	-DENABLE_NEON=$(if $(BR2_ARM_CPU_HAS_NEON),ON,OFF) \
+	-DENABLE_VFPV3=OFF
 
 # Cuda stuff
 OPENCV3_CONF_OPTS += \
@@ -324,6 +321,7 @@ OPENCV3_CONF_OPTS += \
 	-DPYTHON2_PACKAGES_PATH=/usr/lib/python$(PYTHON_VERSION_MAJOR)/site-packages \
 	-DPYTHON2_NUMPY_VERSION=$(PYTHON_NUMPY_VERSION)
 OPENCV3_DEPENDENCIES += python
+OPENCV3_KEEP_PY_FILES += usr/lib/python$(PYTHON_VERSION_MAJOR)/site-packages/cv2/config*.py
 else
 OPENCV3_CONF_OPTS += \
 	-DBUILD_opencv_python2=OFF \
@@ -335,6 +333,7 @@ OPENCV3_CONF_OPTS += \
 	-DPYTHON3_PACKAGES_PATH=/usr/lib/python$(PYTHON3_VERSION_MAJOR)/site-packages \
 	-DPYTHON3_NUMPY_VERSION=$(PYTHON_NUMPY_VERSION)
 OPENCV3_DEPENDENCIES += python3
+OPENCV3_KEEP_PY_FILES += usr/lib/python$(PYTHON3_VERSION_MAJOR)/site-packages/cv2/config*.py
 endif
 OPENCV3_CONF_ENV += $(PKG_PYTHON_DISTUTILS_ENV)
 OPENCV3_DEPENDENCIES += python-numpy

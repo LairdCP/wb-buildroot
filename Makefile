@@ -2,7 +2,7 @@
 #
 # Copyright (C) 1999-2005 by Erik Andersen <andersen@codepoet.org>
 # Copyright (C) 2006-2014 by the Buildroot developers <buildroot@uclibc.org>
-# Copyright (C) 2014-2019 by the Buildroot developers <buildroot@buildroot.org>
+# Copyright (C) 2014-2020 by the Buildroot developers <buildroot@buildroot.org>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -92,9 +92,9 @@ all:
 .PHONY: all
 
 # Set and export the version string
-export BR2_VERSION := 2019.02.6
+export BR2_VERSION := 2019.02.10
 # Actual time the release is cut (for reproducible builds)
-BR2_VERSION_EPOCH = 1570115000
+BR2_VERSION_EPOCH = 1584393000
 # Laird branch number
 export BR2_LRD_BRANCH := 7
 
@@ -190,6 +190,9 @@ include $(BR2_EXTERNAL_FILE)
 ifneq ($(BR2_EXTERNAL_ERROR),)
 $(error $(BR2_EXTERNAL_ERROR))
 endif
+
+# Workaround bug in make-4.3: https://savannah.gnu.org/bugs/?57676
+$(BASE_DIR)/.br2-external.mk:;
 
 # To make sure that the environment variable overrides the .config option,
 # set this before including .config.
@@ -470,6 +473,10 @@ $(HOST_DIR_SYMLINK): $(BASE_DIR)
 	ln -snf $(HOST_DIR) $(BASE_DIR)/host
 endif
 
+STAGING_DIR_SYMLINK = $(BASE_DIR)/staging
+$(STAGING_DIR_SYMLINK): $(BASE_DIR)
+	ln -snf $(STAGING_DIR) $(STAGING_DIR_SYMLINK)
+
 # Quotes are needed for spaces and all in the original PATH content.
 BR_PATH = "$(HOST_DIR)/bin:$(HOST_DIR)/sbin:$(PATH)"
 
@@ -735,8 +742,7 @@ target-finalize: ROOTFS=
 host-finalize: $(HOST_DIR_SYMLINK)
 
 .PHONY: staging-finalize
-staging-finalize:
-	@ln -snf $(STAGING_DIR) $(BASE_DIR)/staging
+staging-finalize: $(STAGING_DIR_SYMLINK)
 
 .PHONY: target-finalize
 target-finalize: $(PACKAGES) host-finalize
@@ -813,6 +819,16 @@ endif # merged /usr
 		$(EXTRA_ENV) $(s) $(TARGET_DIR) $(call qstrip,$(BR2_ROOTFS_POST_SCRIPT_ARGS))$(sep))
 
 	touch $(TARGET_DIR)/usr
+
+# AFTER ALL FILE-CHANGING ACTIONS:
+# Update timestamps in internal file list to fix attribution of files
+# to packages on subsequent builds
+	$(call step_pkg_size_file_list,$(TARGET_DIR))
+	$(call step_pkg_size_finalize)
+	$(call step_pkg_size_file_list,$(STAGING_DIR),-staging)
+	$(call step_pkg_size_finalize,-staging)
+	$(call step_pkg_size_file_list,$(HOST_DIR),-host)
+	$(call step_pkg_size_finalize,-host)
 
 .PHONY: target-post-image
 target-post-image: $(TARGETS_ROOTFS) target-finalize staging-finalize
