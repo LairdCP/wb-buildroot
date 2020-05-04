@@ -1,12 +1,12 @@
 config BR2_PACKAGE_PYTHON_CHERRYPY
 	bool "python-cherrypy"
+	depends on BR2_PACKAGE_PYTHON3 # python-cheroot, python-portend
 	select BR2_PACKAGE_PYTHON_CHEROOT # runtime
 	select BR2_PACKAGE_PYTHON_PORTEND # runtime
-	select BR2_PACKAGE_PYTHON3_PYEXPAT
+	select BR2_PACKAGE_PYTHON3_PYEXPAT # runtime
 	select BR2_PACKAGE_PYTHON_SIX # runtime
+	select BR2_PACKAGE_PYTHON3_ZLIB # runtime
 	select BR2_PACKAGE_PYTHON_ZC_LOCKFILE # runtime
-	select BR2_PACKAGE_PYTHON3_ZLIB
-	depends on BR2_PACKAGE_PYTHON3
 	help
 	  A minimalist web framework
 
