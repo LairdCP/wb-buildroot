@@ -26,15 +26,11 @@ LRD_NETWORK_MANAGER_SITE_METHOD = local
 
 endif
 
-
 LRD_NETWORK_MANAGER_INSTALL_STAGING = YES
 LRD_NETWORK_MANAGER_DEPENDENCIES = host-pkgconf udev gnutls libglib2 \
 	libgcrypt util-linux host-intltool readline libndp
-# Even though the COPYING file only contains the GPL-2.0 text, many
-# parts of network-manager are under LGPL-2.0. See the "Legal" section
-# of the CONTRIBUTING file for details.
-LRD_NETWORK_MANAGER_LICENSE = GPL-2.0+ (app), LGPL-2.0+ (libnm)
-LRD_NETWORK_MANAGER_LICENSE_FILES = COPYING CONTRIBUTING
+LRD_NETWORK_MANAGER_LICENSE = GPL-2.0+ (app), LGPL-2.1+ (libnm)
+LRD_NETWORK_MANAGER_LICENSE_FILES = COPYING COPYING.LGPL CONTRIBUTING
 
 LRD_NETWORK_MANAGER_AUTORECONF = YES
 
@@ -53,6 +49,7 @@ LRD_NETWORK_MANAGER_CONF_OPTS = \
 	--with-crypto=gnutls \
 	--with-iptables=/usr/sbin/iptables \
 	--disable-ifupdown \
+	--without-nm-cloud-setup \
 	--disable-introspection
 
 ifeq ($(BR2_PACKAGE_OFONO),y)
