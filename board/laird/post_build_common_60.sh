@@ -25,12 +25,15 @@ fi
 echo "${LOCRELSTR}" > "${TARGET_DIR}/etc/laird-release"
 echo "${LOCRELSTR}" > "${TARGET_DIR}/etc/issue"
 
+[ -z "${VERSION}" ] && LOCVER="0.${BR2_LRD_BRANCH}.0.0" || LOCVER="${VERSION}"
+
 echo -ne \
-"NAME=Summit Linux\n"\
-"VERSION=$LOCRELSTR\n"\
-"ID=buildroot\n"\
-"VERSION_ID=${LOCRELSTR##* }\n"\
-"PRETTY_NAME=\"$LOCRELSTR\""\
+"NAME=\"Summit Linux\"\n"\
+"VERSION=\"${LOCRELSTR}\"\n"\
+"ID=${BR2_LRD_PRODUCT}\n"\
+"VERSION_ID=${LOCVER}\n"\
+"BUILD_ID=${LOCRELSTR##* }\n"\
+"PRETTY_NAME=\"${LOCRELSTR}\"\n"\
 >  "${TARGET_DIR}/usr/lib/os-release"
 
 # Copy the product specific rootfs additions, strip host user access control

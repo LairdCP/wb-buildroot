@@ -90,7 +90,7 @@ else
 fi
 
 size_check () {
-	[ $(stat -c "%s" ${BINARIES_DIR}/${1}) -le $((${2}*128*1024)) ] || \
+	[ $(stat -Lc "%s" ${BINARIES_DIR}/${1}) -le $((${2}*128*1024)) ] || \
 		{ echo "${1} size exceeded ${2} block limit, failed"; exit 1; }
 }
 
