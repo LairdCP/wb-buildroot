@@ -12,4 +12,4 @@ ExecStop=/usr/sbin/mount_data.sh stop
 KeyringMode=inherit
 
 [Install]
-WantedBy=local-fs.target.wants
+WantedBy=local-fs.target
