@@ -10,3 +10,6 @@ RemainAfterExit=yes
 ExecStart=/usr/sbin/mount_data.sh start
 ExecStop=/usr/sbin/mount_data.sh stop
 KeyringMode=inherit
+
+[Install]
+WantedBy=local-fs.target.wants
