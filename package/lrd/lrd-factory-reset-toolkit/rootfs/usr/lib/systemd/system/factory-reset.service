@@ -2,7 +2,7 @@
 Description= Do factory reset
 Wants=mount_data.service
 After=mount_data.service
-Before=weblcm-python.service NetworkManager.service
+Before=weblcm-python.service NetworkManager.service firewalld.service
 
 [Service]
 Type=oneshot
