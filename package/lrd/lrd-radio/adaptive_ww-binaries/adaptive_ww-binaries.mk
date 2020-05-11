@@ -18,7 +18,7 @@ else
 ADAPTIVE_WW_BINARIES_TYPE2 = -arm-eabi
 endif
 else ifeq ($(BR2_aarch64),y)
-ADAPTIVE_WW_BINARIES_TYPE2 = -arm-eabiaarch64
+ADAPTIVE_WW_BINARIES_TYPE2 = -aarch64
 else ifeq ($(BR2_PACKAGE_ADAPTIVE_WW_BINARIES)$(BR_BUILDING),yy)
 $(error "Unknown architecture")
 endif
