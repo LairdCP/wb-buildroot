@@ -3,6 +3,7 @@ config BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT
 	select BR2_PACKAGE_KEYUTILS
 	select BR2_PACKAGE_RSYNC
 	select BR2_PACKAGE_FSCRYPTCTL
+	select BR2_PACKAGE_LRD_FACTORY_RESET_TOOLKIT
 	help
 	Toolkit to begin prototyping implemention of
 	Laird's U-Boot encryption coupled with Linux
