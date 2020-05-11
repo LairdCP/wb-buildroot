@@ -47,10 +47,18 @@ endef
 
 FIREWALLD_POST_INSTALL_TARGET_HOOKS = FIREWALLD_FIX_CONFIG
 
+ifeq ($(BR2_PACKAGE_LRD_FACTORY_RESET_TOOLKIT),y)
+define FIREWALLD_UPDATE_SERVICE
+	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/firewalld.service.d
+	printf "%s\n" "[Service]" "KeyringMode=inherit" "ExecStart=" "ExecStart=/usr/sbin/firewalld --nofork --nopid --system-config /data/secret/firewalld" > $(TARGET_DIR)/etc/systemd/system/firewalld.service.d/10-reset-conf-dir.conf
+endef
+endif
+
 define FIREWALLD_INSTALL_INIT_SYSTEMD
         $(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
         ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/firewalld.service \
                 $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
+		$(FIREWALLD_UPDATE_SERVICE)
 endef
 
 $(eval $(autotools-package))
