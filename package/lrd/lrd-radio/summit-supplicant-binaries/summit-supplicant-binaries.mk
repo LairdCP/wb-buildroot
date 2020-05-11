@@ -19,7 +19,7 @@ else
 SUMMIT_SUPPLICANT_BINARIES_TYPE2 = -arm-eabi
 endif
 else ifeq ($(BR2_aarch64),y)
-SUMMIT_SUPPLICANT_BINARIES_TYPE2 = -aarch64-eabihf
+SUMMIT_SUPPLICANT_BINARIES_TYPE2 = -aarch64
 else ifeq ($(BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES)$(BR_BUILDING),yy)
 $(error "Unknown architecture")
 endif
