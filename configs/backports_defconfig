@@ -9,7 +9,7 @@ BR2_ROOTFS_SKELETON_CUSTOM=y
 BR2_ROOTFS_SKELETON_CUSTOM_PATH="$(TOPDIR)/board/laird/skeleton-empty"
 BR2_INIT_NONE=y
 BR2_ROOTFS_DEVICE_TABLE=""
-BR2_ROOTFS_POST_IMAGE_SCRIPT="board/laird/firmware/post_image.sh"
+BR2_ROOTFS_POST_IMAGE_SCRIPT="board/laird/backports/post_image.sh"
 # BR2_PACKAGE_BUSYBOX is not set
 # BR2_TARGET_ROOTFS_TAR is not set
 BR2_PACKAGE_HOST_BACKPORTS=y
