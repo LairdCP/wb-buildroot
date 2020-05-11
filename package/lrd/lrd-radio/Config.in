@@ -89,22 +89,23 @@ if BR2_LRD_SOM60_RADIO || BR2_LRD_SOM60_FIPS_RADIO
 source "package/lrd/lrd-radio/summit-supplicant-binaries/Config.in"
 source "package/lrd/lrd-radio/som60-firmware-binaries/Config.in"
 source "package/lrd/lrd-radio/adaptive_ww-binaries/Config.in"
-source "package/lrd/lrd-radio/mfg60n-arm-eabihf-binaries/Config.in"
+source "package/lrd/lrd-radio/mfg60n-binaries/Config.in"
 endif
 
 if BR2_LRD_WB50N_SYSD_RADIO || BR2_LRD_WB50N_SYSD_FIPS_RADIO
 source "package/lrd/lrd-radio/summit-supplicant-binaries/Config.in"
 source "package/lrd/lrd-radio/wb50n-firmware-binaries/Config.in"
-source "package/lrd/lrd-radio/reg50n-arm-eabihf-binaries/Config.in"
+source "package/lrd/lrd-radio/reg50n-binaries/Config.in"
 endif
 
 if BR2_LRD_WB50N_LEGACY_RADIO
 source "package/lrd/lrd-radio/wb-legacy-summit-supplicant-binaries/Config.in"
 source "package/lrd/lrd-radio/wb50n-firmware-binaries/Config.in"
-source "package/lrd/lrd-radio/reg50n-arm-eabihf-binaries/Config.in"
+source "package/lrd/lrd-radio/reg50n-binaries/Config.in"
 endif
 
 if BR2_LRD_WB45N_RADIO
 source "package/lrd/lrd-radio/wb-legacy-summit-supplicant-binaries/Config.in"
 source "package/lrd/lrd-radio/wb45n-firmware-binaries/Config.in"
+source "package/lrd/lrd-radio/reg45n-binaries/Config.in"
 endif
