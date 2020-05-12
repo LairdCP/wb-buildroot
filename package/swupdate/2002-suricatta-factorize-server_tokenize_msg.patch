@@ -1,0 +1,105 @@
+From 735e096fc3778d6bd990b3554f41de97a4c2ac7b Mon Sep 17 00:00:00 2001
+From: Stefano Babic <sbabic@denx.de>
+Date: Mon, 27 Jan 2020 11:07:05 +0100
+Subject: [PATCH 1/1] suricatta: factorize server_tokenize_msg
+
+Move it to common.c to make available to all suricatta modules.
+
+Signed-off-by: Stefano Babic <sbabic@denx.de>
+---
+ suricatta/common.c            | 25 +++++++++++++++++++++++++
+ suricatta/server_hawkbit.c    | 23 -----------------------
+ suricatta/suricatta_private.h |  3 +++
+ 3 files changed, 28 insertions(+), 23 deletions(-)
+
+diff --git a/suricatta/common.c b/suricatta/common.c
+index 7e59885..51b7be8 100644
+--- a/suricatta/common.c
++++ b/suricatta/common.c
+@@ -4,7 +4,9 @@
+  *
+  * SPDX-License-Identifier:     GPL-2.0-or-later
+  */
++#include <unistd.h>
+ #include <stdbool.h>
++#include <stdlib.h>
+ #include <swupdate_dict.h>
+ #include <channel.h>
+ #include <util.h>
+@@ -66,3 +68,26 @@ server_op_res_t map_channel_retcode(channel_op_res_t response)
+ 	}
+ 	return SERVER_EERR;
+ }
++
++struct json_object *server_tokenize_msg(char *buf, size_t size)
++{
++
++	struct json_tokener *json_tokenizer = json_tokener_new();
++	enum json_tokener_error json_res;
++	struct json_object *json_root;
++	do {
++		json_root = json_tokener_parse_ex(
++		    json_tokenizer, buf, size);
++	} while ((json_res = json_tokener_get_error(json_tokenizer)) ==
++		 json_tokener_continue);
++	if (json_res != json_tokener_success) {
++		ERROR("Error while parsing channel's returned JSON data: %s",
++		      json_tokener_error_desc(json_res));
++		json_tokener_free(json_tokenizer);
++		return NULL;
++	}
++
++	json_tokener_free(json_tokenizer);
++
++	return json_root;
++}
+diff --git a/suricatta/server_hawkbit.c b/suricatta/server_hawkbit.c
+index 16517d2..688d867 100644
+--- a/suricatta/server_hawkbit.c
++++ b/suricatta/server_hawkbit.c
+@@ -1683,29 +1683,6 @@ server_op_res_t server_stop(void)
+  * IPC is to control the Hawkbit's communication
+  */
+ 
+-static struct json_object *server_tokenize_msg(char *buf, size_t size)
+-{
+-
+-	struct json_tokener *json_tokenizer = json_tokener_new();
+-	enum json_tokener_error json_res;
+-	struct json_object *json_root;
+-	do {
+-		json_root = json_tokener_parse_ex(
+-		    json_tokenizer, buf, size);
+-	} while ((json_res = json_tokener_get_error(json_tokenizer)) ==
+-		 json_tokener_continue);
+-	if (json_res != json_tokener_success) {
+-		ERROR("Error while parsing channel's returned JSON data: %s",
+-		      json_tokener_error_desc(json_res));
+-		json_tokener_free(json_tokenizer);
+-		return NULL;
+-	}
+-
+-	json_tokener_free(json_tokenizer);
+-
+-	return json_root;
+-}
+-
+ static server_op_res_t server_activation_ipc(ipc_message *msg)
+ {
+ 	server_op_res_t result = SERVER_OK;
+diff --git a/suricatta/suricatta_private.h b/suricatta/suricatta_private.h
+index b31c6c7..59f4d16 100644
+--- a/suricatta/suricatta_private.h
++++ b/suricatta/suricatta_private.h
+@@ -11,5 +11,8 @@
+ #include <channel_curl.h>
+ #include <util.h>
+ 
++struct json_object;
++
+ void suricatta_channel_settings(void *elem, channel_data_t *chan);
+ server_op_res_t map_channel_retcode(channel_op_res_t response);
++struct json_object *server_tokenize_msg(char *buf, size_t size);
+-- 
+2.17.1
+
