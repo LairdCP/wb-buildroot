@@ -1,0 +1,156 @@
+From 93bf2d36b05e3b92af2938dab38a3f97df394a71 Mon Sep 17 00:00:00 2001
+From: Stefano Babic <sbabic@denx.de>
+Date: Wed, 5 Feb 2020 16:26:47 +0100
+Subject: [PATCH 1/1] suricatta: add enable / disable at startup
+
+For systems without a fixed network connection, it makes sense that the
+connection to a backend server is done on demand. Command line for
+suricatta can contain -e (enable, default) or -d (disable). If disabled,
+suricatta does not try to connect to the backend server when the polling
+timer elapses. Behavior can be changed at runtime without restarting
+SWUpdate via IPC.
+
+Signed-off-by: Stefano Babic <sbabic@denx.de>
+---
+ suricatta/server_general.c |  1 -
+ suricatta/server_hawkbit.c |  1 -
+ suricatta/suricatta.c      | 66 +++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 65 insertions(+), 3 deletions(-)
+
+diff --git a/suricatta/server_general.c b/suricatta/server_general.c
+index 12943db..610c7f6 100644
+--- a/suricatta/server_general.c
++++ b/suricatta/server_general.c
+@@ -494,7 +494,6 @@ void server_print_help(void)
+ {
+ 	fprintf(
+ 	    stderr,
+-	    "\tsuricatta (server: general) arguments (mandatory arguments are marked with '*'):\n"
+ 	    "\t  -u, --url         * Host and port of the server instance, "
+ 	    "e.g., localhost:8080\n"
+ 	    "\t  -p, --polldelay     Delay in seconds between two hawkBit "
+diff --git a/suricatta/server_hawkbit.c b/suricatta/server_hawkbit.c
+index 688d867..d6bc418 100644
+--- a/suricatta/server_hawkbit.c
++++ b/suricatta/server_hawkbit.c
+@@ -1426,7 +1426,6 @@ void server_print_help(void)
+ {
+ 	fprintf(
+ 	    stderr,
+-	    "\tsuricatta arguments (mandatory arguments are marked with '*'):\n"
+ 	    "\t  -t, --tenant      * Set hawkBit tenant ID for this device.\n"
+ 	    "\t  -u, --url         * Host and port of the hawkBit instance, "
+ 	    "e.g., localhost:8080\n"
+diff --git a/suricatta/suricatta.c b/suricatta/suricatta.c
+index 78c1783..cb7c799 100644
+--- a/suricatta/suricatta.c
++++ b/suricatta/suricatta.c
+@@ -13,18 +13,30 @@
+ #include <errno.h>
+ #include <signal.h>
+ #include <sys/select.h>
++#include <getopt.h>
+ #include <json-c/json.h>
+ #include "pctl.h"
+ #include "suricatta/suricatta.h"
+ #include "suricatta/server.h"
+ #include "suricatta_private.h"
+ #include "parselib.h"
++#include "swupdate_settings.h"
+ #include <network_ipc.h>
+ 
+ static bool enable = true;
++static struct option long_options[] = {
++    {"enable", no_argument, NULL, 'e'},
++    {"disable", no_argument, NULL, 'd'},
++    {NULL, 0, NULL, 0}};
+ 
+ void suricatta_print_help(void)
+ {
++	fprintf(
++	    stderr,
++	    "\tsuricatta arguments (mandatory arguments are marked with '*'):\n"
++	    "\t  -e, --enable      Daemon enabled at startup (default).\n"
++	    "\t  -d, --disable     Daemon disabled at startup.\n"
++	    );
+ 	server.help();
+ }
+ 
+@@ -88,6 +100,14 @@ static server_op_res_t suricatta_ipc(int fd, time_t *seconds)
+ 	return result;
+ }
+ 
++static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *data)
++{
++	get_field(LIBCFG_PARSER, elem, "enable",
++		&enable);
++
++	return 0;
++}
++
+ int suricatta_wait(int seconds)
+ {
+ 	fd_set readfds;
+@@ -119,14 +139,58 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
+ 	int action_id;
+ 	sigset_t sigpipe_mask;
+ 	sigset_t saved_mask;
++	int choice = 0;
++	char **serverargv;
+ 
+ 	sigemptyset(&sigpipe_mask);
+ 	sigaddset(&sigpipe_mask, SIGPIPE);
+ 	sigprocmask(SIG_BLOCK, &sigpipe_mask, &saved_mask);
+ 
+-	if (server.start(cfgfname, argc, argv) != SERVER_OK) {
++	/*
++	 * Temporary copy the command line argument
++	 * to pass unchanged to the server instance.
++	 * getopt() will change them when called here
++	 */
++	serverargv = (char **)malloc(argc * sizeof(char **));
++	if (!serverargv) {
++		ERROR("OOM starting suricatta, exiting !");
++		exit(EXIT_FAILURE);
++	}
++	for (int i = 0; i < argc; i++) {
++		serverargv[i] = argv[i];
++	}
++
++	/*
++	 * First check for common properties that do not depend
++	 * from server implementation
++	 */
++	if (cfgfname)
++		read_module_settings(cfgfname, "suricatta", suricatta_settings,
++					NULL);
++	optind = 1;
++	opterr = 0;
++
++	while ((choice = getopt_long(argc, argv, "de",
++				     long_options, NULL)) != -1) {
++		switch (choice) {
++		case 'e':
++			enable = true;
++			break;
++		case 'd':
++			enable = false;
++			break;
++		case '?':
++			break;
++		}
++	}
++
++	/*
++	 * Now start a specific implementation of the server
++	 */
++	if (server.start(cfgfname, argc, serverargv) != SERVER_OK) {
+ 		exit(EXIT_FAILURE);
+ 	}
++	free(serverargv);
+ 
+ 	TRACE("Server initialized, entering suricatta main loop.");
+ 	while (true) {
+-- 
+2.17.1
+
