@@ -2,9 +2,8 @@ config BR2_PACKAGE_SWUPDATE
 	bool "swupdate"
 	depends on BR2_TOOLCHAIN_HAS_THREADS
 	depends on BR2_USE_MMU # fork()
-	# swupdate requires a parser and uses libconfig as default
-	select BR2_PACKAGE_LIBCONFIG if !BR2_PACKAGE_JSON_C && \
-		!BR2_PACKAGE_HAS_LUAINTERPRETER
+	# swupdate requires JSON-C for suricatta and parsing
+	select BR2_PACKAGE_JSON_C
 	help
 	  swupdate provides a reliable way to update the software on
 	  an embedded system.
