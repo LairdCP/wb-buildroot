@@ -78,7 +78,7 @@ define LAIRD_FW_BCM4339_MFG_INSTALL_TARGET_CMDS
 endef
 endif
 
-NVRAM_FILE = $(@D)/brcm/brcmfmac4373-$(1)-$(2).txt
+NVRAM_FILE = $(@D)/brcm/brcmfmac4373usb-$(1)-$(2).txt
 FW_BASE_FILE = $(@D)/brcm/brcmfmac4373-usb-base-$(1).bin
 FW_FINAL_FILE = $(BRCM_DIR)/brcmfmac4373-usb-$(1)-$(2)-$(3).bin
 
