@@ -1,19 +1,17 @@
 #!/bin/sh
+
 # udhcpc script edited by Tim Riker <Tim@Rikers.org>
 
+[ -z "$1" ] && echo "Error: should be called from udhcpc" && exit 1
+
 RESOLV_CONF="/etc/resolv.conf"
-
-[ -n "$1" ] || { echo "Error: should be called from udhcpc"; exit 1; }
-
-NETMASK=""
+[ -e $RESOLV_CONF ] || touch $RESOLV_CONF
+[ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
 if command -v ip >/dev/null; then
 	[ -n "$subnet" ] && NETMASK="/$subnet"
 else
 	[ -n "$subnet" ] && NETMASK="netmask $subnet"
 fi
-BROADCAST="broadcast +"
-[ -n "$broadcast" ] && BROADCAST="broadcast $broadcast"
-
 # Handle stateful DHCPv6 like DHCPv4
 [ -n "$ipv6" ] && ip="$ipv6/128"
 
@@ -35,64 +33,86 @@ wait_for_ipv6_default_route() {
 	printf " timeout!\n"
 }
 
-
 case "$1" in
 	deconfig)
-		echo "Setting IP address 0.0.0.0 on $interface"
-		if command -v ip >/dev/null; then
-			ip addr flush dev $interface
+		if command -v /sbin/ip >/dev/null; then
+			/sbin/ip link set up $interface
+			/sbin/ip addr flush dev $interface
 		else
-			ifconfig $interface 0.0.0.0
+			/sbin/ifconfig $interface up
+			/sbin/ifconfig $interface 0.0.0.0
+		fi
+
+		# drop info from this interface
+		# resolv.conf may be a symlink to /tmp/, so take care
+		TMPFILE=$(mktemp)
+		grep -vE "# $interface\$" $RESOLV_CONF > $TMPFILE
+		cat $TMPFILE > $RESOLV_CONF
+		rm -f $TMPFILE
+
+		if [ -x /usr/sbin/avahi-autoipd ]; then
+			/usr/sbin/avahi-autoipd -k $interface
+		fi
+		;;
+
+	leasefail|nak)
+		if [ -x /usr/sbin/avahi-autoipd ]; then
+			/usr/sbin/avahi-autoipd -wD $interface --no-chroot
 		fi
 		;;
 
 	renew|bound)
+		if [ -x /usr/sbin/avahi-autoipd ]; then
+			/usr/sbin/avahi-autoipd -k $interface
+		fi
+		if command -v ip >/dev/null; then
+			/sbin/ip addr add $ip$NETMASK $BROADCAST dev $interface
+		else
+			/sbin/ifconfig $interface $ip $BROADCAST $NETMASK
+		fi
 		if [ -n "$ipv6" ] ; then
 			wait_for_ipv6_default_route
-		echo "Setting IP address $ip on $interface"
-		if command -v ip >/dev/null; then
-			ip addr add $ip$NETMASK $BROADCAST dev $interface
-		else
-			ifconfig $interface $ip $NETMASK $BROADCAST
 		fi
 
 		if [ -n "$router" ] ; then
-			echo "Deleting routers"
-			while route del default gw 0.0.0.0 dev $interface ; do
+			echo "deleting routers"
+			while route del default gw 0.0.0.0 dev $interface 2> /dev/null; do
 				:
 			done
 
-			metric=0
 			for i in $router ; do
-				echo "Adding router $i"
-				if [ "$subnet" = "255.255.255.255" ]; then
-	# special case for /32 subnets:
-	# /32 instructs kernel to always use routing for all outgoing packets
-	# (they can never be sent to local subnet - there is no local subnet for /32).
-	# Used in datacenters, avoids the need for private ip-addresses between two hops.
-					ip route add $i dev $interface
-				fi
-				route add default gw $i dev $interface metric $((metric++))
+				route add default gw $i dev $interface
 			done
 		fi
 
-		echo "Recreating $RESOLV_CONF"
-		# If the file is a symlink somewhere (like /etc/resolv.conf
-		# pointing to /run/resolv.conf), make sure things work.
-		if test -L "$RESOLV_CONF"; then
-			# If it's a dangling symlink, try to create the target.
-			test -e "$RESOLV_CONF" || touch "$RESOLV_CONF"
+		# drop info from this interface
+		# resolv.conf may be a symlink to /tmp/, so take care
+		TMPFILE=$(mktemp)
+		grep -vE "# $interface\$" $RESOLV_CONF > $TMPFILE
+		cat $TMPFILE > $RESOLV_CONF
+		rm -f $TMPFILE
+
+		# prefer rfc3397 domain search list (option 119) if available
+		if [ -n "$search" ]; then
+			search_list=$search
+		elif [ -n "$domain" ]; then
+			search_list=$domain
 		fi
-		realconf=$(readlink -f "$RESOLV_CONF" 2>/dev/null || echo "$RESOLV_CONF")
-		tmpfile="$realconf-$$"
-		> "$tmpfile"
-		[ -n "$domain" ] && echo "search $domain" >> "$tmpfile"
+
+		[ -n "$search_list" ] &&
+			echo "search $search_list # $interface" >> $RESOLV_CONF
+
 		for i in $dns ; do
-			echo " Adding DNS server $i"
-			echo "nameserver $i" >> "$tmpfile"
+			echo adding dns $i
+			echo "nameserver $i # $interface" >> $RESOLV_CONF
 		done
-		mv "$tmpfile" "$realconf"
 		;;
 esac
+
+HOOK_DIR="$0.d"
+for hook in "${HOOK_DIR}/"*; do
+    [ -f "${hook}" -a -x "${hook}" ] || continue
+    "${hook}" "${@}"
+done
 
 exit 0
