@@ -16,3 +16,11 @@ config BR2_PACKAGE_FIREWALLD
 	  service.
 
           https://firewalld.org/
+
+if BR2_PACKAGE_FIREWALLD
+
+config BR2_PACKAGE_FIREWALLD_DEFAULT_ZONE_VALUE
+	string "Default zone name"
+	default "trusted"
+
+endif # BR2_PACKAGE_FIREWALLD
