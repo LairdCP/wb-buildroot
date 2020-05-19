@@ -11,6 +11,7 @@ FIREWALLD_DEPENDENCIES = libglib2 nftables host-intltool gettext systemd python-
 FIREWALLD_INSTALL_STAGING = YES
 FIREWALLD_LIBTOOL_PATCH = YES
 FIREWALLD_AUTORECONF= YES
+FIREWALLD_DEFAULT_ZONE = $(call qstrip,$(BR2_PACKAGE_FIREWALLD_DEFAULT_ZONE_VALUE))
 
 FIREWALLD_CONF_OPTS = \
 	--with-iptables=no \
@@ -47,6 +48,7 @@ FIREWALLD_PRE_INSTALL_TARGET_HOOKS = FIREWALLD_FIX_SHEBANG
 define FIREWALLD_FIX_CONFIG
 	$(SED) "s/ &&.*//g" $(TARGET_DIR)/etc/modprobe.d/firewalld-sysctls.conf
 	$(SED) "s/IPv6_rpfilter=yes/IPv6_rpfilter=no/g" $(TARGET_DIR)/etc/firewalld/firewalld.conf
+	$(SED) "s/^DefaultZone=.*/DefaultZone=$(FIREWALLD_DEFAULT_ZONE)/g" $(TARGET_DIR)/etc/firewalld/firewalld.conf
 endef
 
 FIREWALLD_POST_INSTALL_TARGET_HOOKS = FIREWALLD_FIX_CONFIG
