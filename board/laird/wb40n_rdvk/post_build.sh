@@ -24,6 +24,7 @@ echo -ne \
 # Copy the product specific rootfs additions
 rsync -rlptDWK --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
 cp "${BOARD_DIR}/../rootfs-additions-common/usr/sbin/fw_"* "${TARGET_DIR}/usr/sbin"
+rm -f ${TARGET_DIR}/etc/init.d/S20urandom
 
 if grep -q 'BR2_LINUX_KERNEL_VERSION="3.2.102"' ${BR2_CONFIG}; then
 	# On pre pinctrl kernels GPIO number is +32

@@ -24,6 +24,7 @@ echo -ne \
 # Copy the product specific rootfs additions
 rsync -rlptDWK --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
 cp "${BOARD_DIR}/../rootfs-additions-common/usr/sbin/fw_"* "${TARGET_DIR}/usr/sbin"
+rm -f ${TARGET_DIR}/etc/init.d/S20urandom
 
 # Fixup and add debugfs to fstab
 grep -q "/sys/kernel/debug" ${TARGET_DIR}/etc/fstab ||\
