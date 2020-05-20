@@ -61,7 +61,7 @@ define ADAPTIVE_WW_INSTALL_INIT_SYSTEMD
 endef
 
 define ADAPTIVE_WW_INSTALL_INIT_SYSV
-	$(INSTALL) -m 0755 -D $(@D)/awm/adaptive_ww $(TARGET_DIR)/etc/init.d/adaptive_ww
+	$(INSTALL) -m 0755 -D $(@D)/awm/adaptive_ww $(TARGET_DIR)/etc/init.d/S30adaptive_ww
 endef
 
 #
