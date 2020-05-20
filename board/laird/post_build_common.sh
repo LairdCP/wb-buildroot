@@ -91,12 +91,22 @@ gzip -c $TARGETDIR/etc/network/interfaces >$TARGETDIR/etc/network/interfaces~.gz
 
 # Create default firmware description file.
 # This may be overwritten by a proper release file.
-if [ -z "$LAIRD_RELEASE_STRING" ]; then
-  echo "Summit Linux development build 0.${BR2_LRD_BRANCH}.0.0 $(date +%Y%m%d)" \
-    > $TARGETDIR/etc/laird-release
-else
-  echo "$LAIRD_RELEASE_STRING" > $TARGETDIR/etc/laird-release
+LOCRELSTR="${LAIRD_RELEASE_STRING}"
+if [ -z "${LOCRELSTR}" ] || [ "${LOCRELSTR}" == "0.0.0.0" ]; then
+	LOCRELSTR="Summit Linux development build 0.${BR2_LRD_BRANCH}.0.0 $(date +%Y%m%d)"
 fi
+echo "${LOCRELSTR}" > "${TARGET_DIR}/etc/laird-release"
+
+[ -z "${VERSION}" ] && LOCVER="0.${BR2_LRD_BRANCH}.0.0" || LOCVER="${VERSION}"
+
+echo -ne \
+"NAME=\"Summit Linux\"\n"\
+"VERSION=\"${LOCRELSTR}\"\n"\
+"ID=${BR2_LRD_PRODUCT}\n"\
+"VERSION_ID=${LOCVER}\n"\
+"BUILD_ID=${LOCRELSTR##* }\n"\
+"PRETTY_NAME=\"${LOCRELSTR}\"\n"\
+>  "${TARGET_DIR}/usr/lib/os-release"
 
 mkdir -p $TARGETDIR/etc/NetworkManager/system-connections
 

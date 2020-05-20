@@ -90,16 +90,5 @@ define HOST_EUDEV_RM_HWDB_SRC
 endef
 HOST_EUDEV_ROOTFS_PRE_CMD_HOOKS += HOST_EUDEV_RM_HWDB_SRC
 
-define EUDEV_NO_AUTO_LOAD_HANDLING
-	# Avoid auto-loading device drivers, since some devices require
-	# conditional handling, and thus are managed by specific init-scripts.
-	( cd $(TARGET_DIR)/lib/udev; \
-	  mkdir -p rules.disabled; \
-	  [ -f rules.d/??-drivers.rules ] \
-	  && mv rules.d/??-drivers.rules rules.disabled || : \
-	)
-endef
-EUDEV_POST_INSTALL_TARGET_HOOKS += EUDEV_NO_AUTO_LOAD_HANDLING
-
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))
