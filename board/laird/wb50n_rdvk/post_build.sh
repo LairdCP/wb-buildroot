@@ -3,14 +3,27 @@ BOARD_DIR="$(realpath $(dirname $0))"
 
 echo "${BR2_LRD_PRODUCT^^} POST BUILD script: starting..."
 
-# source the common post build script
-source "board/laird/post_build_common.sh" "${TARGET_DIR}"
+LOCRELSTR="${LAIRD_RELEASE_STRING}"
+if [ -z "${LOCRELSTR}" ] || [ "${LOCRELSTR}" == "0.0.0.0" ]; then
+	LOCRELSTR="Summit Linux development build 0.${BR2_LRD_BRANCH}.0.0 $(date +%Y%m%d)"
+fi
+echo "${LOCRELSTR}" > "${TARGET_DIR}/etc/laird-release"
+echo "${LOCRELSTR}" > "${TARGET_DIR}/etc/issue"
 
-# fix rootfs-additions-common to come up without any wireless adapter by default
-mv ${TARGET_DIR}/etc/init.d/S40wifi ${TARGET_DIR}/etc/init.d/opt/
+[ -z "${VERSION}" ] && LOCVER="0.${BR2_LRD_BRANCH}.0.0" || LOCVER="${VERSION}"
+
+echo -ne \
+"NAME=\"Summit Linux\"\n"\
+"VERSION=\"${LOCRELSTR}\"\n"\
+"ID=${BR2_LRD_PRODUCT}\n"\
+"VERSION_ID=${LOCVER}\n"\
+"BUILD_ID=${LOCRELSTR##* }\n"\
+"PRETTY_NAME=\"${LOCRELSTR}\"\n"\
+>  "${TARGET_DIR}/usr/lib/os-release"
 
 # Copy the product specific rootfs additions
 rsync -rlptDWK --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
+cp "${BOARD_DIR}/../rootfs-additions-common/usr/sbin/fw_"* "${TARGET_DIR}/usr/sbin"
 
 # Fixup and add debugfs to fstab
 grep -q "/sys/kernel/debug" ${TARGET_DIR}/etc/fstab ||\
