@@ -8,8 +8,16 @@ config BR2_PACKAGE_LRD_AUTOMOUNT_USB
 	bool "USB Drive Automount"
 	default y
 
+config BR2_PACKAGE_LRD_AUTOMOUNT_USB_USER
+	string "User to own mounted USB drive"
+	depends on BR2_PACKAGE_LRD_AUTOMOUNT_USB
+
 config BR2_PACKAGE_LRD_AUTOMOUNT_MMC
 	bool "SD Card Automount"
 	default y
+
+config BR2_PACKAGE_LRD_AUTOMOUNT_MMC_USER
+	string "User to own mounted MMC drive"
+	depends on BR2_PACKAGE_LRD_AUTOMOUNT_MMC
 
 endif
