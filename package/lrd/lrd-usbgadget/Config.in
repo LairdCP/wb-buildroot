@@ -21,4 +21,10 @@ config BR2_PACKAGE_LRD_USBGADGET_TYPE_NCM
 	  Laird RNDIS USB Ethernet Gadget NCM
 
 endchoice
+
+config BR2_PACKAGE_LRD_USBGADGET_TYPE_STRING
+	string
+	default "rndis" if BR2_PACKAGE_LRD_USBGADGET_TYPE_RNDIS
+	default "ncm"   if BR2_PACKAGE_LRD_USBGADGET_TYPE_NCM
+
 endif
