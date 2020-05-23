@@ -22,9 +22,13 @@ create_gadgets () {
 
 	[ -z "${proto}" ] && proto=rndis
 
-	modprobe usb_f_fs usb_f_${proto}
+	modprobe -qa atmel_usba_udc at91_udc
+	modprobe -a usb_f_fs usb_f_${proto}
 
-	[ -d "${GADGET_DIR}" ] || exit 1;
+	if [ ! -d "${GADGET_DIR}" ]; then
+		mount -t configfs none /sys/kernel/config
+		[ -d "${GADGET_DIR}" ] || { echo "ConfigFS not found"; exit 1; }
+	fi
 
 	for udc_name in $(ls ${UDC_DIR}); do
 		mkdir ${GADGET_DIR}/g${counter}
