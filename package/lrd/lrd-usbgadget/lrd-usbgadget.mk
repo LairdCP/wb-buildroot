@@ -1,39 +1,38 @@
 #############################################################
 #
-# Laird USB Ethernet Gadget Helper
+# Laird Connectivity USB Ethernet Gadget Helper
 #
 #############################################################
 
+ifneq ($(BR2_PACKAGE_LRD_NETWORK_MANAGER)$(BR2_PACKAGE_NETWORK_MANAGER),)
+define LRD_USBGADGET_INSTALL_NM
+	$(INSTALL) -D -m 0600 -t $(TARGET_DIR)/etc/NetworkManager/system-connections/ \
+		package/lrd/lrd-usbgadget/shared-usb0.nmconnection 
+endef
+endif
 
 define LRD_USBGADGET_INSTALL_TARGET_CMDS
-	$(INSTALL) -m 0755 package/lrd/lrd-usbgadget/usb-gadget.sh $(TARGET_DIR)/usr/bin/
+	$(INSTALL) -D -m 0755 -t $(TARGET_DIR)/usr/bin/ \
+		package/lrd/lrd-usbgadget/usb-gadget.sh
 
-	$(INSTALL) -d $(TARGET_DIR)/etc/NetworkManager/system-connections
-	$(INSTALL) -m 0600 package/lrd/lrd-usbgadget/shared-usb0 $(TARGET_DIR)/etc/NetworkManager/system-connections
+	$(LRD_USBGADGET_INSTALL_NM)
 endef
-
-ifeq ($(BR2_PACKAGE_LRD_USBGADGET_TYPE_RNDIS),y)
-define LRD_USBGADGET_RNDIS_INSTALL_SYSTEMD
-	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/usb-gadget@.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/usb-gadget@rndis.service
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LRD_USBGADGET_TYPE_NCM),y)
-define LRD_USBGADGET_NCM_INSTALL_SYSTEMD
-	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/usb-gadget@.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/usb-gadget@ncm.service
-endef
-endif
 
 define LRD_USBGADGET_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -D -m 644 package/lrd/lrd-usbgadget/usb-gadget@.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/usb-gadget@.service
 
 	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
+	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/usb-gadget@.service \
+		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/usb-gadget@$(BR2_PACKAGE_LRD_USBGADGET_TYPE_STRING).service
+endef
 
-	$(LRD_USBGADGET_RNDIS_INSTALL_SYSTEMD)
-	$(LRD_USBGADGET_NCM_INSTALL_SYSTEMD)
+define LRD_USBGADGET_INSTALL_INIT_SYSV
+	$(INSTALL) -D -m 0755 -t $(TARGET_DIR)/etc/init.d/ \
+		package/lrd/lrd-usbgadget/S43usb-gadget
+
+	sed -i "s/proto=.*/proto=$(BR2_PACKAGE_LRD_USBGADGET_TYPE_STRING)/" \
+		$(TARGET_DIR)/etc/init.d/S43usb-gadget
 endef
 
 $(eval $(generic-package))
