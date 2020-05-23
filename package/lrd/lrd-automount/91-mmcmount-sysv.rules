@@ -1,0 +1,4 @@
+# Rules for MMC mount -*- conf -*-
+
+SUBSYSTEM=="block", ACTION=="add",    ENV{ID_FS_USAGE}=="filesystem", ENV{DEVNAME}=="/dev/mmcblk[0-9]p[0-9]", RUN+="/usr/bin/usb-mount.sh add    $env{DEVNAME}"
+SUBSYSTEM=="block", ACTION=="remove", ENV{ID_FS_USAGE}=="filesystem", ENV{DEVNAME}=="/dev/mmcblk[0-9]p[0-9]", RUN+="/usr/bin/usb-mount.sh remove $env{DEVNAME}"
