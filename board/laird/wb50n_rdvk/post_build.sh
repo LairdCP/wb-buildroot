@@ -28,6 +28,22 @@ rsync -rlptDWK --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
 cp "${BOARD_DIR}/../rootfs-additions-common/usr/sbin/fw_"* "${TARGET_DIR}/usr/sbin"
 rm -f ${TARGET_DIR}/etc/init.d/S20urandom
 
+mkdir -p ${TARGET_DIR}/etc/NetworkManager/system-connections
+
+# Make sure connection files have proper attributes
+for f in ${TARGET_DIR}/etc/NetworkManager/system-connections/* ; do
+	if [ -f "${f}" ] ; then
+		chmod 600 "${f}"
+	fi
+done
+
+# Make sure dispatcher files have proper attributes
+for f in ${TARGET_DIR}/etc/NetworkManager/dispatcher.d/* ; do
+	if [ -f "${f}" ] ; then
+		chmod 700 "${f}"
+	fi
+done
+
 # Fixup and add debugfs to fstab
 grep -q "/sys/kernel/debug" ${TARGET_DIR}/etc/fstab ||\
 	echo 'nodev /sys/kernel/debug   debugfs   defaults   0  0' >> ${TARGET_DIR}/etc/fstab
