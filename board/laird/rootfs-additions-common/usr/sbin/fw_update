@@ -190,6 +190,7 @@ __END-OF-JSON-NOTIFICATION-BLOCK
 }
 
 ask() {
+  read -t 1 -n 1000
   if read -p "$1 [y/N ..$2s]" -rst $2 -n 1 && [ "$REPLY" == y ] ; then
     echo y
     return 0
@@ -962,6 +963,7 @@ if $x_reboot ; then
   if $o_force ; then
     et=0
   else
+    read -t 1 -n 1000
     et=5
     while let --et ; do
       echo -ne "\rHit any key to avoid reboot in ${et}s ... "
