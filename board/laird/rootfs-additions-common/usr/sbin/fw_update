@@ -190,20 +190,13 @@ __END-OF-JSON-NOTIFICATION-BLOCK
 }
 
 ask() {
-  # preset last param for optional expected reply and flush input
-  [ "${1:0:2}" == "-e" ] && { e=${1:2}; shift; } || e=
-  IFS= read -rst1 -n11
-  eval ${@##* }=$e
-
-  # prompt
-  read "$@"
-  p=${1/*\[/[}
-  test -n "$e" \
-    && echo -e "${p//?/\b}[${a:-$e}]\033[K"
-
-  # test if reply is/was expected
-  eval ans=\$${@##* }
-  test "$ans" == "$e"
+  if read -p "$1 [y/N ..$2s]" -rst $2 -n 1 && [ "$REPLY" == y ] ; then
+    echo y
+    return 0
+  else
+    echo n
+    return 1
+  fi
 }
 
 exit_error() {
@@ -223,11 +216,11 @@ verbose() {
 } 2>$X
 
 await() {
-  let ax=$1 eto=$2+0
-  while [ -f /proc/$ax/comm ] && let eto--
+  eto=$2
+  while [ -f /proc/$1/comm ] && let eto--
   do
     $o_verbose && printf $3
-    usleep 999876
+    sleep 1
   done &
 } 2>$X
 
@@ -252,7 +245,7 @@ case $x in
     ;;
   *'Workgroup Bridge 50N'*) ### arch/arm/boot/dts/wb50n.dts
     wb=wb50n
-    NWBPS=4000000
+    NWBPS=3000000
     memsz=64M
     ;;
   *) ### architecture unknown
@@ -577,8 +570,7 @@ then
   # revert?
   if ! $o_force
   then
-    ask -e"n" -p"Proceed? [y/N ..5s]" -rst5 -n1 a
-    [ "$a" == "y" ] || exit_error "need to reboot"
+    ask "Proceed?" 5 || exit_error "need to reboot"
   fi
   echo -e "  ...proceeding"
   fw_select -- >$X 2>&1 \
@@ -686,8 +678,7 @@ assert_image() {
     then
       echo - overwriting
     else
-      ask -e"n" -p"- overwrite? [y/N ..9s]" -rst9 -n1 a
-      [ "$a" == "y" ] || return 1
+      ask "- overwrite?" 9 || return 1
     fi
   else
     echo
@@ -695,7 +686,7 @@ assert_image() {
   unset md5 src
 
   # estimate time from nand-write-bytes-per-sec
-  let et=$sz/$NWBPS+1 && $o_check && let et+=$et/2
+  et=$(($sz/$NWBPS+2))
 
   return 0
 }
@@ -958,8 +949,7 @@ then
       then
         echo "$txt"
       else
-        ask -e"n" -p"$txt? [y/N ..5s]" -rst5 -n1 a
-        [ "$a" == "y" ]
+        ask "$txt?" 5
       fi
     fi
     test $? -eq 0 \
@@ -968,20 +958,17 @@ then
   fi
 fi
 
-if $x_reboot
-then
-  IFS= read -rst1 -n11 a
-  for et in 4 3 2 1
-  do
-    unset a
-    $o_force && break
-    echo -e "Hit any key to avoid reboot in ${et}s ...\c"
-    IFS= read -rst1 -n1 a
-    echo -e \\\033[1K\\\r\\\c
-    [ -n "$a" ] && break
-  done
-  test -z "$a" \
-    && { echo -e \ \ reboot >&2; ${tm:+:} reboot; exit; }
+if $x_reboot ; then
+  if $o_force ; then
+    et=0
+  else
+    et=5
+    while let --et ; do
+      echo -ne "\rHit any key to avoid reboot in ${et}s ... "
+      read -rst 1 -n 1 && break
+    done
+  fi
+  [ $et -ne 0 ] || { echo "reboot" >&2; ${tm:+:} reboot; exit; }
 fi
 
 ${tm:-:} \\\n$SELF v$VERSION \[testmode\]
