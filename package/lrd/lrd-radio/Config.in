@@ -11,6 +11,7 @@ choice
 		select BR2_PACKAGE_LINUX_BACKPORTS
 		select BR2_PACKAGE_ADAPTIVE_WW_BINARIES
 		select BR2_PACKAGE_LRD_NETWORK_MANAGER
+		select BR2_PACKAGE_ADAPTIVE_BT_BINARIES
 
 	config BR2_LRD_WB50N_SYSD_RADIO
 		bool "WB50N SYSD Radio"
@@ -87,6 +88,8 @@ source "package/lrd/lrd-radio/summit-supplicant-binaries/Config.in"
 source "package/lrd/lrd-radio/som60-firmware-binaries/Config.in"
 source "package/lrd/lrd-radio/adaptive_ww-binaries/Config.in"
 source "package/lrd/lrd-radio/mfg60n-binaries/Config.in"
+source "package/lrd/lrd-radio/adaptive_bt-binaries/Config.in"
+
 endif
 
 if BR2_LRD_WB50N_SYSD_RADIO
