@@ -95,7 +95,6 @@ LOCRELSTR="${LAIRD_RELEASE_STRING}"
 if [ -z "${LOCRELSTR}" ] || [ "${LOCRELSTR}" == "0.0.0.0" ]; then
 	LOCRELSTR="Summit Linux development build 0.${BR2_LRD_BRANCH}.0.0 $(date +%Y%m%d)"
 fi
-echo "${LOCRELSTR}" > "${TARGET_DIR}/etc/laird-release"
 
 [ -z "${VERSION}" ] && LOCVER="0.${BR2_LRD_BRANCH}.0.0" || LOCVER="${VERSION}"
 
