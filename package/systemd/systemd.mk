@@ -16,7 +16,7 @@ SYSTEMD_DEPENDENCIES = \
 	kmod \
 	libcap \
 	util-linux \
-	$(TARGET_NLS_DEPENDENCIES)
+	host-gettext
 
 SYSTEMD_PROVIDES = udev
 
