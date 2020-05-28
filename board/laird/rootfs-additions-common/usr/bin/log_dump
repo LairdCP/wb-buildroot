@@ -61,7 +61,8 @@ fi
 echo "-----system-----" >> $LOGFILE
 case "$x" in
 	*'Workgroup Bridge'*)
-	cat /etc/laird-release >> $LOGFILE
+	. /etc/os-release
+	echo ${VERSION} >> $LOGFILE
 	wb=yes
 	;;
 	*)
