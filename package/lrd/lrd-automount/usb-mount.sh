@@ -40,7 +40,7 @@ do_mount()
     # Get info for this drive: $ID_FS_LABEL, $ID_FS_UUID, and $ID_FS_TYPE
     if [ -z "${ID_FS_TYPE}" ]; then
         eval $(/sbin/blkid -o udev ${DEVICE})
-        [ -z "${ID_FS_TYPE}" ] || \
+        [ -n "${ID_FS_TYPE}" ] || \
 			{ echo "${DEVICE} is not a fileystem"; exit 1; }
     fi
 
