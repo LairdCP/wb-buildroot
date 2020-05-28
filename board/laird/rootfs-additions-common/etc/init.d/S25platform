@@ -100,20 +100,14 @@ case $1 in
 
   start)
     echo -e "Checking platform... \c"
-    # Determine *-release file name.
-    [ -f /etc/laird-release ] && rfn=laird || rfn=summit
-    # Extract wb-platform-specific information:
-    # The wb-version string should be last word in a /etc/*-release file.
-    # The wb-type=image values read via kernel cmdline as:  wbNNxxx=ab/ab
-    if read -r x </etc/$rfn-release 2>/dev/null
-    then
-      wbv=${x##* }
-      read -r x </proc/cmdline
-      for xi in $x
-      do
-        case $xi in wb[0-9][0-9]*) wbt=${xi%%=*}_; wbi=\ ~${xi##*=};; esac
-      done
-    fi
+    . /etc/os-release
+    wbv=${VERSION_ID}
+    read -r x </proc/cmdline
+    for xi in $x
+    do
+      case $xi in wb[0-9][0-9]*) wbt=${xi%%=*}_; wbi=\ ~${xi##*=};; esac
+    done
+
     echo "${wbt}${wbv}${wbi}"
     do_platform_ethernet_mac_address_check
 

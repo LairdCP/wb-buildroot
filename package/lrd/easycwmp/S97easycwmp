@@ -44,7 +44,8 @@ start()
   oval=`$UCI_GET easycwmp.@device[0].hardware_version`
   [ -n "$val" -a "$val" != "$oval" ] && { $UCI_SET easycwmp.@device[0].hardware_version="$val"; change=1; }
 
-  val=`cat "/etc/laird-release"`
+  . /etc/os-release
+  val=${VERSION_ID}
   oval=`$UCI_GET easycwmp.@device[0].software_version`
   [ -n "$val" -a "$val" != "$oval" ] && { $UCI_SET easycwmp.@device[0].software_version="$val"; change=1; }
 
