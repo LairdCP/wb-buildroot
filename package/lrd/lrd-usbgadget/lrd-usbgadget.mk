@@ -24,7 +24,7 @@ define LRD_USBGADGET_INSTALL_INIT_SYSTEMD
 
 	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
 	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/usb-gadget@.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/usb-gadget@$(BR2_PACKAGE_LRD_USBGADGET_TYPE_STRING).service
+		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/usb-gadget@$(call qstrip,$(BR2_PACKAGE_LRD_USBGADGET_TYPE_STRING)).service
 endef
 
 define LRD_USBGADGET_INSTALL_INIT_SYSV
