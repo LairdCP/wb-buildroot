@@ -45,7 +45,7 @@ create_gadgets () {
 			echo 0xa4a1 > idProduct
 		fi
 
-		mkdir strings/0x409
+		mkdir -p strings/0x409
 		if [ -e /sys/devices/soc0/soc_uid ]; then
 			cat /sys/devices/soc0/soc_uid > strings/0x409/serialnumber
 		else
@@ -103,9 +103,9 @@ destroy_gadgets () {
 	done
 }
 
-case "$1" in
+case "${1}" in
 	start)
-		create_gadgets $2
+		create_gadgets "${2}"
 		;;
 
 	stop)
