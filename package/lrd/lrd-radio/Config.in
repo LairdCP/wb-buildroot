@@ -60,21 +60,21 @@ depends on !BR2_LRD_NO_RADIO && !BR2_LRD_WB50N_LEGACY_RADIO && !BR2_LRD_WB45N_RA
 config BR2_PACKAGE_LRD_60_RADIO_STACK_VERSION_VALUE
 	string "SOM60 radio stack version"
 	depends on BR2_LRD_SOM60_RADIO || BR2_LRD_SOM60_FIPS_RADIO
-	default "8.0.0.46"
+	default "8.0.0.49"
 	help
 	Version number for radio packages.
 
 config BR2_PACKAGE_LRD_50_RADIO_STACK_VERSION_VALUE
 	string "WB radio stack version"
 	depends on BR2_LRD_WB50N_SYSD_RADIO || BR2_LRD_WB50N_SYSD_FIPS_RADIO || BR2_LRD_WB50N_LEGACY_RADIO
-	default "8.0.0.46"
+	default "8.0.0.49"
 	help
 	  Version number for radio packages.
 
 config BR2_PACKAGE_LRD_45_RADIO_STACK_VERSION_VALUE
 	string "WB radio stack version"
 	depends on BR2_LRD_WB45N_RADIO
-	default "8.0.0.46"
+	default "8.0.0.49"
 	help
 	  Version number for radio packages.
 
