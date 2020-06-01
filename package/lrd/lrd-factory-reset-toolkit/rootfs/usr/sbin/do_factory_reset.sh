@@ -11,8 +11,12 @@ FIREWALLD_CONF_FILE=${FIREWALLD_CONF_DIR}/firewalld.conf
 
 FACTORY_SETTING_TARGET=/data/secret
 NM_CONF_FILE_TARGET=${FACTORY_SETTING_TARGET}/NetworkManager/NetworkManager.conf
-WEBLCM_CONF_FILE_TARGET=${FACTORY_SETTING_TARGET}/weblcm-python/weblcm-python.ini
+WEBLCM_CONF_FILE_TARGET=${FACTORY_SETTING_TARGET}/weblcm-python/weblcm-settings.ini
 FIREWALLD_CONF_FILE_TARGET=${FACTORY_SETTING_TARGET}/firewalld/firewalld.conf
+
+FACTORY_SETTING_ZONES_TARGET=/data/misc/zoneinfo
+FACTORY_SETTING_DEFAULT_ZONE=/usr/share/zoneinfo/Etc/UTC
+FACTORY_SETTING_USER_ZONE=/data/misc/zoneinfo/localtime
 
 exit_on_error() {
 	echo "${1}"
@@ -34,11 +38,18 @@ do_check_and_reset() {
 	if [ ! -f "${FIREWALLD_CONF_FILE_TARGET}" ] && [ -f "${FIREWALLD_CONF_FILE}" ]; then
 		cp -fa ${FIREWALLD_CONF_DIR} ${FACTORY_SETTING_TARGET}/ || exit_on_error "Copying firewalld data.. Failed"
 	fi
+
+	if [ ! -f "${FACTORY_SETTING_USER_ZONE}" ]; then
+		mkdir -p ${FACTORY_SETTING_ZONES_TARGET}
+		ln -sf ${FACTORY_SETTING_DEFAULT_ZONE} ${FACTORY_SETTING_USER_ZONE}
+		ln -sf ${FACTORY_SETTING_USER_ZONE} "/etc/localtime"
+	fi
 }
 
 do_delete() {
 	#Delete all user data
 	rm -fr ${FACTORY_SETTING_TARGET}/*
+	rm -fr ${FACTORY_SETTING_ZONES_TARGET}/*
 }
 
 case $1 in
