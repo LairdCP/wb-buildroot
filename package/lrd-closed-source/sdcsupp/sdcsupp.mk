@@ -121,6 +121,8 @@ define SDCSUPP_INSTALL_INIT_SYSTEMD
 		$(TARGET_DIR)/usr/lib/systemd/system/wpa_supplicant-nl80211@.service
 	$(INSTALL) -m 0644 -D $(SDCSUPP_D)/systemd/wpa_supplicant-wired@.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/wpa_supplicant-wired@.service
+	$(INSTALL) -m 0644 -D $(SDCSUPP_PKGDIR)/50-wpa_supplicant.preset \
+		$(TARGET_DIR)/usr/lib/systemd/system-preset/50-wpa_supplicant.preset
 endef
 
 ifeq ($(BR2_INIT_NONE),y)
