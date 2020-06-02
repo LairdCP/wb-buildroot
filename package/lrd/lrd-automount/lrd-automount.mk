@@ -17,24 +17,24 @@ endef
 
 ifeq ($(BR2_PACKAGE_LRD_AUTOMOUNT_USB),y)
 define LRD_AUTOMOUNT_INSTALL_USB_INIT_SYSTEMD
-	$(INSTALL) -D -m 0755 package/lrd/lrd-automount/90-usbmount.rules \
+	$(INSTALL) -D -m 644 package/lrd/lrd-automount/90-usbmount.rules \
 		$(TARGET_DIR)/etc/udev/rules.d/90-usbmount.rules
 endef
 
 define LRD_AUTOMOUNT_INSTALL_USB_INIT_SYSV
-	$(INSTALL) -D -m 0755 package/lrd/lrd-automount/90-usbmount-sysv.rules \
+	$(INSTALL) -D -m 644 package/lrd/lrd-automount/90-usbmount-sysv.rules \
 		$(TARGET_DIR)/etc/udev/rules.d/90-usbmount.rules
 endef
 endif
 
 ifeq ($(BR2_PACKAGE_LRD_AUTOMOUNT_MMC),y)
 define LRD_AUTOMOUNT_INSTALL_MMC_INIT_SYSTEMD
-	$(INSTALL) -D -m 0755 package/lrd/lrd-automount/91-mmcmount.rules \
+	$(INSTALL) -D -m 644 package/lrd/lrd-automount/91-mmcmount.rules \
 		$(TARGET_DIR)/etc/udev/rules.d/91-mmcmount.rules
 endef
 
 define LRD_AUTOMOUNT_INSTALL_MMC_INIT_SYSV
-	$(INSTALL) -D -m 0755 package/lrd/lrd-automount/91-mmcmount-sysv.rules \
+	$(INSTALL) -D -m 644 package/lrd/lrd-automount/91-mmcmount-sysv.rules \
 		$(TARGET_DIR)/etc/udev/rules.d/91-mmcmount.rules
 endef
 endif
