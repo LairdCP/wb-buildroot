@@ -39,4 +39,9 @@ define MODEM_MANAGER_INSTALL_INIT_SYSV
 		$(TARGET_DIR)/etc/init.d/S44modem-manager
 endef
 
+define MODEM_MANAGER_INSTALL_INIT_SYSTEMD
+	$(INSTALL) -m 0644 -D $(MODEM_MANAGER_PKGDIR)/50-modem-manager.preset \
+		$(TARGET_DIR)/usr/lib/systemd/system-preset/50-modem-manager.preset
+endef
+
 $(eval $(autotools-package))
