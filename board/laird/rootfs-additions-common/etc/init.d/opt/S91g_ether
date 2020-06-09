@@ -22,17 +22,17 @@ create_gadgets () {
 
 	[ -n "${proto}" ] || proto=rndis
 
-	modprobe -q atmel_usba_udc at91_udc
-	modprobe usb_f_fs usb_f_${proto}
+	modprobe -qa atmel_usba_udc at91_udc
+	modprobe -a usb_f_fs usb_f_${proto}
 
-	mount | grep -q '/sys/kernel/config' || \
+	if [ ! -d "${GADGET_DIR}" ]; then
 		mount -t configfs none /sys/kernel/config
-
-	[ -d "${GADGET_DIR}" ] || exit 1;
+		[ -d "${GADGET_DIR}" ] || { echo "ConfigFS not found"; exit 1; }
+	fi
 
 	for udc_name in $(ls ${UDC_DIR}); do
-		mkdir ${GADGET_DIR}/g${counter}
-		cd ${GADGET_ DIR}/g${counter}
+		mkdir -p ${GADGET_DIR}/g${counter}
+		cd ${GADGET_DIR}/g${counter}
 
 		echo 0x0525 > idVendor
 
@@ -45,7 +45,7 @@ create_gadgets () {
 			echo 0xa4a1 > idProduct
 		fi
 
-		mkdir strings/0x409
+		mkdir -p strings/0x409
 		if [ -e /sys/devices/soc0/soc_uid ]; then
 			cat /sys/devices/soc0/soc_uid > strings/0x409/serialnumber
 		else
@@ -115,4 +115,5 @@ case "$1" in
 	*)
 		echo $"Usage: $0 {start|stop} {rndis|ncm|ecm|eem}"
 		exit 1
+		;;
 esac
