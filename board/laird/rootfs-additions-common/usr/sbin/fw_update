@@ -16,7 +16,7 @@
 
 # Firmware Update Utility for WB50n/WB45n/WB40n Legacy
 #
-VERSION=2.18
+VERSION=2.19
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
@@ -406,7 +406,7 @@ wget() {
 
 copy() {
   # args: <src> -O <dst>
-  ${3:+${*/* -O */eval >$3 cat $1}}
+  cat $1 >$3
 } 2>>/tmp/fwu.err
 
 ping_server() {
