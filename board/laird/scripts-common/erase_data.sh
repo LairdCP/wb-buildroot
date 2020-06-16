@@ -32,14 +32,19 @@ migrate_data() {
 	/bin/mount -o noatime -t ubifs "${1}" "${MOUNT_POINT}" || exit_on_error 0 "Mounting ${DATA_DEVICE} to ${MOUNT_POINT} Failed"
 	#Wipe data patition
 	rm -rf "${MOUNT_POINT}"/*
-	if [ ${do_data_migration} == 1 ]; then
+	if [ "${do_data_migration}" -ne 0 ]; then
+		mkdir -p "${DATA_SECRET_TARGET}"
 		#Migrate secret data if exists
 		if [ -d "${DATA_SECRET_SRC}"  ]; then
-			#keyutils is installed if securefs is enabled. Needs keyring to access secret data.
-			if [ -f /bin/keyctl  ]; then
+			#mount_data.service should be active when securefs is enabled.
+			/bin/systemctl -q is-active mount_data
+			if [ "$?" -eq 0 ]; then
+				#Needs keyring to access secret data.
 				/bin/keyctl link @us @s
+				#Target dir is not encrypted anymore after nand erase. Encrypt it before migrating data.
+				FSCRYPT_KEY=ffffffffffffffff
+				/bin/fscryptctl set_policy ${FSCRYPT_KEY} ${DATA_SECRET_TARGET}
 			fi
-			mkdir -p "${DATA_SECRET_TARGET}" || exit_on_error 1 "Directory Creation for ${DATA_SECRET_TARGET} Failed"
 			#migrate the secret data
 			/bin/rsync -rlptDW --exclude=.mounted "${DATA_SECRET_SRC}/" "${DATA_SECRET_TARGET}" || exit_on_error 1 "Data Copying.. Failed"
 		fi
