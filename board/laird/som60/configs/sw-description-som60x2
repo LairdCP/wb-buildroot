@@ -159,7 +159,7 @@ software =
 				{
 					name = "rootfs_data_a";
 					mtdname = "ubi";
-					size = 20971520 */
+					size = 20971520; /* in bytes */
 				},
 				{
 					name = "kernel_b";
