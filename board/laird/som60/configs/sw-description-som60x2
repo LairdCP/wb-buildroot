@@ -154,7 +154,7 @@ software =
 				{
 					name = "rootfs_a";
 					mtdname = "ubi";
-					size = 11534336; /* in bytes */
+					size = 184549376; /* in bytes */
 				},
 				{
 					name = "rootfs_data_a";
@@ -169,7 +169,7 @@ software =
 				{
 					name = "rootfs_b";
 					mtdname = "ubi";
-					size = 11534336; /* in bytes */
+					size = 184549376; /* in bytes */
 				},
 				{
 					name = "rootfs_data_b";
