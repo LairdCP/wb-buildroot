@@ -1616,6 +1616,9 @@ F:	package/shellinabox/
 N:	Paresh Chaudhary <paresh.chaudhary@rockwellcollins.com>
 F:	package/checksec/
 
+N:	Owen Walpole <owen@walpole.dev>
+F:	package/parprouted/
+
 N:	Parnell Springmeyer <parnell@digitalmentat.com>
 F:	package/scrypt/
 
