@@ -7,6 +7,8 @@ define IG_TTY_UTILS_INSTALL_INIT_SYSTEMD
 		-m 644 $(IG_TTY_UTILS_PKGDIR)/ttyS2-startup.conf
 	$(INSTALL) -D -t $(TARGET_DIR)/usr/lib/systemd/system \
 		-m 644 $(IG_TTY_UTILS_PKGDIR)/ig-card-detect.service
+	$(INSTALL) -D -t $(TARGET_DIR)/etc/systemd/system/serial-getty@.service.d \
+		-m 644 $(IG_TTY_UTILS_PKGDIR)/serial-getty-baud-fix.conf
 	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
 	ln -srf $(TARGET_DIR)/usr/lib/systemd/system/ig-card-detect.service \
 		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/ig-card-detect.service
