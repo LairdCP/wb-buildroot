@@ -29,6 +29,8 @@ config BR2_PACKAGE_LIBOPENSSL
 
 	  Note: Some helper scripts need perl.
 
+source "package/libopenssl/Config.in"
+
 config BR2_PACKAGE_LIBOPENSSL_1_0_2
 	bool "openssl 1.0.2"
 	select BR2_PACKAGE_ZLIB
