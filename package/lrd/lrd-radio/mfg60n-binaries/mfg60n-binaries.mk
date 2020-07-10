@@ -1,34 +1,21 @@
 MFG60N_BINARIES_VERSION = $(call qstrip,$(BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE))
-MFG60N_BINARIES_SOURCE =
+MFG60N_BINARIES_SOURCE = mfg60n$(call qstrip,$(BR2_PACKAGE_LRD_RADIO_STACK_ARCH))-$(MFG60N_BINARIES_VERSION).tar.bz2
+MFG60N_BINARIES_STRIP_COMPONENTS = 0
 MFG60N_BINARIES_LICENSE = GPL-2.0
 
-ifeq ($(BR2_arm),y)
-ifeq ($(BR2_ARM_EABIHF),y)
-MFG60N_BINARIES_TYPE2 = -arm-eabihf
-else
-MFG60N_BINARIES_TYPE2 = -arm-eabi
-endif
-else ifeq ($(BR2_aarch64),y)
-MFG60N_BINARIES_TYPE2 = -aarch64
-else ifeq ($(BR2_PACKAGE_MFG60N_BINARIES)$(BR_BUILDING),yy)
-$(error "Unknown architecture")
-endif
-
-MFG60N_BINARIES_EXTRA_DOWNLOADS = mfg60n$(MFG60N_BINARIES_TYPE2)-$(MFG60N_BINARIES_VERSION).tar.bz2
-
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
-  MFG60N_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/mfg60n/laird/$(MFG60N_BINARIES_VERSION)
-  ifeq ($(shell wget -q --spider $(MFG60N_BINARIES_SITE) && echo ok),)
-	  MFG60N_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/mfg60n-arm-eabihf/laird/$(MFG60N_BINARIES_VERSION)
-  endif
+	MFG60N_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/mfg60n/laird/$(MFG60N_BINARIES_VERSION)
+	ifeq ($(shell wget -q --spider $(MFG60N_BINARIES_SITE) && echo ok),)
+		MFG60N_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/mfg60n-arm-eabihf/laird/$(MFG60N_BINARIES_VERSION)
+	endif
 else
-  MFG60N_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(MFG60N_BINARIES_VERSION)
+	MFG60N_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(MFG60N_BINARIES_VERSION)
 endif
 
-define MFG60N_BINARIES_EXTRACT_CMDS
-	tar -xjf $($(PKG)_DL_DIR)/$(MFG60N_BINARIES_EXTRA_DOWNLOADS) -C $(@D) --keep-directory-symlink --no-overwrite-dir --touch
-	(cd $(@D) && ./mfg60n$(MFG60N_BINARIES_TYPE2)-$(MFG60N_BINARIES_VERSION).sh tar && mkdir -p files)
-	tar -xvjf $(@D)/mfg60n$(MFG60N_BINARIES_TYPE2)-$(MFG60N_BINARIES_VERSION).tar.bz2 -C $(@D)/files/
+define MFG60N_BINARIES_BUILD_CMDS
+	(cd $(@D) && ./$(MFG60N_BINARIES_SOURCE:%.tar.bz2=%.sh) tar)
+	mkdir -p $(@D)/files
+	tar -xvjf $(@D)/$(MFG60N_BINARIES_SOURCE) -C $(@D)/files/
 endef
 
 define MFG60N_BINARIES_INSTALL_TARGET_CMDS

@@ -20,40 +20,25 @@
 ehci_bus=/dev/bus/usb/002/001
 ohci_bus=/dev/bus/usb/001/001
 
-rv=1
+rv=0
 case $1 in
 
 	stop)
 		echo -e "Stopping USB host-mode"
 
-		# this will not be effective if still setting up,
-		# and thus... usb-storage will still be in use
-		umount /media/usb* 2>/dev/null
-
-		modprobe -r usb-storage
-
-		if grep -sq 'smart[BS][AS]' /proc/[0-9]*/comm
-		then
-			echo "Warning: SmartBASIC is still running"
-		fi
-		modprobe -r ohci_at91
-		modprobe -rq ehci_atmel
 		modprobe -r usb-storage
 		rv=$?
+
+		modprobe -r ohci_at91
+		modprobe -rq ehci_atmel
 	;;
 
 	start)
 		echo -e "Starting USB host-mode"
-		[ ! -d /sys/class/net/usb0 ] \
-		|| { echo "  Warning: USB is already in device mode."; }
+		[ ! -d /sys/class/net/usb0 ] || \
+			echo "  Warning: USB is already in device mode."
 
-		modprobe -q ehci_atmel && \
-		{ read -rst2 x < ${ehci_bus}; } 2>/dev/null
-		# enumerate and provide upto 2s delay - don't unload
-
-		modprobe ohci_at91
-		{ read -rst3 x < ${ohci_bus}; } 2>/dev/null
-		# enumerate and provide upto 3s delay - don't unload
+		modprobe -qa ehci_atmel ohci_at91
 
 		modprobe usb-storage
 		rv=$?

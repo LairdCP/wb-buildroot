@@ -39,10 +39,4 @@ case $1 in
     fi
     fi
     ;;
-
-
-
 esac
-exit 0
-
-
