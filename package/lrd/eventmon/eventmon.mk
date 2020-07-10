@@ -20,7 +20,7 @@ EVENTMON_MAKE_ENV = CC="$(TARGET_CC)" \
                     CFLAGS="$(TARGET_CFLAGS)"
 
 define EVENTMON_BUILD_CMDS
-    $(MAKE) -C $(@D) clean
+	$(MAKE) -C $(@D) clean
 	$(EVENTMON_MAKE_ENV) $(MAKE) -C $(@D)
 endef
 

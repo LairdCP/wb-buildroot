@@ -1,0 +1,3 @@
+#!/bin/ash
+
+. /etc/init.d/rcS stop

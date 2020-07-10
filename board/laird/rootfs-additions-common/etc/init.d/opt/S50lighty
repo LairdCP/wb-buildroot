@@ -1,4 +1,4 @@
-#!/bin/ash
+#!/bin/sh
 
 # Copyright (c) 2015, Laird Connectivity
 # Permission to use, copy, modify, and/or distribute this software for any
@@ -16,7 +16,6 @@
 
 # lighty - init script support for inetd
 # Main script resides as /usr/sbin/lighty.
-
 case $1 in
   stop)
     ;;
