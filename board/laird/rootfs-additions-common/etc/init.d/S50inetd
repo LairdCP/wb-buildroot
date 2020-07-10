@@ -129,4 +129,3 @@ case $1 in
     echo "Usage: $0 {stop|start|restart|reload}"
     ;;
 esac
-exit 0

@@ -24,7 +24,6 @@
 # ./S??lighttpd start [/etc/lighttpd/lighttpd.conf]
 #
 
-
 status() {
   echo "+ ps ax -opid,args"
   ps ax -opid,args |grep -e"[^0-9]lighttp[d]" -e"php[-]"

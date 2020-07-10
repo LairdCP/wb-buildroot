@@ -1,24 +1,18 @@
 REG50N_BINARIES_VERSION = $(call qstrip,$(BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE))
-REG50N_BINARIES_SOURCE =
+REG50N_BINARIES_SOURCE = reg50n$(call qstrip,$(BR2_PACKAGE_LRD_RADIO_STACK_ARCH))-$(REG50N_BINARIES_VERSION).tar.bz2
+REG50N_BINARIES_STRIP_COMPONENTS = 0
 REG50N_BINARIES_LICENSE = GPL-2.0
 
-ifeq ($(BR2_arm),y)
-ifeq ($(BR2_ARM_EABIHF),y)
-REG50N_BINARIES_TYPE2 = -arm-eabihf
+ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
+	REG50N_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/reg50n/laird/$(REG50N_BINARIES_VERSION)
 else
-REG50N_BINARIES_TYPE2 = -arm-eabi
-endif
-else ifeq ($(BR2_PACKAGE_REG50N_BINARIES)$(BR_BUILDING),yy)
-$(error "Unknown architecture")
+	REG50N_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(REG50N_BINARIES_VERSION)
 endif
 
-REG50N_BINARIES_EXTRA_DOWNLOADS = reg50n$(REG50N_BINARIES_TYPE2)-$(REG50N_BINARIES_VERSION).tar.bz2
-REG50N_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/reg50n/laird/$(REG50N_BINARIES_VERSION)
-
-define REG50N_BINARIES_EXTRACT_CMDS
-	tar -xjf $($(PKG)_DL_DIR)/$(REG50N_BINARIES_EXTRA_DOWNLOADS) -C $(@D) --keep-directory-symlink --no-overwrite-dir --touch
-	(cd $(@D) && ./reg50n$(REG50N_BINARIES_TYPE2)-$(REG50N_BINARIES_VERSION).sh tar && mkdir -p files)
-	tar -xvjf $(@D)/reg50n$(REG50N_BINARIES_TYPE2)-$(REG50N_BINARIES_VERSION).tar.bz2 -C $(@D)/files/
+define REG50N_BINARIES_BUILD_CMDS
+	(cd $(@D) && ./$(REG50N_BINARIES_SOURCE:%.tar.bz2=%.sh) tar)
+	mkdir -p $(@D)/files
+	tar -xvjf $(@D)/$(REG50N_BINARIES_SOURCE) -C $(@D)/files/
 endef
 
 define REG50N_BINARIES_INSTALL_TARGET_CMDS
