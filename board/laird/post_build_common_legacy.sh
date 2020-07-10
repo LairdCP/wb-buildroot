@@ -8,8 +8,8 @@ set -x -e
 rm -f ${TARGET_DIR}/etc/init.d/S50sshd
 
 # remove default init's, they are replaced
-rm -f ${TARGET_DIR}/etc/init.d/S20urandom
 rm -f ${TARGET_DIR}/etc/init.d/S50lighttpd
+rm -f ${TARGET_DIR}/etc/init.d/S20urandom
 rm -f ${TARGET_DIR}/etc/init.d/S40network
 
 #remove the dhcp init scripts
@@ -24,9 +24,6 @@ rm -f ${TARGET_DIR}/usr/bin/chkdupexe
 
 # remove debian cruft
 rm -fr ${TARGET_DIR}/etc/network/if-*
-
-# remove conflicting rcK
-#rm -f ${TARGET_DIR}/etc/init.d/rcK
 
 # Copy the rootfs-additions-common in place first.
 # If necessary, these can be overwritten by the product specific rootfs-additions.
