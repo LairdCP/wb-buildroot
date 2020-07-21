@@ -12,20 +12,14 @@ choice
 	default BR2_PACKAGE_LRU_ATH6KL_WB45N_SUPPORT
 
 config BR2_PACKAGE_LRU_ATH6KL_WB45N_SUPPORT
-	select BR2_PACKAGE_LIBEDIT
 	bool "WB45N support"
 	help
 		Builds Regulatory tool to support WB45n(AR6003).
 
 config BR2_PACKAGE_LRU_ATH6KL_WB50N_SUPPORT
-	select BR2_PACKAGE_LIBEDIT
 	bool "WB50N support"
 	help
 		Builds Regulatory tool to support WB50n(AR6004).
 endchoice
 
-config BR2_PACKAGE_LRU_ATH6KL_TEST_MODE
-	bool "TestMode"
-	help
-	  Builds Regulatory tool in testmode
 endif
