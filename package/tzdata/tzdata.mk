@@ -38,6 +38,13 @@ define TZDATA_SET_LOCALTIME
 endef
 endif
 
+#Depends on WebLCM to set the timezone when it is enabled
+ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON),y)
+define TZDATA_FIX_LOCALTIME
+	ln -sf ../data/misc/zoneinfo/localtime $(TARGET_DIR)/etc/localtime
+endef
+endif
+
 # No need to extract for target, we're using the host-installed files
 TZDATA_EXTRACT_CMDS =
 
@@ -49,6 +56,7 @@ define TZDATA_INSTALL_TARGET_CMDS
 	    ln -sfn "$${zone}" "$${zone##*/}"; \
 	done
 	$(TZDATA_SET_LOCALTIME)
+	$(TZDATA_FIX_LOCALTIME)
 endef
 
 define HOST_TZDATA_BUILD_CMDS
