@@ -42,7 +42,6 @@ do_check_and_reset() {
 	if [ ! -f "${FACTORY_SETTING_USER_ZONE}" ]; then
 		mkdir -p ${FACTORY_SETTING_ZONES_TARGET}
 		ln -sf ${FACTORY_SETTING_DEFAULT_ZONE} ${FACTORY_SETTING_USER_ZONE}
-		ln -sf ${FACTORY_SETTING_USER_ZONE} "/etc/localtime"
 	fi
 }
 
