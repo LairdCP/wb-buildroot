@@ -11,8 +11,8 @@ PHP_SDK_LICENSE = ICS
 
 PHP_SDK_DEPENDENCIES = php host-swig
 
-ifeq ($(BR2_PACKAGE_WB_LEGACY_SUMMIT_SUPPLICANT_BINARIES),y)
-PHP_SDK_DEPENDENCIES += wb-legacy-summit-supplicant-binaries
+ifeq ($(BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES),y)
+PHP_SDK_DEPENDENCIES += summit-supplicant-binaries
 else
 PHP_SDK_DEPENDENCIES += sdcsdk
 endif
@@ -30,9 +30,6 @@ PHP_SDK_TARGET_DIR = $(TARGET_DIR)
 
 define PHP_SDK_BUILD_CMDS
 	$(PHP_SDK_MAKE_ENV) $(MAKE) -j 1 -C $(@D)
-endef
-
-define PHP_SDK_INSTALL_STAGING_CMDS
 endef
 
 ifeq ($(BR2_PACKAGE_PHP_SDK_TEST),y)
