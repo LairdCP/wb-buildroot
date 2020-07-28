@@ -85,6 +85,7 @@ FW_FINAL_FILE = $(BRCM_DIR)/brcmfmac4373-usb-$(1)-$(2)-$(3).bin
 define make_bcm4373usb_fw
 	mkdir -p -m 0755 $(BRCM_DIR)
 	cp -rad $(@D)/brcm/brcmfmac4373.clm_blob $(BRCM_DIR)
+	cp -rad $(@D)/brcm/BCM4373A0-04b4-640c.hcd $(BRCM_DIR)
 	grep -v NVRAMRev $(call NVRAM_FILE,$(1),$(2)) > $(BRCM_DIR)/tmp_nvram.txt
 	$(@D)/brcm/bin/nvserial -a -o $(BRCM_DIR)/tmp_nvram.nvm $(BRCM_DIR)/tmp_nvram.txt
 	$(@D)/brcm/bin/trxv2 -f 0x20 \

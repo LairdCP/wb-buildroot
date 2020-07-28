@@ -95,6 +95,7 @@ create_bcm4373_usb_usb_firmware_archive()
 	(
 	cd ${TARGET_DIR}
 	tar -cjf "${BINARIES_DIR}/laird-lwb5plus-usb-${ANTENNA}-${DOMAIN}-firmware${RELEASE_SUFFIX}.tar.bz2" \
+		lib/firmware/brcm/BCM4373A0-04b4-640c.hcd \
 		lib/firmware/brcm/brcmfmac4373-usb-${ANTENNA}-${DOMAIN}-prod.bin \
 		lib/firmware/brcm/brcmfmac4373.bin \
 		lib/firmware/brcm/brcmfmac4373.clm_blob \
