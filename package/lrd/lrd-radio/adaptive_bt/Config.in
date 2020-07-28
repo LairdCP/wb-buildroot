@@ -4,4 +4,3 @@ config BR2_PACKAGE_ADAPTIVE_BT
 	select BR2_PACKAGE_LIBNL
 	help
 		Laird Connectivity 60 Series Radio's Adaptive Bluetooth Power Control
-

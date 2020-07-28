@@ -3,10 +3,23 @@
 # 60 Series Adaptive Bluetooth Power Daemon
 #
 #############################################################
+ADAPTIVE_BT_DEPENDENCIES = host-pkgconf libnl
+
+ifneq ($(BR2_LRD_NO_RADIO)$(BR2_LRD_DEVEL_BUILD),)
 ADAPTIVE_BT_VERSION = local
 ADAPTIVE_BT_SITE = package/lrd/externals/adaptive_bt
 ADAPTIVE_BT_SITE_METHOD = local
-ADAPTIVE_BT_DEPENDENCIES = host-pkgconf libnl
+else
+ADAPTIVE_BT_VERSION = $(call qstrip,$(BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE))
+ADAPTIVE_BT_STRIP_COMPONENTS = 0
+ADAPTIVE_BT_SOURCE = adaptive_bt-src-$(ADAPTIVE_BT_VERSION).tar.gz
+
+ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
+	ADAPTIVE_BT_SITE = https://files.devops.rfpros.com/builds/linux/adaptive_bt/src/$(ADAPTIVE_BT_VERSION)
+else
+	ADAPTIVE_BT_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(ADAPTIVE_BT_VERSION)
+endif
+endif
 
 MY_MAKE_OPTS = CXX="$(TARGET_CXX)" CC="$(TARGET_CC)" LD="$(TARGET_LD)" PKG_CONFIG="$(HOST_DIR)/usr/bin/pkg-config"
 

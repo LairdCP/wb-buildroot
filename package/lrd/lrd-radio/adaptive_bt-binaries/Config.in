@@ -1,9 +1,0 @@
-config BR2_PACKAGE_ADAPTIVE_BT_BINARIES
-	bool "Adaptive Bluetooth Binaries Installer"
-	select BR2_PACKAGE_LIBNL
-	select BR2_PACKAGE_BLUEZ5_UTILS
-	select BR2_PACKAGE_ADAPTIVE_BT if BR2_LRD_DEVEL_BUILD="y"
-
-	help
-	  Extracts source from adaptive_bt-src release, compile, and installs adaptive_bt on the target.
-
