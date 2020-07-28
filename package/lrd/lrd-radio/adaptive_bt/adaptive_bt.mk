@@ -11,7 +11,6 @@ ADAPTIVE_BT_SITE = package/lrd/externals/adaptive_bt
 ADAPTIVE_BT_SITE_METHOD = local
 else
 ADAPTIVE_BT_VERSION = $(call qstrip,$(BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE))
-ADAPTIVE_BT_STRIP_COMPONENTS = 0
 ADAPTIVE_BT_SOURCE = adaptive_bt-src-$(ADAPTIVE_BT_VERSION).tar.gz
 
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
