@@ -8,8 +8,8 @@ EVENTMON_VERSION = local
 EVENTMON_SITE = package/lrd/externals/eventmon
 EVENTMON_SITE_METHOD = local
 
-ifeq ($(BR2_PACKAGE_WB_LEGACY_SUMMIT_SUPPLICANT_BINARIES),y)
-EVENTMON_DEPENDENCIES = wb-legacy-summit-supplicant-binaries
+ifeq ($(BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES),y)
+EVENTMON_DEPENDENCIES = summit-supplicant-binaries
 else
 EVENTMON_DEPENDENCIES = sdcsdk
 endif
