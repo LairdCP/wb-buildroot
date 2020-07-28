@@ -3,7 +3,7 @@ comment "Laird toolchains available for Cortex-A + EABIhf & arm946ej-s EABI"
 	depends on !BR2_STATIC_LIBS
 
 config BR2_TOOLCHAIN_EXTERNAL_LAIRD_ARM
-	bool "Laird ARM 2018.02"
+	bool "Laird ARM 2019.02"
 	depends on BR2_arm
 	depends on BR2_ARM_CPU_ARMV7A || BR2_ARM_CPU_ARMV8A || BR2_ARM_CPU_ARMV6 || BR2_ARM_CPU_ARMV5  || BR2_ARM_CPU_ARMV4
 	depends on BR2_HOSTARCH = "x86_64"
