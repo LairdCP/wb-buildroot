@@ -92,9 +92,9 @@ all:
 .PHONY: all
 
 # Set and export the version string
-export BR2_VERSION := 2019.02.10
+export BR2_VERSION := 2019.02.11
 # Actual time the release is cut (for reproducible builds)
-BR2_VERSION_EPOCH = 1584393000
+BR2_VERSION_EPOCH = 1586429000
 # Laird branch number
 export BR2_LRD_BRANCH := 7
 
@@ -192,7 +192,7 @@ $(error $(BR2_EXTERNAL_ERROR))
 endif
 
 # Workaround bug in make-4.3: https://savannah.gnu.org/bugs/?57676
-$(BASE_DIR)/.br2-external.mk:;
+$(BASE_DIR)/.br-external.mk:;
 
 # To make sure that the environment variable overrides the .config option,
 # set this before including .config.
