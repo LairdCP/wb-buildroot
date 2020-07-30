@@ -5,6 +5,12 @@
 #############################################################
 ADAPTIVE_BT_DEPENDENCIES = host-pkgconf libnl
 
+ifeq ($(BR2_PACKAGE_BLUEZ_UTILS),y)
+ADAPTIVE_BT_DEPENDENCIES += bluez_utils
+else
+ADAPTIVE_BT_DEPENDENCIES += bluez5_utils
+endif
+
 ifneq ($(BR2_LRD_NO_RADIO)$(BR2_LRD_DEVEL_BUILD),)
 ADAPTIVE_BT_VERSION = local
 ADAPTIVE_BT_SITE = package/lrd/externals/adaptive_bt
@@ -39,12 +45,8 @@ define ABT_STARTUP_INSTALL_TARGET_CMDS
 endef
 endif
 
-define ABT_ADAPTIVE_BT_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0755 $(@D)/bin/adaptive_bt $(TARGET_DIR)/usr/bin/adaptive_bt
-endef
-
 define ADAPTIVE_BT_INSTALL_TARGET_CMDS
-	$(ABT_ADAPTIVE_BT_INSTALL_TARGET_CMDS)
+	$(INSTALL) -D -m 0755 $(@D)/bin/adaptive_bt $(TARGET_DIR)/usr/bin/adaptive_bt
 	$(ABT_STARTUP_INSTALL_TARGET_CMDS)
 endef
 
@@ -57,7 +59,7 @@ define ADAPTIVE_BT_INSTALL_INIT_SYSTEMD
 endef
 
 define ADAPTIVE_BT_INSTALL_INIT_SYSV
-	$(INSTALL) -m 0755 -D $(@D)/support/adaptive_bt $(TARGET_DIR)/etc/init.d/adaptive_bt
+	$(INSTALL) -m 0755 -D $(@D)/support/adaptive_bt $(TARGET_DIR)/etc/init.d/S96adaptive_bt
 endef
 
 #
