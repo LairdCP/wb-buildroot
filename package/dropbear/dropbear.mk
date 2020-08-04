@@ -15,6 +15,9 @@ DROPBEAR_PROGRAMS = dropbear $(DROPBEAR_TARGET_BINS)
 # 0003-Fix-for-issue-successfull-login-of-disabled-user-78.patch
 DROPBEAR_IGNORE_CVES += CVE-2018-15599
 
+# 0001-scp-Port-OpenSSH-CVE-2018-20685-fix.patch
+DROPBEAR_IGNORE_CVES += CVE-2018-20685
+
 # Disable hardening flags added by dropbear configure.ac, and let
 # Buildroot add them when the relevant options are enabled. This
 # prevents dropbear from using SSP support when not available.
