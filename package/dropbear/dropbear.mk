@@ -16,7 +16,7 @@ DROPBEAR_PROGRAMS = dropbear $(DROPBEAR_TARGET_BINS)
 DROPBEAR_IGNORE_CVES += CVE-2018-15599
 
 # 0001-scp-Port-OpenSSH-CVE-2018-20685-fix.patch
-DROPBEAR_IGNORE_CVES += CVE-2018-20685
+DROPBEAR_IGNORE_CVES += CVE-2020-36254
 
 # Disable hardening flags added by dropbear configure.ac, and let
 # Buildroot add them when the relevant options are enabled. This
