@@ -81,6 +81,7 @@ endif
 NVRAM_FILE = $(@D)/brcm/brcmfmac4373usb-$(1)-$(2).txt
 FW_BASE_FILE = $(@D)/brcm/brcmfmac4373-usb-base-$(1).bin
 FW_FINAL_FILE = $(BRCM_DIR)/brcmfmac4373-usb-$(1)-$(2)-$(3).bin
+FW_FINAL_FILE_MFG = $(BRCM_DIR)/brcmfmac4373-usb-$(1)-$(3).bin
 
 define make_bcm4373usb_fw
 	mkdir -p -m 0755 $(BRCM_DIR)
@@ -95,6 +96,7 @@ define make_bcm4373usb_fw
 		-o $(call FW_FINAL_FILE,$(1),$(2),$(3)) \
 		$(call FW_BASE_FILE,$(3)) $(BRCM_DIR)/tmp_nvram.nvm
 	rm -f $(BRCM_DIR)/tmp_nvram.*
+	[[ $(3) = prod ]] || (cd $(BRCM_DIR) && mv $(FW_FINAL_FILE) $(FW_FINAL_FILE_MFG))
 	[[ $(3) = mfg ]] || (cd $(BRCM_DIR) && ln -srf brcmfmac4373-usb-$(1)-$(2)-prod.bin brcmfmac4373.bin)
 endef
 
@@ -204,17 +206,21 @@ define LAIRD_FW_BCM4373_USB_SA_JP_INSTALL_TARGET_CMDS
 endef
 endif
 
+# Note - Custom NVRAM files are needed for SDIO and USB diversity mfg firmware
+#        to disable software diversity and allow manual antenna control
+#
+#        These two NVRAM files are included in the firmware repository
+#
+#        The SDIO NVRAM file is included directly in the regulatory package
+#        and the USB NVRAM file is used to build USB diversity mfg firmware
+#        An existing single antenna NVRAM file from any domain can be used to build
+#        USB single antenna mfg firmware
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_MFG),y)
 define LAIRD_FW_BCM4373_MFG_INSTALL_TARGET_CMDS
-	$(call make_bcm4373usb_fw,div,fcc,mfg)
+	$(call make_bcm4373usb_fw,div,mfg,mfg)
 	$(call make_bcm4373usb_fw,sa,fcc,mfg)
-	$(call make_bcm4373usb_fw,div,ic,mfg)
-	$(call make_bcm4373usb_fw,sa,ic,mfg)
-	$(call make_bcm4373usb_fw,div,etsi,mfg)
-	$(call make_bcm4373usb_fw,sa,etsi,mfg)
-	$(call make_bcm4373usb_fw,div,jp,mfg)
-	$(call make_bcm4373usb_fw,sa,jp,mfg)
 	cp -rad $(@D)/brcm/brcmfmac4373-sdio-mfg.bin $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4373-sdio-div-mfg.txt $(BRCM_DIR)
 endef
 endif
 

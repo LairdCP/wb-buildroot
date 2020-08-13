@@ -52,7 +52,8 @@ elif [[ "${BR2_LRD_PRODUCT}" == regCypress* ]]; then
 
 echo "/usr/bin/wl
 /lib/firmware/brcm/brcmfmac4339-sdio-mfg.bin
-/lib/firmware/brcm/brcmfmac43430-sdio-mfg.bin" \
+/lib/firmware/brcm/brcmfmac43430-sdio-mfg.bin
+/lib/firmware/brcm/brcmfmac4373-sdio-div-mfg.txt" \
 > "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
 
 ls "${TARGET_DIR}/lib/firmware/brcm/brcmfmac4373-"*"-mfg.bin" | sed "s,^${TARGET_DIR},," \
