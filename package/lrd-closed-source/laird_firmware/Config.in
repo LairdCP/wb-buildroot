@@ -183,6 +183,34 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_JP
 	  Install Laird's firmware for the LWB5+ Sterling radio with
 	  USB/USB interface for Japan.
 
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_AU
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB5+ SDIO diversity (AU)"
+	help
+	  Install Laird's firmware for the LWB5+ Sterling radio with
+	  SDIO/UART interface and antenna diversity for Australia.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_AU
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB5+ SDIO (AU)"
+	help
+	  Install Laird's firmware for the LWB5+ Sterling radio with
+	  SDIO/UART interface for Australia.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_AU
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB5+ USB diversity (AU)"
+	help
+	  Install Laird's firmware for the LWB5+ Sterling radio with
+	  USB/USB interface and antenna diversity for Australia.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_AU
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB5+ USB (AU)"
+	help
+	  Install Laird's firmware for the LWB5+ Sterling radio with
+	  USB/USB interface for Australia.
+
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_MFG
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5+ MFG"
