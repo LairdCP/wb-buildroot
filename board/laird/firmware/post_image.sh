@@ -65,6 +65,7 @@ create_bcm4373_sdio_uart_firmware_archive()
 
 	ln -rsf ${FW_DIR}/regulatory_${DOMAIN}.db ${FW_DIR}/regulatory.db
 	ln -rsf ${BRCM_DIR}/brcmfmac4373-${ANTENNA}-${DOMAIN}.txt ${BRCM_DIR}/brcmfmac4373-sdio.txt
+	ln -rsf ${BRCM_DIR}/brcmfmac4373-clm-${ANTENNA}.clm_blob ${BRCM_DIR}/brcmfmac4373-sdio.clm_blob
 
 	(
 	cd ${TARGET_DIR}
@@ -74,7 +75,7 @@ create_bcm4373_sdio_uart_firmware_archive()
 		lib/firmware/brcm/brcmfmac4373-sdio.bin \
 		lib/firmware/brcm/brcmfmac4373-${ANTENNA}-${DOMAIN}.txt \
 		lib/firmware/brcm/brcmfmac4373-sdio.txt \
-		lib/firmware/brcm/brcmfmac4373.clm_blob \
+		lib/firmware/brcm/brcmfmac4373-clm-${ANTENNA}.clm_blob \
 		lib/firmware/brcm/brcmfmac4373-sdio.clm_blob \
 		lib/firmware/regulatory_${DOMAIN}.db lib/firmware/regulatory.db
 	)
@@ -91,6 +92,7 @@ create_bcm4373_usb_usb_firmware_archive()
 
 	ln -rsf ${BRCM_DIR}/brcmfmac4373-usb-${ANTENNA}-${DOMAIN}-prod.bin ${BRCM_DIR}/brcmfmac4373.bin
 	ln -rsf ${FW_DIR}/regulatory_${DOMAIN}.db ${FW_DIR}/regulatory.db
+	ln -rsf ${BRCM_DIR}/brcmfmac4373-clm-${ANTENNA}.clm_blob ${BRCM_DIR}/brcmfmac4373.clm_blob
 
 	(
 	cd ${TARGET_DIR}
@@ -98,6 +100,7 @@ create_bcm4373_usb_usb_firmware_archive()
 		lib/firmware/brcm/BCM4373A0-04b4-640c.hcd \
 		lib/firmware/brcm/brcmfmac4373-usb-${ANTENNA}-${DOMAIN}-prod.bin \
 		lib/firmware/brcm/brcmfmac4373.bin \
+		lib/firmware/brcm/brcmfmac4373-clm-${ANTENNA}.clm_blob \
 		lib/firmware/brcm/brcmfmac4373.clm_blob \
 		lib/firmware/regulatory_${DOMAIN}.db lib/firmware/regulatory.db
 	)
