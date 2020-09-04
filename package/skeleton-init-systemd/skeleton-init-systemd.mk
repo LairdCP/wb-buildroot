@@ -48,7 +48,7 @@ define SKELETON_INIT_SYSTEMD_PRE_ROOTFS_VAR
 				"$${j}" "../usr/share/factory/$${j}" \
 			|| exit 1; \
 		else \
-			printf "C! %s - - - -\n" "$${j}" \
+			printf "d %s 0755 - - -\n" "$${j}" \
 			|| exit 1; \
 		fi; \
 	done >$(TARGET_DIR)/etc/tmpfiles.d/var-factory.conf
