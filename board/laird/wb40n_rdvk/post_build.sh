@@ -23,6 +23,8 @@ echo -ne \
 # Copy the product specific rootfs additions
 rsync -rlptDWK --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
 cp "${BOARD_DIR}/../rootfs-additions-common/usr/sbin/fw_"* "${TARGET_DIR}/usr/sbin"
+cp "${BOARD_DIR}/../rootfs-additions-common/etc/init.d/S25platform" "${TARGET_DIR}/etc/init.d"
+cp "${BOARD_DIR}/../rootfs-additions-common/usr/sbin/fipsInit.sh"* "${TARGET_DIR}/usr/sbin"
 rm -f ${TARGET_DIR}/etc/init.d/S20urandom
 
 if grep -q 'BR2_LINUX_KERNEL_VERSION="3.2.102"' ${BR2_CONFIG}; then

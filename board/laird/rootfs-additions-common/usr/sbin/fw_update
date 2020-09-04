@@ -16,7 +16,7 @@
 
 # Firmware Update Utility for WB50n/WB45n/WB40n Legacy
 #
-VERSION=2.19
+VERSION=2.20
 SELF=${0##*/}
 X=/dev/null
 M=\-\>\|\<\-
@@ -29,7 +29,6 @@ AT91BS_IMG=at91bs.bin
 U_BOOT_IMG=u-boot.bin
 KERNEL_IMG=kernel.bin
 ROOTFS_IMG=rootfs.bin
-SQROOT_IMG=sqroot.bin
 
 # update-list file
 FWUL=/tmp/fw.txt
@@ -237,17 +236,14 @@ case $x in
   *'Workgroup Bridge 40N'*) ### arch/arm/mach-at91/board-wb40n.c
     wb=wb40n
     NWBPS=1250000
-    memsz=32M
     ;;
   *'Workgroup Bridge 45N'*) ### arch/arm/mach-at91/board-dt.c
     wb=wb45n
     NWBPS=2000000
-    memsz=64M
     ;;
   *'Workgroup Bridge 50N'*) ### arch/arm/boot/dts/wb50n.dts
     wb=wb50n
     NWBPS=3000000
-    memsz=64M
     ;;
   *) ### architecture unknown
     echo -e : ${x:-\\\r\\\c} >&2
@@ -516,12 +512,6 @@ then
   eval ROOTFS_MD5=$1 ROOTFS_URL=$2 ROOTFS_LEN=${3:-0}
   test -n "${2}" && [ "${2:0:1}" != "/" -a "${2/*:*/:}" != ":" ] \
     && ROOTFS_URL=${isl:-${url%/*}}/${2/^.\/}
-
-  ## parse md5, name, length and check if absolute url/path or convert
-  set -- $( sed -n "/^[^#] *[0-9a-f]\{32\}\ .*${SQROOT_IMG}/p" $FWUL )
-  eval SQROOT_MD5=$1 SQROOT_URL=$2 SQROOT_LEN=${3:-0}
-  test -n "${2}" && [ "${2:0:1}" != "/" -a "${2/*:*/:}" != ":" ] \
-    && SQROOT_URL=${isl:-${url%/*}}/${2/^.\/}
 
   ## parse other options
   shell=$( sed -n '/^ *sh[ell]* /{s/.*sh[ell]* //p;q}' $FWUL )
@@ -878,25 +868,7 @@ then
       if $fw_setenv md5_$image $ROOTFS_MD5
       then
         rootfs=$ab
-        bootargs="console=ttyS0,115200 loglevel=4 rw noinitrd mem=$memsz rootfstype=ubifs root=ubi0:rootfs ubi.mtd=$mtdnum"
-      fi
-    fi
-  fi
-fi
-
-image=${SQROOT_IMG%%.*}-$ab
-if assert_image SQROOT "Squashed Root Filesystem"
-then
-  if flash_image $SQROOT_URL
-  then
-    if $fw_setenv md5_$image $SQROOT_MD5
-    then
-      rootfs=$ab
-      bootargs="console=ttyS0,115200 loglevel=4 ro noinitrd mem=$memsz rootfstype=squashfs ubi.block=0,0 root=/dev/ubiblock0_0 ubi.mtd=$mtdnum"
-      # dont attempt to transfer if flashing to read-only filesystem
-      if ! touch /.rw 2>/dev/null
-      then
-        x_transfer=false
+        bootargs="console=ttyS0,115200 loglevel=4 rw rootfstype=ubifs root=ubi0:rootfs ubi.mtd=$mtdnum init=/usr/sbin/fipsInit.sh fips=${fips:=0} fips_wifi=${fips_wifi:=0}"
       fi
     fi
   fi
