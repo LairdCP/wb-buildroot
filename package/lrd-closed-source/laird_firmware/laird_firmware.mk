@@ -87,7 +87,8 @@ define make_bcm4373usb_fw
 	mkdir -p -m 0755 $(BRCM_DIR)
 	cp -rad $(@D)/brcm/brcmfmac4373-clm-$(1).clm_blob $(BRCM_DIR)
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-$(1).clm_blob brcmfmac4373.clm_blob
-	cp -rad $(@D)/brcm/BCM4373A0-04b4-640c.hcd $(BRCM_DIR)
+	cp -rad $(@D)/brcm/BCM4373A0-usb-$(1).hcd $(BRCM_DIR)
+	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-$(1).hcd BCM4373A0-04b4-640c.hcd
 	grep -v NVRAMRev $(call NVRAM_FILE,$(1),$(2)) > $(BRCM_DIR)/tmp_nvram.txt
 	$(@D)/brcm/bin/nvserial -a -o $(BRCM_DIR)/tmp_nvram.nvm $(BRCM_DIR)/tmp_nvram.txt
 	$(@D)/brcm/bin/trxv2 -f 0x20 \
@@ -105,7 +106,8 @@ define make_bcm4373sdio_fw
 	mkdir -p -m 0755 $(BRCM_DIR)
 	cp -rad $(@D)/brcm/brcmfmac4373-clm-$(1).clm_blob $(BRCM_DIR)
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-$(1).clm_blob brcmfmac4373-sdio.clm_blob
-	cp -rad $(@D)/brcm/BCM4373A0.hcd $(BRCM_DIR)
+	cp -rad $(@D)/brcm/BCM4373A0-sdio-$(1).hcd $(BRCM_DIR)
+	cd $(BRCM_DIR) && ln -srf BCM4373A0-sdio-$(1).hcd BCM4373A0.hcd
 	cp -rad $(@D)/brcm/brcmfmac4373-$(1)-$(2).txt $(BRCM_DIR)
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-$(1)-$(2).txt brcmfmac4373-sdio.txt
 	cp -rad $(@D)/brcm/brcmfmac4373-sdio-prod.bin $(BRCM_DIR)

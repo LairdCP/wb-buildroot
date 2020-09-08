@@ -66,10 +66,12 @@ create_bcm4373_sdio_uart_firmware_archive()
 	ln -rsf ${FW_DIR}/regulatory_${DOMAIN}.db ${FW_DIR}/regulatory.db
 	ln -rsf ${BRCM_DIR}/brcmfmac4373-${ANTENNA}-${DOMAIN}.txt ${BRCM_DIR}/brcmfmac4373-sdio.txt
 	ln -rsf ${BRCM_DIR}/brcmfmac4373-clm-${ANTENNA}.clm_blob ${BRCM_DIR}/brcmfmac4373-sdio.clm_blob
+	ln -rsf ${BRCM_DIR}/BCM4373A0-sdio-${ANTENNA}.hcd ${BRCM_DIR}/BCM4373A0.hcd
 
 	(
 	cd ${TARGET_DIR}
 	tar -cjf "${BINARIES_DIR}/laird-lwb5plus-sdio-${ANTENNA}-${DOMAIN}-firmware${RELEASE_SUFFIX}.tar.bz2" \
+		lib/firmware/brcm/BCM4373A0-sdio-${ANTENNA}.hcd \
 		lib/firmware/brcm/BCM4373A0.hcd \
 		lib/firmware/brcm/brcmfmac4373-sdio-prod.bin \
 		lib/firmware/brcm/brcmfmac4373-sdio.bin \
@@ -93,10 +95,12 @@ create_bcm4373_usb_usb_firmware_archive()
 	ln -rsf ${BRCM_DIR}/brcmfmac4373-usb-${ANTENNA}-${DOMAIN}-prod.bin ${BRCM_DIR}/brcmfmac4373.bin
 	ln -rsf ${FW_DIR}/regulatory_${DOMAIN}.db ${FW_DIR}/regulatory.db
 	ln -rsf ${BRCM_DIR}/brcmfmac4373-clm-${ANTENNA}.clm_blob ${BRCM_DIR}/brcmfmac4373.clm_blob
+	ln -rsf ${BRCM_DIR}/BCM4373A0-usb-${ANTENNA}.hcd ${BRCM_DIR}/BCM4373A0-04b4-640c.hcd
 
 	(
 	cd ${TARGET_DIR}
 	tar -cjf "${BINARIES_DIR}/laird-lwb5plus-usb-${ANTENNA}-${DOMAIN}-firmware${RELEASE_SUFFIX}.tar.bz2" \
+		lib/firmware/brcm/BCM4373A0-usb-${ANTENNA}.hcd \
 		lib/firmware/brcm/BCM4373A0-04b4-640c.hcd \
 		lib/firmware/brcm/brcmfmac4373-usb-${ANTENNA}-${DOMAIN}-prod.bin \
 		lib/firmware/brcm/brcmfmac4373.bin \
