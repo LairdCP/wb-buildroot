@@ -1,0 +1,23 @@
+diff --git a/cheroot/server.py b/cheroot/server.py
+index e354a4d..b1d3dd6 100644
+--- a/cheroot/server.py
++++ b/cheroot/server.py
+@@ -758,8 +758,13 @@ class HTTPRequest:
+         # and doesn't need the client to request or acknowledge the close
+         # (although your TCP stack might suffer for it: cf Apache's history
+         # with FIN_WAIT_2).
+-        request_line = self.rfile.readline()
+-
++        try:
++            request_line = self.rfile.readline()
++        except Exception as ex:
++            request_line = None
++            self.server.error_log(
++                repr(ex), level=logging.ERROR, traceback=True,
++            )
+         # Set started_request to True so communicate() knows to send 408
+         # from here on out.
+         self.started_request = True
+--
+2.17.1
+
