@@ -11,7 +11,7 @@ ln -rsf board/laird/rootfs-additions-common/usr/sbin/fw_update "${BINARIES_DIR}/
 
 cd "${BINARIES_DIR}"
 
-ln -rsf "${BINARIES_DIR}/uImage."* "${BINARIES_DIR}/kernel.bin"
+ln -rsf "${BINARIES_DIR}/uImage"* "${BINARIES_DIR}/kernel.bin"
 ln -rsf "${BINARIES_DIR}/boot.bin" "${BINARIES_DIR}/at91bs.bin"
 ln -rsf "${BINARIES_DIR}/rootfs.ubi" "${BINARIES_DIR}/rootfs.bin"
 
