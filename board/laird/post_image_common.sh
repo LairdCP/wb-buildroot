@@ -1,11 +1,14 @@
-TOPDIR="${PWD}"
+BUILD_TYPE="${1}"
 
 echo "COMMON POST IMAGE script: starting..."
 
 # enable tracing and exit on errors
 set -x -e
 
-BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
+[ -z "${BR2_LRD_PRODUCT}" ] && \
+	BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
+
+if grep -qF "BR2_LINUX_KERNEL_IMAGE_TARGET_CUSTOM=y" ${BR2_CONFIG}; then
 
 # Tooling checks
 mkimage=${HOST_DIR}/bin/mkimage
@@ -46,44 +49,47 @@ if grep -qF "BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES=y" ${BR2_CONFIG}; then
 	hash_check ${TARGET_DIR}/usr/lib libcrypto.so.1.0.0
 fi
 
+ln -rsf "${BINARIES_DIR}/kernel.itb" "${BINARIES_DIR}/kernel.bin"
+
+(cd "${BINARIES_DIR}" && ${mkimage} -f kernel.its kernel.itb)
+
+else
+
+ln -rsf "${BINARIES_DIR}/uImage"* "${BINARIES_DIR}/kernel.bin"
+
+fi
+
 ln -rsf board/laird/rootfs-additions-common/usr/sbin/fw_select "${BINARIES_DIR}/fw_select"
 ln -rsf board/laird/rootfs-additions-common/usr/sbin/fw_update "${BINARIES_DIR}/fw_update"
-
-cd "${BINARIES_DIR}"
-
-${mkimage} -f kernel.its kernel.itb
-
 ln -rsf "${BINARIES_DIR}/boot.bin" "${BINARIES_DIR}/at91bs.bin"
-ln -rsf "${BINARIES_DIR}/kernel.itb" "${BINARIES_DIR}/kernel.bin"
 ln -rsf "${BINARIES_DIR}/rootfs.ubi" "${BINARIES_DIR}/rootfs.bin"
 
 [ -z "${LAIRD_FW_TXT_URL}" ] && \
 	LAIRD_FW_TXT_URL="http://$(hostname)/${BR2_LRD_PRODUCT}"
 
-[ -n "${VERSION}" ] && RELEASE_SUFFIX="-${VERSION}"
-
-${TOPDIR}/board/laird/mkfwtxt.sh "${LAIRD_FW_TXT_URL}"
-${TOPDIR}/board/laird/mkfwusi.sh
+board/laird/mkfwtxt.sh "${LAIRD_FW_TXT_URL}" "${BINARIES_DIR}"
+board/laird/mkfwusi.sh
 
 size_check () {
 	[ $(stat -Lc "%s" ${BINARIES_DIR}/${1}) -le $((${2}*128*1024)) ] || \
 		{ echo "${1} size exceeded ${2} block limit, failed"; exit 1; }
 }
 
-case "${BR2_LRD_PRODUCT}" in
-	"wb50n"*) limit=38 ;;
-	"wb45n"*) limit=18 ;;
-	"wb40n"*) limit=38 ;;
-	*)        exit 1   ;;
+case "${BUILD_TYPE}" in
+	"wb50n") limit=38 ;;
+	"wb45n") limit=18 ;;
+	"wb40n") limit=38 ;;
+	*)       exit 1   ;;
 esac
 
 size_check 'kernel.bin' ${limit}
 size_check 'u-boot.bin' 3
 
-tar -cjhf "${BR2_LRD_PRODUCT}-laird${RELEASE_SUFFIX}.tar.bz2" \
-	--owner=root --group=root \
+[ -n "${VERSION}" ] && RELEASE_SUFFIX="-${VERSION}"
+
+tar -cjhf "${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird${RELEASE_SUFFIX}.tar.bz2" \
+	--owner=root --group=root -C "${BINARIES_DIR}" \
 	at91bs.bin u-boot.bin kernel.bin rootfs.bin \
-	fw_update fw_select fw_usi fw.txt \
-	$(ls userfs.bin prep_nand_for_update 2>/dev/null)
+	fw_update fw_select fw_usi fw.txt
 
 echo "COMMON POST IMAGE script: done."

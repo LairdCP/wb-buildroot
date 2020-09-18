@@ -1,9 +1,11 @@
-set -x -e
+BOARD_DIR="$(realpath $(dirname $0))"
+BUILD_TYPE="${2}"
 
 BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
-BOARD_DIR="$(realpath $(dirname $0))"
 
 echo "${BR2_LRD_PRODUCT^^} POST BUILD script: starting..."
+
+set -x -e
 
 LOCRELSTR="${LAIRD_RELEASE_STRING}"
 if [ -z "${LOCRELSTR}" ] || [ "${LOCRELSTR}" == "0.0.0.0" ]; then
