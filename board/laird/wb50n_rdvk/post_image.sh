@@ -1,13 +1,10 @@
-IMAGESDIR="$1"
+BUILD_TYPE="${2}"
 
-BR2_LRD_PLATFORM=wb50n_rdvk
+BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
 
-echo "WB50n_RDVK POST IMAGE script: starting..."
-
-# enable tracing and exit on errors
-set -x -e
+echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: starting..."
 
 # source the common post image script
-source "board/laird/post_image_common.sh" "$IMAGESDIR"
+. board/laird/post_image_common.sh "${BUILD_TYPE}"
 
-echo "WB50n_RDVK POST IMAGE script: done."
+echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: done."

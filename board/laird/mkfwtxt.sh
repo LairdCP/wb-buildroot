@@ -1,9 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 # create update-list for fw_update
 # This script is to be run within the directory containing image files.
 
 # update-list file
-fwul=fw.txt
+fwul=${BINARIES_DIR-.}/fw.txt
 
 # optional url
 url=${1%/}
@@ -15,46 +15,42 @@ url=${1%/}
 image1=#at91bs.bin
 image2=#u-boot.bin
 image3=kernel.bin
-image4=#rootfs.bin
-image5=sqroot.bin
-if [ ! -f $image5 ]
-then
-	# builds without sqroot should have rootfs.bin enabled
-	image4=rootfs.bin
-fi
+image4=rootfs.bin
 
 # write target-build description
-if [ -n "$LAIRD_RELEASE_STRING" ]
+if [ -n "${LAIRD_RELEASE_STRING}" ]
 then
-  echo "# $LAIRD_RELEASE_STRING" > $fwul
+  echo "# ${LAIRD_RELEASE_STRING}" > ${fwul}
 else
-  echo "# $(hostname)-${BR2_TARGET_UBOOT_BOARDNAME:-?}" > $fwul
+  echo "# $(hostname)-${BR2_TARGET_UBOOT_BOARDNAME-?}" > ${fwul}
 fi
 
 # write update-list
-for n in 1 2 3 4 5
+for n in 1 2 3 4
 do
   # construct image var
-  eval name=\$image$n \
-    && image=${name#\#}
-
-  # skip non-existant files
-  [ -f $image ] || continue
+  eval name=\${image${n}} && image=${name#\#}
 
   # set line prefix as hash or space
-  [ $image != $name ] && x='#' || x=' '
+  [ ${image} != ${name} ] && x='#' || x=' '
+
+  imagef=${BINARIES_DIR-.}/${image}
+
+  # skip non-existant files
+  [ -e ${imagef} ] || continue
 
   # write image line: [w/prefix] <md5>  <name>  <bytes>
-  md5sum $image |sed "s/^.*/$x &  $( wc -c < $image )/" >>$fwul
+  md5sum ${imagef} | \
+	sed "s,\(^[^ ]\+\) .*[/]\(.*\),  \1  \2  $(stat -Lc "%s" ${imagef})," >>${fwul}
 done
-echo >>$fwul
+echo >>${fwul}
 
 # apply optional flags or shell lines
-echo "  flags -c" >>$fwul
-echo >>$fwul
+echo "  flags -c" >>${fwul}
+echo >>${fwul}
 
 # add transfer-list section
-cat >>$fwul<<TRANSFER-LIST
+cat >> ${fwul} << EOF
 # transfer-list
   /etc/summit/profiles.conf
   /etc/network/interfaces
@@ -63,8 +59,8 @@ cat >>$fwul<<TRANSFER-LIST
   /etc/dcas.conf
   /etc/NetworkManager/system-connections
 
-TRANSFER-LIST
+EOF
 
 # display file
-echo $fwul:
-cat $fwul
+echo ${fwul}:
+cat ${fwul}

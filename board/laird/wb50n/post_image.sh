@@ -1,13 +1,8 @@
-BOARD_DIR="$(realpath $(dirname $0))"
+BUILD_TYPE="${2}"
 
-export BR2_LRD_PLATFORM=wb50n
-
-echo "${BR2_LRD_PLATFORM^^} POST IMAGE script: starting..."
-
-# enable tracing and exit on errors
-set -x -e
+echo "WB50n POST IMAGE script: starting..."
 
 # source the common post image script
-. "${BOARD_DIR}/../post_image_common.sh" "${BINARIES_DIR}"
+. board/laird/post_image_common.sh "${BUILD_TYPE}"
 
-echo "${BR2_LRD_PLATFORM^^} POST IMAGE script: done."
+echo "WB50n POST IMAGE script: done."
