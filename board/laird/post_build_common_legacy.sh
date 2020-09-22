@@ -32,12 +32,12 @@ rm -fr ${TARGET_DIR}/etc/network/if-*
 
 # Copy the rootfs-additions-common in place first.
 # If necessary, these can be overwritten by the product specific rootfs-additions.
-rsync -rlptDWK --exclude=.empty "board/laird/rootfs-additions-common/" "${TARGET_DIR}"
+rsync -rlptDWK --no-perms --exclude=.empty "board/laird/rootfs-additions-common/" "${TARGET_DIR}"
 
 # Copy the board specific rootfs additions
 case "${BUILD_TYPE}" in
 	"wb50n" | "wb45n")
-		rsync -rlptDWK --exclude=.empty "board/laird/${BUILD_TYPE}/rootfs-additions/" "${TARGET_DIR}"
+		rsync -rlptDWK --no-perms --exclude=.empty "board/laird/${BUILD_TYPE}/rootfs-additions/" "${TARGET_DIR}"
 		;;
 esac
 
@@ -136,8 +136,10 @@ case "${BUILD_TYPE}" in
 esac
 
 sed "s/at91-wb50n/${DTB}/g" ${CCONF_DIR}/kernel_legacy.its > ${BINARIES_DIR}/kernel.its
-sed "s/Image.gz/Image.${EXT}/g" -i ${BINARIES_DIR}/kernel.its
-sed "s/gzip/${EXT}/g" -i ${BINARIES_DIR}/kernel.its
+if [ ${EXT} != gz ]; then
+	sed "s/Image.gz/Image.${EXT}/g" -i ${BINARIES_DIR}/kernel.its
+	sed "s/gzip/${EXT}/g" -i ${BINARIES_DIR}/kernel.its
+fi
 
 fi
 

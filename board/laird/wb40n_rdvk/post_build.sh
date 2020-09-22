@@ -20,7 +20,7 @@ echo -ne \
 >  "${TARGET_DIR}/usr/lib/os-release"
 
 # Copy the product specific rootfs additions
-rsync -rlptDWK --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
+rsync -rlptDWK --no-perms --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
 cp "board/laird/rootfs-additions-common/usr/sbin/fw_"* "${TARGET_DIR}/usr/sbin"
 cp "board/laird/rootfs-additions-common/etc/init.d/S25platform" "${TARGET_DIR}/etc/init.d"
 cp "board/laird/rootfs-additions-common/usr/sbin/fipsInit.sh"* "${TARGET_DIR}/usr/sbin"

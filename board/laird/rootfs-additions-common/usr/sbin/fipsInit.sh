@@ -14,17 +14,8 @@ BOOT_MOUNT=1
 set -- $(cat /proc/cmdline)
 for x in "$@"; do
 	case "$x" in
-		ubi.block=*)
-			KERNEL=/dev/ubi0_$((${x#*,} - 1))
-			;;
-
 		ubi.mtd=*)
-			KERNEL=/dev/mtd$((${x#*,} - 2))
-			;;
-
-		root=/dev/mmcblk0p*)
-			KERNEL=/boot/kernel.itb
-			BOOT_MOUNT=0
+			KERNEL=/dev/mtd$((${x#*=} - 2))
 			;;
 
 		initlrd=*)
