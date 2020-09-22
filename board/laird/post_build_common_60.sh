@@ -36,7 +36,7 @@ echo -ne \
 >  "${TARGET_DIR}/usr/lib/os-release"
 
 # Copy the product specific rootfs additions, strip host user access control
-rsync -rlptDWK --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
+rsync -rlptDWK --no-perms --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
 
 # Do not update access time in flash/card
 sed -i 's/auto rw/auto,noatime rw/g' ${TARGET_DIR}/etc/fstab

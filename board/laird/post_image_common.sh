@@ -31,7 +31,6 @@ elif grep -q '"Image.lzma"' ${BINARIES_DIR}/kernel.its; then
 fi
 
 hash_check() {
-	return
 	${fipshmac} ${1}/${2}
 	if [ "$(cat ${1}/.${2}.hmac)" == "$(cat ${TARGET_DIR}/usr/lib/fipscheck/${2}.hmac)" ]; then
 		rm ${1}/.${2}.hmac

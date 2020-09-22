@@ -6,4 +6,4 @@ DEVEL_KEYS="${3}"
 
 . "${WB50N_SYSD_RDVK_DIR}/../post_build_common_60.sh" "${WB50N_SYSD_DIR}" "${BUILD_TYPE}" "${DEVEL_KEYS}"
 
-rsync -rlptDWK --exclude=.empty "${WB50N_SYSD_RDVK_DIR}/rootfs-extra/" "${TARGET_DIR}"
+rsync -rlptDWK --no-perms --exclude=.empty "${WB50N_SYSD_RDVK_DIR}/rootfs-extra/" "${TARGET_DIR}"
