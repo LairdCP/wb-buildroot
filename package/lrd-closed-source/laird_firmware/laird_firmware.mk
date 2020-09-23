@@ -10,6 +10,7 @@ define LAIRD_FW_6003_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/ath6k
 	cp -r $(@D)/ath6k/AR6003 $(TARGET_DIR)/lib/firmware/ath6k
 	rm $(TARGET_DIR)/lib/firmware/ath6k/AR6003/hw2.1.1/athtcmd*
+	rm -r $(TARGET_DIR)/lib/firmware/ath6k/AR6003/hw2.1.1/info/
 endef
 endif
 
@@ -26,6 +27,7 @@ define LAIRD_FW_6004_INSTALL_TARGET_CMDS
 	cp -r $(@D)/ath6k/AR6004 $(TARGET_DIR)/lib/firmware/ath6k
 	rm $(TARGET_DIR)/lib/firmware/ath6k/AR6004/hw3.0/qca*
 	rm $(TARGET_DIR)/lib/firmware/ath6k/AR6004/hw3.0/utf*
+	rm -r $(TARGET_DIR)/lib/firmware/ath6k/AR6004/hw3.0/info/
 endef
 endif
 
