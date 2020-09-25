@@ -3,8 +3,8 @@
 MOUNT_POINT=/tmp/ubi_mount_point
 DATA_SECRET_SRC=/data/secret
 DATA_SECRET_TARGET=${MOUNT_POINT}/secret
-DATA_NONSECRET_SRC=/data/misc
-DATA_NONSECRET_TARGET=${MOUNT_POINT}/misc
+DATA_SRC=/data
+DATA_TARGET=${MOUNT_POINT}
 do_data_migration=0
 
 exit_on_error() {
@@ -30,12 +30,15 @@ migrate_data() {
 
 	#Create mount point and mount the data device
 	/bin/mount -o noatime -t ubifs "${1}" "${MOUNT_POINT}" || exit_on_error 0 "Mounting ${DATA_DEVICE} to ${MOUNT_POINT} Failed"
-	#Wipe data patition
-	rm -rf "${MOUNT_POINT}"/*
+
 	if [ "${do_data_migration}" -ne 0 ]; then
-		mkdir -p "${DATA_SECRET_TARGET}"
-		#Migrate secret data if exists
+
+		#Wipe data patition
+		rm -rf "${MOUNT_POINT}"/*
+
+		#Prepare /data/secret
 		if [ -d "${DATA_SECRET_SRC}"  ]; then
+			mkdir -p "${DATA_SECRET_TARGET}"
 			#mount_data.service should be active when securefs is enabled.
 			/bin/systemctl -q is-active mount_data
 			if [ "$?" -eq 0 ]; then
@@ -45,16 +48,11 @@ migrate_data() {
 				FSCRYPT_KEY=ffffffffffffffff
 				/bin/fscryptctl set_policy ${FSCRYPT_KEY} ${DATA_SECRET_TARGET}
 			fi
-			#migrate the secret data
-			/bin/rsync -rlptDW --exclude=.mounted "${DATA_SECRET_SRC}/" "${DATA_SECRET_TARGET}" || exit_on_error 1 "Data Copying.. Failed"
 		fi
-		#Migrate misc data if exists
-		if [ -d "${DATA_NONSECRET_SRC}"  ]; then
-			mkdir -p "${DATA_NONSECRET_TARGET}" || exit_on_error 1 "Directory Creation for ${DATA_NONSECRET_TARGET} Failed"
-			#migrate the misc data
-			/bin/rsync -rlptDW --exclude=.mounted "${DATA_NONSECRET_SRC}/" "${DATA_NONSECRET_TARGET}" || exit_on_error 1 "Data Copying.. Failed"
-		fi
+
+		cp -fa "${DATA_SRC}"/* "${DATA_TARGET}"/ || exit_on_error 1 "Data Copying.. Failed"
 	fi
+
 	#Unmount the data device
 	/bin/umount "${MOUNT_POINT}" || exit_on_error 0 "Unmounting ${MOUNT_POINT} Failed"
 }
