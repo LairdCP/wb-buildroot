@@ -41,7 +41,7 @@ do
 
   # write image line: [w/prefix] <md5>  <name>  <bytes>
   md5sum ${imagef} | \
-	sed "s,\(^[^ ]\+\) .*[/]\(.*\),  \1  \2  $(stat -Lc "%s" ${imagef})," >>${fwul}
+	sed "s,\(^[^ ]\+\) .*[/]\(.*\),${x}  \1  \2  $(stat -Lc "%s" ${imagef})," >>${fwul}
 done
 echo >>${fwul}
 
