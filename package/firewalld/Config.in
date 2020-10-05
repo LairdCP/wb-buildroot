@@ -1,21 +1,34 @@
 config BR2_PACKAGE_FIREWALLD
 	bool "firewalld"
-	depends on BR2_PACKAGE_LIBGLIB2
-	depends on BR2_PACKAGE_DBUS_PYTHON
-	depends on BR2_PACKAGE_PYTHON_GOBJECT
-	select BR2_PACKAGE_PYTHON_DECORATOR
+	depends on BR2_USE_MMU # ebtables, gobject-introspection
+	depends on BR2_USE_WCHAR # dbus-python, gettext
+	depends on BR2_TOOLCHAIN_HEADERS_AT_LEAST_3_12 # nftables
+	depends on BR2_PACKAGE_HOST_QEMU_ARCH_SUPPORTS # gobject-introspection
+	depends on BR2_TOOLCHAIN_GCC_AT_LEAST_4_9 # gobject-introspection
+	depends on BR2_TOOLCHAIN_HAS_THREADS # dbus-python
+	depends on BR2_TOOLCHAIN_USES_GLIBC # gobject-introspection
+	select BR2_PACKAGE_DBUS # dbus-python
+	select BR2_PACKAGE_PYTHON3
+	select BR2_PACKAGE_DBUS_PYTHON
 	select BR2_PACKAGE_GETTEXT
-	select BR2_PACKAGE_PYTHON_SLIP_DBUS
+	select BR2_PACKAGE_GOBJECT_INTROSPECTION
+	select BR2_PACKAGE_IPTABLES
+	select BR2_PACKAGE_JANSSON # Runtime
 	select BR2_PACKAGE_NFTABLES
-	select BR2_PACKAGE_LIBNFTNL_JSON
+	select BR2_PACKAGE_PYTHON_DECORATOR
+	select BR2_PACKAGE_PYTHON_GOBJECT
+	select BR2_PACKAGE_PYTHON_SIX
+	select BR2_PACKAGE_PYTHON_SLIP_DBUS
 	help
-	  firewalld is as a firewall management tool for Linux operating
-	  systems. It provides firewall features by acting as a
-	  front-end for the Linux kernel's netfilter framework via the
-	  iptables command, acting as an alternative to the iptables
-	  service.
+	  Firewalld provides a dynamically managed firewall with
+	  support for network or firewall zones to define the trust
+	  level of network connections or interfaces. It has support
+	  for IPv4, IPv6 firewall settings and for ethernet bridges and
+	  a separation of runtime and permanent configuration options.
+	  It also provides an interface for services or applications to
+	  add ip*tables and ebtables rules directly.
 
-          https://firewalld.org/
+	  https://github.com/firewalld/firewalld
 
 if BR2_PACKAGE_FIREWALLD
 
@@ -23,4 +36,14 @@ config BR2_PACKAGE_FIREWALLD_DEFAULT_ZONE_VALUE
 	string "Default zone name"
 	default "trusted"
 
+config BR2_PACKAGE_FIREWALLD_DEFAULT_BACKEND_VALUE
+	string "Default backend name"
+	default "iptables"
+
 endif # BR2_PACKAGE_FIREWALLD
+
+comment "firewalld needs a glibc toolchain w/ wchar, threads, gcc >= 4.9"
+	depends on BR2_USE_MMU || !BR2_USE_WCHAR
+	depends on BR2_PACKAGE_DBUS && BR2_PACKAGE_HOST_QEMU_ARCH_SUPPORTS
+	depends on !BR2_TOOLCHAIN_USES_GLIBC || \
+		!BR2_TOOLCHAIN_HAS_THREADS || !BR2_TOOLCHAIN_GCC_AT_LEAST_4_9

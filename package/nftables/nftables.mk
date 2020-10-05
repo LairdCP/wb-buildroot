@@ -27,6 +27,16 @@ else
 NFTABLES_CONF_OPTS += --without-json
 endif
 
+ifeq ($(BR2_PACKAGE_PYTHON3),y)
+NFTABLES_CONF_OPTS += --enable-python
+NFTABLES_DEPENDENCIES += python3
+else ifeq ($(BR2_PACKAGE_PYTHON),y)
+NFTABLES_CONF_OPTS += --enable-python
+NFTABLES_DEPENDENCIES += python
+else
+NFTABLES_CONF_OPTS += --disable-python
+endif
+
 ifeq ($(BR2_STATIC_LIBS)$(BR2_PACKAGE_LIBNFTNL_JSON),yy)
 NFTABLES_LIBS += -ljansson -lm
 endif

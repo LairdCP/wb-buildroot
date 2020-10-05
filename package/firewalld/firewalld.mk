@@ -1,52 +1,77 @@
-###############################################################################
+################################################################################
 #
-# firewalld .mk file
+# firewalld
 #
 ################################################################################
 
 FIREWALLD_VERSION = v0.8.1
-FIREWALLD_SOURCE = $(FIREWALLD_VERSION).tar.gz
-FIREWALLD_SITE = https://github.com/firewalld/firewalld/archive
-FIREWALLD_DEPENDENCIES = libglib2 nftables host-intltool gettext systemd python-decorator dbus-python python-slip-dbus
-FIREWALLD_INSTALL_STAGING = YES
-FIREWALLD_LIBTOOL_PATCH = YES
-FIREWALLD_AUTORECONF= YES
+FIREWALLD_SITE = $(call github,firewalld,firewalld,$(FIREWALLD_VERSION))
+FIREWALLD_LICENSE = GPL-2.0
+FIREWALLD_LICENSE_FILES = COPYING
+FIREWALLD_AUTORECONF = YES
+FIREWALLD_DEPENDENCIES = \
+	host-intltool \
+	host-libglib2 \
+	host-libxml2 \
+	host-libxslt \
+	dbus-python \
+	gettext \
+	gobject-introspection \
+	iptables \
+	jansson \
+	nftables \
+	python3 \
+	python-decorator \
+	python-gobject \
+	python-six \
+	python-slip-dbus
+
 FIREWALLD_DEFAULT_ZONE = $(call qstrip,$(BR2_PACKAGE_FIREWALLD_DEFAULT_ZONE_VALUE))
+FIREWALLD_DEFAULT_BACKEND = $(call qstrip,$(BR2_PACKAGE_FIREWALLD_DEFAULT_BACKEND_VALUE))
 
-FIREWALLD_CONF_OPTS = \
-	--with-iptables=no \
-	--with-iptables-restore=no \
-	--with-ip6tables=no \
-	--with-ip6tables-restore=no \
-	--with-ebtables=no \
-	--with-ebtables-restore=no \
-	--with-ipset=no
-
-FIREWALLD_DEPENDENCIES  += python-gobject
-
-define FIREWALLD_RUN_INTLTOOLIZE
-	echo $(PATH)
-	cd $(@D) && $(HOST_DIR)/usr/bin/intltoolize --force --automake
+define FIREWALLD_RUN_AUTOGEN
+	cd $(@D) && $(HOST_DIR)/bin/intltoolize --force
 endef
+FIREWALLD_PRE_CONFIGURE_HOOKS += FIREWALLD_RUN_AUTOGEN
 
-FIREWALLD_POST_EXTRACT_HOOKS = FIREWALLD_RUN_INTLTOOLIZE
+# iptables, ip6tables, ebtables, and ipset *should* be unnecessary
+# when the nftables backend is available, because nftables supersedes all of
+# them. However we still need to build and install iptables and ip6tables
+# because application relying on direct passthrough rules (IE docker) will
+# break.
+# /etc/sysconfig/firewalld is a Red Hat-ism, only referenced by
+# the Red Hat-specific init script which isn't used.
+FIREWALLD_CONF_OPTS += \
+	--disable-rpmmacros \
+	--disable-sysconfig \
+	--with-ip6tables=/usr/sbin/ip6tables \
+	--with-iptables=/usr/sbin/iptables \
+	--without-iptables-restore \
+	--without-ip6tables-restore \
+	--without-ebtables \
+	--without-ebtables-restore \
+	--without-ipset \
+	--without-xml-catalog
 
-define FIREWALLD_FIX_SHEBANG
-	cd $(BUILD_DIR)/firewalld-$(FIREWALLD_VERSION)/src && $(SED) "1s/.*/\#\\!\\/\bin\/\python/" firewalld \
-	&& $(SED) "1s/.*/\#\\!\\/\bin\/\python/" firewall-cmd \
-	&& $(SED) "1s/.*/\#\\!\\/\bin\/\python/" firewall-applet \
-	&& $(SED) "1s/.*/\#\\!\\/\bin\/\python/" firewall-config \
-	&& $(SED) "1s/.*/\#\\!\\/\bin\/\python/" firewall-offline-cmd
-endef
+# Firewalld hard codes the python shebangs to the full path of the
+# python-interpreter. IE: #!/home/buildroot/output/host/bin/python.
+# Force the proper python path.
+FIREWALLD_CONF_ENV += PYTHON="/usr/bin/env python3"
 
-FIREWALLD_PRE_INSTALL_TARGET_HOOKS = FIREWALLD_FIX_SHEBANG
+ifeq ($(BR2_PACKAGE_SYSTEMD),y)
+FIREWALLD_CONF_OPTS += --with-systemd-unitdir=/usr/lib/systemd/system
+else
+FIREWALLD_CONF_OPTS += --disable-systemd
+endif
+
+
 
 define FIREWALLD_FIX_CONFIG
 	$(SED) "s/ &&.*//g" $(TARGET_DIR)/etc/modprobe.d/firewalld-sysctls.conf
 	$(SED) "s/IPv6_rpfilter=yes/IPv6_rpfilter=no/g" $(TARGET_DIR)/etc/firewalld/firewalld.conf
 	$(SED) "s/^DefaultZone=.*/DefaultZone=$(FIREWALLD_DEFAULT_ZONE)/g" $(TARGET_DIR)/etc/firewalld/firewalld.conf
+	$(SED) "s/^FirewallBackend=.*/FirewallBackend=$(FIREWALLD_DEFAULT_BACKEND)/g" $(TARGET_DIR)/etc/firewalld/firewalld.conf
 endef
-
 FIREWALLD_POST_INSTALL_TARGET_HOOKS = FIREWALLD_FIX_CONFIG
 
 ifeq ($(BR2_PACKAGE_LRD_FACTORY_RESET_TOOLKIT),y)
@@ -57,10 +82,16 @@ endef
 endif
 
 define FIREWALLD_INSTALL_INIT_SYSTEMD
-        $(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-        ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/firewalld.service \
-                $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-		$(FIREWALLD_UPDATE_SERVICE)
+	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
+	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/firewalld.service \
+			$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
+			$(FIREWALLD_UPDATE_SERVICE)
+
+endef
+
+define FIREWALLD_INSTALL_INIT_SYSV
+	$(INSTALL) -m 0755 -D $(FIREWALLD_PKGDIR)/firewalld.init \
+		$(TARGET_DIR)/etc/init.d/S41firewalld
 endef
 
 $(eval $(autotools-package))

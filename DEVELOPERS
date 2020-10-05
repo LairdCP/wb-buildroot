@@ -31,6 +31,7 @@ F:	package/audit/
 F:	package/busybox/
 F:	package/checkpolicy/
 F:	package/cppdb/
+F:	package/firewalld/
 F:	package/gobject-introspection/
 F:	package/gstreamer1/gstreamer1/
 F:	package/gstreamer1/gstreamer1-mm/
@@ -72,6 +73,7 @@ F:	package/python-nested-dict/
 F:	package/python-pbr/
 F:	package/python-pip/
 F:	package/python-psycopg2/
+F:	package/python-slip-dbus/
 F:	package/python-smmap2/
 F:	package/python-sqlalchemy/
 F:	package/python-sqlparse/
