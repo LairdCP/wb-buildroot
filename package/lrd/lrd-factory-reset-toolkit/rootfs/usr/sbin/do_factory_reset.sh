@@ -29,6 +29,7 @@ do_check_and_reset() {
 
 	if [ ! -f "${NM_CONF_FILE_TARGET}" ] && [ -f "${NM_CONF_FILE}" ]; then
 		cp -fa ${NM_CONF_DIR} ${FACTORY_SETTING_TARGET}/ || exit_on_error "Copying NetworkManager data.. Failed"
+		mkdir -p ${FACTORY_SETTING_TARGET}/NetworkManager/certs #Save certificates and pac files
 	fi
 
 	if [ ! -f "${WEBLCM_CONF_FILE_TARGET}" ] && [ -f "${WEBLCM_CONF_FILE}" ]; then
@@ -46,9 +47,9 @@ do_check_and_reset() {
 }
 
 do_delete() {
-	#Delete all user data
+	#Delete all user data, but not the /data/secret dir as it is encrypted.
+	find /data -maxdepth 1 -mindepth 1 ! -name secret -exec rm -fr {} \;
 	rm -fr ${FACTORY_SETTING_TARGET}/*
-	rm -fr ${FACTORY_SETTING_ZONES_TARGET}/*
 }
 
 case $1 in
