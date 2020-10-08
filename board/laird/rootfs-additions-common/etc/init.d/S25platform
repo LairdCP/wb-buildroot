@@ -27,8 +27,7 @@
 
 
 do_platform_bootfile_option() {
-  cat >$1<<-	\
-	platform_bootfile_option
+  cat >$1 <<- EOF \
 	## $1 - sourced by dhcp configuration script
 	## if fw_update not-running and bootfile-flag then begin remote update
 	## requested bootfile option should contain url-to-firmware-md5sums-ls
@@ -43,13 +42,13 @@ do_platform_bootfile_option() {
 	        |tee /var/log/update.log >/dev/console )&
 	  fi
 	fi
-	platform_bootfile_option
+	EOF
+
   touch /tmp/bootfile_
 }
 
 do_platform_update_notify() {
-  cat >$1<<-	\
-	platform_update_notify
+  cat >$1 <<- EOF \
 	## $1 - wait for network, then notify server of status
 	let tries=3
 	while sleep 7
@@ -61,7 +60,8 @@ do_platform_update_notify() {
 	  fi
 	done
 	rm -f $1
-	platform_update_notify
+	EOF
+
   ( /bin/sh $1 )&
 }
 
