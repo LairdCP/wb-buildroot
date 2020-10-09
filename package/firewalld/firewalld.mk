@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-FIREWALLD_VERSION = v0.8.1
+FIREWALLD_VERSION = v0.9.1
 FIREWALLD_SITE = $(call github,firewalld,firewalld,$(FIREWALLD_VERSION))
 FIREWALLD_LICENSE = GPL-2.0
 FIREWALLD_LICENSE_FILES = COPYING
