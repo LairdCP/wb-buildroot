@@ -38,7 +38,7 @@ define POST_INSTALL_TARGET_HOOKS
 	sed -i -e '/\[weblcm\]/a default_username: \"$(WEBLCM_PYTHON_DEFAULT_USERNAME)\"\ndefault_password: \"$(WEBLCM_PYTHON_DEFAULT_PASSWORD)\"' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 
 	sed -i -e '/^enable_connection_/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
-	sed -i -e '/\[weblcm\]/a enable_connection_wired: $(PACKAGE_WEBLCM_PYTHON_ENABLE_CONNECTION_WIRED)\nenable_connection_wifi: $(PACKAGE_WEBLCM_PYTHON_ENABLE_CONNECTION_WIFI)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	sed -i -e '/\[weblcm\]/a managed_software_devices: $(BR2_PACKAGE_WEBLCM_PYTHON_MANAGED_SOFTWARE_DEVICES)\nunmanaged_hardware_devices: $(BR2_PACKAGE_WEBLCM_PYTHON_UNMANAGED_HARDWARE_DEVICES)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 
 endef
 WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += POST_INSTALL_TARGET_HOOKS

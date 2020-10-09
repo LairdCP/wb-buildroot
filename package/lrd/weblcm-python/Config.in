@@ -32,12 +32,19 @@ config BR2_PACKAGE_WEBLCM_PYTHON_SWUPDATE_KEY_LOCATION
 	help
 	  Location to key used to verify signed swupdate images.
 
-config BR2_PACKAGE_WEBLCM_PYTHON_ENABLE_CONNECTION_WIRED
-	bool "Enable Wired Connection"
-	default y
+config BR2_PACKAGE_WEBLCM_PYTHON_MANAGED_SOFTWARE_DEVICES
+	string "List of supported software devices"
+	default ""
+	help
+		Space separated software devices like bonds, bridges etc.
+		Bridge devices should be named as "br0", "br1" etc.
+		Bond devices should be named as "bn0", "bn1" etc.
 
-config BR2_PACKAGE_WEBLCM_PYTHON_ENABLE_CONNECTION_WIFI
-	bool "Enable Wifi Connection"
-	default y
+config BR2_PACKAGE_WEBLCM_PYTHON_UNMANAGED_HARDWARE_DEVICES
+	string "list of unmanaged hardware devices"
+	default ""
+	help
+		Space separated hardware devices like eth0, wlan0 etc which are managed by networkManager,
+		but don't want to be managed by weblcm-python.
 
 endif
