@@ -16,6 +16,12 @@ LIBGLIB2_AUTORECONF = YES
 LIBGLIB2_INSTALL_STAGING = YES
 LIBGLIB2_INSTALL_STAGING_OPTS = DESTDIR=$(STAGING_DIR) LDFLAGS=-L$(STAGING_DIR)/usr/lib install
 
+# 0005-gfile-Limit-access-to-files-when-copying.patch
+LIBGLIB2_IGNORE_CVES += CVE-2019-12450
+
+# 0006-keyfile-settings-permissions.patch
+LIBGLIB2_IGNORE_CVES += CVE-2019-13012
+
 LIBGLIB2_CONF_ENV = \
 	ac_cv_func_posix_getpwuid_r=yes \
 	glib_cv_stack_grows=no \

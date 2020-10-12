@@ -6,6 +6,10 @@
 #
 ################################################################################
 
+LAIRD_OPENSSL_FIPS_BINARIES_CVE_PRODUCT = libopenssl
+LAIRD_OPENSSL_FIPS_BINARIES_CVE_VERSION = 1.0.2u
+LAIRD_OPENSSL_FIPS_BINARIES_IGNORE_CVES += CVE-2020-1968
+
 ifneq ($(BR2_LRD_DEVEL_BUILD),)
 LAIRD_OPENSSL_FIPS_BINARIES_VERSION = 0.$(BR2_LRD_BRANCH).0.0
 else

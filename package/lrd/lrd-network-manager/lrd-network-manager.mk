@@ -4,6 +4,9 @@
 #
 ################################################################################
 
+LRD_NETWORK_MANAGER_CVE_PRODUCT = network-manager
+LRD_NETWORK_MANAGER_CVE_VERSION = 1.22.14
+
 ifeq ($(BR2_LRD_DEVEL_BUILD),)
 ifneq ($(BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE),)
 
