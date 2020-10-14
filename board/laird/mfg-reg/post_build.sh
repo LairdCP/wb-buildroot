@@ -52,12 +52,23 @@ elif [[ "${BR2_LRD_PRODUCT}" == regCypress* ]]; then
 
 echo "/usr/bin/wl
 /lib/firmware/brcm/brcmfmac4339-sdio-mfg.bin
-/lib/firmware/brcm/brcmfmac43430-sdio-mfg.bin
-/lib/firmware/brcm/brcmfmac4373-div-mfg.txt" \
+/lib/firmware/brcm/brcmfmac43430-sdio-mfg.bin" \
+> "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
+
+elif [[ "${BR2_LRD_PRODUCT}" == regLWB5plus* ]]; then
+
+LIBEDIT=$(readlink $TARGET_DIR/usr/lib/libedit.so)
+LIBEDITLRD=${LIBEDIT/libedit./libedit.lrd.}
+
+echo "/usr/bin/lru
+/lib/firmware/brcm/brcmfmac4373-div-mfg.txt
+/usr/lib/${LIBEDITLRD}" \
 > "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
 
 ls "${TARGET_DIR}/lib/firmware/brcm/brcmfmac4373-"*"-mfg.bin" | sed "s,^${TARGET_DIR},," \
 	>> "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
+
+cp "${TARGET_DIR}/usr/lib/${LIBEDIT}" "${TARGET_DIR}/usr/lib/${LIBEDITLRD}"
 
 else
 exit 1
