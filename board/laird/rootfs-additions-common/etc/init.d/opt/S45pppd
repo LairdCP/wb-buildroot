@@ -14,35 +14,33 @@
 #
 # contact: support@lairdconnect.com
 
-
 trap "" 1
 trap "" 15
 
 PPP_SERIAL_INTERFACE=/dev/ttyS1
 PPP_SERIAL_RATE=230400
 
+[ -r "/etc/default/pppd" ] && . "/etc/default/pppd"
+
 start() {
   echo "Starting pppd"
-  modprobe ppp_generic
-  modprobe ppp_async
+  modprobe -a ppp_generic ppp_async
   /usr/sbin/pppd \
    192.168.0.1:192.168.0.2 \
-   $PPP_SERIAL_INTERFACE \
-   $PPP_SERIAL_RATE \
+   ${PPP_SERIAL_INTERFACE} \
+   ${PPP_SERIAL_RATE} \
     > /dev/null &
 }
 
 stop() {
   echo "Stopping pppd"
+  killall pppd
   killall -9 pppd
-  rmmod ppp_async
-  rmmod crc_ccitt
-  rmmod ppp_generic
-  rmmod slhc
+  modprobe -r ppp_async ppp_generic crc_ccitt slhc
 }
 
 case "$1" in
-  
+
   start)
     start
     ;;

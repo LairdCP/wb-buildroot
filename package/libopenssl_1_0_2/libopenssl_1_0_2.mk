@@ -4,6 +4,12 @@
 #
 ################################################################################
 
+LAIRD_OPENSSL_FIPS_BINARIES_CVE_PRODUCT = libopenssl
+LAIRD_OPENSSL_FIPS_BINARIES_CVE_VERSION = 1.0.2u
+
+#0004-Fix-for-OpenSSL-1.0.2-CVE-2020-1968-from-Debian.patch
+LAIRD_OPENSSL_FIPS_BINARIES_IGNORE_CVES += CVE-2020-1968
+
 ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS),y)
 # building from closed source git repository
 LIBOPENSSL_1_0_2_VERSION = local

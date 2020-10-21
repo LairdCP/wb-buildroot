@@ -22,8 +22,7 @@ create_gadgets () {
 
 	[ -n "${proto}" ] || proto=rndis
 
-	modprobe -qa atmel_usba_udc at91_udc
-	modprobe -a usb_f_fs usb_f_${proto}
+	modprobe -a atmel_usba_udc usb_f_fs usb_f_${proto}
 
 	if [ ! -d "${GADGET_DIR}" ]; then
 		mount -t configfs none /sys/kernel/config

@@ -23,10 +23,9 @@
 /configs/*
 !/configs/msd*_defconfig
 !/configs/wb*_defconfig
-!/configs/reglwb*_defconfig
-!/configs/bdimx6_defconfig
-!/configs/bdimx6_rdvk_defconfig
-!/configs/backports_defconfig
+!/configs/reg*_defconfig
+!/configs/bdimx6*_defconfig
+!/configs/backports*_defconfig
 !/configs/som60*_defconfig
 !/configs/ig60*_defconfig
 !/configs/firmware_defconfig
@@ -34,5 +33,5 @@
 !/configs/sterling_supplicant*_defconfig
 !/configs/mfg*_defconfig
 !/configs/adaptive_ww*_defconfig
-!/configs/backports-test_defconfig
+!/configs/laird*_defconfig
 # note the above is necessary to avoid customer configs.

@@ -50,6 +50,8 @@ NCURSES_PATCH = \
 		ncurses-6.1-20200118.patch.gz \
 	)
 
+NCURSES_CVE_VERSION = 6.1.20200118
+
 NCURSES_CONF_OPTS = \
 	--without-cxx \
 	--without-cxx-binding \

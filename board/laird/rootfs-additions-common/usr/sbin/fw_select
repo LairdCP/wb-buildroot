@@ -16,7 +16,7 @@
 
 # Firmware Select Utility for WB50n
 #
-VERSION=2.19
+VERSION=2.20
 SELF=${0##*/}
 X=/dev/null
 

@@ -25,8 +25,6 @@ die() { echo "$@" >&2; exit 1; }
 
 test -x ${mkimage} || \
 	die "No mkimage found (host-uboot-tools has not been built?)"
-test -x ${atmel_pmecc_params} || \
-	die "no atmel_pmecc_params found (uboot has not been built?)"
 
 (cd "${BINARIES_DIR}" && "${mkimage}" -f u-boot.scr.its u-boot.scr.itb) || exit 1
 
@@ -75,6 +73,9 @@ if [ ${ENCRYPTED_TOOLKIT} -eq 0 ]; then
 	(cd ${BINARIES_DIR} && ${mkimage} -f kernel.its kernel.itb && ${mkimage} -f u-boot.its u-boot.itb) || exit 1
 	cat "${BINARIES_DIR}/u-boot-spl-nodtb.bin" "${BINARIES_DIR}/u-boot-spl.dtb" > "${BINARIES_DIR}/u-boot-spl.bin"
 	if [ ${SD} -eq 0 ]; then
+		test -x ${atmel_pmecc_params} || \
+			die "no atmel_pmecc_params found (uboot has not been built?)"
+
 		# Generate Atmel PMECC boot.bin from SPL
 		${mkimage} -T atmelimage -n $(${atmel_pmecc_params}) -d ${BINARIES_DIR}/u-boot-spl.bin ${BINARIES_DIR}/boot.bin
 		# Copy rootfs

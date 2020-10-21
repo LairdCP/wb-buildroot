@@ -1,11 +1,8 @@
-BR2_LRD_PLATFORM=wb45n
+BUILD_TYPE="${2}"
 
-echo "${BR2_LRD_PLATFORM^^} POST IMAGE script: starting..."
-
-# enable tracing and exit on errors
-set -x -e
+echo "WB45n POST IMAGE script: starting..."
 
 # source the common post image script
-. "board/laird/post_image_common.sh" "${BINARIES_DIR}"
+. board/laird/post_image_common.sh "${BUILD_TYPE}"
 
-echo "${BR2_LRD_PLATFORM^^} POST IMAGE script: done."
+echo "WB45n POST IMAGE script: done."
