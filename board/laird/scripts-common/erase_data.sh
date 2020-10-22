@@ -5,7 +5,7 @@ DATA_SECRET_SRC=/data/secret
 DATA_SECRET_TARGET=${MOUNT_POINT}/secret
 DATA_SRC=/data
 DATA_TARGET=${MOUNT_POINT}
-do_data_migration=0
+do_data_migration=1
 
 exit_on_error() {
 	[ "${1}" == 1 ] && /bin/umount "${MOUNT_POINT}"
@@ -31,10 +31,10 @@ migrate_data() {
 	#Create mount point and mount the data device
 	/bin/mount -o noatime -t ubifs "${1}" "${MOUNT_POINT}" || exit_on_error 0 "Mounting ${DATA_DEVICE} to ${MOUNT_POINT} Failed"
 
-	if [ "${do_data_migration}" -ne 0 ]; then
+	#Wipe data patition
+	rm -rf "${MOUNT_POINT}"/*
 
-		#Wipe data patition
-		rm -rf "${MOUNT_POINT}"/*
+	if [ "${do_data_migration}" -ne 0 ]; then
 
 		#Prepare /data/secret
 		if [ -d "${DATA_SECRET_SRC}"  ]; then
@@ -59,10 +59,12 @@ migrate_data() {
 
 mkdir -p "${MOUNT_POINT}" || exit_on_error 0 "Directory Creation for ${MOUNT_POINT} Failed"
 
-if [ "$#" -lt 2 ]; then
-	#Do data miscration if updating from nand
-	do_data_migration=1
-fi
+#Don't migrate data from SD
+cmdline=$(cat /proc/cmdline)
+rootsd="/dev/mmc" #SD builds boot from /dev/mmc*
+case ${cmdline} in
+	*${rootsd}*) do_data_migration=0 ;;
+esac
 
 for name in ${1}; do
 	find_ubi_device "${name}"
