@@ -7,7 +7,7 @@
 ifneq ($(BR2_PACKAGE_LRD_NETWORK_MANAGER)$(BR2_PACKAGE_NETWORK_MANAGER),)
 define LRD_USBGADGET_INSTALL_NM
 	$(INSTALL) -D -m 0600 -t $(TARGET_DIR)/etc/NetworkManager/system-connections/ \
-		package/lrd/lrd-usbgadget/shared-usb0.nmconnection 
+		package/lrd/lrd-usbgadget/shared-usb0.nmconnection
 endef
 endif
 
@@ -18,21 +18,37 @@ define LRD_USBGADGET_INSTALL_TARGET_CMDS
 	$(LRD_USBGADGET_INSTALL_NM)
 endef
 
-define LRD_USBGADGET_INSTALL_INIT_SYSTEMD
-	$(INSTALL) -D -m 644 package/lrd/lrd-usbgadget/usb-gadget@.service \
-		$(TARGET_DIR)/usr/lib/systemd/system/usb-gadget@.service
-
-	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/usb-gadget@.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/usb-gadget@$(call qstrip,$(BR2_PACKAGE_LRD_USBGADGET_TYPE_STRING)).service
+define LRD_USBGADGET_INSTALL_INIT_CONFIG
+	mkdir -p $(TARGET_DIR)/etc/default
+	echo "USB_GADGET_ETHER=$(call qstrip,$(BR2_PACKAGE_LRD_USBGADGET_TYPE_STRING))"          > $(TARGET_DIR)/etc/default/usb-gadget
+	echo "USB_GADGET_SERIAL_PORTS=$(call qstrip,$(BR2_PACKAGE_LRD_USBGADGET_SERIAL_PORTS))" >> $(TARGET_DIR)/etc/default/usb-gadget
 endef
 
+define LRD_USBGADGET_INSTALL_INIT_SYSTEMD
+	$(INSTALL) -D -m 644 package/lrd/lrd-usbgadget/usb-gadget.service \
+		$(TARGET_DIR)/usr/lib/systemd/system/usb-gadget.service
+
+	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
+	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/usb-gadget.service \
+		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/usb-gadget.service
+
+	$(LRD_USBGADGET_INSTALL_INIT_CONFIG)
+endef
+
+ifeq ($(BR2_PACKAGE_LRD_LEGACY),y)
+define LRD_USBGADGET_INSTALL_INIT_SYSV
+	$(INSTALL) -D -m 0755 package/lrd/lrd-usbgadget/S43usb-gadget \
+		$(TARGET_DIR)/etc/init.d/opt/S91g_ether
+
+	$(LRD_USBGADGET_INSTALL_INIT_CONFIG)
+endef
+else
 define LRD_USBGADGET_INSTALL_INIT_SYSV
 	$(INSTALL) -D -m 0755 -t $(TARGET_DIR)/etc/init.d/ \
 		package/lrd/lrd-usbgadget/S43usb-gadget
 
-	sed -i "s/proto=.*/proto=$(BR2_PACKAGE_LRD_USBGADGET_TYPE_STRING)/" \
-		$(TARGET_DIR)/etc/init.d/S43usb-gadget
+	$(LRD_USBGADGET_INSTALL_INIT_CONFIG)
 endef
+endif
 
 $(eval $(generic-package))
