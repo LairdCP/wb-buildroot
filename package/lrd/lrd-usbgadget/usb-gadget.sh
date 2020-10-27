@@ -16,14 +16,69 @@
 UDC_DIR=/sys/class/udc
 GADGET_DIR=/sys/kernel/config/usb_gadget
 
+proto=${2}
+ports=${3}
+counter=0
+
+create_ether() {
+	case ${proto} in
+	rndis|ncm)
+		echo 0xa4a2 > idProduct
+		echo "1" > os_desc/use
+		echo "0xcd" > os_desc/b_vendor_code
+		echo "MSFT100" > os_desc/qw_sign
+		;;
+	esac
+
+	func=functions/${proto}.usb${counter}
+
+	# Create Ethernet config
+	mkdir -p ${func}
+
+	case ${proto} in
+	rndis)
+		echo "ef" > ${func}/class
+		echo "04" > ${func}/subclass
+		echo "01" > ${func}/protocol
+
+		echo "RNDIS"   > ${func}/os_desc/interface.rndis/compatible_id
+		echo "5162001" > ${func}/os_desc/interface.rndis/sub_compatible_id
+		;;
+
+	ncm)
+		echo "WINNCM" > ${func}/os_desc/interface.ncm/compatible_id
+		;;
+	esac
+
+	echo "DE:AD:BE:EF:00:00" > ${func}/dev_addr
+	echo "DE:AD:BE:EF:01:00" > ${func}/host_addr
+
+	ln -s ${func} configs/c.1
+
+	counter=$((counter+1))
+}
+
+create_acm() {
+	func=functions/acm.usb${counter}
+
+	mkdir -p ${func}
+
+	ln -s ${func} configs/c.1
+	counter=$((counter+1))
+}
+
 create_gadgets () {
-	proto=${1}
-	counter=0
+	[ -n "${ports}" ] || ports=0
+	[ -n "${proto}" ] || [ "${ports}" -gt 0 ] || \
+		{ echo "No usb-gadget specified"; exit 1; }
 
-	[ -z "${proto}" ] && proto=rndis
+	if [ "$(cat /sys/devices/soc0/soc_id)" == "at91sam9g20" ]; then
+		modprobe at91_udc
+	else
+		modprobe atmel_usba_udc
+	fi
 
-	modprobe -qa atmel_usba_udc at91_udc
-	modprobe -a usb_f_fs usb_f_${proto}
+	modprobe usb_f_fs
 
 	if [ ! -d "${GADGET_DIR}" ]; then
 		mount -t configfs none /sys/kernel/config
@@ -31,19 +86,11 @@ create_gadgets () {
 	fi
 
 	for udc_name in $(ls ${UDC_DIR}); do
-		mkdir ${GADGET_DIR}/g${counter}
-		cd ${GADGET_DIR}/g${counter}
+		mkdir -p ${GADGET_DIR}/g0
+		cd ${GADGET_DIR}/g0
 
 		echo 0x0525 > idVendor
-
-		if [ ${proto} == rndis ] || [ ${proto} == ncm ]; then
-			echo 0xa4a2 > idProduct
-			echo "1" > os_desc/use
-			echo "0xcd" > os_desc/b_vendor_code
-			echo "MSFT100" > os_desc/qw_sign
-		else
-			echo 0xa4a1 > idProduct
-		fi
+		echo 0xa4a1 > idProduct
 
 		mkdir -p strings/0x409
 		if [ -e /sys/devices/soc0/soc_uid ]; then
@@ -56,56 +103,45 @@ create_gadgets () {
 		echo "$(cat /sys/firmware/devicetree/base/model)" > strings/0x409/product
 
 		mkdir -p configs/c.1/strings/0x409
-		echo "USB Ethernet Configuration" > configs/c.1/strings/0x409/configuration
+		echo "USB Composite Configuration" > configs/c.1/strings/0x409/configuration
 
-		# Create Ethernet config
-		mkdir -p functions/${proto}.usb${counter}
-		cd functions/${proto}.usb${counter}
+		[ -n "${proto}" ] && create_ether
 
-		if [ ${proto} == rndis ]; then
-			echo "ef" > class
-			echo "04" > subclass
-			echo "01" > protocol
+		port=0
+		while [ ${port} -lt ${ports} ]; do
+			create_acm
+			port=$((port+1))
+		done
 
-			echo "RNDIS" > os_desc/interface.rndis/compatible_id
-			echo "5162001" > os_desc/interface.rndis/sub_compatible_id
-		elif [ ${proto} == ncm ]; then
-			echo "WINNCM" > os_desc/interface.ncm/compatible_id
-		fi
-
-		echo "DE:AD:BE:EF:00:00" > dev_addr
-		echo "DE:AD:BE:EF:01:00" > host_addr
-
-		cd ../..
-
-		ln -s functions/${proto}.usb${counter} configs/c.1
-		ln -s configs/c.1 os_desc
-
+		ln -s configs/c.1 os_desc/c.1
 		echo ${udc_name} > UDC
 
-		counter=$((counter+1))
+		break
 	done
 }
 
 destroy_gadgets () {
-	counter=0
+	gadget="${GADGET_DIR}/g0"
 
-	for udc_name in $(ls ${UDC_DIR}); do
-		gadget="${GADGET_DIR}/g${counter}"
+	[ -e ${gadget} ] || return
 
-		if [ -e ${gadget} ]; then
-			echo "" > ${gadget}/UDC
-			rm -rf ${gadget} 2>/dev/null
-			rm -rf ${gadget} 2>/dev/null
-		fi
 
-		counter=$((counter+1))
-	done
+	[ -z "$(cat ${gadget}/UDC)" ] || echo > ${gadget}/UDC
+
+	rm -f ${gadget}/os_desc/c.1
+
+	rm -f ${gadget}/configs/c.1/*.usb*
+	rmdir ${gadget}/configs/c.1/strings/0x409
+	rmdir ${gadget}/configs/c.1
+
+	rmdir ${gadget}/functions/*.usb*
+	rmdir ${gadget}/strings/0x409
+	rmdir ${gadget}
 }
 
 case "${1}" in
 	start)
-		create_gadgets "${2}"
+		create_gadgets
 		;;
 
 	stop)
@@ -113,6 +149,6 @@ case "${1}" in
 		;;
 
 	*)
-		echo $"Usage: $0 {start|stop} {rndis|ncm|ecm|eem}"
+		echo $"Usage: $0 {start|stop} {rndis|ncm|ecm|eem} {0|1|....}"
 		exit 1
 esac

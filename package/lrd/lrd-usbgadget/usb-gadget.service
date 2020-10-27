@@ -3,7 +3,8 @@ Description=Create USB Ethernet Gadget
 
 [Service]
 RemainAfterExit=yes
-ExecStart=/usr/bin/usb-gadget.sh start %I
+EnvironmentFile=/etc/default/usb-gadget
+ExecStart=/usr/bin/usb-gadget.sh start "${USB_GADGET_ETHER}" "${USB_GADGET_SERIAL_PORTS}"
 ExecStop=/usr/bin/usb-gadget.sh stop
 
 [Install]

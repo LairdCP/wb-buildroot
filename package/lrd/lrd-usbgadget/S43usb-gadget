@@ -1,19 +1,19 @@
 #!/bin/sh
 
-proto=
+test -r /etc/default/usb-gadget && . /etc/default/usb-gadget
 
-case "$1" in
+case "${1}" in
 	start)
-		/usr/bin/usb-gadget.sh start ${proto}
+		/usr/bin/usb-gadget.sh start "${USB_GADGET_ETHER}" "${USB_GADGET_SERIAL_PORTS}"
 		;;
 
 	stop)
-		/usr/bin/usb-gadget.sh stop ${proto}
+		/usr/bin/usb-gadget.sh stop
 		;;
 
 	restart|reload)
-		/usr/bin/usb-gadget.sh stop ${proto}
-		/usr/bin/usb-gadget.sh start ${proto}
+		/usr/bin/usb-gadget.sh stop
+		/usr/bin/usb-gadget.sh start "${USB_GADGET_ETHER}" "${USB_GADGET_SERIAL_PORTS}"
 		;;
 
 	*)
