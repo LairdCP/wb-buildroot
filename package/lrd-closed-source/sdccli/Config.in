@@ -10,6 +10,7 @@ if BR2_PACKAGE_SDCCLI
 
 config BR2_PACKAGE_SDCCLI_SMU_CLI
 	bool "Install smu_cli binary"
+	depends on !BR2_PACKAGE_SDCSDK_NM
 	help
 	  Install smu_cli command line utility
 
