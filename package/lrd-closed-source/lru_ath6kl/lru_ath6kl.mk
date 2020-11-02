@@ -21,14 +21,14 @@ MY_MAKE_OPTS = CXX="$(TARGET_CXX)" CC="$(TARGET_CC)" AR=$(TARGET_AR) LD="$(TARGE
 #
 define LRU_ATH6KL_BUILD_CMDS
 	$(TARGET_MAKE_ENV) $(MY_MAKE_OPTS) $(MAKE)  -C $(@D)/Proprietary_tools/libtcmd
-	$(TARGET_MAKE_ENV) $(MY_MAKE_OPTS) $(MAKE)  -C $(@D)/Proprietary_tools/lru_50  wb$(LRU_ATH6KL_SUFFIX)
+	$(TARGET_MAKE_ENV) $(MY_MAKE_OPTS) $(MAKE)  -C $(@D)/Proprietary_tools/lru  wb$(LRU_ATH6KL_SUFFIX)
 endef
 
 #
 #Install
 #
 define LRU_ATH6KL_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 755 $(@D)/Proprietary_tools/lru_50/lru_$(LRU_ATH6KL_SUFFIX) $(TARGET_DIR)/usr/bin/lru
+	$(INSTALL) -D -m 755 $(@D)/Proprietary_tools/lru/lru_$(LRU_ATH6KL_SUFFIX) $(TARGET_DIR)/usr/bin/lru
 endef
 
 
