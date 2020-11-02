@@ -134,7 +134,7 @@ case $1 in
 
       if [ -n "$at91bs" ]
       then
-        md5=$( fw_printenv -n md5_bootstrap 2>/dev/null )
+        md5=$( fw_printenv -n md5_at91bs 2>/dev/null )
         echo "  updated bootstrap: (${md5:--?-})"
       fi
 

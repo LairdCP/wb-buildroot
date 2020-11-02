@@ -36,7 +36,7 @@ TRANSFER_LIST_INCLUDE='
 
 
 show_usage_info() {
-  [ -z "$1" ] && cat << --Usage-Info--
+  [ -z "$1" ] && cat << EOF
 This utility is mainly useful to:
 
 a.) Switch the kernel-a/b and/or rootfs-a/b images to use upon boot.
@@ -77,9 +77,9 @@ d.) Set kernel loglevel value in bootargs, or restore it.
 e.) Show details of flash memory layout and versions of all detected images.
   Usage: --show
 
---Usage-Info--
+EOF
 
-  [ "transfer" == "$1" ] && cat << --Usage-Info--
+  [ "transfer" == "$1" ] && cat << EOF
 This option allows copying select files between the two root-filesystems.
   (such as settings, profiles, certs, keys, etc...)
 
@@ -112,9 +112,9 @@ Use 'access off' to umount the other filesystem at $ALT_ROOTFS_MOUNT.
   Example:
     fw_select --transfer access off     (..unmount $ALT_ROOTFS_MOUNT)
 
---Usage-Info--
+EOF
 
-  [ "default" == "$1" ] && cat << --Usage-Info--
+  [ "default" == "$1" ] && cat << EOF
 This option allows restoring the u-boot_env bootcmd and bootargs.
   (the defaults are extracted from the u-boot binary image)
 
@@ -128,7 +128,7 @@ Use 'erase' to completely restore all of u-boot_env to defaults, upon reboot.
   Example:
     fw_select --default ...           (..restore/show bootcmd+args)
 
---Usage-Info--
+EOF
 }
 
 # set testmode if the flag/file exists
