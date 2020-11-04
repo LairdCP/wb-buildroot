@@ -1,7 +1,19 @@
 # Generic Make engine for customer builds
 # Customer external repositories should be using this Makefile
 
-export BR2_EXTERNAL ?= $(realpath $(MK_DIR))
+BR2_EXTERNAL ?= $(realpath $(MK_DIR))
+
+vigiles_name := $(realpath $(BR_DIR)/../vigiles-buildroot)
+
+ifneq ($(vigiles_name),)
+ifneq ($(BR2_EXTERNAL),)
+BR2_EXTERNAL := $(addsuffix :$(vigiles_name),$(BR2_EXTERNAL))
+else
+BR2_EXTERNAL := $(vigiles_name)
+endif
+endif
+
+export BR2_EXTERNAL
 
 CONFIG_DIR ?= $(realpath $(MK_DIR)/configs)
 OUTPUT_DIR ?= $(abspath $(BR_DIR)/output)
@@ -81,6 +93,12 @@ $(addsuffix -legal-info,$(TARGETS_ALL)): %-legal-info:
 	tar --exclude=*sources -C $(OUTPUT_DIR)/$*/legal-info/ \
 		--owner=0 --group=0 --numeric-owner \
 		-cjf $(OUTPUT_DIR)/$*/images/legal-info.tar.bz2 .
+
+.PHONY: $(addsuffix -vigiles,$(TARGETS))
+$(addsuffix -vigiles,$(TARGETS)): %-vigiles:
+ifneq ($(vigiles_name),)
+	$(MAKE) -C $(OUTPUT_DIR)/$* vigiles-check
+endif
 
 .PHONY: $(addsuffix -full,$(TARGETS))
 $(addsuffix -full,$(TARGETS)): %-full: % %-sbom-gen %-sdk
