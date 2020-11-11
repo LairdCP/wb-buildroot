@@ -268,7 +268,7 @@ do
   esac
   let addr+=$size
 done
-UBM=$( fw_printenv bootcmd |sed 's/.*nand read \(0x[^ ]*\) .*/\1/' )
+UBM="$( fw_printenv bootcmd |sed -n 's/.*nand read[ \t]\+\(0[xX][A-Fa-f0-9]\+\).*/\1/p' )"
 
 let ${UBM:-0} ${KIP:-0} ${KIA:-0} ${KIS:-0} ${RIP:-0} \
   || exit_error "cannot determine mapping for kernel/rootfs"
@@ -295,9 +295,9 @@ parse_flags() {
     o_dnload=true
     ;;
   -x*) ## exit after update, disable notify|transfer|reboot '-x[ntr]*'
-    [ -z ${1/-x} ] || [ x == ${1/*n*/x} ] && x_notify=false
-    [ -z ${1/-x} ] || [ x == ${1/*t*/x} ] && x_transfer=false
-    [ -z ${1/-x} ] || [ x == ${1/*r*/x} ] && x_reboot=false
+    [ -z "${1/-x}" ] || [ x == "${1/*n*/x}" ] && x_notify=false
+    [ -z "${1/-x}" ] || [ x == "${1/*t*/x}" ] && x_transfer=false
+    [ -z "${1/-x}" ] || [ x == "${1/*r*/x}" ] && x_reboot=false
     ;;
   *) # not a flag
     return 1
@@ -381,7 +381,7 @@ rm -f /tmp/fwu.*
 set -o pipefail
 
 wget() {
-  if [ -z $wget_version ]
+  if [ -z "$wget_version" ]
   then
     # determine wget version and set appropriate flags
     # ..option --spider is supported by both, but busybox version is crippled
@@ -878,7 +878,7 @@ test -n "$shell" \
   && echo shell: \[$shell\] \
   && { test -f "${shell%% *}" && sh - ${shell} || exit_error "failure"; }
 
-[ -z $nsap ] && host="${host/:*/}" || host=$nsap
+[ -z "$nsap" ] && host="${host/:*/}" || host=$nsap
 [ ":" == "${host/*:*/:}" ] || host=$host:$NS_PORT
 if $x_notify \
 && $0 --n $host update_pending

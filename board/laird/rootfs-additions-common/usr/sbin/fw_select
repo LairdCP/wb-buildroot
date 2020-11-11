@@ -195,7 +195,7 @@ do
   esac
   let addr+=$size
 done
-UBM=$( fw_printenv bootcmd |sed 's/.*nand read \(0x[^ ]*\) .*/\1/' )
+UBM="$( fw_printenv bootcmd |sed -n 's/.*nand read[ \t]\+\(0[xX][A-Fa-f0-9]\+\).*/\1/p' )"
 
 let ${UBM:-0} ${KIP:-0} ${KIA:-0} ${KIS:-0} ${RIP:-0} \
   || exit_error "cannot determine mapping for kernel/rootfs"

@@ -13,7 +13,7 @@ lock
 defaultroute
 
 # do NOT set up any "escaped" control sequences
-asyncmap 0
+#asyncmap 0
 
 # Don't use the modem control lines.
 local
