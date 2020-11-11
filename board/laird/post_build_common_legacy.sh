@@ -57,11 +57,11 @@ ln -rsf ${TARGET_DIR}/etc/network/wireless.sh ${TARGET_DIR}/sbin/wireless
 	chmod a-x ${TARGET_DIR}/etc/init.d/S??lighttpd
 
 # Remove the custom bluetooth init-script if bluez utility is not included
-if [ -x ${TARGET_DIR}/usr/sbin/hciconfig ]; then 
-	rm -f ${TARGET_DIR}/etc/init.d/S95bluetooth
-else
+if [ -x ${TARGET_DIR}/usr/sbin/hciconfig ]; then
 	# background the bluetooth init-script
 	mv ${TARGET_DIR}/etc/init.d/S95bluetooth ${TARGET_DIR}/etc/init.d/S95bluetooth.bg
+else
+	rm -f ${TARGET_DIR}/etc/init.d/S95bluetooth*
 fi
 
 [ -n "$(find \"${TARGET_DIR}/lib/modules/\" cryptodev.ko)" ] || \

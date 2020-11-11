@@ -24,7 +24,7 @@ PPP_SERIAL_RATE=230400
 
 start() {
   echo "Starting pppd"
-  modprobe ppp_async
+  modprobe -q ppp_async
   /usr/sbin/pppd \
    192.168.0.1:192.168.0.2 \
    ${PPP_SERIAL_INTERFACE} \
@@ -36,7 +36,7 @@ stop() {
   echo "Stopping pppd"
   killall pppd
   killall -9 pppd
-  modprobe -r ppp_async
+  modprobe -rq ppp_async
 }
 
 case "$1" in
