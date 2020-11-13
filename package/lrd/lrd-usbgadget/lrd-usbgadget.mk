@@ -19,9 +19,11 @@ define LRD_USBGADGET_INSTALL_TARGET_CMDS
 endef
 
 define LRD_USBGADGET_INSTALL_INIT_CONFIG
-	mkdir -p $(TARGET_DIR)/etc/default
-	echo "USB_GADGET_ETHER=$(call qstrip,$(BR2_PACKAGE_LRD_USBGADGET_TYPE_STRING))"          > $(TARGET_DIR)/etc/default/usb-gadget
-	echo "USB_GADGET_SERIAL_PORTS=$(call qstrip,$(BR2_PACKAGE_LRD_USBGADGET_SERIAL_PORTS))" >> $(TARGET_DIR)/etc/default/usb-gadget
+	mkdir -p "$(TARGET_DIR)/etc/default"
+	echo "USB_GADGET_ETHER=$(BR2_PACKAGE_LRD_USBGADGET_TYPE_STRING)"                > $(TARGET_DIR)/etc/default/usb-gadget
+	echo "USB_GADGET_ETHER_LOCAL_MAC=\"$(BR2_PACKAGE_LRD_USBGADGET_LOCAL_MAC)\""   >> $(TARGET_DIR)/etc/default/usb-gadget
+	echo "USB_GADGET_ETHER_REMOTE_MAC=\"$(BR2_PACKAGE_LRD_USBGADGET_REMOTE_MAC)\"" >> $(TARGET_DIR)/etc/default/usb-gadget
+	echo "USB_GADGET_SERIAL_PORTS=$(BR2_PACKAGE_LRD_USBGADGET_SERIAL_PORTS)"       >> $(TARGET_DIR)/etc/default/usb-gadget
 endef
 
 define LRD_USBGADGET_INSTALL_INIT_SYSTEMD

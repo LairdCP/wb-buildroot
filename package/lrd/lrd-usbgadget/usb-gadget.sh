@@ -16,12 +16,10 @@
 UDC_DIR=/sys/class/udc
 GADGET_DIR=/sys/kernel/config/usb_gadget
 
-proto=${2}
-ports=${3}
 counter=0
 
 create_ether() {
-	case ${proto} in
+	case ${USB_GADGET_ETHER} in
 	rndis|ncm)
 		echo 0xa4a2 > idProduct
 		echo "1" > os_desc/use
@@ -30,12 +28,12 @@ create_ether() {
 		;;
 	esac
 
-	func=functions/${proto}.usb${counter}
+	func=functions/${USB_GADGET_ETHER}.usb${counter}
 
 	# Create Ethernet config
 	mkdir -p ${func}
 
-	case ${proto} in
+	case ${USB_GADGET_ETHER} in
 	rndis)
 		echo "ef" > ${func}/class
 		echo "04" > ${func}/subclass
@@ -50,8 +48,11 @@ create_ether() {
 		;;
 	esac
 
-	echo "DE:AD:BE:EF:00:00" > ${func}/dev_addr
-	echo "DE:AD:BE:EF:01:00" > ${func}/host_addr
+	[ -z "${USB_GADGET_ETHER_LOCAL_MAC}" ] || \
+		echo "${USB_GADGET_ETHER_LOCAL_MAC}" > ${func}/dev_addr
+
+	[ -z "${USB_GADGET_ETHER_REMOTE_MAC}" ] || \
+		echo "${USB_GADGET_ETHER_REMOTE_MAC}" > ${func}/host_addr
 
 	ln -s ${func} configs/c.1
 
@@ -68,8 +69,11 @@ create_acm() {
 }
 
 create_gadgets () {
-	[ -n "${ports}" ] || ports=0
-	[ -n "${proto}" ] || [ "${ports}" -gt 0 ] || \
+	test -r /etc/default/usb-gadget && . /etc/default/usb-gadget
+
+	[ -n "${USB_GADGET_SERIAL_PORTS}" ] || ports=0
+	[ -n "${USB_GADGET_ETHER}" ] || \
+	[ "${USB_GADGET_SERIAL_PORTS}" -gt 0 ] || \
 		{ echo "No usb-gadget specified"; exit 1; }
 
 	if [ "$(cat /sys/devices/soc0/soc_id)" == "at91sam9g20" ]; then
@@ -105,10 +109,10 @@ create_gadgets () {
 		mkdir -p configs/c.1/strings/0x409
 		echo "USB Composite Configuration" > configs/c.1/strings/0x409/configuration
 
-		[ -n "${proto}" ] && create_ether
+		[ -n "${USB_GADGET_ETHER}" ] && create_ether
 
 		port=0
-		while [ ${port} -lt ${ports} ]; do
+		while [ ${port} -lt ${USB_GADGET_SERIAL_PORTS} ]; do
 			create_acm
 			port=$((port+1))
 		done
@@ -149,6 +153,6 @@ case "${1}" in
 		;;
 
 	*)
-		echo $"Usage: $0 {start|stop} {rndis|ncm|ecm|eem} {0|1|....}"
+		echo $"Usage: $0 {start|stop}"
 		exit 1
 esac
