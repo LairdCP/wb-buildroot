@@ -40,6 +40,7 @@ config BR2_LRD_FIPS_RADIO
 	depends on !BR2_LRD_NO_RADIO
 	select BR2_PACKAGE_UBOOT_TOOLS
 	select BR2_PACKAGE_UBOOT_TOOLS_DUMPIMAGE
+	select BR2_PACKAGE_LRD_FIPS_UTILS
 
 comment "Please config openssl in Target packages->Libraries/Crypto/Openssl"
 	depends on !BR2_LRD_NO_RADIO
