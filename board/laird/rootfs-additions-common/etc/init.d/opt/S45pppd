@@ -24,6 +24,7 @@ PPP_SERIAL_RATE=230400
 
 start() {
   echo "Starting pppd"
+  [ -n "$(pidof pppd)" ] || exit
   modprobe -q ppp_async
   /usr/sbin/pppd \
    192.168.0.1:192.168.0.2 \

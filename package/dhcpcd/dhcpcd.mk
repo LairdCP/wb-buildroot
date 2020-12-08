@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-DHCPCD_VERSION = 9.1.4
+DHCPCD_VERSION = 9.3.4
 DHCPCD_SOURCE = dhcpcd-$(DHCPCD_VERSION).tar.xz
 DHCPCD_SITE = http://roy.marples.name/downloads/dhcpcd
 DHCPCD_DEPENDENCIES = host-pkgconf
@@ -24,6 +24,8 @@ define DHCPCD_CONFIGURE_CMDS
 	$(TARGET_CONFIGURE_OPTS) ./configure \
 		--os=linux \
 		--libexecdir=/lib/dhcpcd \
+		--dbdir=/var/lib/dhcpcd \
+		--disable-privsep \
 		$(DHCPCD_CONFIG_OPTS) )
 endef
 
