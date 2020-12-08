@@ -29,7 +29,6 @@ ALT_ROOTFS_MOUNT=/mnt/alt_rootfs
 # default transfer-list
 TRANSFER_LIST_DEFAULT=/tmp/alt_rootfs.transfer-list
 TRANSFER_LIST_INCLUDE='
-  /etc/random-seed
   /etc/ssh/moduli
   /etc/ssh/ssh_host_*key*
 ' #^transfer-list
