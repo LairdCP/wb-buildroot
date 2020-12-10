@@ -10,7 +10,8 @@ NCURSES_INSTALL_STAGING = YES
 NCURSES_DEPENDENCIES = host-ncurses
 NCURSES_LICENSE = MIT with advertising clause
 NCURSES_LICENSE_FILES = COPYING
-NCURSES_CONFIG_SCRIPTS = ncurses$(NCURSES_LIB_SUFFIX)6-config
+NCURSES_ABI = $(call qstrip,$(BR2_PACKAGE_NCURSES_ABI))
+NCURSES_CONFIG_SCRIPTS = ncurses$(NCURSES_LIB_SUFFIX)$(NCURSES_ABI)-config
 NCURSES_PATCH = \
 	$(addprefix https://invisible-mirror.net/archives/ncurses/$(NCURSES_VERSION)/, \
 		ncurses-6.1-20190609-patch.sh.bz2 \
@@ -64,6 +65,7 @@ NCURSES_CONF_OPTS = \
 	--enable-overwrite \
 	--enable-pc-files \
 	--disable-stripping \
+	--with-abi-version=$(NCURSES_ABI) \
 	--with-pkg-config-libdir="/usr/lib/pkgconfig" \
 	$(if $(BR2_PACKAGE_NCURSES_TARGET_PROGS),,--without-progs) \
 	--without-manpages
