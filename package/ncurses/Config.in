@@ -10,9 +10,14 @@ config BR2_PACKAGE_NCURSES
 
 if BR2_PACKAGE_NCURSES
 
+config BR2_PACKAGE_NCURSES_ABI
+	int "abi version"
+	default 6
+
 config BR2_PACKAGE_NCURSES_WCHAR
 	bool "enable wide char support"
 	depends on BR2_USE_WCHAR
+	depends on BR2_PACKAGE_NCURSES_ABI > 5
 	help
 	  Enable wide char & UTF-8 support in ncurses libraries
 
