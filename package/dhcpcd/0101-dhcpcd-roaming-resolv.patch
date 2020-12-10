@@ -1,0 +1,12 @@
+--- a/src/script.c	2020-11-28 09:12:59.000000000
++++ b/src/script.c	2020-12-10 12:45:25.000000000
+@@ -404,7 +404,8 @@
+ 	} else if (strcmp(reason, "TEST") == 0 ||
+ 	    strcmp(reason, "PREINIT") == 0 ||
+ 	    strcmp(reason, "CARRIER") == 0 ||
+-	    strcmp(reason, "UNKNOWN") == 0)
++	    strcmp(reason, "UNKNOWN") == 0 ||
++	    if_roaming(ifp))
+ 	{
+ 		if (efprintf(fp, "if_up=false") == -1)
+ 			goto eexit;
