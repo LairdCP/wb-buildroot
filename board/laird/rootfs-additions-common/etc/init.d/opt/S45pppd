@@ -30,13 +30,13 @@ start() {
    192.168.0.1:192.168.0.2 \
    ${PPP_SERIAL_INTERFACE} \
    ${PPP_SERIAL_RATE} \
-    > /dev/null &
+    > /dev/null
 }
 
 stop() {
   echo "Stopping pppd"
   killall pppd
-  killall -9 pppd
+  killall -9 pppd 2> /dev/null
   modprobe -rq ppp_async
 }
 

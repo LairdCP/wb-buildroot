@@ -6,7 +6,7 @@ config BR2_PACKAGE_CRDA
 	select BR2_PACKAGE_LIBGCRYPT
 	select BR2_PACKAGE_LIBNL
 	# regdb is a runtime dependency
-	select BR2_PACKAGE_WIRELESS_REGDB
+	#select BR2_PACKAGE_WIRELESS_REGDB
 	help
 	  Central Regulatory Domain Agent.
 
