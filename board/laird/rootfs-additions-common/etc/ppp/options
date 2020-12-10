@@ -1,7 +1,7 @@
 # /etc/ppp/options (NO PAP/CHAP)
 
 # Prevent pppd from forking into the background
--detach
+#-detach
 
 # Specifies that pppd should use a UUCP-style lock on the serial device
 # to ensure exclusive access to the device.
@@ -54,4 +54,3 @@ mtu 552
 persist
 maxfail 0
 #holdoff 10
-
