@@ -1,0 +1,193 @@
+diff --git a/src/dhcpcd.c b/src/dhcpcd.c
+index 306d1d00..908d4d4a 100644
+--- a/src/dhcpcd.c
++++ b/src/dhcpcd.c
+@@ -695,33 +695,52 @@ dhcpcd_reportssid(struct interface *ifp)
+ 	loginfox("%s: connected to Access Point: %s", ifp->name, pssid);
+ }
+ 
++static void
++dhcpcd_abort(struct interface *ifp)
++{
++
++#ifdef ARP
++	arp_drop(ifp);
++#endif
++#ifdef INET
++	dhcp_abort(ifp);
++#endif
++#ifdef DHCP6
++	dhcp6_abort(ifp);
++#endif
++}
++
+ void
+ dhcpcd_handlecarrier(struct interface *ifp, int carrier, unsigned int flags)
+ {
+ 	bool was_link_up = if_is_link_up(ifp);
++	bool was_roaming = if_roaming(ifp);
+ 
+ 	ifp->carrier = carrier;
+ 	ifp->flags = flags;
+ 
+ 	if (!if_is_link_up(ifp)) {
+-		if (!was_link_up || !ifp->active)
++		if (!ifp->active || (!was_link_up && !was_roaming))
+ 			return;
+ 		loginfox("%s: carrier lost", ifp->name);
+ 		script_runreason(ifp, "NOCARRIER");
++
++		/*
++		 * If the interface is roaming (generally on wireless)
++		 * then while we are not up, we are not down either.
++		 * Preserve the network state until we either disconnect
++		 * or re-connect.
++		 */
++		if (if_roaming(ifp)) {
++			dhcpcd_abort(ifp);
++			return;
++		}
++
+ #ifdef NOCARRIER_PRESERVE_IP
+ 		if (ifp->flags & IFF_UP &&
+ 		    !(ifp->options->options & DHCPCD_ANONYMOUS))
+-		{
+-#ifdef ARP
+-			arp_drop(ifp);
+-#endif
+-#ifdef INET
+-			dhcp_abort(ifp);
+-#endif
+-#ifdef DHCP6
+-			dhcp6_abort(ifp);
+-#endif
+-		} else
++			dhcpcd_abort(ifp);
++		else
+ #endif
+ 			dhcpcd_drop(ifp, 0);
+ 		if (ifp->options->options & DHCPCD_ANONYMOUS) {
+@@ -774,9 +793,7 @@ dhcpcd_handlecarrier(struct interface *ifp, int carrier, unsigned int flags)
+ 		    memcmp(ifp->ssid, ossid, ifp->ssid_len)) && ifp->active)
+ 		{
+ 			dhcpcd_reportssid(ifp);
+-#ifdef NOCARRIER_PRESERVE_IP
+ 			dhcpcd_drop(ifp, 0);
+-#endif
+ #ifdef IPV4LL
+ 			ipv4ll_reset(ifp);
+ #endif
+@@ -788,17 +805,17 @@ dhcpcd_handlecarrier(struct interface *ifp, int carrier, unsigned int flags)
+ 
+ 	dhcpcd_initstate(ifp, 0);
+ 	script_runreason(ifp, "CARRIER");
++
+ #ifdef INET6
+-#ifdef NOCARRIER_PRESERVE_IP
+ 	/* Set any IPv6 Routers we remembered to expire faster than they
+ 	 * would normally as we maybe on a new network. */
+ 	ipv6nd_startexpire(ifp);
+-#endif
+ #ifdef IPV6_MANAGETEMPADDR
+ 	/* RFC4941 Section 3.5 */
+ 	ipv6_regentempaddrs(ifp);
+ #endif
+ #endif
++
+ 	dhcpcd_startinterface(ifp);
+ }
+ 
+diff --git a/src/if-bsd.c b/src/if-bsd.c
+index 94f58b31..62e4a83c 100644
+--- a/src/if-bsd.c
++++ b/src/if-bsd.c
+@@ -410,6 +410,13 @@ if_carrier(struct interface *ifp, const void *ifadata)
+ 	return LINK_DOWN;
+ }
+ 
++bool
++if_roaming(__unused struct interface *ifp)
++{
++
++	return false;
++}
++
+ static void
+ if_linkaddr(struct sockaddr_dl *sdl, const struct interface *ifp)
+ {
+diff --git a/src/if-linux.c b/src/if-linux.c
+index eaa5a4d6..69f75e12 100644
+--- a/src/if-linux.c
++++ b/src/if-linux.c
+@@ -515,6 +515,21 @@ if_carrier(struct interface *ifp, __unused const void *ifadata)
+ 	return ifp->flags & IFF_RUNNING ? LINK_UP : LINK_DOWN;
+ }
+ 
++bool
++if_roaming(struct interface *ifp)
++{
++
++#ifdef IFF_LOWER_UP
++	if (!ifp->wireless ||
++	    ifp->flags & IFF_RUNNING ||
++	    (ifp->flags & (IFF_UP | IFF_LOWER_UP)) != (IFF_UP | IFF_LOWER_UP))
++		return false;
++	return true;
++#else
++	return false;
++#endif
++}
++
+ int
+ if_getnetlink(struct dhcpcd_ctx *ctx, struct iovec *iov, int fd, int flags,
+     int (*cb)(struct dhcpcd_ctx *, void *, struct nlmsghdr *), void *cbarg)
+diff --git a/src/if-sun.c b/src/if-sun.c
+index 51c0cfd5..019076e7 100644
+--- a/src/if-sun.c
++++ b/src/if-sun.c
+@@ -245,6 +245,13 @@ err:
+ 	return LINK_UNKNOWN;
+ }
+ 
++bool
++if_roaming(__unused struct interface *ifp)
++{
++
++	return false;
++}
++
+ int
+ if_mtu_os(const struct interface *ifp)
+ {
+diff --git a/src/if.h b/src/if.h
+index 8474deb7..9a2f262a 100644
+--- a/src/if.h
++++ b/src/if.h
+@@ -161,6 +161,7 @@ int if_domtu(const struct interface *, short int);
+ #define if_getmtu(ifp) if_domtu((ifp), 0)
+ #define if_setmtu(ifp, mtu) if_domtu((ifp), (mtu))
+ int if_carrier(struct interface *, const void *);
++bool if_roaming(struct interface *);
+ 
+ #ifdef ALIAS_ADDR
+ int if_makealias(char *, size_t, const char *, int);
+diff --git a/src/ipv6nd.c b/src/ipv6nd.c
+index f0a79d51..b9ba57f4 100644
+--- a/src/ipv6nd.c
++++ b/src/ipv6nd.c
+@@ -1155,7 +1155,6 @@ ipv6nd_handlera(struct dhcpcd_ctx *ctx,
+ 		return;
+ 	}
+ 
+-#ifdef NOCARRIER_PRESERVE_IP
+ 	/*
+ 	 * Because we preserve RA's and expire them quickly after
+ 	 * carrier up, it's important to reset the kernels notion of
+@@ -1168,7 +1167,6 @@ ipv6nd_handlera(struct dhcpcd_ctx *ctx,
+ 	}
+ 	if (rap != NULL && rap->willexpire)
+ 		ipv6nd_applyra(ifp);
+-#endif
+ 
+ 	TAILQ_FOREACH(rap, ctx->ra_routers, next) {
+ 		if (ifp == rap->iface &&
