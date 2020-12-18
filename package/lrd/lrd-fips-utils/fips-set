@@ -26,6 +26,8 @@ To set fips and fips_wifi
 # fips-set fips_wifi
 To unset fips and fips_wifi
 # fips-set unset
+To read fips status
+# fips-set status
 usage-info-block
 }
 
@@ -33,28 +35,94 @@ warning() {
   echo "Changes will take effect after reboot"
 }
 
+bootmod() {
+  if [ -z "${bootargs##*$1=*}" ]
+  then
+    bootargs="$(echo "$bootargs" | sed -e "s/$1=[^ \t]*/$1=$2/g")"
+  else
+    bootargs="${bootargs} $1=$2"
+  fi
+}
+
+check_fipsInit() {
+  if [ -n "${bootargs##*init=/usr/sbin/fipsInit.sh*}" ]
+  then
+    #bootargs does not contain init=/usr/sbin/fipsInit.sh
+    bootargs="${bootargs} init=/usr/sbin/fipsInit.sh"
+  fi
+}
+
 parse_flag() {
   case $1 in
-    -h|--help) ## show usage
-      usage
-      ;;
     fips) ## set fips only
-      fw_setenv fips_wifi
-      fw_setenv fips 1
+      if [ -f /usr/sbin/ifrc ]
+      then
+        #legacy_mode
+        bootargs="$(fw_printenv -n bootargs)"
+        check_fipsInit
+        bootmod fips 1
+        bootmod fips_wifi 0
+        fw_setenv bootargs "$bootargs"
+      else
+        #modern build
+        fw_setenv fips_wifi
+        fw_setenv fips 1
+      fi
       warning
       ;;
     fips_wifi) ## set fips wifi
-      fw_setenv fips 1
-      fw_setenv fips_wifi 1
+      if [ -f /usr/sbin/ifrc ]
+      then
+        #legacy_mode
+        bootargs="$(fw_printenv -n bootargs)"
+        check_fipsInit
+        bootmod fips 1
+        bootmod fips_wifi 1
+        fw_setenv bootargs "$bootargs"
+      else
+        #modern build
+        fw_setenv fips 1
+        fw_setenv fips_wifi 1
+      fi
       warning
       ;;
     unset) ## unset
-      fw_setenv fips
-      fw_setenv fips_wifi
+      if [ -f /usr/sbin/ifrc ]
+      then
+        #legacy_mode
+        bootargs="$(fw_printenv -n bootargs)"
+        bootmod fips 0
+        bootmod fips_wifi 0
+        fw_setenv bootargs "$bootargs"
+      else
+        fw_setenv fips
+        fw_setenv fips_wifi
+      fi
       warning
       ;;
+   status) ## status
+      if [ -f /proc/sys/crypto/fips_enabled ] && [ -f /proc/sys/crypto/fips_wifi_enabled ]
+      then
+        fips_value=$(cat /proc/sys/crypto/fips_enabled)
+        fips_wifi_value=$(cat /proc/sys/crypto/fips_wifi_enabled)
+        if [ $fips_value -eq 1 ] && [ $fips_wifi_value -eq 1 ]
+        then
+          echo "fips_wifi"
+        elif [ $fips_value -eq 1 ]
+        then
+          echo "fips"
+        elif [ $fips_value -eq 0 ]
+        then
+          echo "unset"
+        fi
+      else
+        echo "none"
+      fi
+      return 0
+      ;;
     *) ## break
-      return 1
+      usage
+      return 0
   esac
 }
 
