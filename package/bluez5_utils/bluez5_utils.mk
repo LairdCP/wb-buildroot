@@ -161,6 +161,11 @@ else
 BLUEZ5_UTILS_CONF_OPTS += --disable-systemd
 endif
 
+define BLUEZ5_UTILS_INSTALL_INIT_SYSV
+	$(INSTALL) -m 0755 -D package/bluez5_utils/S40bluetooth \
+		$(TARGET_DIR)/etc/init.d/S40bluetooth
+endef
+
 define BLUEZ5_UTILS_INSTALL_INIT_SYSTEMD
 	mkdir -p $(TARGET_DIR)/etc/systemd/system/bluetooth.target.wants
 	ln -fs ../../../../usr/lib/systemd/system/bluetooth.service \
