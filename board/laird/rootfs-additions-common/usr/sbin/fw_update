@@ -593,6 +593,22 @@ bootcmd_x() {
   fi
 
   BC_kia=$( hexify $BC_kia )
+
+  set -- $(fw_printenv -n bootargs)
+  for x in "$@"; do
+    case "$x" in
+      fips=*)
+        fips=${x#*=}
+        case $fips in [0-1]) ;; *) fips=0 ;; esac
+        ;;
+
+      fips_wifi=*)
+        fips_wifi=${x#*=}
+        case $fips_wifi in [0-1]) ;; *) fips_wifi=0 ;; esac
+        ;;
+    esac
+  done
+
   return 0
 }
 
@@ -867,7 +883,7 @@ then
       if $fw_setenv md5_$image $ROOTFS_MD5
       then
         rootfs=$ab
-        bootargs="console=ttyS0,115200 loglevel=4 rw rootfstype=ubifs root=ubi0:rootfs ubi.mtd=$mtdnum init=/usr/sbin/fipsInit.sh fips=${fips:=0} fips_wifi=${fips_wifi:=0}"
+        bootargs="console=ttyS0,115200 loglevel=4 rw rootfstype=ubifs root=ubi0:rootfs ubi.mtd=${mtdnum} init=/usr/sbin/fipsInit.sh fips=${fips:=0} fips_wifi=${fips_wifi:=0}"
       fi
     fi
   fi
