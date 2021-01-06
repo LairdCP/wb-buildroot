@@ -88,7 +88,7 @@ for f in ${TARGET_DIR}/etc/NetworkManager/dispatcher.d/* ; do
 done
 
 # Remove bluetooth support when BlueZ 5 not present
-if [ ! -x ${TARGET_DIR}/usr/sbin/btattach ]; then
+if [ ! -x ${TARGET_DIR}/usr/bin/btattach ]; then
 	rm -rf ${TARGET_DIR}/etc/bluetooth
 	rm -f ${TARGET_DIR}/etc/udev/rules.d/80-btattach.rules
 	rm -f ${TARGET_DIR}/usr/lib/systemd/system/btattach.service
