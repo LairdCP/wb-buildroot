@@ -92,6 +92,7 @@ if [ ! -x ${TARGET_DIR}/usr/sbin/btattach ]; then
 	rm -rf ${TARGET_DIR}/etc/bluetooth
 	rm -f ${TARGET_DIR}/etc/udev/rules.d/80-btattach.rules
 	rm -f ${TARGET_DIR}/usr/lib/systemd/system/btattach.service
+	rm -f ${TARGET_DIR}/usr/bin/bt-service.sh
 fi
 
 # Remove autoloading cryptodev module when not present
