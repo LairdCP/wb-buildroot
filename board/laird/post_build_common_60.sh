@@ -87,6 +87,17 @@ for f in ${TARGET_DIR}/etc/NetworkManager/dispatcher.d/* ; do
 	fi
 done
 
+# Remove bluetooth support when BlueZ 5 not present
+if [ ! -x ${TARGET_DIR}/usr/sbin/btattach ]; then
+	rm -rf ${TARGET_DIR}/etc/bluetooth
+	rm -f ${TARGET_DIR}/etc/udev/rules.d/80-btattach.rules
+	rm -f ${TARGET_DIR}/usr/lib/systemd/system/btattach.service
+fi
+
+# Remove autoloading cryptodev module when not present
+[ -n "$(find \"${TARGET_DIR}/lib/modules/\" cryptodev.ko)" ] || \
+	rm -f ${TARGET_DIR}/etc/modules-load.d/cryptodev.conf
+
 if [ "${BUILD_TYPE}" != ig60 ]; then
 
 # Path to common image files
