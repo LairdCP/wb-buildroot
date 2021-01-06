@@ -61,6 +61,7 @@ LIBEDIT=$(readlink $TARGET_DIR/usr/lib/libedit.so)
 LIBEDITLRD=${LIBEDIT/libedit./libedit.lrd.}
 
 echo "/usr/bin/lru
+/usr/bin/btlru
 /lib/firmware/brcm/brcmfmac4373-div-mfg.txt
 /usr/lib/${LIBEDITLRD}" \
 > "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"

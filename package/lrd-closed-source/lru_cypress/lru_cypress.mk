@@ -18,8 +18,8 @@ LRU_CYPRESS_MAKE_ENV += $(TARGET_MAKE_ENV) \
 #
 ifeq ($(BR2_PACKAGE_LRU_CYPRESS),y)
 define LAIRD_LRU_CYPRESS_BUILD_CMDS
-	rm -f $(TARGET_DIR)/usr/bin/lru
 	$(LRU_CYPRESS_MAKE_ENV) $(MAKE) $(LRU_CYPRESS_MAKE_OPTS) -C $(@D)/lru
+	$(LRU_CYPRESS_MAKE_ENV) $(MAKE) $(LRU_CYPRESS_MAKE_OPTS) -C $(@D)/btlru
 endef
 endif
 
@@ -33,6 +33,7 @@ endef
 ifeq ($(BR2_PACKAGE_LRU_CYPRESS),y)
 define LAIRD_LRU_CYPRESS_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/lru/bin/lru $(TARGET_DIR)/usr/bin/lru
+	$(INSTALL) -D -m 755 $(@D)/btlru/bin/btlru $(TARGET_DIR)/usr/bin/btlru
 endef
 endif
 
@@ -45,6 +46,7 @@ endef
 #
 define LRU_CYPRESS_UNINSTALL_TARGET_CMDS
 	rm -f $(TARGET_DIR)/usr/bin/lru
+	rm -f $(TARGET_DIR)/usr/bin/btlru
 endef
 
 $(eval $(generic-package))
