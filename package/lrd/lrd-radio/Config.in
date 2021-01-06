@@ -66,7 +66,7 @@ config BR2_PACKAGE_LRD_60_RADIO_STACK_VERSION_VALUE
 
 config BR2_PACKAGE_LRD_50_RADIO_STACK_VERSION_VALUE
 	string "WB radio stack version"
-	depends on BR2_LRD_WB50N_SYSD_RADIO || BR2_LRD_WB50N_LEGACY_RADIO
+	depends on BR2_LRD_WB50N_RADIO
 	default "8.0.0.98"
 	help
 	  Version number for radio packages.
