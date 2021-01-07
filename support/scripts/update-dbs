@@ -1,47 +1,65 @@
-#! /bin/bash
+#! /bin/sh
 # Script to generate downlaod NVD-CVE database
 
 CACHE_DBS=$1/dbs
 year=`date +"%Y"`
-NIST_URL=https://nvd.nist.gov/download
+NIST_URL="https://nvd.nist.gov/download"
+
+status_report(){
+		echo -n "####"
+}
 
 #download nvd-cve files
 download_files(){
- if [ -f "$CACHE_DBS/nvdcve-$1.xml.gz" ]; then
-	  curl -sOz "$(date -u +%a,\ %d\ %b\ %Y\ %H:%M:%S\ GMT -r $CACHE_DBS/nvdcve-$1.xml.gz)" "$NIST_URL/nvdcve-$1.xml.gz"
- else
-	  curl -sO "$NIST_URL/nvdcve-$1.xml.gz"
- fi
-
- if [ $? -ne 0 ]; then
-		echo " [ Download Failed nvdcve-$1.xml.gz ]"
-		if [ -f "$CACHE_DBS/nvdcve-$1.xml" ]; then
-			 echo " [ Download Failed: File does exists in Cache nvdcve-$1.xml: continue... ]"
-		   return
-		else
-			 echo " [ Download Failed: File does not exists in Cache nvdcve-$1.xml: exiting... ]"
-			 exit 1
-		fi
- fi
-
- gunzip --quiet --keep --force  $CACHE_DBS/nvdcve-$1.xml.gz
+	wget --tries=3 --connect-timeout=10  --quiet $NIST_URL/nvdcve-$1.xml.gz --directory-prefix=$CACHE_DBS
+	if [ $? -ne 0 ]; then
+		echo -n " ] [ Download Failed ]"
+		echo
+		exit 1
+	fi
+	gunzip --quiet $CACHE_DBS/nvdcve-$1.xml.gz
 }
 
 update_dbs(){
 echo -n "[ "
 #check if dir exist
-	if [ ! -d $CACHE_DBS ] ; then
-		mkdir -p $CACHE_DBS
-  fi
-
-	cd $CACHE_DBS
-
-  for i in $(seq -f "%04g" 2002 $year); do
+	if [ -d $CACHE_DBS ]  && [ ! "$(ls -A $CACHE_DBS)" ]; then
+		for i in $(seq -f "%04g" 2002 $year)
+		do
 			download_files $i
-			echo -n "#"
-	done
-	echo " ] [ Done ]"
+			status_report
+		done
+		echo -n " ] [ Done ]"
+	elif [ -d $CACHE_DBS ] && [ "$(ls -A $CACHE_DBS)" ]; then
+		for i in $(seq -f "%04g" 2002 $year)
+		do
+			if [ ! -e $CACHE_DBS/nvdcve-$i.xml ]; then
+				download_files $i
+				status_report
+			else
+				status_report
+			fi
+		done
+
+		#update the current year again
+		if [ -e $CACHE_DBS/nvdcve-$year.xml ]; then
+			rm $CACHE_DBS/nvdcve-$year.xml
+		fi
+		download_files $year
+		echo -n " ] [ Done ]"
+	else
+		mkdir -p $CACHE_DBS
+		for i in $(seq -f "%04g" 2002 $year)
+		do
+			download_files $i
+			status_report
+		done
+		echo -n " ] [ Done ]"
+	fi
+	echo
 }
 
+
+####main
 echo "Caching NVD-CVE Database Files [ Started ]"
 update_dbs && echo "Finished NVD-CVE Database [ Done ]"
