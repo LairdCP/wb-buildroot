@@ -79,14 +79,6 @@ $(addsuffix -clean,$(TARGETS_ALL)): %-clean:
 $(addsuffix -sdk,$(TARGETS)): %-sdk: $(OUTPUT_DIR)/%/.config
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* BR2_SDK_PREFIX=$@ sdk
 
-.PHONY: $(addsuffix -sbom-gen,$(TARGETS))
-$(addsuffix -sbom-gen,$(TARGETS)): %-sbom-gen:
-	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* sbom-gen
-	tar --exclude=*sources -C $(OUTPUT_DIR)/$*/legal-info/ \
-		--owner=0 --group=0 --numeric-owner \
-		-cjf $(OUTPUT_DIR)/$*/images/legal-info.tar.bz2 .
-
-# sbom target always creates legal-info, so legal-info target not really needed
 .PHONY: $(addsuffix -legal-info,$(TARGETS_ALL))
 $(addsuffix -legal-info,$(TARGETS_ALL)): %-legal-info:
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* legal-info
@@ -101,11 +93,11 @@ ifneq ($(vigiles_name),)
 endif
 
 .PHONY: $(addsuffix -full,$(TARGETS))
-$(addsuffix -full,$(TARGETS)): %-full: % %-sbom-gen %-sdk
+$(addsuffix -full,$(TARGETS)): %-full: % %-legal-info %-sdk
 	bzip2 -d $(call release_file,$*).bz2
 	tar -C $(OUTPUT_DIR)/$*/images -rf $(call release_file,$*) \
 		--owner=0 --group=0 --numeric-owner \
-		legal-info.tar.bz2 host-sbom target-sbom $*-sdk.tar.gz
+		legal-info.tar.bz2 $*-sdk.tar.gz
 	bzip2 $(call release_file,$*)
 
 .PHONY: $(addsuffix -full-legal,$(TARGETS))
