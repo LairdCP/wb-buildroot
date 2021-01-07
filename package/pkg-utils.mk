@@ -202,7 +202,6 @@ define legal-license-file # pkgname, pkgname-pkgver, pkg-hashfile, filename, fil
 	} && \
 	cp $(5) $(LICENSE_FILES_DIR_$(6))/$(2)/$(4)
 endef
-
 non-virtual-deps = $(foreach p,$(1),$(if $($(call UPPERCASE,$(p))_IS_VIRTUAL),,$(p)))
 
 # Returns the list of recursive dependencies and their licensing terms
@@ -213,14 +212,4 @@ legal-deps = \
         $(filter-out $(if $(1:host-%=),host-%),\
             $(call non-virtual-deps,\
                 $($(call UPPERCASE,$(1))_FINAL_RECURSIVE_DEPENDENCIES))),$(p) [$($(call UPPERCASE,$(p))_LICENSE)])
-#
-# sbom-gen helper functions
-#
-define csv-to-txt # legal-info-csv-host, legal-info-csv-target, sbom-host, sbom-target
-    support/scripts/csv-to-txt $(1) $(2) $(3) $(4)
-endef
-
-define legal-info-to-sbom # legal-info-dir, sbom-target-dir
-	support/scripts/legal-info-to-sbom $(1) $(2)
-endef
 
