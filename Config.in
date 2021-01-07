@@ -188,6 +188,22 @@ config BR2_DL_DIR
 
 	  The default is $(TOPDIR)/dl
 
+config BR2_CVE_LIST_DIR
+	string "CVE-CHECKER List dir"
+	default "$(TOPDIR)/support/cve-checker"
+	help
+	  Directory to store all the list of packages that we need to skip/pass in CVE-Checking.
+	  If the Linux shell environment has defined the BR2_CVE_LIST_DIR
+	  environment variable, then this overrides default configuration BR2_CVE_LIST_DIR
+	  The directory is organized with two files called as skip_list and pass_list.
+	  skip_list Check skip_list, list of CVEs to be marked as "skip" instead of "fail"
+	  skip_list substitutes any CVE with issues with a "skip" instead of "fail" or "fail
+	  pass_list Check pass_list, list of CVEs fixed, takes precedence over skip_list pass_list
+	  substitutes any CVE with issues with a "pass" instead of "skip" or "fail"
+	  By default this directory should consist skip_list and pass_list may it be empty or not.
+
+	  The default is $(TOPDIR)/support/cve-checker
+
 config BR2_HOST_DIR
 	string "Host dir"
 	default "$(BASE_DIR)/host"
