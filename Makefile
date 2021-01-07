@@ -885,12 +885,12 @@ sbom-gen: legal-info
 
 .PHONY: cve-check
 cve-check: sbom-gen
-	@$(call update-dbs,$(DL_DIR)/dbs,$(BUILD_DIR)/cve-dbs) || ( echo "Updating NVD-CVE Database [Failed] [Error $$?]"; exit 1 )
+	@$(call update-dbs,$(DL_DIR))|| ( echo "Updating NVD-CVE Database [Failed] [Error $$?]"; exit 1 )
 	@echo "Performing CVE-Check for Host [ Started ]"
-	@./support/scripts/cli.py -f rpm $(SBOM_HOST) $(BUILD_DIR)/cve-dbs $(lastword $(subst /, , $(BASE_DIR)))\
+	@./support/scripts/cli.py -f rpm $(SBOM_HOST) $(DL_DIR)/dbs $(lastword $(subst /, , $(BASE_DIR)))\
 		 -a 0 -i $(SKIP_LIST) -x $(PASS_LIST) -o $(CVE_HOST)
 	@echo "Performing CVE-Check for Target [ Started ]"
-	@./support/scripts/cli.py -f rpm $(SBOM_TARGET) $(BUILD_DIR)/cve-dbs $(lastword $(subst /, , $(BASE_DIR)))\
+	@./support/scripts/cli.py -f rpm $(SBOM_TARGET) $(DL_DIR)/dbs $(lastword $(subst /, , $(BASE_DIR)))\
 		 -a 0 -i $(SKIP_LIST) -x $(PASS_LIST) -o $(CVE_TARGET)
 	@echo "Finished CVE-Check [ Done ]"
 

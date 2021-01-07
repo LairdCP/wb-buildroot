@@ -227,9 +227,8 @@ endef
 #
 # cve-check helper functions
 #
-define update-dbs # dl_dir #build_dir
-		[ -d $(1) ] || mkdir -p $(1)
-		[ -d $(2) ] || mkdir -p $(2)
-    flock -e $(1) -c "support/scripts/update-dbs $(1) $(2)"
+define update-dbs # dl_dir
+		[ -d $(1)/dbs ] || mkdir -p $(1)/dbs
+    flock -e $(1)/dbs -c "support/scripts/update-dbs $(1)/dbs"
 endef
 
