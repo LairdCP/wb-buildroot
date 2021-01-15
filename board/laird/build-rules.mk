@@ -44,7 +44,7 @@ $(patsubst %,$(OUTPUT_DIR)/%/.config,$(TARGETS_ALL)): $(OUTPUT_DIR)/%/.config: $
 .PHONY: $(TARGETS_ALL)
 $(TARGETS_ALL): %: $(OUTPUT_DIR)/%/.config
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$*
-ifneq ($(VIGILES_ENABLE_DASHBOARD_CONFIG),)
+ifneq ($(VIGILES_DASHBOARD_CONFIG),)
 ifneq ($(vigiles_name),)
 	$(MAKE) -C $(OUTPUT_DIR)/$* vigiles-check
 endif
