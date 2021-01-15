@@ -884,6 +884,7 @@ then
       then
         rootfs=$ab
         bootargs="console=ttyS0,115200 loglevel=4 rw rootfstype=ubifs root=ubi0:rootfs ubi.mtd=${mtdnum} init=/usr/sbin/fipsInit.sh fips=${fips:=0} fips_wifi=${fips_wifi:=0}"
+        [ "$(fw_select --fips)" == none ] && bootargs=${bootargs/init=\/usr\/sbin\/fipsInit.sh /}
       fi
     fi
   fi

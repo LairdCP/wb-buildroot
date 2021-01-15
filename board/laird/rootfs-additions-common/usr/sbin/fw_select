@@ -365,8 +365,16 @@ alt_rootfs() {
         echo " (try: '--transfer access off')"
       fi
       echo -e "  rootfs-`alt_rootfs`: \c"
-      grep -so -m1 '[^ ]*$' $ALT_ROOTFS_MOUNT/etc/*-release \
-      || { echo \?; false; }
+      if [ -f $ALT_ROOTFS_MOUNT/etc/laird-release ]; then
+        grep -so -m1 '[^ ]*$' $ALT_ROOTFS_MOUNT/etc/laird-release
+      elif [ -f $ALT_ROOTFS_MOUNT/etc/summit-release ]; then
+        grep -so -m1 '[^ ]*$' $ALT_ROOTFS_MOUNT/etc/summit-release
+      elif [ -f $ALT_ROOTFS_MOUNT/etc/os-release ]; then
+        . $ALT_ROOTFS_MOUNT/etc/os-release
+        echo $BUILD_ID
+      else
+        echo \?; false
+      fi
       ;;
   esac
 }
@@ -423,6 +431,15 @@ transfer_system_files() {
   echo \ \ ${i:-...}
 
   alt_rootfs u
+}
+
+fipsOnAlt() {
+  scan_partitions
+  alt_rootfs m > /dev/null || return 1
+
+  [ -f $ALT_ROOTFS_MOUNT/usr/sbin/fipsInit.sh ] && echo fips || echo none
+
+  alt_rootfs u > /dev/null
 }
 
 switch_bootargs(){
@@ -528,6 +545,10 @@ case $1 in
     esac
     ;;
 
+  --fips)
+    fipsOnAlt
+    ;;
+
   --usage) ## see detailed usage info and a few examples
     show_usage_info
     exec $0 -h
@@ -568,6 +589,7 @@ case $1 in
         rootfs*)
           [ "${ap}" == "->" ] && [ ! -z "$romode" ] && vers="$romode" \
                                         || vers=`strings -n8 < $mtd |sed -n \
+                                        -e'/Summit Linux/{s/.* //p;q}' \
                                         -e'/Laird Linux/{s/.* //p;q}' \
                                         -e'/SDC Linux Release/{s/.* //p;q}'`;;
       esac
