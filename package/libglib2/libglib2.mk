@@ -22,6 +22,9 @@ LIBGLIB2_IGNORE_CVES += CVE-2019-12450
 # 0006-keyfile-settings-permissions.patch
 LIBGLIB2_IGNORE_CVES += CVE-2019-13012
 
+# 0007-goption-precond-avoid-goptionentry-list.patch
+LIBGLIB2_IGNORE_CVES += CVE-2020-35457
+
 LIBGLIB2_CONF_ENV = \
 	ac_cv_func_posix_getpwuid_r=yes \
 	glib_cv_stack_grows=no \
