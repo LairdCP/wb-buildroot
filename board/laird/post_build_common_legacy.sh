@@ -65,8 +65,8 @@ else
 	rm -f ${TARGET_DIR}/etc/init.d/S95bluetooth*
 fi
 
-[ -n "$(find \"${TARGET_DIR}/lib/modules/\" cryptodev.ko)" ] || \
-	rm -f ${TARGET_DIR}/etc/init.d/S03cryptodev
+[ -n "$(find "${TARGET_DIR}/lib/modules/" -name cryptodev.ko)" ] || \
+	rm -f "${TARGET_DIR}/etc/init.d/S03cryptodev"
 
 if [ -x ${TARGET_DIR}/usr/bin/dcas ]; then
 
