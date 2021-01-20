@@ -96,8 +96,8 @@ if [ ! -x ${TARGET_DIR}/usr/bin/btattach ]; then
 fi
 
 # Remove autoloading cryptodev module when not present
-[ -n "$(find \"${TARGET_DIR}/lib/modules/\" cryptodev.ko)" ] || \
-	rm -f ${TARGET_DIR}/etc/modules-load.d/cryptodev.conf
+[ -n "$(find "${TARGET_DIR}/lib/modules/" -name cryptodev.ko)" ] || \
+	rm -f "${TARGET_DIR}/etc/modules-load.d/cryptodev.conf"
 
 if [ "${BUILD_TYPE}" != ig60 ]; then
 
