@@ -1,0 +1,10 @@
+[Unit]
+Description=GSM 0710 multiplexing based on linux N_GSM driver
+Before=ModemManager.service NetworkManager.service
+
+[Service]
+ExecStart=/usr/bin/cmux
+ExecStop=killall cmux
+
+[Install]
+WantedBy=multi-user.target

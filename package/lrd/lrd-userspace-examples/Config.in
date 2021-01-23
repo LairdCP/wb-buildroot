@@ -14,4 +14,8 @@ config BR2_PACKAGE_LRD_USERSPACE_NETLINK_EXAMPLES
 	bool "Build netlink examples"
 	default n
 
+config BR2_PACKAGE_LRD_USERSPACE_CMUX
+	bool "Build cmux"
+	default n
+
 endif
