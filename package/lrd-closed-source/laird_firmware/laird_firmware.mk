@@ -80,10 +80,25 @@ define LAIRD_FW_BCM4339_MFG_INSTALL_TARGET_CMDS
 endef
 endif
 
-NVRAM_FILE = $(@D)/brcm/brcmfmac4373-$(1)-$(2).txt
-FW_BASE_FILE = $(@D)/brcm/brcmfmac4373-usb-base-$(1).bin
-FW_FINAL_FILE = $(BRCM_DIR)/brcmfmac4373-usb-$(1)-$(2)-$(3).bin
-FW_FINAL_FILE_MFG = $(BRCM_DIR)/brcmfmac4373-usb-$(1)-$(3).bin
+NVRAM_FILE = $(@D)/brcm/brcmfmac4373-$(1).txt
+FW_BASE_FILE_PROD = $(@D)/brcm/brcmfmac4373-usb-base-prod.bin
+FW_BASE_FILE_MFG = $(@D)/brcm/brcmfmac4373-usb-base-mfg.bin
+FW_FINAL_FILE_PROD = $(BRCM_DIR)/brcmfmac4373-usb-$(1)-prod.bin
+FW_FINAL_FILE_MFG = $(BRCM_DIR)/brcmfmac4373-usb-$(1)-mfg.bin
+
+define make_bcm4373usbmfg_fw
+	mkdir -p -m 0755 $(BRCM_DIR)
+	grep -v NVRAMRev $(call NVRAM_FILE,$(1)) > $(BRCM_DIR)/tmp_nvram.txt
+	$(@D)/brcm/bin/nvserial -a -o $(BRCM_DIR)/tmp_nvram.nvm $(BRCM_DIR)/tmp_nvram.txt
+	$(@D)/brcm/bin/trxv2 -f 0x20 \
+		-x $$(stat -c %s $(call FW_BASE_FILE_MFG)) \
+		-x 0x160881 \
+		-x $$(stat -c %s $(BRCM_DIR)/tmp_nvram.nvm) \
+		-o $(call FW_FINAL_FILE_MFG,$(1)) \
+		$(call FW_BASE_FILE_MFG) $(BRCM_DIR)/tmp_nvram.nvm
+	rm -f $(BRCM_DIR)/tmp_nvram.*
+	[[ $(1) = sa ]] || (cd $(BRCM_DIR) && mv brcmfmac4373-usb-div-mfg-mfg.bin brcmfmac4373-usb-div-mfg.bin)
+endef
 
 define make_bcm4373usb_fw
 	mkdir -p -m 0755 $(BRCM_DIR)
@@ -91,17 +106,16 @@ define make_bcm4373usb_fw
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-$(1).clm_blob brcmfmac4373.clm_blob
 	cp -rad $(@D)/brcm/BCM4373A0-usb-$(1).hcd $(BRCM_DIR)
 	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-$(1).hcd BCM4373A0-04b4-640c.hcd
-	grep -v NVRAMRev $(call NVRAM_FILE,$(1),$(2)) > $(BRCM_DIR)/tmp_nvram.txt
+	grep -v NVRAMRev $(call NVRAM_FILE,$(1)) > $(BRCM_DIR)/tmp_nvram.txt
 	$(@D)/brcm/bin/nvserial -a -o $(BRCM_DIR)/tmp_nvram.nvm $(BRCM_DIR)/tmp_nvram.txt
 	$(@D)/brcm/bin/trxv2 -f 0x20 \
-		-x $$(stat -c %s $(call FW_BASE_FILE,$(3))) \
+		-x $$(stat -c %s $(call FW_BASE_FILE_PROD)) \
 		-x 0x160881 \
 		-x $$(stat -c %s $(BRCM_DIR)/tmp_nvram.nvm) \
-		-o $(call FW_FINAL_FILE,$(1),$(2),$(3)) \
-		$(call FW_BASE_FILE,$(3)) $(BRCM_DIR)/tmp_nvram.nvm
+		-o $(call FW_FINAL_FILE_PROD,$(1)) \
+		$(call FW_BASE_FILE_PROD) $(BRCM_DIR)/tmp_nvram.nvm
 	rm -f $(BRCM_DIR)/tmp_nvram.*
-	[[ $(3) = prod ]] || (cd $(BRCM_DIR) && mv $(FW_FINAL_FILE) $(FW_FINAL_FILE_MFG))
-	[[ $(3) = mfg ]] || (cd $(BRCM_DIR) && ln -srf brcmfmac4373-usb-$(1)-$(2)-prod.bin brcmfmac4373.bin)
+	cd $(BRCM_DIR) && ln -srf $(FW_FINAL_FILE_PROD) brcmfmac4373.bin
 endef
 
 define make_bcm4373sdio_fw
@@ -110,129 +124,33 @@ define make_bcm4373sdio_fw
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-$(1).clm_blob brcmfmac4373-sdio.clm_blob
 	cp -rad $(@D)/brcm/BCM4373A0-sdio-$(1).hcd $(BRCM_DIR)
 	cd $(BRCM_DIR) && ln -srf BCM4373A0-sdio-$(1).hcd BCM4373A0.hcd
-	cp -rad $(@D)/brcm/brcmfmac4373-$(1)-$(2).txt $(BRCM_DIR)
-	cd $(BRCM_DIR) && ln -srf brcmfmac4373-$(1)-$(2).txt brcmfmac4373-sdio.txt
+	cp -rad $(@D)/brcm/brcmfmac4373-$(1).txt $(BRCM_DIR)
+	cd $(BRCM_DIR) && ln -srf brcmfmac4373-$(1).txt brcmfmac4373-sdio.txt
 	cp -rad $(@D)/brcm/brcmfmac4373-sdio-prod.bin $(BRCM_DIR)
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-sdio-prod.bin brcmfmac4373-sdio.bin
 endef
 
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_FCC),y)
-define LAIRD_FW_BCM4373_SDIO_DIV_FCC_INSTALL_TARGET_CMDS
-	$(call make_bcm4373sdio_fw,div,fcc)
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV),y)
+define LAIRD_FW_BCM4373_SDIO_DIV_INSTALL_TARGET_CMDS
+	$(call make_bcm4373sdio_fw,div)
 endef
 endif
 
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_FCC),y)
-define LAIRD_FW_BCM4373_SDIO_SA_FCC_INSTALL_TARGET_CMDS
-	$(call make_bcm4373sdio_fw,sa,fcc)
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA),y)
+define LAIRD_FW_BCM4373_SDIO_SA_INSTALL_TARGET_CMDS
+	$(call make_bcm4373sdio_fw,sa)
 endef
 endif
 
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_FCC),y)
-define LAIRD_FW_BCM4373_USB_DIV_FCC_INSTALL_TARGET_CMDS
-	$(call make_bcm4373usb_fw,div,fcc,prod)
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV),y)
+define LAIRD_FW_BCM4373_USB_DIV_INSTALL_TARGET_CMDS
+	$(call make_bcm4373usb_fw,div,prod)
 endef
 endif
 
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_FCC),y)
-define LAIRD_FW_BCM4373_USB_SA_FCC_INSTALL_TARGET_CMDS
-	$(call make_bcm4373usb_fw,sa,fcc,prod)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_IC),y)
-define LAIRD_FW_BCM4373_SDIO_DIV_IC_INSTALL_TARGET_CMDS
-	$(call make_bcm4373sdio_fw,div,ic)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_IC),y)
-define LAIRD_FW_BCM4373_SDIO_SA_IC_INSTALL_TARGET_CMDS
-	$(call make_bcm4373sdio_fw,sa,ic)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_IC),y)
-define LAIRD_FW_BCM4373_USB_DIV_IC_INSTALL_TARGET_CMDS
-	$(call make_bcm4373usb_fw,div,ic,prod)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_IC),y)
-define LAIRD_FW_BCM4373_USB_SA_IC_INSTALL_TARGET_CMDS
-	$(call make_bcm4373usb_fw,sa,ic,prod)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_ETSI),y)
-define LAIRD_FW_BCM4373_SDIO_DIV_ETSI_INSTALL_TARGET_CMDS
-	$(call make_bcm4373sdio_fw,div,etsi)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_ETSI),y)
-define LAIRD_FW_BCM4373_SDIO_SA_ETSI_INSTALL_TARGET_CMDS
-	$(call make_bcm4373sdio_fw,sa,etsi)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_ETSI),y)
-define LAIRD_FW_BCM4373_USB_DIV_ETSI_INSTALL_TARGET_CMDS
-	$(call make_bcm4373usb_fw,div,etsi,prod)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_ETSI),y)
-define LAIRD_FW_BCM4373_USB_SA_ETSI_INSTALL_TARGET_CMDS
-	$(call make_bcm4373usb_fw,sa,etsi,prod)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_JP),y)
-define LAIRD_FW_BCM4373_SDIO_DIV_JP_INSTALL_TARGET_CMDS
-	$(call make_bcm4373sdio_fw,div,jp)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_JP),y)
-define LAIRD_FW_BCM4373_SDIO_SA_JP_INSTALL_TARGET_CMDS
-	$(call make_bcm4373sdio_fw,sa,jp)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_JP),y)
-define LAIRD_FW_BCM4373_USB_DIV_JP_INSTALL_TARGET_CMDS
-	$(call make_bcm4373usb_fw,div,jp,prod)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_JP),y)
-define LAIRD_FW_BCM4373_USB_SA_JP_INSTALL_TARGET_CMDS
-	$(call make_bcm4373usb_fw,sa,jp,prod)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_AU),y)
-define LAIRD_FW_BCM4373_SDIO_DIV_AU_INSTALL_TARGET_CMDS
-	$(call make_bcm4373sdio_fw,div,au)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_AU),y)
-define LAIRD_FW_BCM4373_SDIO_SA_AU_INSTALL_TARGET_CMDS
-	$(call make_bcm4373sdio_fw,sa,au)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_AU),y)
-define LAIRD_FW_BCM4373_USB_DIV_AU_INSTALL_TARGET_CMDS
-	$(call make_bcm4373usb_fw,div,au,prod)
-endef
-endif
-
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_AU),y)
-define LAIRD_FW_BCM4373_USB_SA_AU_INSTALL_TARGET_CMDS
-	$(call make_bcm4373usb_fw,sa,au,prod)
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA),y)
+define LAIRD_FW_BCM4373_USB_SA_INSTALL_TARGET_CMDS
+	$(call make_bcm4373usb_fw,sa,prod)
 endef
 endif
 
@@ -241,12 +159,12 @@ endif
 #
 #        The NVRAM file is included directly in the regulatory package for SDIO and
 #        is also used to build the USB diversity mfg firmware
-#        An existing single antenna NVRAM file from any domain can be used to build
-#        USB single antenna mfg firmware
+#        The standard single antenna NVRAM file is used to build USB single antenna
+#        mfg firmware
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_MFG),y)
 define LAIRD_FW_BCM4373_MFG_INSTALL_TARGET_CMDS
-	$(call make_bcm4373usb_fw,div,mfg,mfg)
-	$(call make_bcm4373usb_fw,sa,fcc,mfg)
+	$(call make_bcm4373usbmfg_fw,div-mfg)
+	$(call make_bcm4373usbmfg_fw,sa)
 	cp -rad $(@D)/brcm/brcmfmac4373-sdio-mfg.bin $(BRCM_DIR)
 	cp -rad $(@D)/brcm/brcmfmac4373-div-mfg.txt $(BRCM_DIR)
 endef
@@ -419,26 +337,10 @@ define LAIRD_FIRMWARE_INSTALL_TARGET_CMDS
 	$(LAIRD_FW_BCM4343_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4339_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4339_MFG_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_SDIO_DIV_IC_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_SDIO_SA_IC_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_USB_DIV_IC_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_USB_SA_IC_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_SDIO_DIV_ETSI_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_SDIO_SA_ETSI_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_USB_DIV_ETSI_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_USB_SA_ETSI_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_SDIO_DIV_JP_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_SDIO_SA_JP_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_USB_DIV_JP_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_USB_SA_JP_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_SDIO_DIV_AU_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_SDIO_SA_AU_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_USB_DIV_AU_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_USB_SA_AU_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_SDIO_DIV_FCC_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_SDIO_SA_FCC_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_USB_DIV_FCC_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_USB_SA_FCC_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4373_SDIO_DIV_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4373_SDIO_SA_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4373_USB_DIV_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4373_USB_SA_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4373_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_UART_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_SDIO_INSTALL_TARGET_CMDS)

@@ -67,149 +67,33 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339_MFG
 	  Install Laird's manufacturing test firmware
 	  for the LWB5 Sterling radio.
 
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_FCC
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ SDIO diversity (FCC)"
+	bool "Laird LWB5+ SDIO/UART with antenna diversity"
 	help
 	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  SDIO/UART interface and antenna diversity for the FCC regulatory
-	  domain.
+	  SDIO/UART interface and antenna diversity.
 
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_FCC
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ SDIO (FCC)"
+	bool "Laird LWB5+ SDIO/UART with single antenna"
 	help
 	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  SDIO/UART interface for the FCC regulatory domain.
+	  SDIO/UART interface using a single antenna.
 
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_FCC
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ USB diversity (FCC)"
+	bool "Laird LWB5+ USB with antenna diversity"
 	help
 	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  USB/USB interface and antenna diversity for the FCC regulatory
-	  domain.
+	  USB/USB interface and antenna diversity.
 
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_FCC
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ USB (FCC)"
+	bool "Laird LWB5+ USB with single antenna"
 	help
 	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  USB/USB interface for the FCC regulatory domain.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_ETSI
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ SDIO diversity (ETSI)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  SDIO/UART interface and antenna diversity for the ETSI regulatory
-	  domain.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_ETSI
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ SDIO (ETSI)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  SDIO/UART interface for the ETSI regulatory domain.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_ETSI
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ USB diversity (ETSI)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  USB/USB interface and antenna diversity for the ETSI regulatory
-	  domain.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_ETSI
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ USB (ETSI)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  USB/USB interface for the CE regulatory domain.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_IC
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ SDIO diversity (IC)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  SDIO/UART interface and antenna diversity for Canada.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_IC
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ SDIO (IC)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  SDIO/UART interface for Canada.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_IC
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ USB diversity (IC)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  USB/USB interface and antenna diversity for Canada.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_IC
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ USB (IC)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  USB/USB interface for Canada.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_JP
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ SDIO diversity (JP)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  SDIO/UART interface and antenna diversity for Japan.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_JP
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ SDIO (JP)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  SDIO/UART interface for Japan.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_JP
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ USB diversity (JP)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  USB/USB interface and antenna diversity for Japan.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_JP
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ USB (JP)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  USB/USB interface for Japan.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV_AU
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ SDIO diversity (AU)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  SDIO/UART interface and antenna diversity for Australia.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_AU
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ SDIO (AU)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  SDIO/UART interface for Australia.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV_AU
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ USB diversity (AU)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  USB/USB interface and antenna diversity for Australia.
-
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_AU
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ USB (AU)"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling radio with
-	  USB/USB interface for Australia.
+	  USB/USB interface using a single antenna.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_MFG
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
