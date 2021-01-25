@@ -4,15 +4,12 @@
 #
 ################################################################################
 
-PPPD_VERSION = 2.4.8
+PPPD_VERSION = 2.4.9
 PPPD_SITE = $(call github,paulusmack,ppp,ppp-$(PPPD_VERSION))
 PPPD_LICENSE = LGPL-2.0+, LGPL, BSD-4-Clause, BSD-3-Clause, GPL-2.0+
 PPPD_LICENSE_FILES = \
 	pppd/tdb.c pppd/plugins/pppoatm/COPYING \
 	pppdump/bsd-comp.c pppd/ccp.c pppd/plugins/passprompt.c
-
-# 0001-pppd-Fix-bounds-check.patch
-PPPD_IGNORE_CVES += CVE-2020-8597
 
 PPPD_MAKE_OPTS = HAVE_INET6=y
 ifeq ($(BR2_TOOLCHAIN_USES_GLIBC),y)
@@ -98,9 +95,9 @@ define PPPD_INSTALL_TARGET_CMDS
 		$(TARGET_DIR)/usr/lib/pppd/$(PPPD_VERSION)/passwordfd.so
 	$(INSTALL) -D $(PPPD_DIR)/pppd/plugins/pppoatm/pppoatm.so \
 		$(TARGET_DIR)/usr/lib/pppd/$(PPPD_VERSION)/pppoatm.so
-	$(INSTALL) -D $(PPPD_DIR)/pppd/plugins/rp-pppoe/rp-pppoe.so \
-		$(TARGET_DIR)/usr/lib/pppd/$(PPPD_VERSION)/rp-pppoe.so
-	$(INSTALL) -D $(PPPD_DIR)/pppd/plugins/rp-pppoe/pppoe-discovery \
+	$(INSTALL) -D $(PPPD_DIR)/pppd/plugins/pppoe/pppoe.so \
+		$(TARGET_DIR)/usr/lib/pppd/$(PPPD_VERSION)/pppoe.so
+	$(INSTALL) -D $(PPPD_DIR)/pppd/plugins/pppoe/pppoe-discovery \
 		$(TARGET_DIR)/usr/sbin/pppoe-discovery
 	$(INSTALL) -D $(PPPD_DIR)/pppd/plugins/winbind.so \
 		$(TARGET_DIR)/usr/lib/pppd/$(PPPD_VERSION)/winbind.so
