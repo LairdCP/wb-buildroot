@@ -1,12 +1,377 @@
-Subject: [PATCH] U-BLOX sara-r5 modem support
+From d498ce9ed7041b522ef95d67d010cb204fd6330f Mon Sep 17 00:00:00 2001
+From: "sean.meng" <Sean.Meng@lairdconnect.com>
+Date: Sun, 31 Jan 2021 22:30:30 -0500
+Subject: [PATCH] Add SARA-R5 modem support
 
 ---
- plugins/ublox/mm-modem-helpers-ublox.c | 13 +++++++++++++
- src/mm-modem-helpers.c                 |  5 +++--
- 2 files changed, 16 insertions(+), 2 deletions(-)
+ plugins/ublox/mm-broadband-modem-ublox.c | 314 ++++++++++++++++++++++-
+ plugins/ublox/mm-modem-helpers-ublox.c   |  15 +-
+ plugins/ublox/mm-plugin-ublox.c          |  58 +++++
+ src/kerneldevice/mm-kernel-device-udev.c |   8 +-
+ src/mm-modem-helpers.c                   |   5 +-
+ 5 files changed, 394 insertions(+), 6 deletions(-)
 
+diff --git a/plugins/ublox/mm-broadband-modem-ublox.c b/plugins/ublox/mm-broadband-modem-ublox.c
+index d27599b..2fbf57e 100644
+--- a/plugins/ublox/mm-broadband-modem-ublox.c
++++ b/plugins/ublox/mm-broadband-modem-ublox.c
+@@ -26,6 +26,7 @@
+ #include "mm-iface-modem.h"
+ #include "mm-iface-modem-3gpp.h"
+ #include "mm-iface-modem-voice.h"
++#include "mm-iface-modem-signal.h"
+ #include "mm-base-modem-at.h"
+ #include "mm-broadband-bearer.h"
+ #include "mm-broadband-modem-ublox.h"
+@@ -37,13 +38,16 @@
+ static void iface_modem_init (MMIfaceModem *iface);
+ static void iface_modem_3gpp_init (MMIfaceModem3gpp *iface);
+ static void iface_modem_voice_init (MMIfaceModemVoice *iface);
++static void iface_modem_signal_init (MMIfaceModemSignal *iface);
+
+ static MMIfaceModemVoice *iface_modem_voice_parent;
+
+ G_DEFINE_TYPE_EXTENDED (MMBroadbandModemUblox, mm_broadband_modem_ublox, MM_TYPE_BROADBAND_MODEM, 0,
+                         G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM, iface_modem_init)
+                         G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM_3GPP, iface_modem_3gpp_init)
+-                        G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM_VOICE, iface_modem_voice_init))
++                        G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM_SIGNAL, iface_modem_signal_init)
++                        //G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM_VOICE, iface_modem_voice_init)
++						)
+
+
+ struct _MMBroadbandModemUbloxPrivate {
+@@ -1629,13 +1633,71 @@ iface_modem_init (MMIfaceModem *iface)
+     iface->load_current_bands_finish = load_current_bands_finish;
+     iface->set_current_bands        = set_current_bands;
+     iface->set_current_bands_finish = common_set_current_modes_bands_finish;
++    //UBLOX supports a few charsets. However, switching between charsets may cause strange problems.
++    //Just disble it to use the default IRA charset.
++    iface->setup_charset = NULL;
++    iface->setup_charset_finish = NULL;
+ }
+
++/*****************************************************************************/
++/* Operator Name loading (3GPP interface) */
++
++static gchar *
++load_operator_name_finish (MMIfaceModem3gpp *self,
++                                      GAsyncResult *res,
++                                      GError **error)
++{
++    const gchar *result;
++    gchar *operator_name = NULL;
++
++    result = mm_base_modem_at_command_finish (MM_BASE_MODEM (self), res, error);
++    if (!result){
++        return NULL;
++	}
++    if (!mm_3gpp_parse_cops_read_response (result,
++                                           NULL, /* mode */
++                                           NULL, /* format */
++                                           &operator_name,
++                                           NULL, /* act */
++                                           error))
++        return NULL;
++
++    mm_3gpp_normalize_operator (&operator_name, MM_MODEM_CHARSET_UNKNOWN);
++    if (operator_name)
++        mm_dbg ("ublox: loaded Operator Name: %s", operator_name);
++    return operator_name;
++}
++
++static void
++load_operator_name (MMIfaceModem3gpp *self,
++                               GAsyncReadyCallback callback,
++                               gpointer user_data)
++{
++    mm_dbg ("ublox: loading Operator Name...");
++
++    mm_base_modem_at_command (MM_BASE_MODEM (self),
++                              "+COPS=3,0",
++                              3,
++                              FALSE,
++                              NULL,
++                              NULL);
++
++    mm_base_modem_at_command (MM_BASE_MODEM (self),
++                              "+COPS?",
++                              3,
++                              FALSE,
++                              callback,
++                              user_data);
++}
++
++
+ static void
+ iface_modem_3gpp_init (MMIfaceModem3gpp *iface)
+ {
+     iface->register_in_network = register_in_network;
+     iface->register_in_network_finish = register_in_network_finish;
++    iface->load_operator_name = load_operator_name;
++    iface->load_operator_name_finish = load_operator_name_finish;
+ }
+
+ static void
+@@ -1655,6 +1717,256 @@ iface_modem_voice_init (MMIfaceModemVoice *iface)
+     iface->create_call = create_call;
+ }
+
++
++/*****************************************************************************/
++/* Check support (Signal interface) */
++
++static gboolean
++modem_signal_check_support_finish  (MMIfaceModemSignal  *self,
++                                            GAsyncResult        *res,
++                                            GError             **error)
++{
++    return !!mm_base_modem_at_command_finish (MM_BASE_MODEM (self), res, error);
++}
++
++static void
++modem_signal_check_support (MMIfaceModemSignal  *self,
++                                    GAsyncReadyCallback  callback,
++                                    gpointer             user_data)
++{
++    mm_base_modem_at_command (MM_BASE_MODEM (self),
++                              "+CESQ=?",
++                              3,
++                              FALSE,
++                              callback,
++                              user_data);
++}
++/*****************************************************************************/
++/* Load extended signal information (Signal interface) */
++
++/* +CESQ? response parser */
++gboolean
++modem_parse_cesq_query_response (const gchar  *response,
++                                   guint        *out_rxlev,
++                                   guint        *out_ber,
++                                   guint        *out_rscp,
++                                   guint        *out_ecn0,
++                                   guint        *out_rsrq,
++                                   guint        *out_rsrp,
++                                   GError      **error)
++{
++    GRegex     *r;
++    GMatchInfo *match_info;
++    GError     *inner_error = NULL;
++    guint       rxlev = 99;
++    guint       ber = 99;
++    guint       rscp = 255;
++    guint       ecn0 = 255;
++    guint       rsrq = 255;
++    guint       rsrp = 255;
++    gboolean    success = FALSE;
++
++    g_assert (out_rxlev);
++    g_assert (out_ber);
++    g_assert (out_rscp);
++    g_assert (out_ecn0);
++    g_assert (out_rsrq);
++    g_assert (out_rsrp);
++
++    /* Response may be e.g.:
++     * +CESQ: 99,99,255,255,20,80
++     */
++    r = g_regex_new ("\\+CESQ: (\\d+),(\\d+),(\\d+),(\\d+),(\\d+),(\\d+),(-?\\d+)(?:\\r\\n)?", 0, 0, NULL);
++    g_assert (r != NULL);
++
++    g_regex_match_full (r, response, strlen (response), 0, 0, &match_info, &inner_error);
++    if (!inner_error && g_match_info_matches (match_info)) {
++        /* Ignore "n" value */
++        if (!mm_get_uint_from_match_info (match_info, 2, &rxlev)) {
++            inner_error = g_error_new (MM_CORE_ERROR, MM_CORE_ERROR_FAILED, "Couldn't read RXLEV");
++            goto out;
++        }
++        if (!mm_get_uint_from_match_info (match_info, 3, &ber)) {
++            inner_error = g_error_new (MM_CORE_ERROR, MM_CORE_ERROR_FAILED, "Couldn't read BER");
++            goto out;
++        }
++        if (!mm_get_uint_from_match_info (match_info, 4, &rscp)) {
++            inner_error = g_error_new (MM_CORE_ERROR, MM_CORE_ERROR_FAILED, "Couldn't read RSCP");
++            goto out;
++        }
++        if (!mm_get_uint_from_match_info (match_info, 5, &ecn0)) {
++            inner_error = g_error_new (MM_CORE_ERROR, MM_CORE_ERROR_FAILED, "Couldn't read Ec/N0");
++            goto out;
++        }
++        if (!mm_get_uint_from_match_info (match_info, 6, &rsrq)) {
++            inner_error = g_error_new (MM_CORE_ERROR, MM_CORE_ERROR_FAILED, "Couldn't read RSRQ");
++            goto out;
++        }
++        if (!mm_get_uint_from_match_info (match_info, 7, &rsrp)) {
++            inner_error = g_error_new (MM_CORE_ERROR, MM_CORE_ERROR_FAILED, "Couldn't read RSRP");
++            goto out;
++        }
++        success = TRUE;
++    }
++
++out:
++    g_match_info_free (match_info);
++    g_regex_unref (r);
++
++    if (inner_error) {
++        g_propagate_error (error, inner_error);
++        return FALSE;
++    }
++
++    if (!success) {
++        g_set_error (error, MM_CORE_ERROR, MM_CORE_ERROR_FAILED,
++                     "Couldn't parse +CESQ response: %s", response);
++        return FALSE;
++    }
++
++    *out_rxlev = rxlev;
++    *out_ber = ber;
++    *out_rscp = rscp;
++    *out_ecn0 = ecn0;
++    *out_rsrq = rsrq;
++    *out_rsrp = rsrp;
++    return TRUE;
++}
++
++static gboolean
++modem_cesq_response_to_signal_info (const gchar  *response,
++                                      MMSignal    **out_gsm,
++                                      MMSignal    **out_umts,
++                                      MMSignal    **out_lte,
++                                      GError      **error)
++{
++    guint     rxlev = 0;
++    guint     ber = 0;
++    guint     rscp_level = 0;
++    guint     ecn0_level = 0;
++    guint     rsrq_level = 0;
++    guint     rsrp_level = 0;
++    gdouble   rssi = MM_SIGNAL_UNKNOWN;
++    gdouble   rscp = MM_SIGNAL_UNKNOWN;
++    gdouble   ecio = MM_SIGNAL_UNKNOWN;
++    gdouble   rsrq = MM_SIGNAL_UNKNOWN;
++    gdouble   rsrp = MM_SIGNAL_UNKNOWN;
++    MMSignal *gsm = NULL;
++    MMSignal *umts = NULL;
++    MMSignal *lte = NULL;
++
++    if (!modem_parse_cesq_query_response (response,
++                                            &rxlev, &ber,
++                                            &rscp_level, &ecn0_level,
++                                            &rsrq_level, &rsrp_level,
++                                            error))
++        return FALSE;
++
++    /* GERAN RSSI */
++    if (mm_3gpp_rxlev_to_rssi (rxlev, &rssi)) {
++        gsm = mm_signal_new ();
++        mm_signal_set_rssi (gsm, rssi);
++    }
++
++    /* ignore BER */
++
++    /* UMTS RSCP */
++    if (mm_3gpp_rscp_level_to_rscp (rscp_level, &rscp)) {
++        umts = mm_signal_new ();
++        mm_signal_set_rscp (umts, rscp);
++    }
++
++    /* UMTS EcIo (assumed EcN0) */
++    if (mm_3gpp_ecn0_level_to_ecio (ecn0_level, &ecio)) {
++        if (!umts)
++            umts = mm_signal_new ();
++        mm_signal_set_ecio (umts, ecio);
++    }
++
++    /* Calculate RSSI if we have ecio and rscp */
++    if (umts && ecio != -G_MAXDOUBLE && rscp != -G_MAXDOUBLE) {
++        mm_signal_set_rssi (umts, rscp - ecio);
++    }
++
++    /* LTE RSRQ */
++    if (mm_3gpp_rsrq_level_to_rsrq (rsrq_level, &rsrq)) {
++        lte = mm_signal_new ();
++        mm_signal_set_rsrq (lte, rsrq);
++    }
++
++    /* LTE RSRP */
++    if (mm_3gpp_rsrp_level_to_rsrp (rsrp_level, &rsrp)) {
++        if (!lte)
++            lte = mm_signal_new ();
++        mm_signal_set_rsrp (lte, rsrp);
++    }
++
++    if (!gsm && !umts && !lte) {
++        g_set_error (error, MM_CORE_ERROR, MM_CORE_ERROR_FAILED,
++                     "Couldn't build detailed signal info");
++        return FALSE;
++    }
++
++    if (out_gsm)
++        *out_gsm = gsm;
++    if (out_umts)
++        *out_umts = umts;
++    if (out_lte)
++        *out_lte = lte;
++
++    return TRUE;
++}
++
++
++static gboolean
++modem_signal_load_values_finish (MMIfaceModemSignal  *self,
++                                         GAsyncResult        *res,
++                                         MMSignal           **cdma,
++                                         MMSignal           **evdo,
++                                         MMSignal           **gsm,
++                                         MMSignal           **umts,
++                                         MMSignal           **lte,
++                                         GError             **error)
++{
++    const gchar *response;
++
++    response = mm_base_modem_at_command_finish (MM_BASE_MODEM (self), res, error);
++    if (!response || !modem_cesq_response_to_signal_info (response, gsm, umts, lte, error))
++        return FALSE;
++
++    if (cdma)
++        *cdma = NULL;
++    if (evdo)
++        *evdo = NULL;
++
++    return TRUE;
++}
++
++static void
++modem_signal_load_values (MMIfaceModemSignal  *self,
++                                  GCancellable        *cancellable,
++                                  GAsyncReadyCallback  callback,
++                                  gpointer             user_data)
++{
++    mm_base_modem_at_command (MM_BASE_MODEM (self),
++                              "+CESQ?",
++                              3,
++                              FALSE,
++                              callback,
++                              user_data);
++}
++
++/*****************************************************************************/
++
++static void
++iface_modem_signal_init (MMIfaceModemSignal *iface)
++{
++    iface->check_support        = modem_signal_check_support;
++    iface->check_support_finish = modem_signal_check_support_finish;
++    iface->load_values          = modem_signal_load_values;
++    iface->load_values_finish   = modem_signal_load_values_finish;
++}
++
+ static void
+ finalize (GObject *object)
+ {
 diff --git a/plugins/ublox/mm-modem-helpers-ublox.c b/plugins/ublox/mm-modem-helpers-ublox.c
-index df6b6a2..d154bde 100644
+index df6b6a2..da34c22 100644
 --- a/plugins/ublox/mm-modem-helpers-ublox.c
 +++ b/plugins/ublox/mm-modem-helpers-ublox.c
 @@ -361,6 +361,7 @@ static const MMModemMode ublox_combinations[] = {
@@ -17,6 +382,15 @@ index df6b6a2..d154bde 100644
  };
 
  GArray *
+@@ -480,7 +481,7 @@ typedef struct {
+     MMModemMode           mode;
+     MMModemBand           bands_2g[4];
+     MMModemBand           bands_3g[6];
+-    MMModemBand           bands_4g[12];
++    MMModemBand           bands_4g[14];
+ } BandConfiguration;
+
+ static const BandConfiguration band_configuration[] = {
 @@ -924,6 +925,18 @@ static const BandConfiguration band_configuration[] = {
                        MM_MODEM_BAND_EUTRAN_12, MM_MODEM_BAND_EUTRAN_13, MM_MODEM_BAND_EUTRAN_19,
                        MM_MODEM_BAND_EUTRAN_20, MM_MODEM_BAND_EUTRAN_28 }
@@ -36,6 +410,130 @@ index df6b6a2..d154bde 100644
  };
 
  gboolean
+diff --git a/plugins/ublox/mm-plugin-ublox.c b/plugins/ublox/mm-plugin-ublox.c
+index 6a0d140..db7b8be 100644
+--- a/plugins/ublox/mm-plugin-ublox.c
++++ b/plugins/ublox/mm-plugin-ublox.c
+@@ -29,6 +29,61 @@ G_DEFINE_TYPE (MMPluginUblox, mm_plugin_ublox, MM_TYPE_PLUGIN)
+ MM_PLUGIN_DEFINE_MAJOR_VERSION
+ MM_PLUGIN_DEFINE_MINOR_VERSION
+
++/*****************************************************************************/
++gboolean
++ublox_grab_port (MMPlugin *self,
++                 MMBaseModem *modem,
++                 MMPortProbe *probe,
++                 GError **error)
++{
++    MMKernelDevice *port;
++    MMDevice *device;
++    MMPortType ptype;
++    MMPortSerialAtFlag pflags = MM_PORT_SERIAL_AT_FLAG_NONE;
++    const gchar *subsys;
++
++    port = mm_port_probe_peek_port (probe);
++    ptype = mm_port_probe_get_port_type (probe);
++    device = mm_port_probe_peek_device (probe);
++    subsys = mm_port_probe_get_port_subsys (probe);
++
++    /* Just skip custom port identification for subsys different than tty */
++    if (!g_str_equal (subsys, "tty")){
++        mm_dbg ("ublox: AT port '%s/%s' not tty",
++            mm_port_probe_get_port_subsys (probe),
++            mm_port_probe_get_port_name (probe));
++        goto out;
++	}
++
++    if (g_strcmp0 ("gsmtty1", mm_port_probe_get_port_name (probe)) == 0) {
++        mm_dbg ("ublox: AT port '%s/%s' flagged as primary",
++            mm_port_probe_get_port_subsys (probe),
++            mm_port_probe_get_port_name (probe));
++        pflags = MM_PORT_SERIAL_AT_FLAG_PRIMARY;
++    } else if (g_strcmp0 ("gsmtty2", mm_port_probe_get_port_name (probe)) == 0) {
++        mm_dbg ("ublox: AT port '%s/%s' flagged as secondary",
++            mm_port_probe_get_port_subsys (probe),
++            mm_port_probe_get_port_name (probe));
++        pflags = MM_PORT_SERIAL_AT_FLAG_SECONDARY;
++    } else if (g_strcmp0 ("gsmtty3", mm_port_probe_get_port_name (probe)) == 0) {
++        mm_dbg ("ublox: port '%s/%s' flagged as GSP control",
++            mm_port_probe_get_port_subsys (probe),
++            mm_port_probe_get_port_name (probe));
++        pflags = MM_PORT_SERIAL_AT_FLAG_GPS_CONTROL;
++    } else {
++        mm_dbg ("ublox: AT port '%s/%s' flagged as NMEA",
++            mm_port_probe_get_port_subsys (probe),
++            mm_port_probe_get_port_name (probe));
++        ptype = MM_PORT_TYPE_GPS;
++    }
++out:
++    return mm_base_modem_grab_port (modem,
++                                    port,
++                                    ptype,
++                                    pflags,
++                                    error);
++}
++
+ /*****************************************************************************/
+
+ static MMBaseModem *
+@@ -250,6 +305,7 @@ mm_plugin_create (void)
+     static const gchar *subsystems[] = { "tty", "net", NULL };
+     static const guint16 vendor_ids[] = { 0x1546, 0 };
+     static const gchar *vendor_strings[] = { "u-blox", NULL };
++    static const gchar *drivers[] = { "gsmtty", "atmel_usart", NULL };
+     static const MMAsyncMethod custom_init = {
+         .async  = G_CALLBACK (ublox_custom_init),
+         .finish = G_CALLBACK (ublox_custom_init_finish),
+@@ -260,6 +316,7 @@ mm_plugin_create (void)
+                                     MM_PLUGIN_ALLOWED_SUBSYSTEMS,     subsystems,
+                                     MM_PLUGIN_ALLOWED_VENDOR_IDS,     vendor_ids,
+                                     MM_PLUGIN_ALLOWED_VENDOR_STRINGS, vendor_strings,
++                                    MM_PLUGIN_ALLOWED_DRIVERS,        drivers,
+                                     MM_PLUGIN_ALLOWED_AT,             TRUE,
+                                     MM_PLUGIN_SEND_DELAY,             (guint64) 0,
+                                     MM_PLUGIN_CUSTOM_INIT,            &custom_init,
+@@ -277,4 +334,5 @@ mm_plugin_ublox_class_init (MMPluginUbloxClass *klass)
+     MMPluginClass *plugin_class = MM_PLUGIN_CLASS (klass);
+
+     plugin_class->create_modem = create_modem;
++	plugin_class->grab_port = ublox_grab_port;
+ }
+diff --git a/src/kerneldevice/mm-kernel-device-udev.c b/src/kerneldevice/mm-kernel-device-udev.c
+index 69542f9..978eb65 100644
+--- a/src/kerneldevice/mm-kernel-device-udev.c
++++ b/src/kerneldevice/mm-kernel-device-udev.c
+@@ -195,12 +195,14 @@ find_physical_gudevdevice (GUdevDevice *child)
+
+     g_return_val_if_fail (child != NULL, NULL);
+
+-    /* Bluetooth rfcomm devices are "virtual" and don't necessarily have
++    /* Bluetooth rfcomm devices and n_gsm gsmtty devices are "virtual" and don't necessarily have
+      * parents at all.
+      */
+     name = g_udev_device_get_name (child);
+     if (name && strncmp (name, "rfcomm", 6) == 0)
+         return g_object_ref (child);
++    else if (name && strncmp (name, "gsmtty", 6) == 0)
++        return g_object_ref (child);
+
+     iter = g_object_ref (child);
+     while (iter && i++ < 8) {
+@@ -369,12 +371,14 @@ kernel_device_get_driver (MMKernelDevice *_self)
+             g_object_unref (parent);
+     }
+
+-    /* Newer kernels don't set up the rfcomm port parent in sysfs,
++    /* Newer kernels don't set up the rfcomm/gsmtty port parent in sysfs,
+      * so we must infer it from the device name.
+      */
+     name = g_udev_device_get_name (self->priv->device);
+     if (!driver && strncmp (name, "rfcomm", 6) == 0)
+         driver = "bluetooth";
++    else if (name && strncmp (name, "gsmtty", 6) == 0)
++        driver = "gsmtty";
+
+     /* Note: may return NULL! */
+     return driver;
 diff --git a/src/mm-modem-helpers.c b/src/mm-modem-helpers.c
 index ec07aad..2cea819 100644
 --- a/src/mm-modem-helpers.c
