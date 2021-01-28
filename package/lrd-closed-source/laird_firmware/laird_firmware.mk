@@ -84,20 +84,6 @@ NVRAM_FILE = $(@D)/brcm/brcmfmac4373-$(1).txt
 FW_BASE_FILE = $(@D)/brcm/brcmfmac4373-usb-base-$(1).bin
 FW_FINAL_FILE = $(BRCM_DIR)/brcmfmac4373-usb-$(1)-$(2).bin
 
-define make_bcm4373usbmfg_fw
-	mkdir -p -m 0755 $(BRCM_DIR)
-	grep -v NVRAMRev $(call NVRAM_FILE,$(1)) > $(BRCM_DIR)/tmp_nvram.txt
-	$(@D)/brcm/bin/nvserial -a -o $(BRCM_DIR)/tmp_nvram.nvm $(BRCM_DIR)/tmp_nvram.txt
-	$(@D)/brcm/bin/trxv2 -f 0x20 \
-		-x $$(stat -c %s $(call FW_BASE_FILE_MFG)) \
-		-x 0x160881 \
-		-x $$(stat -c %s $(BRCM_DIR)/tmp_nvram.nvm) \
-		-o $(call FW_FINAL_FILE_MFG,$(1)) \
-		$(call FW_BASE_FILE_MFG) $(BRCM_DIR)/tmp_nvram.nvm
-	rm -f $(BRCM_DIR)/tmp_nvram.*
-	[[ $(1) = sa ]] || (cd $(BRCM_DIR) && mv brcmfmac4373-usb-div-mfg-mfg.bin brcmfmac4373-usb-div-mfg.bin)
-endef
-
 define make_bcm4373usb_fw
 	grep -v NVRAMRev $(call NVRAM_FILE,$(1)) > $(BRCM_DIR)/tmp_nvram.txt
 	$(@D)/brcm/bin/nvserial -a -o $(BRCM_DIR)/tmp_nvram.nvm $(BRCM_DIR)/tmp_nvram.txt
@@ -141,7 +127,7 @@ define LAIRD_FW_BCM4373_USB_DIV_INSTALL_TARGET_CMDS
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-div.clm_blob brcmfmac4373.clm_blob
 	cp -rad $(@D)/brcm/BCM4373A0-usb-div.hcd $(BRCM_DIR)
 	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-div.hcd BCM4373A0-04b4-640c.hcd
-	$(call make_bcm4373usb_fw,div)
+	$(call make_bcm4373usb_fw,div,prod)
 	cd $(BRCM_DIR) && ln -srf $(BRCM_DIR)/brcmfmac4373-usb-div-prod.bin brcmfmac4373.bin
 endef
 endif
@@ -153,7 +139,7 @@ define LAIRD_FW_BCM4373_USB_SA_INSTALL_TARGET_CMDS
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-sa.clm_blob brcmfmac4373.clm_blob
 	cp -rad $(@D)/brcm/BCM4373A0-usb-sa.hcd $(BRCM_DIR)
 	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-sa.hcd BCM4373A0-04b4-640c.hcd
-	$(call make_bcm4373usb_fw,sa)
+	$(call make_bcm4373usb_fw,sa,prod)
 	cd $(BRCM_DIR) && ln -srf $(BRCM_DIR)/brcmfmac4373-usb-sa-prod.bin brcmfmac4373.bin
 endef
 endif
@@ -165,7 +151,7 @@ define LAIRD_FW_BCM4373_USB_ADAPTER_INSTALL_TARGET_CMDS
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-adapter.clm_blob brcmfmac4373.clm_blob
 	cp -rad $(@D)/brcm/BCM4373A0-usb-sa.hcd $(BRCM_DIR)/BCM4373A0-usb-adapter.hcd
 	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-adapter.hcd BCM4373A0-04b4-640c.hcd
-	$(call make_bcm4373usb_fw,adapter)
+	$(call make_bcm4373usb_fw,adapter,prod)
 	cd $(BRCM_DIR) && ln -srf $(BRCM_DIR)/brcmfmac4373-usb-adapter-prod.bin brcmfmac4373.bin
 endef
 endif
@@ -179,9 +165,11 @@ endif
 #        mfg firmware
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_MFG),y)
 define LAIRD_FW_BCM4373_MFG_INSTALL_TARGET_CMDS
-	$(call make_bcm4373usbmfg_fw,div-mfg)
-	$(call make_bcm4373usbmfg_fw,sa)
-	$(call make_bcm4373usbmfg_fw,adapter)
+	mkdir -p -m 0755 $(BRCM_DIR)
+	$(call make_bcm4373usb_fw,div-mfg,mfg)
+	cd $(BRCM_DIR) && mv brcmfmac4373-usb-div-mfg-mfg.bin brcmfmac4373-usb-div-mfg.bin
+	$(call make_bcm4373usb_fw,sa,mfg)
+	$(call make_bcm4373usb_fw,adapter,mfg)
 	cp -rad $(@D)/brcm/brcmfmac4373-sdio-mfg.bin $(BRCM_DIR)
 	cp -rad $(@D)/brcm/brcmfmac4373-div-mfg.txt $(BRCM_DIR)
 endef
@@ -358,6 +346,7 @@ define LAIRD_FIRMWARE_INSTALL_TARGET_CMDS
 	$(LAIRD_FW_BCM4373_SDIO_SA_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4373_USB_DIV_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4373_USB_SA_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4373_USB_ADAPTER_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4373_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_UART_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_SDIO_INSTALL_TARGET_CMDS)
