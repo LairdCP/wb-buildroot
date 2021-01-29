@@ -12,6 +12,10 @@ echo "${BR2_LRD_PRODUCT^^} POST BUILD script: starting..."
 
 [[ "${BUILD_TYPE}" == *sd ]] && SD=1 || SD=0
 
+# Determine if encrypted image being built
+grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG} \
+	&& ENCRYPTED_TOOLKIT=1 || ENCRYPTED_TOOLKIT=0
+
 # remove the resolv.conf.  Network Manager will create the appropriate file and
 # link on startup.
 rm -f "${TARGET_DIR}/etc/resolv.conf"
@@ -57,7 +61,7 @@ else
 	sed -i 's,^/boot/,# /boot/,' ${TARGET_DIR}/etc/fw_env.config
 fi
 
-if grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG}; then
+if [ ${ENCRYPTED_TOOLKIT} -ne 0 ] || [ "${BUILD_TYPE}" == ig60 ]; then
 	# Securely mount /var on tmpfs
 	grep -q "^tmpfs" ${TARGET_DIR}/etc/fstab &&
 		sed -ie '/^tmpfs/ s/mode=1777 /mode=1777,noexec,nosuid,nodev,noatime /' ${TARGET_DIR}/etc/fstab ||
@@ -96,15 +100,22 @@ fi
 [ -n "$(find "${TARGET_DIR}/lib/modules/" -name cryptodev.ko)" ] || \
 	rm -f "${TARGET_DIR}/etc/modules-load.d/cryptodev.conf"
 
+# Clean up Python, Node cruft we don't need
+rm -f "${TARGET_DIR}/usr/lib/python2.7/ensurepip/_bundled/*.whl"
+rm -f "${TARGET_DIR}/usr/lib/python3.7/ensurepip/_bundled/*.whl"
+rm -f "${TARGET_DIR}/usr/lib/python2.7/distutils/command/*.exe"
+rm -f "${TARGET_DIR}/usr/lib/python3.7/distutils/command/*.exe"
+rm -f "${TARGET_DIR}/usr/lib/python3.7/site-packages/setuptools/*.exe"
+[ -d "${TARGET_DIR}/usr/lib/node_modules" ] && \
+	find "${TARGET_DIR}/usr/lib/node_modules" -name '*.md' -exec rm -f {} \;
+rm -rf "${TARGET_DIR}/var/www/swupdate"
+rm -rf "${TARGET_DIR}/usr/share/gobject-introspection-1.0/"
+
 if [ "${BUILD_TYPE}" != ig60 ]; then
 
 # Path to common image files
 CCONF_DIR="$(realpath board/laird/configs-common/image)"
 CSCRIPT_DIR="$(realpath board/laird/scripts-common)"
-
-# Determine if encrypted image being built
-grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG} \
-	&& ENCRYPTED_TOOLKIT=1 || ENCRYPTED_TOOLKIT=0
 
 # Configure keys, boot script, and SWU tools when using encrypted toolkit
 if [ ${ENCRYPTED_TOOLKIT} -ne 0 ]; then
