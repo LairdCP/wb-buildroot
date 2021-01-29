@@ -81,11 +81,8 @@ for f in ${TARGET_DIR}/etc/NetworkManager/system-connections/* ; do
 done
 
 # Make sure dispatcher files have proper attributes
-for f in ${TARGET_DIR}/etc/NetworkManager/dispatcher.d/* ; do
-	if [ -f "${f}" ] ; then
-		chmod 700 "${f}"
-	fi
-done
+[ -d ${TARGET_DIR}/etc/NetworkManager/dispatcher.d ] && \
+	find ${TARGET_DIR}/etc/NetworkManager/dispatcher.d -type f -exec chmod 700 {} \;
 
 # Remove bluetooth support when BlueZ 5 not present
 if [ ! -x ${TARGET_DIR}/usr/bin/btattach ]; then
