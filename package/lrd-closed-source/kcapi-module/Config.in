@@ -1,0 +1,2 @@
+config BR2_PACKAGE_KCAPI_MODULE
+	bool "FIPS CAVS/ACVP Kernel Module"
