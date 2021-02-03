@@ -1,7 +1,7 @@
-From d498ce9ed7041b522ef95d67d010cb204fd6330f Mon Sep 17 00:00:00 2001
+From cad476cf34d529d28713828bb5356d4df99a3cdc Mon Sep 17 00:00:00 2001
 From: "sean.meng" <Sean.Meng@lairdconnect.com>
-Date: Sun, 31 Jan 2021 22:30:30 -0500
-Subject: [PATCH] Add SARA-R5 modem support
+Date: Wed, 3 Feb 2021 13:02:08 -0500
+Subject: [PATCH] add
 
 ---
  plugins/ublox/mm-broadband-modem-ublox.c | 314 ++++++++++++++++++++++-
@@ -9,7 +9,8 @@ Subject: [PATCH] Add SARA-R5 modem support
  plugins/ublox/mm-plugin-ublox.c          |  58 +++++
  src/kerneldevice/mm-kernel-device-udev.c |   8 +-
  src/mm-modem-helpers.c                   |   5 +-
- 5 files changed, 394 insertions(+), 6 deletions(-)
+ src/mm-port-serial.c                     |   3 +
+ 6 files changed, 397 insertions(+), 6 deletions(-)
 
 diff --git a/plugins/ublox/mm-broadband-modem-ublox.c b/plugins/ublox/mm-broadband-modem-ublox.c
 index d27599b..2fbf57e 100644
@@ -550,6 +551,20 @@ index ec07aad..2cea819 100644
              g_byte_array_append (array, &t, 1);
          } else {
              inner_error = g_error_new (MM_CORE_ERROR, MM_CORE_ERROR_FAILED,
+diff --git a/src/mm-port-serial.c b/src/mm-port-serial.c
+index 6d5ee1b..f374405 100644
+--- a/src/mm-port-serial.c
++++ b/src/mm-port-serial.c
+@@ -278,6 +278,9 @@ parse_baudrate (guint  baudrate_num,
+     case 921600:
+         speed = B921600;
+         break;
++    case 3000000:
++        speed = B3000000;
++        break;
+     default:
+         return FALSE;
+     }
 --
 2.17.1
 
