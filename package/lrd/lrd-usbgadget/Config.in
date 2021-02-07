@@ -4,16 +4,17 @@ menuconfig BR2_PACKAGE_LRD_USBGADGET
 	  Laird USB Ethernet Gadget
 
 if BR2_PACKAGE_LRD_USBGADGET
+
+config BR2_PACKAGE_LRD_USBGADGET_ETHERNET_PORTS
+	int "USB Gadget Ethernet ports"
+	default 1
+
+if BR2_PACKAGE_LRD_USBGADGET_ETHERNET_PORTS > 0
 choice BR2_PACKAGE_LRD_USBGADGET_TYPE
 	prompt "USB Gadget Ethernet Type"
 	default BR2_PACKAGE_LRD_USBGADGET_TYPE_RNDIS
 	help
 	  Laird USB Ethernet Gadget Type
-
-config BR2_PACKAGE_LRD_USBGADGET_TYPE_NONE
-	bool "None"
-	help
-	  Laird RNDIS USB Ethernet Gadget None
 
 config BR2_PACKAGE_LRD_USBGADGET_TYPE_RNDIS
 	bool "RNDIS"
@@ -27,7 +28,6 @@ config BR2_PACKAGE_LRD_USBGADGET_TYPE_NCM
 
 endchoice
 
-if !BR2_PACKAGE_LRD_USBGADGET_TYPE_NONE
 config BR2_PACKAGE_LRD_USBGADGET_LOCAL_MAC
 	string "USB Ethernet Gadget local MAC address"
 	default "DE:AD:BE:EF:00:00"
