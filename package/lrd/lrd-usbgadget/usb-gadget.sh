@@ -71,9 +71,8 @@ create_acm() {
 create_gadgets () {
 	test -r /etc/default/usb-gadget && . /etc/default/usb-gadget
 
-	[ -n "${USB_GADGET_SERIAL_PORTS}" ] || ports=0
-	[ -n "${USB_GADGET_ETHER}" ] || \
-	[ "${USB_GADGET_SERIAL_PORTS}" -gt 0 ] || \
+	[ ${USB_GADGET_ETHER_PORTS:-0}  -gt 0 ] || \
+	[ ${USB_GADGET_SERIAL_PORTS:-0} -gt 0 ] || \
 		{ echo "No usb-gadget specified"; exit 1; }
 
 	if [ "$(cat /sys/devices/soc0/soc_id)" == "at91sam9g20" ]; then
@@ -109,10 +108,14 @@ create_gadgets () {
 		mkdir -p configs/c.1/strings/0x409
 		echo "USB Composite Configuration" > configs/c.1/strings/0x409/configuration
 
-		[ -n "${USB_GADGET_ETHER}" ] && create_ether
+		port=0
+		while [ ${port} -lt ${USB_GADGET_ETHER_PORTS:-0} ]; do
+			create_ether
+			port=$((port+1))
+		done
 
 		port=0
-		while [ ${port} -lt ${USB_GADGET_SERIAL_PORTS} ]; do
+		while [ ${port} -lt ${USB_GADGET_SERIAL_PORTS:-0} ]; do
 			create_acm
 			port=$((port+1))
 		done
@@ -128,7 +131,6 @@ destroy_gadgets () {
 	gadget="${GADGET_DIR}/g0"
 
 	[ -e ${gadget} ] || return
-
 
 	[ -z "$(cat ${gadget}/UDC)" ] || echo > ${gadget}/UDC
 
