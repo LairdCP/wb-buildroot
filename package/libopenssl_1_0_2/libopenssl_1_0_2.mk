@@ -4,6 +4,25 @@
 #
 ################################################################################
 
+LAIRD_OPENSSL_FIPS_BINARIES_CVE_PRODUCT = libopenssl
+LAIRD_OPENSSL_FIPS_BINARIES_CVE_VERSION = 1.0.2u
+
+#0004-Fix-for-OpenSSL-1.0.2-CVE-2020-1968-from-Debian.patch
+LAIRD_OPENSSL_FIPS_BINARIES_IGNORE_CVES += CVE-2020-1968
+
+# 0005-Add-a-test-for-GENERAL_NAME_cmp.patch
+# 0006-Check-that-multi-strings-CHOICE-types-don-t-use-implicit-.patch
+# 0007-Complain-if-we-are-attempting-to-encode-with-an-invalid-A.patch
+# 0008-Correctly-compare-EdiPartyName-in-GENERAL_NAME_cmp.patch
+# 0009-DirectoryString-is-a-CHOICE-type-and-therefore-uses-expli.patch
+LAIRD_OPENSSL_FIPS_BINARIES_IGNORE_CVES += CVE-2020-1971
+
+# 0010-CVE-2021-23840.patch
+LAIRD_OPENSSL_FIPS_BINARIES_IGNORE_CVES += CVE-2021-23840
+
+# 0011-CVE-2021-23841.patch
+LAIRD_OPENSSL_FIPS_BINARIES_IGNORE_CVES += CVE-2021-23841
+
 ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS),y)
 # building from closed source git repository
 LIBOPENSSL_1_0_2_VERSION = local
@@ -13,8 +32,8 @@ else
 LIBOPENSSL_1_0_2_VERSION = 1.0.2u
 LIBOPENSSL_1_0_2_SITE = http://www.openssl.org/source
 LIBOPENSSL_1_0_2_SOURCE = openssl-$(LIBOPENSSL_1_0_2_VERSION).tar.gz
-LAIRD_OPENSSL_FIPS_BINARIES_IGNORE_CVES += CVE-2020-1971
 endif
+
 LIBOPENSSL_1_0_2_LICENSE = OpenSSL or SSLeay
 LIBOPENSSL_1_0_2_LICENSE_FILES = LICENSE
 LIBOPENSSL_1_0_2_INSTALL_STAGING = YES
