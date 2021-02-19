@@ -1,8 +1,8 @@
-WEB_LCM_VERSION = local
-WEB_LCM_SITE = package/lrd-closed-source/externals/web_lcm
-WEB_LCM_SITE_METHOD = local
+WEBLCM_LEGACY_VERSION = local
+WEBLCM_LEGACY_SITE = package/lrd-closed-source/externals/web_lcm
+WEBLCM_LEGACY_SITE_METHOD = local
 
-define WEB_LCM_INSTALL_TARGET_CMDS
+define WEBLCM_LEGACY_INSTALL_TARGET_CMDS
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/assets/css
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/assets/img
 	mkdir -p -m 0775 $(TARGET_DIR)/var/www/docs/assets/js

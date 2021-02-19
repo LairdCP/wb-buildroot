@@ -1,6 +1,0 @@
-config BR2_PACKAGE_WEB_LCM
-	bool "web_lcm"
-	select BR2_PACKAGE_ZLIB
-	help
-	  Laird webapp to configure wifi settings
-	    http://lairdtech.com
