@@ -42,6 +42,9 @@ echo -ne \
 # Copy the product specific rootfs additions, strip host user access control
 rsync -rlptDWK --no-perms --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
 
+grep -q 'BR2_DEFCONFIG=.*_fips_dev_defconfig' ${BR2_CONFIG} && \
+	rsync -rlptDWK --no-perms --exclude=.empty "${BOARD_DIR}/rootfs-additions-fips-dev/" "${TARGET_DIR}"
+
 # Do not update access time in flash/card
 sed -i 's/auto rw/auto,noatime rw/g' ${TARGET_DIR}/etc/fstab
 

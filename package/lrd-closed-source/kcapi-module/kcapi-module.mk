@@ -5,11 +5,13 @@
 #############################################################
 
 KCAPI_MODULE_VERSION = local
-#ifdef BR2_PACKAGE_PARSER_ACVP
+
+ifeq ($(BR2_PACKAGE_PARSER_ACVP),y)
 KCAPI_MODULE_SITE    = package/lrd-closed-source/externals/cavs_api/acvpparser/backend_interfaces/kcapi
-#else
+else
 KCAPI_MODULE_SITE    = package/lrd-closed-source/externals/cavs_api/kcapi-cavs
-#endif
+endif
+
 KCAPI_MODULE_SITE_METHOD = local
 
 $(eval $(kernel-module))
