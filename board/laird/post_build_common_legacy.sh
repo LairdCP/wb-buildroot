@@ -35,6 +35,9 @@ rm -fr ${TARGET_DIR}/etc/network/if-*
 # If necessary, these can be overwritten by the product specific rootfs-additions.
 rsync -rlptDWK --no-perms --exclude=.empty "board/laird/rootfs-additions-common/" "${TARGET_DIR}"
 
+grep -q 'BR2_DEFCONFIG=.*_fips_dev_defconfig' ${BR2_CONFIG} && \
+	rsync -rlptDWK --no-perms --exclude=.empty "${BOARD_DIR}/rootfs-additions-fips-dev/" "${TARGET_DIR}"
+
 # Copy the board specific rootfs additions
 case "${BUILD_TYPE}" in
 	"wb50n" | "wb45n")
