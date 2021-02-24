@@ -14,6 +14,9 @@ GETTEXT_LICENSE_FILES = COPYING gettext-runtime/intl/COPYING.LIB
 GETTEXT_AUTORECONF = YES
 GETTEXT_DEPENDENCIES = $(if $(BR2_PACKAGE_LIBICONV),libiconv)
 
+# 0003-xgettext-Fix-crash-with-po-file-input.patch
+GETTEXT_IGNORE_CVES += CVE-2018-18751
+
 # Avoid using the bundled subset of libxml2
 HOST_GETTEXT_DEPENDENCIES = host-libxml2
 
