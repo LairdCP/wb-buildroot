@@ -12,13 +12,13 @@ GETTEXT_LICENSE = LGPL-2.1+ (libintl), GPL-3.0+ (the rest)
 GETTEXT_LICENSE_FILES = COPYING gettext-runtime/intl/COPYING.LIB
 # 0002-Update-after-gnulib-changed.patch
 GETTEXT_AUTORECONF = YES
-GETTEXT_DEPENDENCIES = $(if $(BR2_PACKAGE_LIBICONV),libiconv)
+GETTEXT_DEPENDENCIES = $(if $(BR2_PACKAGE_LIBICONV),libiconv) host-flex host-bison
 
 # 0003-xgettext-Fix-crash-with-po-file-input.patch
 GETTEXT_IGNORE_CVES += CVE-2018-18751
 
 # Avoid using the bundled subset of libxml2
-HOST_GETTEXT_DEPENDENCIES = host-libxml2
+HOST_GETTEXT_DEPENDENCIES = host-libxml2 host-flex host-bison
 
 GETTEXT_CONF_OPTS += \
 	--disable-libasprintf \
