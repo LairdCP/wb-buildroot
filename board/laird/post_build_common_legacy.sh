@@ -35,15 +35,15 @@ rm -fr ${TARGET_DIR}/etc/network/if-*
 # If necessary, these can be overwritten by the product specific rootfs-additions.
 rsync -rlptDWK --no-perms --exclude=.empty "board/laird/rootfs-additions-common/" "${TARGET_DIR}"
 
-grep -q 'BR2_DEFCONFIG=.*_fips_dev_defconfig' ${BR2_CONFIG} && \
-	rsync -rlptDWK --no-perms --exclude=.empty "${BOARD_DIR}/rootfs-additions-fips-dev/" "${TARGET_DIR}"
-
 # Copy the board specific rootfs additions
 case "${BUILD_TYPE}" in
 	"wb50n" | "wb45n")
 		rsync -rlptDWK --no-perms --exclude=.empty "board/laird/${BUILD_TYPE}/rootfs-additions/" "${TARGET_DIR}"
 		;;
 esac
+
+grep -q 'BR2_DEFCONFIG=.*_fips_dev_defconfig' ${BR2_CONFIG} && \
+	rsync -rlptDWK --no-perms --exclude=.empty "board/laird/${BUILD_TYPE}/rootfs-additions-fips-dev/" "${TARGET_DIR}"
 
 # install libnl*.so.3 links
 ln -rsf ${TARGET_DIR}/usr/lib/libnl-3.so ${TARGET_DIR}/usr/lib/libnl.so.3
