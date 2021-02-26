@@ -42,6 +42,8 @@ case $1 in
 
 		modprobe usb-storage
 		rv=$?
+
+		modprobe -q vfat
 	;;
 
 	status)

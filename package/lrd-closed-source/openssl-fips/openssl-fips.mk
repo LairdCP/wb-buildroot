@@ -85,6 +85,8 @@ endef
 define OPENSSL_FIPS_INSTALL_STAGING_CMDS
 	$(MAKE1) -C $(@D) INSTALL_PREFIX=$(STAGING_DIR) install
 	cp $(@D)/util/incore $(STAGING_DIR)/usr/local/ssl/fips-2.0/bin
+	mkdir -p $(STAGING_DIR)/usr/include/openssl
+	cp $(@D)/include/openssl/fips* $(STAGING_DIR)/usr/include/openssl
 endef
 
 $(eval $(generic-package))
