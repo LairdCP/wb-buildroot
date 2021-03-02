@@ -6,7 +6,7 @@ LAIRD_ADD_SOM_SYMLINK = y
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_AR6003),y)
 define LAIRD_FW_6003_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/ath6k
-	cp -r $(@D)/ath6k/AR6003 $(TARGET_DIR)/lib/firmware/ath6k
+	cp -ra $(@D)/ath6k/AR6003 $(TARGET_DIR)/lib/firmware/ath6k
 	rm $(TARGET_DIR)/lib/firmware/ath6k/AR6003/hw2.1.1/athtcmd*
 	rm -rf $(TARGET_DIR)/lib/firmware/ath6k/AR6003/hw2.1.1/info/
 endef
@@ -15,14 +15,14 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_AR6003_MFG),y)
 define LAIRD_FW_6003_MFG_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/ath6k/AR6003/hw2.1.1
-	cp $(@D)/ath6k/AR6003/hw2.1.1/athtcmd* $(TARGET_DIR)/lib/firmware/ath6k/AR6003/hw2.1.1/
+	cp -a $(@D)/ath6k/AR6003/hw2.1.1/athtcmd* $(TARGET_DIR)/lib/firmware/ath6k/AR6003/hw2.1.1/
 endef
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_AR6004),y)
 define LAIRD_FW_6004_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/ath6k
-	cp -r $(@D)/ath6k/AR6004 $(TARGET_DIR)/lib/firmware/ath6k
+	cp -ra $(@D)/ath6k/AR6004 $(TARGET_DIR)/lib/firmware/ath6k
 	rm $(TARGET_DIR)/lib/firmware/ath6k/AR6004/hw3.0/qca*
 	rm $(TARGET_DIR)/lib/firmware/ath6k/AR6004/hw3.0/utf*
 	rm -rf $(TARGET_DIR)/lib/firmware/ath6k/AR6004/hw3.0/info/
@@ -32,7 +32,7 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_AR6004_MFG),y)
 define LAIRD_FW_6004_MFG_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/ath6k/AR6004/hw3.0
-	cp $(@D)/ath6k/AR6004/hw3.0/utf* $(TARGET_DIR)/lib/firmware/ath6k/AR6004/hw3.0/
+	cp -a $(@D)/ath6k/AR6004/hw3.0/utf* $(TARGET_DIR)/lib/firmware/ath6k/AR6004/hw3.0/
 endef
 endif
 
@@ -202,14 +202,14 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_WL18XX),y)
 define LAIRD_FW_WL18XX_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware
-	cp -r $(@D)/ti-connectivity $(TARGET_DIR)/lib/firmware
+	cp -ra $(@D)/ti-connectivity $(TARGET_DIR)/lib/firmware
 endef
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BT),y)
 define LAIRD_FW_BT50_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware
-	cp -r $(@D)/bluetopia $(TARGET_DIR)/lib/firmware
+	cp -ra $(@D)/bluetopia $(TARGET_DIR)/lib/firmware
 endef
 endif
 
