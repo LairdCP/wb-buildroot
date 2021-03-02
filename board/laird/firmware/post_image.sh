@@ -1,4 +1,5 @@
 BR2_LRD_PRODUCT=firmware
+BOARD_DIR="$(realpath $(dirname $0))"
 
 echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: starting..."
 
@@ -27,7 +28,9 @@ create_bcm4343w_firmware_archive()
 		lib/firmware/brcm/brcmfmac43430-sdio.clm_blob \
 		lib/firmware/brcm/brcmfmac43430-sdio-${DOMAIN}.txt \
 		lib/firmware/brcm/brcmfmac43430-sdio-prod.bin \
-		lib/firmware/brcm/brcmfmac43430-sdio.txt
+		lib/firmware/brcm/brcmfmac43430-sdio.txt \
+		-C ${BOARD_DIR} \
+		LICENSE
 	)
 }
 
@@ -46,7 +49,9 @@ create_bcm4339_firmware_archive()
 		lib/firmware/brcm/brcmfmac4339-sdio.bin \
 		lib/firmware/brcm/brcmfmac4339-sdio-${DOMAIN}.txt \
 		lib/firmware/brcm/brcmfmac4339-sdio-prod.bin \
-		lib/firmware/brcm/brcmfmac4339-sdio.txt
+		lib/firmware/brcm/brcmfmac4339-sdio.txt \
+		-C ${BOARD_DIR} \
+		LICENSE
 	)
 }
 
@@ -72,7 +77,9 @@ create_bcm4373_sdio_uart_firmware_archive()
 		lib/firmware/brcm/brcmfmac4373-${ANTENNA}.txt \
 		lib/firmware/brcm/brcmfmac4373-sdio.txt \
 		lib/firmware/brcm/brcmfmac4373-clm-${ANTENNA}.clm_blob \
-		lib/firmware/brcm/brcmfmac4373-sdio.clm_blob
+		lib/firmware/brcm/brcmfmac4373-sdio.clm_blob \
+		-C ${BOARD_DIR} \
+		LICENSE
 	)
 }
 
@@ -96,7 +103,9 @@ create_bcm4373_usb_usb_firmware_archive()
 		lib/firmware/brcm/brcmfmac4373-usb-${ANTENNA}-prod.bin \
 		lib/firmware/brcm/brcmfmac4373.bin \
 		lib/firmware/brcm/brcmfmac4373-clm-${ANTENNA}.clm_blob \
-		lib/firmware/brcm/brcmfmac4373.clm_blob
+		lib/firmware/brcm/brcmfmac4373.clm_blob \
+		-C ${BOARD_DIR} \
+		LICENSE
 	)
 }
 
