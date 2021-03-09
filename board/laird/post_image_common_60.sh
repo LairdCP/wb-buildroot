@@ -51,7 +51,9 @@ hash_check() {
 	fi
 }
 
-if grep -qF "BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES=y" ${BR2_CONFIG}; then
+if grep -qF "BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES=y" ${BR2_CONFIG} ||\
+   grep -qF "BR2_PACKAGE_LAIRD_OPENSSL_FIPS=y" ${BR2_CONFIG}
+then
 	hash_check ${BINARIES_DIR} ${IMAGE_NAME}
 	hash_check ${TARGET_DIR}/usr/bin fipscheck
 	hash_check ${TARGET_DIR}/usr/lib libfipscheck.so.1
