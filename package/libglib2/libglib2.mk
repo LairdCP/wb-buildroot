@@ -25,6 +25,9 @@ LIBGLIB2_IGNORE_CVES += CVE-2019-13012
 # 0007-goption-precond-avoid-goptionentry-list.patch
 LIBGLIB2_IGNORE_CVES += CVE-2020-35457
 
+# 0005-gbytearray-Do-not-accept-too-large-byte-arrays.patch
+LIBGLIB2_IGNORE_CVES += CVE-2021-27218
+
 LIBGLIB2_CONF_ENV = \
 	ac_cv_func_posix_getpwuid_r=yes \
 	glib_cv_stack_grows=no \
