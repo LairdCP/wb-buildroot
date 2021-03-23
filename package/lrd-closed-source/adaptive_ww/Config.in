@@ -2,6 +2,7 @@ config BR2_PACKAGE_ADAPTIVE_WW
 	bool "Adaptive World Mode Service"
 	select BR2_PACKAGE_LIBNL
 	select BR2_PACKAGE_OPENSSL
+	select BR2_PACKAGE_LIBCONFIG
 	help
 		Laird 60 Series Radio's Adaptive World Mode Feature
 
@@ -12,6 +13,43 @@ config BR2_PACKAGE_ADAPTIVE_WW_REGPWRDB
 	default y
 	help
 		A default Adaptive World Mode Regulatory Power Database
+
+config BR2_PACKAGE_ADAPTIVE_WW_CFG_FILE
+	string "Additional Configuration File"
+	help
+		Path and filename for runtinme configuration settings
+
+choice
+	prompt "AWM's interface preference"
+	default BR2_PACKAGE_ADAPTIVE_WW_INTF_STA
+
+config BR2_PACKAGE_ADAPTIVE_WW_INTF_STA
+	bool "STA"
+	help
+		Use managed interfaces when available.
+config BR2_PACKAGE_ADAPTIVE_WW_INTF_AP
+	bool "AP"
+	help
+		Use AP interfaces when available.
+config BR2_PACKAGE_ADAPTIVE_WW_INTF_NONE
+	bool "NONE"
+	help
+		Use the first available interface.
+endchoice
+
+choice
+	prompt "AWM's running mode"
+	default BR2_PACKAGE_ADAPTIVE_WW_MODE_FULL
+
+config BR2_PACKAGE_ADAPTIVE_WW_MODE_FULL
+	bool "Full"
+	help
+		AWM mode which requires periodic geo-location validation.
+config BR2_PACKAGE_ADAPTIVE_WW_MODE_LITE
+	bool "Lite"
+	help
+		AWM mode which does not periodically validate geo-location.
+endchoice
 
 config BR2_PACKAGE_ADAPTIVE_WW_LPT
 	bool "Adaptive World Mode Power Tool"
