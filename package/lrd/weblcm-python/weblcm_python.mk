@@ -14,16 +14,6 @@ WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON
 WEBLCM_PYTHON_DEFAULT_USERNAME = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_USERNAME))
 WEBLCM_PYTHON_DEFAULT_PASSWORD = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_PASSWORD))
 
-PACKAGE_WEBLCM_PYTHON_ENABLE_CONNECTION_WIRED = True
-ifneq ($(BR2_PACKAGE_WEBLCM_PYTHON_ENABLE_CONNECTION_WIRED),y)
-	PACKAGE_WEBLCM_PYTHON_ENABLE_CONNECTION_WIRED = False
-endif
-
-PACKAGE_WEBLCM_PYTHON_ENABLE_CONNECTION_WIFI = True
-ifneq ($(BR2_PACKAGE_WEBLCM_PYTHON_ENABLE_CONNECTION_WIFI),y)
-	PACKAGE_WEBLCM_PYTHON_ENABLE_CONNECTION_WIFI = False
-endif
-
 ifeq ($(BR2_REPRODUCIBLE),y)
 define WEBLCM_PYTHON_FIX_TIME
 	sed -i -e 's/ExecStart=python/ExecStart=python --check-hash-based-pycs never/g' $(TARGET_DIR)/usr/lib/systemd/system/weblcm-python.service
@@ -36,10 +26,17 @@ define POST_INSTALL_TARGET_HOOKS
 		|| echo 'SWCERT=-k $(WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE) --cert-purpose codeSigning' > $(TARGET_DIR)/etc/weblcm-python/swcert.conf
 
 	sed -i -e '/^default_/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
-	sed -i -e '/\[weblcm\]/a default_username: \"$(WEBLCM_PYTHON_DEFAULT_USERNAME)\"\ndefault_password: \"$(WEBLCM_PYTHON_DEFAULT_PASSWORD)\"' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	sed -i -e '/\[weblcm\]/a default_password: \"$(WEBLCM_PYTHON_DEFAULT_PASSWORD)\"' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	sed -i -e '/\[weblcm\]/a default_username: \"$(WEBLCM_PYTHON_DEFAULT_USERNAME)\"' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 
-	sed -i -e '/^enable_connection_/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
-	sed -i -e '/\[weblcm\]/a managed_software_devices: $(BR2_PACKAGE_WEBLCM_PYTHON_MANAGED_SOFTWARE_DEVICES)\nunmanaged_hardware_devices: $(BR2_PACKAGE_WEBLCM_PYTHON_UNMANAGED_HARDWARE_DEVICES)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	sed -i -e '/^managed_software_devices/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	sed -i -e '/\[weblcm\]/a managed_software_devices: $(BR2_PACKAGE_WEBLCM_PYTHON_MANAGED_SOFTWARE_DEVICES)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+
+	sed -i -e '/^unmanaged_hardware_devices/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	sed -i -e '/\[weblcm\]/a unmanaged_hardware_devices: $(BR2_PACKAGE_WEBLCM_PYTHON_UNMANAGED_HARDWARE_DEVICES)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+
+	sed -i -e '/^awm_cfg/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	sed -i -e '/\[weblcm\]/a awm_cfg:$(BR2_PACKAGE_ADAPTIVE_WW_BINARIES_CFG_FILE)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 
 endef
 WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += POST_INSTALL_TARGET_HOOKS
