@@ -26,11 +26,13 @@ case $1 in
 	stop)
 		echo -e "Stopping USB host-mode"
 
-		modprobe -r usb-storage
-		rv=$?
-
 		modprobe -r ohci_at91
 		modprobe -rq ehci_atmel
+
+		sleep 1
+
+		modprobe -r usb-storage
+		rv=$?
 	;;
 
 	start)
