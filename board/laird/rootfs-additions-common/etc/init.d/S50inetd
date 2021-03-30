@@ -29,6 +29,10 @@ log() {
   echo "inetd: $@" >>$lf
 } 2>/dev/null
 
+waitpid() {
+  while [ -e /proc/$1 ]; do sleep 1; done
+}
+
 inetd_services_check() {
   echo -n services:
   while read -r a1 a2 a3 a4 a5 a6 a7
@@ -58,7 +62,7 @@ inetd_services_check() {
     # ( this allows the service to be started quickly when actually needed )
     # and add each daemon-init pid to list, to wait on before starting inetd
     #
-    ( wait $net_init_pids
+    ( waitpid $net_init_pids
     { $daemon_init check && echo \ \ ...$daemon_name ready; } >>$lf )&
 
     srv_init_pids=$srv_init_pids\ $!
@@ -73,7 +77,7 @@ let net_init_pids=$( ps ax |sed -n '/[S]..[nb][er][ti][wd][og][re]/\
                                           s/^\ *\([0-9]\+\).*/\1/p' )+0
 inetd_wait_run() {
   echo \ ...
-  wait $srv_init_pids
+  waitpid $srv_init_pids
   #
   if cp /etc/inetd.conf /tmp/inetd.conf \
   && /usr/sbin/inetd -e /tmp/inetd.conf
