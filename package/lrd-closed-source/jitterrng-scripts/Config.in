@@ -1,0 +1,2 @@
+config BR2_PACKAGE_JITTERRNG_SCRIPTS
+	bool "FIPS Jitter RNG Data collection scripts"
