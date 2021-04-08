@@ -18,10 +18,6 @@ rm -f ${TARGET_DIR}/etc/init.d/S20urandom
 rm -f ${TARGET_DIR}/etc/init.d/S40network
 rm -f ${TARGET_DIR}/etc/init.d/S41dhcpcd
 
-# remove the dhcp init scripts
-rm -f ${TARGET_DIR}/etc/init.d/S80dhcp-relay
-rm -f ${TARGET_DIR}/etc/init.d/S80dhcp-server
-
 # remove perl cruft
 rm -f ${TARGET_DIR}/etc/ssl/misc/tsget
 rm -f ${TARGET_DIR}/etc/ssl/misc/CA.pl
