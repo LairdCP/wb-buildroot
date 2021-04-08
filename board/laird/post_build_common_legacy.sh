@@ -18,7 +18,7 @@ rm -f ${TARGET_DIR}/etc/init.d/S20urandom
 rm -f ${TARGET_DIR}/etc/init.d/S40network
 rm -f ${TARGET_DIR}/etc/init.d/S41dhcpcd
 
-#remove the dhcp init scripts
+# remove the dhcp init scripts
 rm -f ${TARGET_DIR}/etc/init.d/S80dhcp-relay
 rm -f ${TARGET_DIR}/etc/init.d/S80dhcp-server
 
@@ -66,6 +66,11 @@ if [ -x ${TARGET_DIR}/usr/sbin/hciconfig ]; then
 	mv ${TARGET_DIR}/etc/init.d/S95bluetooth ${TARGET_DIR}/etc/init.d/S95bluetooth.bg
 else
 	rm -f ${TARGET_DIR}/etc/init.d/S95bluetooth*
+fi
+
+if [ ! -x ${TARGET_DIR}/usr/sbin/hostapd ]; then
+	rm -rf ${TARGET_DIR}/etc/hostapd
+	rm -rf ${TARGET_DIR}/bin/hostapd_mode
 fi
 
 [ -n "$(find "${TARGET_DIR}/lib/modules/" -name cryptodev.ko)" ] || \
