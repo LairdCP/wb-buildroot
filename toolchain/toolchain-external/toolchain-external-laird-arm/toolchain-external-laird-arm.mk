@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-TOOLCHAIN_EXTERNAL_LAIRD_ARM_VERSION = 7.0.0.430
+TOOLCHAIN_EXTERNAL_LAIRD_ARM_VERSION = 7.0.0.518
 ifeq ($(BR2_ARM_EABIHF),y)
 TOOLCHAIN_EXTERNAL_LAIRD_ARM_SOURCE = som60_toolchain-laird-$(TOOLCHAIN_EXTERNAL_LAIRD_ARM_VERSION).tar.gz
 else
