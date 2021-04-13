@@ -34,9 +34,12 @@ echo "[Creating card image...]"
 # Calculate size of the rootfs file system
 ROOTFS_FILE_SIZE=$(stat -c%s "${SRCDIR}/rootfs.tar")
 
-# Set image free space to 10% of the used space by default
-[ "${ROOTFS_EXTRA_SIZE}" -eq 0 ] && \
-	ROOTFS_EXTRA_SIZE=$(( ROOTFS_FILE_SIZE * 11 / 10 ))
+# Set image free space to 120 % of the used space by default
+if [ "${ROOTFS_EXTRA_SIZE}" -eq 0 ]; then
+	ROOTFS_EXTRA_SIZE=$(( ROOTFS_FILE_SIZE * 12 / 10 ))
+else
+	ROOTFS_EXTRA_SIZE=$(( ROOTFS_EXTRA_SIZE * MiBCONVERTER ))
+fi
 
 # Calculate partitions
 BOOT_IMG_SIZE_MiB=48
