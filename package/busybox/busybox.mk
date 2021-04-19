@@ -19,6 +19,9 @@ BUSYBOX_IGNORE_CVES += CVE-2019-5747
 # 0009-wget-implement-verification.patch
 BUSYBOX_IGNORE_CVES += CVE-2018-1000500
 
+# 0010-decompress_gunzip-Fix-DoS-if-gzip-is-corrupt.patch.patch
+BUSYBOX_IGNORE_CVES += CVE-2021-28831
+
 define BUSYBOX_HELP_CMDS
 	@echo '  busybox-menuconfig     - Run BusyBox menuconfig'
 endef
