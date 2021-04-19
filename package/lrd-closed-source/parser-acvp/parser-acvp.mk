@@ -28,8 +28,9 @@ endef
 define PARSER_ACVP_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/acvp-parser-kcapi $(TARGET_DIR)/usr/bin/
 	$(INSTALL) -D -m 755 $(@D)/acvp-parser-openssl $(TARGET_DIR)/usr/bin/
-	$(INSTALL) -D -m 755 $(@D)/helper/exec_kcapi.sh $(TARGET_DIR)/usr/bin/
-	$(INSTALL) -D -m 755 $(@D)/helper/exec_openssl.sh $(TARGET_DIR)/usr/bin/
+	$(INSTALL) -D -m 755 $(@D)/helper-laird/exec_laird_kcapi.sh  $(TARGET_DIR)/usr/bin/
+	$(INSTALL) -D -m 755 $(@D)/helper-laird/exec_laird_summitssl.sh  $(TARGET_DIR)/usr/bin/
+	$(INSTALL) -D -m 755 $(@D)/helper-laird/exec_laird_lib.sh  $(TARGET_DIR)/usr/bin/
 endef
 
 $(eval $(generic-package))
