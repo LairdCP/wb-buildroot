@@ -146,6 +146,7 @@ fi
 fi
 
 if grep -q 'BR2_DEFCONFIG=.*_fips_dev_defconfig' ${BR2_CONFIG}; then
+	fipshmac=${HOST_DIR}/bin/fipshmac
 	IMAGE_NAME=Image
 
 	if grep -q '"Image.gz"' ${BINARIES_DIR}/kernel.its; then
