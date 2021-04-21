@@ -38,9 +38,6 @@ case "${BUILD_TYPE}" in
 		;;
 esac
 
-grep -q 'BR2_DEFCONFIG=.*_fips_dev_defconfig' ${BR2_CONFIG} && \
-	rsync -rlptDWK --no-perms --exclude=.empty "board/laird/${BUILD_TYPE}/rootfs-additions-fips-dev/" "${TARGET_DIR}"
-
 # install libnl*.so.3 links
 ln -rsf ${TARGET_DIR}/usr/lib/libnl-3.so ${TARGET_DIR}/usr/lib/libnl.so.3
 ln -rsf ${TARGET_DIR}/usr/lib/libnl-genl-3.so ${TARGET_DIR}/usr/lib/libnl-genl.so.3
@@ -146,6 +143,26 @@ if [ ${EXT} != gz ]; then
 	sed "s/gzip/${EXT}/g" -i ${BINARIES_DIR}/kernel.its
 fi
 
+fi
+
+if grep -q 'BR2_DEFCONFIG=.*_fips_dev_defconfig' ${BR2_CONFIG}; then
+	IMAGE_NAME=Image
+
+	if grep -q '"Image.gz"' ${BINARIES_DIR}/kernel.its; then
+		gzip -9kfn ${BINARIES_DIR}/Image
+		IMAGE_NAME+=.gz
+	elif grep -q '"Image.lzo"' ${BINARIES_DIR}/kernel.its; then
+		lzop -9on ${BINARIES_DIR}/Image.lzo ${BINARIES_DIR}/Image
+		IMAGE_NAME+=.lzo
+	elif grep -q '"Image.lzma"' ${BINARIES_DIR}/kernel.its; then
+		lzma -9kf ${BINARIES_DIR}/Image
+		IMAGE_NAME+=.lzma
+	fi
+
+	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${BINARIES_DIR}/${IMAGE_NAME}
+	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${TARGET_DIR}/usr/bin/fipscheck
+	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${TARGET_DIR}/usr/lib/libfipscheck.so.1
+	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${TARGET_DIR}/usr/lib/libcrypto.so.1.0.0
 fi
 
 echo "COMMON POST BUILD script: done."

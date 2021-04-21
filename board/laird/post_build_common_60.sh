@@ -1,6 +1,7 @@
 BOARD_DIR="${1}"
 BUILD_TYPE="${2}"
 ENCRYPTED_TOOLKIT_DIR="$(realpath ${3})"
+fipshmac=${HOST_DIR}/bin/fipshmac
 
 # enable tracing and exit on errors
 set -x -e
@@ -41,9 +42,6 @@ echo -ne \
 
 # Copy the product specific rootfs additions, strip host user access control
 rsync -rlptDWK --no-perms --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
-
-grep -q 'BR2_DEFCONFIG=.*_fips_dev_defconfig' ${BR2_CONFIG} && \
-	rsync -rlptDWK --no-perms --exclude=.empty "${BOARD_DIR}/rootfs-additions-fips-dev/" "${TARGET_DIR}"
 
 # Do not update access time in flash/card
 sed -i 's/auto rw/auto,noatime rw/g' ${TARGET_DIR}/etc/fstab
@@ -172,6 +170,26 @@ DTB="$(sed -n 's/^BR2_LINUX_KERNEL_INTREE_DTS_NAME="\(.*\)"$/\1/p' ${BR2_CONFIG}
 
 sed "s/at91-dvk_som60/${DTB}/g" ${CCONF_DIR}/kernel.its > ${BINARIES_DIR}/kernel.its
 
+fi
+
+if grep -q 'BR2_DEFCONFIG=.*_fips_dev_defconfig' ${BR2_CONFIG}; then
+	IMAGE_NAME=Image
+
+	if grep -q '"Image.gz"' ${BINARIES_DIR}/kernel.its; then
+		gzip -9kfn ${BINARIES_DIR}/Image
+		IMAGE_NAME+=.gz
+	elif grep -q '"Image.lzo"' ${BINARIES_DIR}/kernel.its; then
+		lzop -9on ${BINARIES_DIR}/Image.lzo ${BINARIES_DIR}/Image
+		IMAGE_NAME+=.lzo
+	elif grep -q '"Image.lzma"' ${BINARIES_DIR}/kernel.its; then
+		lzma -9kf ${BINARIES_DIR}/Image
+		IMAGE_NAME+=.lzma
+	fi
+
+	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${BINARIES_DIR}/${IMAGE_NAME}
+	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${TARGET_DIR}/usr/bin/fipscheck
+	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${TARGET_DIR}/usr/lib/libfipscheck.so.1
+	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${TARGET_DIR}/usr/lib/libcrypto.so.1.0.0
 fi
 
 echo "${BR2_LRD_PRODUCT^^} POST BUILD script: done."
