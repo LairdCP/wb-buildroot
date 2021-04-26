@@ -66,6 +66,20 @@ if [ ! -x ${TARGET_DIR}/usr/sbin/hostapd ]; then
 	rm -rf ${TARGET_DIR}/bin/hostapd_mode
 fi
 
+if [ ! -x ${TARGET_DIR}/usr/sbin/lighttpd ]; then
+	rm -f ${TARGET_DIR}/sbin/lighty*
+	rm -f ${TARGET_DIR}/etc/init.d/opt/S50lighty
+	rm -f ${TARGET_DIR}/etc/init.d/S99lighttpd
+	sed -i 's/^http/#http/' ${TARGET_DIR}/etc/inetd.conf
+fi
+
+if [ ! -x ${TARGET_DIR}/usr/sbin/proftpd ]; then
+	sed -i 's/^ftp/#ftp/' ${TARGET_DIR}/etc/inetd.conf
+fi
+
+[ -n "$(find "${TARGET_DIR}/lib/modules/" -name ohci-at91.ko)" ] || \
+	rm -f "${TARGET_DIR}/etc/init.d/S37usbhost"
+
 [ -n "$(find "${TARGET_DIR}/lib/modules/" -name cryptodev.ko)" ] || \
 	rm -f "${TARGET_DIR}/etc/init.d/S03cryptodev"
 
