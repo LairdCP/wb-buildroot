@@ -95,12 +95,6 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA
 	  Install Laird's firmware for the LWB5+ Sterling radio with
 	  USB/USB interface using a single antenna.
 
-config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_ADAPTER
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
-	bool "Laird LWB5+ USB Adapter"
-	help
-	  Install Laird's firmware for the LWB5+ Sterling USB adapter.
-
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_MFG
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5+ MFG"

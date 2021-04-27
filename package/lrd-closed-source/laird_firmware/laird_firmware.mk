@@ -144,18 +144,6 @@ define LAIRD_FW_BCM4373_USB_SA_INSTALL_TARGET_CMDS
 endef
 endif
 
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_ADAPTER),y)
-define LAIRD_FW_BCM4373_USB_ADAPTER_INSTALL_TARGET_CMDS
-	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac4373-clm-sa.clm_blob $(BRCM_DIR)/brcmfmac4373-clm-adapter.clm_blob
-	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-adapter.clm_blob brcmfmac4373.clm_blob
-	cp -rad $(@D)/brcm/BCM4373A0-usb-sa.hcd $(BRCM_DIR)/BCM4373A0-usb-adapter.hcd
-	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-adapter.hcd BCM4373A0-04b4-640c.hcd
-	$(call make_bcm4373usb_fw,adapter,prod)
-	cd $(BRCM_DIR) && ln -srf $(BRCM_DIR)/brcmfmac4373-usb-adapter-prod.bin brcmfmac4373.bin
-endef
-endif
-
 # Note - A custom NVRAM file is used for SDIO and USB diversity mfg firmware
 #        to disable software diversity and allow manual antenna control
 #
@@ -169,7 +157,6 @@ define LAIRD_FW_BCM4373_MFG_INSTALL_TARGET_CMDS
 	$(call make_bcm4373usb_fw,div-mfg,mfg)
 	cd $(BRCM_DIR) && mv brcmfmac4373-usb-div-mfg-mfg.bin brcmfmac4373-usb-div-mfg.bin
 	$(call make_bcm4373usb_fw,sa,mfg)
-	$(call make_bcm4373usb_fw,adapter,mfg)
 	cp -rad $(@D)/brcm/brcmfmac4373-sdio-mfg.bin $(BRCM_DIR)
 	cp -rad $(@D)/brcm/brcmfmac4373-div-mfg.txt $(BRCM_DIR)
 endef
@@ -346,7 +333,6 @@ define LAIRD_FIRMWARE_INSTALL_TARGET_CMDS
 	$(LAIRD_FW_BCM4373_SDIO_SA_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4373_USB_DIV_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4373_USB_SA_INSTALL_TARGET_CMDS)
-	$(LAIRD_FW_BCM4373_USB_ADAPTER_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4373_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_UART_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_SDIO_INSTALL_TARGET_CMDS)
