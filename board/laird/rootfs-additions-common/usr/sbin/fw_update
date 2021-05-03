@@ -653,13 +653,20 @@ assert_image() {
     #==> SIZE kernel.bin ... 1782232 .....ftp method
     #Length: 24133632 (23M) [application/octet-stream] .....http method
     #
-    if wget --spider $src 2>>fwu.err ; then
-      sz=$( sed -n 's/.*SIZE.* \([0-9]*\)/\1/p;s/Length: \([0-9]*\)\ .*/\1/p' \
-                                                                  /tmp/fwu.err )
-      if [ -z "$sz" ] ;  then
-        # try reading file when length n/a via spider as a last resort
-        eval let sz=\$${1}_LEN || sz=$( wget -q -O - $src |wc -c )
-      fi
+    case $src in
+    http*)
+      wget --spider $src 2>>fwu.err && \
+        sz=$( sed -n 's/Length: \([0-9]*\).*/\1/p' /tmp/fwu.err )
+      ;;
+    ftp*)
+      wget --spider $src 2>>fwu.err
+      sz=$( sed -n 's/.*SIZE.* \([0-9]*\)$/\1/p' /tmp/fwu.err )
+      ;;
+    esac
+
+    if [ -z "$sz" ] ;  then
+      # try reading file when length n/a via wc as a last resort
+      eval let sz=\$${1}_LEN || sz=$( wget -q -O - $src |wc -c )
     fi
   else
     # method local
