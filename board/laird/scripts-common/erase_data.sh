@@ -66,6 +66,12 @@ case ${cmdline} in
 	*${rootsd}*) do_data_migration=0 ;;
 esac
 
+#Don't migrate if /data not mounted
+if ! grep -qs "${DATA_SRC} " /proc/mounts; then
+	echo "Data from ${DATA_SRC} not migrated, because it was not mounted." | systemd-cat -t "${0}" -p warning
+	do_data_migration=0
+fi
+
 for name in ${1}; do
 	find_ubi_device "${name}"
 	migrate_data "${ubi_dev}"
