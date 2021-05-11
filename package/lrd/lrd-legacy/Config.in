@@ -2,5 +2,6 @@ config BR2_PACKAGE_LRD_LEGACY
 	bool "lrd-legacy"
 	select BR2_PACKAGE_DHCPCD
 	select BR2_PACKAGE_OPENRESOLV
+	select BR2_PACKAGE_EVENTMON
 	help
 	  Laird legacy software
