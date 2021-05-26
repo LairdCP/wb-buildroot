@@ -94,6 +94,13 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA
 	  Install Laird's firmware for the LWB5+ Sterling radio with
 	  SDIO/UART interface using a single antenna.
 
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_M2
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB5+ SDIO/UART with single antenna (M.2)"
+	help
+	  Install Laird's firmware for the LWB5+ Sterling radio with
+	  SDIO/UART interface using a single antenna on the M.2 module.
+
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5+ USB with antenna diversity"
@@ -107,6 +114,13 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA
 	help
 	  Install Laird's firmware for the LWB5+ Sterling radio with
 	  USB/USB interface using a single antenna.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_M2
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB5+ USB with single antenna (M.2)"
+	help
+	  Install Laird's firmware for the LWB5+ Sterling radio with
+	  USB/USB interface using a single antenna on the M.2 module.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_MFG
 	depends on BR2_PACKAGE_LAIRD_FIRMWARE

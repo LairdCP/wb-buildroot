@@ -98,29 +98,14 @@ define LAIRD_FW_BCM4339_MFG_INSTALL_TARGET_CMDS
 endef
 endif
 
-NVRAM_FILE = $(@D)/brcm/brcmfmac4373-$(1).txt
-FW_BASE_FILE = $(@D)/brcm/brcmfmac4373-usb-base-$(1).bin
-FW_FINAL_FILE = $(BRCM_DIR)/brcmfmac4373-usb-$(1)-$(2).bin
-
-define make_bcm4373usb_fw
-	grep -v NVRAMRev $(call NVRAM_FILE,$(1)) > $(BRCM_DIR)/tmp_nvram.txt
-	$(@D)/brcm/bin/nvserial -a -o $(BRCM_DIR)/tmp_nvram.nvm $(BRCM_DIR)/tmp_nvram.txt
-	$(@D)/brcm/bin/trxv2 -f 0x20 \
-		-x $$(stat -c %s $(call FW_BASE_FILE,$(2))) \
-		-x 0x160881 \
-		-x $$(stat -c %s $(BRCM_DIR)/tmp_nvram.nvm) \
-		-o $(call FW_FINAL_FILE,$(1),$(2)) \
-		$(call FW_BASE_FILE,$(2)) $(BRCM_DIR)/tmp_nvram.nvm
-	rm -f $(BRCM_DIR)/tmp_nvram.*
-endef
 
 define make_bcm4373sdio_fw
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac4373-clm-$(1).clm_blob $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4373-clm-$(3).clm_blob $(BRCM_DIR)/brcmfmac4373-clm-$(1).clm_blob
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-$(1).clm_blob brcmfmac4373-sdio.clm_blob
-	cp -rad $(@D)/brcm/BCM4373A0-sdio-$(1).hcd $(BRCM_DIR)
+	cp -rad $(@D)/brcm/BCM4373A0-sdio-$(3).hcd $(BRCM_DIR)/BCM4373A0-sdio-$(1).hcd
 	cd $(BRCM_DIR) && ln -srf BCM4373A0-sdio-$(1).hcd BCM4373A0.hcd
-	cp -rad $(@D)/brcm/brcmfmac4373-$(1).txt $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4373-$(2).txt $(BRCM_DIR)/brcmfmac4373-$(1).txt
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-$(1).txt brcmfmac4373-sdio.txt
 	cp -rad $(@D)/brcm/brcmfmac4373-sdio-prod.bin $(BRCM_DIR)
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-sdio-prod.bin brcmfmac4373-sdio.bin
@@ -128,24 +113,46 @@ endef
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV),y)
 define LAIRD_FW_BCM4373_SDIO_DIV_INSTALL_TARGET_CMDS
-	$(call make_bcm4373sdio_fw,div)
+	$(call make_bcm4373sdio_fw,div,div-switch,switch)
 endef
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA),y)
 define LAIRD_FW_BCM4373_SDIO_SA_INSTALL_TARGET_CMDS
-	$(call make_bcm4373sdio_fw,sa)
+	$(call make_bcm4373sdio_fw,sa,sa-noswitch,noswitch)
 endef
 endif
+
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_M2),y)
+define LAIRD_FW_BCM4373_SDIO_SA_M2_INSTALL_TARGET_CMDS
+	$(call make_bcm4373sdio_fw,sa-m2,sa-switch,switch)
+endef
+endif
+
+NVRAM_FILE = $(@D)/brcm/brcmfmac4373-$(1).txt
+FW_BASE_FILE = $(@D)/brcm/brcmfmac4373-usb-base-$(1).bin
+FW_FINAL_FILE = $(BRCM_DIR)/brcmfmac4373-usb-$(1)-$(2).bin
+
+define make_bcm4373usb_fw
+	grep -v NVRAMRev $(call NVRAM_FILE,$(2)) > $(BRCM_DIR)/tmp_nvram.txt
+	$(@D)/brcm/bin/nvserial -a -o $(BRCM_DIR)/tmp_nvram.nvm $(BRCM_DIR)/tmp_nvram.txt
+	$(@D)/brcm/bin/trxv2 -f 0x20 \
+		-x $$(stat -c %s $(call FW_BASE_FILE,$(3))) \
+		-x 0x160881 \
+		-x $$(stat -c %s $(BRCM_DIR)/tmp_nvram.nvm) \
+		-o $(call FW_FINAL_FILE,$(1),$(3)) \
+		$(call FW_BASE_FILE,$(3)) $(BRCM_DIR)/tmp_nvram.nvm
+	rm -f $(BRCM_DIR)/tmp_nvram.*
+endef
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV),y)
 define LAIRD_FW_BCM4373_USB_DIV_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac4373-clm-div.clm_blob $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4373-clm-switch.clm_blob $(BRCM_DIR)/brcmfmac4373-clm-div.clm_blob
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-div.clm_blob brcmfmac4373.clm_blob
-	cp -rad $(@D)/brcm/BCM4373A0-usb-div.hcd $(BRCM_DIR)
+	cp -rad $(@D)/brcm/BCM4373A0-usb-switch.hcd $(BRCM_DIR)/BCM4373A0-usb-div.hcd
 	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-div.hcd BCM4373A0-04b4-640c.hcd
-	$(call make_bcm4373usb_fw,div,prod)
+	$(call make_bcm4373usb_fw,div,div-switch,prod)
 	cd $(BRCM_DIR) && ln -srf $(BRCM_DIR)/brcmfmac4373-usb-div-prod.bin brcmfmac4373.bin
 endef
 endif
@@ -153,12 +160,24 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA),y)
 define LAIRD_FW_BCM4373_USB_SA_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac4373-clm-sa.clm_blob $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4373-clm-noswitch.clm_blob $(BRCM_DIR)/brcmfmac4373-clm-sa.clm_blob
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-sa.clm_blob brcmfmac4373.clm_blob
-	cp -rad $(@D)/brcm/BCM4373A0-usb-sa.hcd $(BRCM_DIR)
+	cp -rad $(@D)/brcm/BCM4373A0-usb-noswitch.hcd $(BRCM_DIR)/BCM4373A0-usb-sa.hcd
 	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-sa.hcd BCM4373A0-04b4-640c.hcd
-	$(call make_bcm4373usb_fw,sa,prod)
+	$(call make_bcm4373usb_fw,sa,sa-noswitch,prod)
 	cd $(BRCM_DIR) && ln -srf $(BRCM_DIR)/brcmfmac4373-usb-sa-prod.bin brcmfmac4373.bin
+endef
+endif
+
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_M2),y)
+define LAIRD_FW_BCM4373_USB_SA_M2_INSTALL_TARGET_CMDS
+	mkdir -p -m 0755 $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4373-clm-switch.clm_blob $(BRCM_DIR)/brcmfmac4373-clm-sa-m2.clm_blob
+	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-sa-m2.clm_blob brcmfmac4373.clm_blob
+	cp -rad $(@D)/brcm/BCM4373A0-usb-switch.hcd $(BRCM_DIR)/BCM4373A0-usb-sa-m2.hcd
+	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-sa-m2.hcd BCM4373A0-04b4-640c.hcd
+	$(call make_bcm4373usb_fw,sa-m2,sa-switch,prod)
+	cd $(BRCM_DIR) && ln -srf $(BRCM_DIR)/brcmfmac4373-usb-sa-m2-prod.bin brcmfmac4373.bin
 endef
 endif
 
@@ -167,14 +186,14 @@ endif
 #
 #        The NVRAM file is included directly in the regulatory package for SDIO and
 #        is also used to build the USB diversity mfg firmware
-#        The standard single antenna NVRAM file is used to build USB single antenna
+#        The standard single antenna NVRAM files are used to build USB non-diversity
 #        mfg firmware
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_MFG),y)
 define LAIRD_FW_BCM4373_MFG_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	$(call make_bcm4373usb_fw,div-mfg,mfg)
-	cd $(BRCM_DIR) && mv brcmfmac4373-usb-div-mfg-mfg.bin brcmfmac4373-usb-div-mfg.bin
-	$(call make_bcm4373usb_fw,sa,mfg)
+	$(call make_bcm4373usb_fw,div,div-mfg,mfg)
+	$(call make_bcm4373usb_fw,sa,sa-noswitch,mfg)
+	$(call make_bcm4373usb_fw,sa-m2,sa-switch,mfg)
 	cp -rad $(@D)/brcm/brcmfmac4373-sdio-mfg.bin $(BRCM_DIR)
 	cp -rad $(@D)/brcm/brcmfmac4373-div-mfg.txt $(BRCM_DIR)
 endef
@@ -351,8 +370,10 @@ define LAIRD_FIRMWARE_INSTALL_TARGET_CMDS
 	$(LAIRD_FW_BCM4339_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4373_SDIO_DIV_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4373_SDIO_SA_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4373_SDIO_SA_M2_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4373_USB_DIV_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4373_USB_SA_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_BCM4373_USB_SA_M2_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4373_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_UART_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_SDIO_INSTALL_TARGET_CMDS)
