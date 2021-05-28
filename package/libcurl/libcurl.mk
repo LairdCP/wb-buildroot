@@ -95,6 +95,14 @@ else
 LIBCURL_CONF_OPTS += --without-libidn2
 endif
 
+# Configure curl to support libssh
+ifeq ($(BR2_PACKAGE_LIBSSH),y)
+LIBCURL_DEPENDENCIES += libssh
+LIBCURL_CONF_OPTS += --with-libssh
+else
+LIBCURL_CONF_OPTS += --without-libssh
+endif
+
 # Configure curl to support libssh2
 ifeq ($(BR2_PACKAGE_LIBSSH2),y)
 LIBCURL_DEPENDENCIES += libssh2
