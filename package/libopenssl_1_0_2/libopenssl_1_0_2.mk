@@ -115,13 +115,17 @@ else
 LIBOPENSSL_1_0_2_DEVRANDOM = '"/dev/hwrng","/dev/urandom"'
 endif
 
+ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS_DEBUG),y)
+LIBOPENSSL_1_0_2_DEBUG = debug-
+endif
+
 define LIBOPENSSL_1_0_2_CONFIGURE_CMDS
 	(cd $(@D); \
 		$(TARGET_CONFIGURE_ARGS) \
 		$(TARGET_CONFIGURE_OPTS) \
 		$(LIBOPENSSL_1_0_2_FIPS_OPT) \
 		./Configure \
-			linux-$(LIBOPENSSL_1_0_2_TARGET_ARCH) \
+			$(LIBOPENSSL_1_0_2_DEBUG)linux-$(LIBOPENSSL_1_0_2_TARGET_ARCH) \
 			--prefix=/usr \
 			--openssldir=/etc/ssl \
 			--libdir=/lib \
