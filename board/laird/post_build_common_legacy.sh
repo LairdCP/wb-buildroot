@@ -159,7 +159,7 @@ fi
 
 fi
 
-if grep -q 'BR2_DEFCONFIG=.*_fips_dev_defconfig' ${BR2_CONFIG}; then
+if grep -q 'BR2_DEFCONFIG=.*_fips_dev_.*' ${BR2_CONFIG}; then
 	fipshmac=${HOST_DIR}/bin/fipshmac
 	IMAGE_NAME=Image
 

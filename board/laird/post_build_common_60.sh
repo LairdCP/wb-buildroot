@@ -172,7 +172,7 @@ sed "s/at91-dvk_som60/${DTB}/g" ${CCONF_DIR}/kernel.its > ${BINARIES_DIR}/kernel
 
 fi
 
-if grep -q 'BR2_DEFCONFIG=.*_fips_dev_defconfig' ${BR2_CONFIG}; then
+if grep -q 'BR2_DEFCONFIG=.*_fips_dev_.*' ${BR2_CONFIG}; then
 	IMAGE_NAME=Image
 
 	if grep -q '"Image.gz"' ${BINARIES_DIR}/kernel.its; then
