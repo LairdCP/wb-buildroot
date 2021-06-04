@@ -4,24 +4,27 @@
 #
 ################################################################################
 
-LAIRD_OPENSSL_FIPS_BINARIES_CVE_PRODUCT = libopenssl
-LAIRD_OPENSSL_FIPS_BINARIES_CVE_VERSION = 1.0.2u
+LIBOPENSSL_1_0_2_CVE_PRODUCT = libopenssl
+LIBOPENSSL_1_0_2_CVE_VERSION = 1.0.2u
 
 #0004-Fix-for-OpenSSL-1.0.2-CVE-2020-1968-from-Debian.patch
-LAIRD_OPENSSL_FIPS_BINARIES_IGNORE_CVES += CVE-2020-1968
+LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2020-1968
 
 # 0005-Add-a-test-for-GENERAL_NAME_cmp.patch
 # 0006-Check-that-multi-strings-CHOICE-types-don-t-use-implicit-.patch
 # 0007-Complain-if-we-are-attempting-to-encode-with-an-invalid-A.patch
 # 0008-Correctly-compare-EdiPartyName-in-GENERAL_NAME_cmp.patch
 # 0009-DirectoryString-is-a-CHOICE-type-and-therefore-uses-expli.patch
-LAIRD_OPENSSL_FIPS_BINARIES_IGNORE_CVES += CVE-2020-1971
+LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2020-1971
 
 # 0010-CVE-2021-23840.patch
-LAIRD_OPENSSL_FIPS_BINARIES_IGNORE_CVES += CVE-2021-23840
+LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2021-23840
 
 # 0011-CVE-2021-23841.patch
-LAIRD_OPENSSL_FIPS_BINARIES_IGNORE_CVES += CVE-2021-23841
+LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2021-23841
+
+# 0012-Fix-the-RSA_SSLV23_PADDING-padding-type.patch
+LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2021-23839
 
 ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS),y)
 # building from closed source git repository
