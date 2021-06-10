@@ -11,7 +11,7 @@ index bf068bdc..30a232c7 100644
 
  /**
 diff --git a/plugins/ublox/mm-broadband-modem-ublox.c b/plugins/ublox/mm-broadband-modem-ublox.c
-index 2fbf57e7..6a2c6724 100644
+index 2fbf57e7..9fcf34cf 100644
 --- a/plugins/ublox/mm-broadband-modem-ublox.c
 +++ b/plugins/ublox/mm-broadband-modem-ublox.c
 @@ -27,6 +27,7 @@
@@ -159,24 +159,24 @@ index 2fbf57e7..6a2c6724 100644
 +    gchar *res = g_match_info_fetch (match_info, 0);
 +    gchar **tokens = g_strsplit(res, ",", 5);
 +
-+    gdouble longitude = g_strtod(tokens[2], NULL);
-+    gdouble latitude = g_strtod(tokens[3], NULL);
++    gdouble latitude = g_strtod(tokens[2], NULL);
++    gdouble longitude = g_strtod(tokens[3], NULL);
 +
-+    gchar dir[2] = {'E', 'N'};
++    gchar dir[2] = {'N', 'E'};
 +
 +    if(tokens[2][0] == '-') {
-+        dir[0] = 'W';
-+        longitude = -longitude;
-+    }
-+
-+    if(tokens[3][0] == '-') {
-+        dir[1] = 'S';
++        dir[0] = 'S';
 +        latitude = -latitude;
 +    }
 +
++    if(tokens[3][0] == '-') {
++        dir[1] = 'W';
++        longitude = -longitude;
++    }
++
 +    g_snprintf(trace, 256, "$GNGGA,%02d%02d%02d.00,%.4f,%c,%.4f,%c,1,0,1.0,0.00,M,0.00,M,00,0*00", g_date_time_get_hour(now), g_date_time_get_minute(now), g_date_time_get_second(now),
-+                                                                                            (int)longitude * 100 + 60 * (longitude - (int)longitude), dir[0],
-+                                                                                            (int)latitude * 100  + 60 * (latitude  - (int)latitude), dir[1]);
++                                                                                            (int)latitude * 100  + 60 * (latitude  - (int)latitude), dir[0],
++                                                                                            (int)longitude * 100 + 60 * (longitude - (int)longitude), dir[1]);
 +    mm_iface_modem_location_gps_update (_self, trace);
 +
 +    g_free(res);
