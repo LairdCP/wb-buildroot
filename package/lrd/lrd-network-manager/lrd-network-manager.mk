@@ -104,7 +104,7 @@ endif
 
 ifeq ($(BR2_PACKAGE_LRD_FACTORY_RESET_TOOLKIT),y)
 define LRD_NETWORK_MANAGER_UPDATE_SERVICE
-	sed -i -e '/^ExecStart=/ s#.*#ExecStart=/usr/sbin/NetworkManager --no-daemon --config-dir=/data/secret/NetworkManager/conf.d --config=/data/secret/NetworkManager/NetworkManager.conf#g' $(TARGET_DIR)/usr/lib/systemd/system/NetworkManager.service
+	sed -i -e '/^ExecStart=/ s#.*#ExecStart=/usr/sbin/NetworkManager --no-daemon --config-dir=/data/secret/NetworkManager/conf.d --config=/data/secret/NetworkManager/NetworkManager.conf --state-file=/data/secret/NetworkManager/NetworkManager.state#g' $(TARGET_DIR)/usr/lib/systemd/system/NetworkManager.service
 endef
 endif
 
