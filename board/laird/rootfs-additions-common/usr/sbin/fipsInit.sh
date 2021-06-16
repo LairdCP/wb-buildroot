@@ -27,6 +27,10 @@ done
 FIPS_ENABLED=$(cat /proc/sys/crypto/fips_enabled 2>/dev/null)
 
 if [ "${FIPS_ENABLED}" == "1" ] && [ -n "${KERNEL}" ]; then
+	# trigger kernel crypto ccm self-test
+	modprobe tcrypt mode=37
+	modprobe -r tcrypt
+
 	mount -o mode=1777,nosuid,nodev -t tmpfs tmpfs /tmp 2> /dev/null
 	TMP_MOUNT=$?
 
