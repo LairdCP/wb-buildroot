@@ -103,7 +103,7 @@ create_gadgets () {
 		fi
 
 		echo "Laird Connectivity" > strings/0x409/manufacturer
-		echo "$(cat /sys/firmware/devicetree/base/model)" > strings/0x409/product
+		cat /sys/firmware/devicetree/base/model > strings/0x409/product
 
 		mkdir -p configs/c.1/strings/0x409
 		echo "USB Composite Configuration" > configs/c.1/strings/0x409/configuration
