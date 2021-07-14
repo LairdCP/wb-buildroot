@@ -72,6 +72,14 @@ inetd_services_check() {
   done < /etc/inetd.conf
 }
 
+kill_daemons() {
+  while read -r a1 a2 a3 a4 a5 a6 a7
+  do
+    [ "${a1::1}" != "#" ] && [ -n "$a7" ] && \
+      killall ${a6##*/} 2>/dev/null
+  done < /etc/inetd.conf
+}
+
 # find any network and bridge init-script pids
 let net_init_pids=$( ps ax |sed -n '/[S]..[nb][er][ti][wd][og][re]/\
                                           s/^\ *\([0-9]\+\).*/\1/p' )+0
@@ -126,6 +134,7 @@ case $1 in
         && rm /var/run/inetd.pid
       kill $pid 2>/dev/null
       rm -f /tmp/inetd.conf
+      kill_daemons
     fi
     ;;
 
