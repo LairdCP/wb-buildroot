@@ -77,6 +77,15 @@ if [ ! -x ${TARGET_DIR}/usr/sbin/proftpd ]; then
 	sed -i 's/^ftp/#ftp/' ${TARGET_DIR}/etc/inetd.conf
 fi
 
+if [ ! -x ${TARGET_DIR}/usr/sbin/pppd ]; then
+	rm -f ${TARGET_DIR}/etc/init.d/opt/S45pppd
+fi
+
+if [ ! -x ${TARGET_DIR}/usr/sbin/sshd ]; then
+	rm -f ${TARGET_DIR}/etc/init.d/opt/S50sshd
+	sed -i 's/^ssh/#ssh/' ${TARGET_DIR}/etc/inetd.conf
+fi
+
 [ -n "$(find "${TARGET_DIR}/lib/modules/" -name ohci-at91.ko)" ] || \
 	rm -f "${TARGET_DIR}/etc/init.d/S37usbhost"
 
@@ -178,6 +187,8 @@ if grep -q 'BR2_DEFCONFIG=.*_fips_dev_.*' ${BR2_CONFIG}; then
 	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${TARGET_DIR}/usr/bin/fipscheck
 	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${TARGET_DIR}/usr/lib/libfipscheck.so.1
 	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${TARGET_DIR}/usr/lib/libcrypto.so.1.0.0
+
+	sed "s/^auto usb0/#auto usb0/g" -i ${TARGET_DIR}/etc/network/interfaces
 fi
 
 echo "COMMON POST BUILD script: done."
