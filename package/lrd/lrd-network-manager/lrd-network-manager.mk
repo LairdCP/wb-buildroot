@@ -5,7 +5,7 @@
 ################################################################################
 
 LRD_NETWORK_MANAGER_CVE_PRODUCT = network-manager
-LRD_NETWORK_MANAGER_CVE_VERSION = 1.22.14
+LRD_NETWORK_MANAGER_CVE_VERSION = 1.32.0
 
 ifeq ($(BR2_LRD_DEVEL_BUILD),)
 ifneq ($(BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE),)
@@ -33,7 +33,7 @@ LRD_NETWORK_MANAGER_INSTALL_STAGING = YES
 LRD_NETWORK_MANAGER_DEPENDENCIES = host-pkgconf udev gnutls libglib2 \
 	libgcrypt util-linux host-intltool readline libndp
 LRD_NETWORK_MANAGER_LICENSE = GPL-2.0+ (app), LGPL-2.1+ (libnm)
-LRD_NETWORK_MANAGER_LICENSE_FILES = COPYING COPYING.LGPL CONTRIBUTING
+LRD_NETWORK_MANAGER_LICENSE_FILES = COPYING COPYING.LGPL CONTRIBUTING.md
 
 LRD_NETWORK_MANAGER_AUTORECONF = YES
 
@@ -46,14 +46,14 @@ LRD_NETWORK_MANAGER_CONF_ENV = \
 	ac_cv_file__etc_SuSE_release=no
 
 LRD_NETWORK_MANAGER_CONF_OPTS = \
+	--disable-introspection \
 	--disable-tests \
 	--disable-qt \
 	--disable-more-warnings \
 	--with-crypto=gnutls \
 	--with-iptables=/usr/sbin/iptables \
 	--disable-ifupdown \
-	--without-nm-cloud-setup \
-	--disable-introspection
+	--without-nm-cloud-setup
 
 ifeq ($(BR2_PACKAGE_OFONO),y)
 LRD_NETWORK_MANAGER_DEPENDENCIES += ofono
