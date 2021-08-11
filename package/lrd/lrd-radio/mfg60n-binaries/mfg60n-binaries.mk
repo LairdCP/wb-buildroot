@@ -18,11 +18,23 @@ define MFG60N_BINARIES_BUILD_CMDS
 	tar -xvjf $(@D)/$(MFG60N_BINARIES_SOURCE) -C $(@D)/files/
 endef
 
-define MFG60N_BINARIES_INSTALL_TARGET_CMDS
+ifeq ($(BR2_PACKAGE_MFG60N_BINARIES_LMU),y)
+define MFG60N_BINARIES_LMU_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/files/lmu $(TARGET_DIR)/usr/bin/lmu
+endef
+endif
+
+ifeq ($(BR2_PACKAGE_MFG60N_BINARIES_REGULATORY),y)
+define MFG60N_BINARIES_REGULATORY_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/files/lru $(TARGET_DIR)/usr/bin/lru
 	$(INSTALL) -D -m 755 $(@D)/files/btlru $(TARGET_DIR)/usr/bin/btlru
 	$(INSTALL) -D -m 644 $(@D)/files/88W8997_mfg* -t $(TARGET_DIR)/lib/firmware/lrdmwl/
+endef
+endif
+
+define MFG60N_BINARIES_INSTALL_TARGET_CMDS
+	$(MFG60N_BINARIES_LMU_INSTALL_TARGET_CMDS)
+	$(MFG60N_BINARIES_REGULATORY_INSTALL_TARGET_CMDS)
 endef
 
 $(eval $(generic-package))
