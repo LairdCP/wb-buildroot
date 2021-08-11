@@ -1,0 +1,39 @@
+From dd0f79523f04ea07575af0cdfc218b16e9010110 Mon Sep 17 00:00:00 2001
+From: Jakov Smolic <jakov.smolic@sartura.hr>
+Date: Wed, 15 Apr 2020 17:53:36 +0200
+Subject: [PATCH] Add new meson configure option for controlling
+ systemd-analyze support
+
+Enables building systemd without systemd-analyze, which in
+return saves approx. 4 MB of space upon installing systemd.
+
+Signed-off-by: Jakov Smolic <jakov.smolic@sartura.hr>
+Signed-off-by: Luka Perkov <luka.perkov@sartura.hr>
+---
+ meson.build       | 2 +-
+ meson_options.txt | 2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/meson.build b/meson.build
+index bfd708cb4c..8a9f4d08ed 100644
+--- a/meson.build
++++ b/meson.build
+@@ -1620,7 +1620,7 @@ exe = executable('systemd-analyze',
+                                  libmount,
+                                  libblkid],
+                  install_rpath : rootlibexecdir,
+-                 install : true)
++                 install : get_option('analyze'))
+ public_programs += exe
+ 
+ executable('systemd-journald',
+diff --git a/meson_options.txt b/meson_options.txt
+index 30cf147718..5daed21598 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -364,3 +364,5 @@ option('llvm-fuzz', type : 'boolean', value : 'false',
+        description : 'build against LLVM libFuzzer')
+ option('kernel-install', type: 'boolean', value: 'true',
+        description : 'include kernel-install feature')
++option('analyze', type: 'boolean', value: 'true',
++       description : 'include systemd-analyze')

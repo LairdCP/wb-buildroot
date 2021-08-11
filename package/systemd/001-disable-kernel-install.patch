@@ -1,0 +1,59 @@
+From 5fa5c3e2d04622be74d0b7aa199ecdc8a02622fe Mon Sep 17 00:00:00 2001
+From: Jakov Smolic <jakov.smolic@sartura.hr>
+Date: Sat, 11 Apr 2020 14:32:52 +0200
+Subject: [PATCH] Add meson build option to prevent building kernel-install
+
+This commit introduces new meson build option "kernel-install" to prevent kernel-install from building if the user
+sets the added option as "false".
+Signed-off-by: Jakov Smolic <jakov.smolic@sartura.hr>
+Signed-off-by: Luka Perkov <luka.perkov@sartura.hr>
+---
+ meson_options.txt              |  2 ++
+ src/kernel-install/meson.build | 28 ++++++++++++++++------------
+ 2 files changed, 18 insertions(+), 12 deletions(-)
+
+diff --git a/meson_options.txt b/meson_options.txt
+index d1c752fda2..3962565091 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -344,3 +344,5 @@ option('oss-fuzz', type : 'boolean', value : 'false',
+        description : 'the name of the FuzzBuzz fuzzing engine')
+ option('fuzzbuzz-engine-dir', type : 'string',
+        description : 'the directory where the FuzzBuzz fuzzing engine is')
++option('kernel-install', type: 'boolean', value: 'true',
++       description : 'include kernel-install feature')
+diff --git a/src/kernel-install/meson.build b/src/kernel-install/meson.build
+index 261c3aaae4..9ae342dfba 100644
+--- a/src/kernel-install/meson.build
++++ b/src/kernel-install/meson.build
+@@ -1,14 +1,18 @@
+ # SPDX-License-Identifier: LGPL-2.1+
+ 
+-install_data('kernel-install',
+-             install_mode : 'rwxr-xr-x',
+-             install_dir : bindir)
+-
+-install_data('00-entry-directory.install',
+-             '50-depmod.install',
+-             '90-loaderentry.install',
+-             install_mode : 'rwxr-xr-x',
+-             install_dir : kernelinstalldir)
+-
+-meson.add_install_script('sh', '-c',
+-                         mkdir_p.format(join_paths(sysconfdir, 'kernel/install.d')))
++want_kernel_install = get_option('kernel-install')
++
++if want_kernel_install
++	install_data('kernel-install',
++		install_mode : 'rwxr-xr-x',
++		install_dir : bindir)
++
++	install_data('00-entry-directory.install',
++		'50-depmod.install',
++		'90-loaderentry.install',
++		install_mode : 'rwxr-xr-x',
++		install_dir : kernelinstalldir)
++
++	meson.add_install_script('sh', '-c',
++				mkdir_p.format(join_paths(sysconfdir, 'kernel/install.d')))
++endif
