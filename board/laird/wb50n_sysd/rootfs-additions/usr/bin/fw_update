@@ -1,0 +1,67 @@
+#! /bin/ash
+
+die() {
+    echo "${1}" >&2
+    exit 2
+}
+
+o_method=main
+o_quiet=false
+o_restart=true
+
+update_ok=false
+
+# determine update side
+side=$(fw_printenv -n bootside)
+[ ${side} == b ] && o_side=a || o_side=b
+
+grep -q "root=/dev/mmcblk" /proc/cmdline && \
+    run_on_sd=true || run_on_sd=false
+
+while getopts m:s:x:qv name; do
+    case $name in
+    m)  o_method=${OPTARG} ;;
+    s)  o_side=${OPTARG} ;;
+    x)  [ x == "${OPTARG/*r*/x}" ] && o_restart=false ;;
+    q)  o_quiet=true ;;
+    v)  o_verbose="-v" ;;
+    ?)  printf "Usage: %s: [-n <method>] [-s <side>] [-x value] [-q] [-v] <url>\n" $0
+        exit 1 ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+url="${1}"
+
+[ "${o_method}" == complete ] && o_complete=true || o_complete=false
+
+${o_complete} && p_method=${o_method} || p_method=${o_method}-${o_side}
+
+${o_complete} && ! ${run_on_sd} && \
+    die "complete method not supported when booting from flash"
+
+${run_on_sd} && ! ${o_complete} && [ "${o_side}" != "${side}" ] && \
+    die "Cannot switch sides when booting from SD card"
+
+${o_quiet} && exec >/dev/null
+
+case "${url}" in
+*://*)
+    if  ${o_complete}; then
+        wget "${url}" || exit 5
+        . erase_som_nand >/dev/null
+        swupdate -e stable,${p_method} ${o_verbose} -i "${url##*/}" && update_ok=true
+        rm -f "${url##*/}"
+    else
+        swupdate -e stable,${p_method} ${o_verbose} -d "-u ${url}" && update_ok=true
+    fi
+    ;;
+
+*)
+    swupdate -e stable,${p_method} ${o_verbose} -i "${url}" && update_ok=true
+    ;;
+esac
+
+if ${update_ok} && ${o_restart} && ! ${run_on_sd}; then
+   reboot
+fi

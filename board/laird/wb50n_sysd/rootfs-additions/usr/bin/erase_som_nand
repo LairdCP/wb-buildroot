@@ -1,8 +1,14 @@
-for i in $( ls /sys/devices/platform/ahb/10000000.ebi/10000000.ebi\:nand-controller/mtd ); do
-        case $i in
-                mtd?)
-                        echo Erasing $i
-                        flash_erase /dev/$i 0 0
-                        ;;
-        esac
+#! /bin/sh
+
+mtd=/sys/devices/platform/ahb/10000000.ebi/10000000.ebi\:nand-controller/mtd
+
+for i in $(ls ${mtd}); do
+    case ${i} in
+    mtd?)
+        echo Erasing ${i}
+        [ "$(cat ${mtd}/${i}/name)" ==  ubi ] && \
+                { ubidetach -p /dev/${i} 2>/dev/null || true; }
+        flash_erase /dev/${i} 0 0
+        ;;
+    esac
 done
