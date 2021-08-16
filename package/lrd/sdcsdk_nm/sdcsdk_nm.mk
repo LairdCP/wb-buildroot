@@ -28,6 +28,7 @@ define SDCSDK_NM_INSTALL_STAGING_CMDS
 	cd  $(STAGING_DIR)/usr/lib/ && ln -sf libsdc_sdk_nm.so.1.0 libsdc_sdk_nm.so.1
 	cd  $(STAGING_DIR)/usr/lib/ && ln -sf libsdc_sdk_nm.so.1 libsdc_sdk.so
 	$(INSTALL) -D -m 0644 $(@D)/src/sdc_sdk.h \
+			  $(@D)/src/sdc_events.h \
               $(@D)/src/sdc_sdk_types.h \
               $(@D)/src/sdc_sdk_deprecated.h \
               $(@D)/src/sdc_sdk_helper.h \
