@@ -12,9 +12,9 @@ echo "${BR2_LRD_PRODUCT^^} POST BUILD script: starting..."
 
 [[ "${BUILD_TYPE}" == *sd ]] && SD=1 || SD=0
 
-# remove the resolv.conf.  Network Manager will create the appropriate file and
-# link on startup.
-rm -f "${TARGET_DIR}/etc/resolv.conf"
+# Determine if encrypted image being built
+grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG} \
+	&& ENCRYPTED_TOOLKIT=1 || ENCRYPTED_TOOLKIT=0
 
 # Create default firmware description file.
 # This may be overwritten by a proper release file.
