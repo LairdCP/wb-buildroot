@@ -26,6 +26,9 @@ LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2021-23841
 # 0012-Fix-the-RSA_SSLV23_PADDING-padding-type.patch
 LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2021-23839
 
+# 0013-Fix-a-read-buffer-overrun-in-X509_CERT_AUX_print.patch
+LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2021-3712
+
 ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS),y)
 # building from closed source git repository
 LIBOPENSSL_1_0_2_VERSION = local
