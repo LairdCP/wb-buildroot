@@ -97,6 +97,13 @@ fi
 [ -n "$(find "${TARGET_DIR}/lib/modules/" -name cryptodev.ko)" ] || \
 	rm -f "${TARGET_DIR}/etc/modules-load.d/cryptodev.conf"
 
+# Remove TSLIB support configs if TSLIB not present
+if [ ! -e "${TARGET_DIR}/usr/lib/libts.so.0" ]; then
+	rm -f "${TARGET_DIR}/etc/ts.conf"
+	rm -f "${TARGET_DIR}/etc/pointercal"
+	rm -f "${TARGET_DIR}/etc/profile.d/ts-setup.sh"
+fi
+
 # Clean up Python, Node cruft we don't need
 rm -f "${TARGET_DIR}/usr/lib/python2.7/ensurepip/_bundled/*.whl"
 rm -f "${TARGET_DIR}/usr/lib/python3.7/ensurepip/_bundled/*.whl"
