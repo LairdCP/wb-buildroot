@@ -27,6 +27,7 @@ source "package/lrd/lrd-swupdate-client/Config.in"
 source "package/lrd/ig-tty-utils/Config.in"
 source "package/lrd/lrd-factory-reset-toolkit/Config.in"
 source "package/lrd/lrd-fips-utils/Config.in"
+source "package/lrd/lrd-wifi-bridge/Config.in"
 
 if BR2_LRD_NO_RADIO
 source "package/lrd/lrd-radio/adaptive_bt/Config.in"
