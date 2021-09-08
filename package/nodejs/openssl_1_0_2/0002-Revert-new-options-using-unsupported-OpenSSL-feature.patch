@@ -1,0 +1,2455 @@
+From 0c7e5df7fecc76f64b45c3267c851eff2ac8c496 Mon Sep 17 00:00:00 2001
+From: Zuzana Svetlikova <zsvetlik@redhat.com>
+Date: Wed, 19 Feb 2020 09:45:19 +0000
+Subject: [PATCH 2/4] revert new features
+
+---
+ doc/api/crypto.md                           |  24 ---
+ doc/api/errors.md                           |   5 -
+ doc/api/https.md                            |  25 ---
+ doc/api/tls.md                              | 117 +-----------
+ doc/node.1                                  |   5 -
+ lib/_http_agent.js                          |  24 +--
+ lib/_tls_common.js                          |  13 --
+ lib/_tls_wrap.js                            | 143 +--------------
+ lib/internal/crypto/cipher.js               |  10 +-
+ lib/internal/crypto/sig.js                  |  37 +---
+ src/env.h                                   |  13 +-
+ src/node_crypto.cc                          | 266 +---------------------------
+ src/node_crypto.h                           |  24 +--
+ src/node_errors.h                           |   2 -
+ src/node_options.cc                         |   4 -
+ src/node_options.h                          |   1 -
+ src/tls_wrap.cc                             | 134 --------------
+ src/tls_wrap.h                              |  17 --
+ test/fixtures/rsa-oaep-test-vectors.js      |  30 ----
+ test/parallel/test-crypto-rsa-dsa.js        |  65 +++++--
+ test/parallel/test-crypto-sign-verify.js    |  90 ++--------
+ test/parallel/test-https-agent-keylog.js    |  44 -----
+ test/parallel/test-tls-enable-keylog-cli.js |  57 ------
+ test/parallel/test-tls-getcipher.js         |   4 -
+ test/parallel/test-tls-keylog-tlsv13.js     |  10 +-
+ test/parallel/test-tls-multi-key.js         |   2 -
+ test/parallel/test-tls-multi-pfx.js         |   2 -
+ test/parallel/test-tls-psk-circuit.js       |  72 --------
+ test/parallel/test-tls-psk-errors.js        |  32 ----
+ test/parallel/test-tls-psk-server.js        |  77 --------
+ test/parallel/test-tls-set-sigalgs.js       |  74 --------
+ test/sequential/test-tls-psk-client.js      |  96 ----------
+ 32 files changed, 87 insertions(+), 1432 deletions(-)
+ delete mode 100644 test/fixtures/rsa-oaep-test-vectors.js
+ delete mode 100644 test/parallel/test-https-agent-keylog.js
+ delete mode 100644 test/parallel/test-tls-enable-keylog-cli.js
+ delete mode 100644 test/parallel/test-tls-psk-circuit.js
+ delete mode 100644 test/parallel/test-tls-psk-errors.js
+ delete mode 100644 test/parallel/test-tls-psk-server.js
+ delete mode 100644 test/parallel/test-tls-set-sigalgs.js
+ delete mode 100644 test/sequential/test-tls-psk-client.js
+
+diff --git a/doc/api/crypto.md b/doc/api/crypto.md
+index f727d6f..7e74977 100644
+--- a/doc/api/crypto.md
++++ b/doc/api/crypto.md
+@@ -1405,7 +1405,6 @@ changes:
+ -->
+ 
+ * `privateKey` {Object | string | Buffer | KeyObject}
+-  * `dsaEncoding` {string}
+   * `padding` {integer}
+   * `saltLength` {integer}
+ * `outputEncoding` {string} The [encoding][] of the return value.
+@@ -1418,10 +1417,6 @@ If `privateKey` is not a [`KeyObject`][], this function behaves as if
+ `privateKey` had been passed to [`crypto.createPrivateKey()`][]. If it is an
+ object, the following additional properties can be passed:
+ 
+-* `dsaEncoding` {string} For DSA and ECDSA, this option specifies the
+-  format of the generated signature. It can be one of the following:
+-  * `'der'` (default): DER-encoded ASN.1 signature structure encoding `(r, s)`.
+-  * `'ieee-p1363'`: Signature format `r || s` as proposed in IEEE-P1363.
+ * `padding` {integer} Optional padding value for RSA, one of the following:
+   * `crypto.constants.RSA_PKCS1_PADDING` (default)
+   * `crypto.constants.RSA_PKCS1_PSS_PADDING`
+@@ -1518,7 +1513,6 @@ changes:
+ -->
+ 
+ * `object` {Object | string | Buffer | KeyObject}
+-  * `dsaEncoding` {string}
+   * `padding` {integer}
+   * `saltLength` {integer}
+ * `signature` {string | Buffer | TypedArray | DataView}
+@@ -1532,10 +1526,6 @@ If `object` is not a [`KeyObject`][], this function behaves as if
+ `object` had been passed to [`crypto.createPublicKey()`][]. If it is an
+ object, the following additional properties can be passed:
+ 
+-* `dsaEncoding` {string} For DSA and ECDSA, this option specifies the
+-  format of the generated signature. It can be one of the following:
+-  * `'der'` (default): DER-encoded ASN.1 signature structure encoding `(r, s)`.
+-  * `'ieee-p1363'`: Signature format `r || s` as proposed in IEEE-P1363.
+ * `padding` {integer} Optional padding value for RSA, one of the following:
+   * `crypto.constants.RSA_PKCS1_PADDING` (default)
+   * `crypto.constants.RSA_PKCS1_PSS_PADDING`
+@@ -2427,9 +2417,6 @@ An array of supported digest functions can be retrieved using
+ <!-- YAML
+ added: v0.11.14
+ changes:
+-  - version: v12.11.0
+-    pr-url: https://github.com/nodejs/node/pull/29489
+-    description: The `oaepLabel` option was added.
+   - version: v12.9.0
+     pr-url: https://github.com/nodejs/node/pull/28335
+     description: The `oaepHash` option was added.
+@@ -2514,9 +2501,6 @@ be passed instead of a public key.
+ <!-- YAML
+ added: v0.11.14
+ changes:
+-  - version: v12.11.0
+-    pr-url: https://github.com/nodejs/node/pull/29489
+-    description: The `oaepLabel` option was added.
+   - version: v12.9.0
+     pr-url: https://github.com/nodejs/node/pull/28335
+     description: The `oaepHash` option was added.
+@@ -2900,10 +2884,6 @@ If `key` is not a [`KeyObject`][], this function behaves as if `key` had been
+ passed to [`crypto.createPrivateKey()`][]. If it is an object, the following
+ additional properties can be passed:
+ 
+-* `dsaEncoding` {string} For DSA and ECDSA, this option specifies the
+-  format of the generated signature. It can be one of the following:
+-  * `'der'` (default): DER-encoded ASN.1 signature structure encoding `(r, s)`.
+-  * `'ieee-p1363'`: Signature format `r || s` as proposed in IEEE-P1363.
+ * `padding` {integer} Optional padding value for RSA, one of the following:
+   * `crypto.constants.RSA_PKCS1_PADDING` (default)
+   * `crypto.constants.RSA_PKCS1_PSS_PADDING`
+@@ -2957,10 +2937,6 @@ If `key` is not a [`KeyObject`][], this function behaves as if `key` had been
+ passed to [`crypto.createPublicKey()`][]. If it is an object, the following
+ additional properties can be passed:
+ 
+-* `dsaEncoding` {string} For DSA and ECDSA, this option specifies the
+-  format of the generated signature. It can be one of the following:
+-  * `'der'` (default): DER-encoded ASN.1 signature structure encoding `(r, s)`.
+-  * `'ieee-p1363'`: Signature format `r || s` as proposed in IEEE-P1363.
+ * `padding` {integer} Optional padding value for RSA, one of the following:
+   * `crypto.constants.RSA_PKCS1_PADDING` (default)
+   * `crypto.constants.RSA_PKCS1_PSS_PADDING`
+diff --git a/doc/api/errors.md b/doc/api/errors.md
+index 7cf3496..32ba4ec 100644
+--- a/doc/api/errors.md
++++ b/doc/api/errors.md
+@@ -1849,11 +1849,6 @@ vector for denial-of-service attacks.
+ An attempt was made to issue Server Name Indication from a TLS server-side
+ socket, which is only valid from a client.
+ 
+-<a id="ERR_TLS_PSK_SET_IDENTIY_HINT_FAILED"></a>
+-### ERR_TLS_PSK_SET_IDENTIY_HINT_FAILED
+-
+-Failed to set PSK identity hint. Hint may be too long.
+-
+ <a id="ERR_TRACE_EVENTS_CATEGORY_REQUIRED"></a>
+ ### `ERR_TRACE_EVENTS_CATEGORY_REQUIRED`
+ 
+diff --git a/doc/api/https.md b/doc/api/https.md
+index bb0322d..e82ffa2 100644
+--- a/doc/api/https.md
++++ b/doc/api/https.md
+@@ -45,31 +45,6 @@ changes:
+ 
+     See [`Session Resumption`][] for information about TLS session reuse.
+ 
+-#### Event: `'keylog'`
+-<!-- YAML
+-added: v12.16.0
+--->
+-
+-* `line` {Buffer} Line of ASCII text, in NSS `SSLKEYLOGFILE` format.
+-* `tlsSocket` {tls.TLSSocket} The `tls.TLSSocket` instance on which it was
+-  generated.
+-
+-The `keylog` event is emitted when key material is generated or received by a
+-connection managed by this agent (typically before handshake has completed, but
+-not necessarily). This keying material can be stored for debugging, as it
+-allows captured TLS traffic to be decrypted. It may be emitted multiple times
+-for each socket.
+-
+-A typical use case is to append received lines to a common text file, which is
+-later used by software (such as Wireshark) to decrypt the traffic:
+-
+-```js
+-// ...
+-https.globalAgent.on('keylog', (line, tlsSocket) => {
+-  fs.appendFileSync('/tmp/ssl-keys.log', line, { mode: 0o600 });
+-});
+-```
+-
+ ## Class: `https.Server`
+ <!-- YAML
+ added: v0.3.4
+diff --git a/doc/api/tls.md b/doc/api/tls.md
+index 2eaaab5..61dc459 100644
+--- a/doc/api/tls.md
++++ b/doc/api/tls.md
+@@ -118,40 +118,6 @@ SNI (Server Name Indication) are TLS handshake extensions:
+ * SNI: Allows the use of one TLS server for multiple hostnames with different
+   SSL certificates.
+ 
+-### Pre-shared keys
+-
+-<!-- type=misc -->
+-
+-TLS-PSK support is available as an alternative to normal certificate-based
+-authentication. It uses a pre-shared key instead of certificates to
+-authenticate a TLS connection, providing mutual authentication.
+-TLS-PSK and public key infrastructure are not mutually exclusive. Clients and
+-servers can accommodate both, choosing either of them during the normal cipher
+-negotiation step.
+-
+-TLS-PSK is only a good choice where means exist to securely share a
+-key with every connecting machine, so it does not replace PKI
+-(Public Key Infrastructure) for the majority of TLS uses.
+-The TLS-PSK implementation in OpenSSL has seen many security flaws in
+-recent years, mostly because it is used only by a minority of applications.
+-Please consider all alternative solutions before switching to PSK ciphers.
+-Upon generating PSK it is of critical importance to use sufficient entropy as
+-discussed in [RFC 4086][]. Deriving a shared secret from a password or other
+-low-entropy sources is not secure.
+-
+-PSK ciphers are disabled by default, and using TLS-PSK thus requires explicitly
+-specifying a cipher suite with the `ciphers` option. The list of available
+-ciphers can be retrieved via `openssl ciphers -v 'PSK'`. All TLS 1.3
+-ciphers are eligible for PSK but currently only those that use SHA256 digest are
+-supported they can be retrieved via `openssl ciphers -v -s -tls1_3 -psk`.
+-
+-According to the [RFC 4279][], PSK identities up to 128 bytes in length and
+-PSKs up to 64 bytes in length must be supported. As of OpenSSL 1.1.0
+-maximum identity size is 128 bytes, and maximum PSK length is 256 bytes.
+-
+-The current implementation doesn't support asynchronous PSK callbacks due to the
+-limitations of the underlying OpenSSL API.
+-
+ ### Client-initiated renegotiation attack mitigation
+ 
+ <!-- type=misc -->
+@@ -861,27 +827,16 @@ changes:
+     pr-url: https://github.com/nodejs/node/pull/26625
+     description: Return the minimum cipher version, instead of a fixed string
+       (`'TLSv1/SSLv3'`).
+-  - version: v12.16.0
+-    pr-url: https://github.com/nodejs/node/pull/30637
+-    description: Return the IETF cipher name as `standardName`.
+ -->
+ 
+ * Returns: {Object}
+-  * `name` {string} OpenSSL name for the cipher suite.
+-  * `standardName` {string} IETF name for the cipher suite.
++  * `name` {string} The name of the cipher suite.
+   * `version` {string} The minimum TLS protocol version supported by this cipher
+     suite.
+ 
+ Returns an object containing information on the negotiated cipher suite.
+ 
+-For example:
+-```json
+-{
+-    "name": "AES128-SHA256",
+-    "standardName": "TLS_RSA_WITH_AES_128_CBC_SHA256",
+-    "version": "TLSv1.2"
+-}
+-```
++For example: `{ name: 'AES256-SHA', version: 'TLSv1.2' }`.
+ 
+ See
+ [SSL_CIPHER_get_name](https://www.openssl.org/docs/man1.1.1/man3/SSL_CIPHER_get_name.html)
+@@ -1082,18 +1037,6 @@ See [Session Resumption][] for more information.
+ Note: `getSession()` works only for TLSv1.2 and below. For TLSv1.3, applications
+ must use the [`'session'`][] event (it also works for TLSv1.2 and below).
+ 
+-### `tlsSocket.getSharedSigalgs()`
+-<!-- YAML
+-added: v12.11.0
+--->
+-
+-* Returns: {Array} List of signature algorithms shared between the server and
+-the client in the order of decreasing preference.
+-
+-See
+-[SSL_get_shared_sigalgs](https://www.openssl.org/docs/man1.1.1/man3/SSL_get_shared_sigalgs.html)
+-for more information.
+-
+ ### `tlsSocket.getTLSTicket()`
+ <!-- YAML
+ added: v0.11.4
+@@ -1241,9 +1184,6 @@ being issued by trusted CA (`options.ca`).
+ <!-- YAML
+ added: v0.11.3
+ changes:
+-  - version: v12.16.0
+-    pr-url: https://github.com/nodejs/node/pull/23188
+-    description: The `pskCallback` option is now supported.
+   - version: v12.9.0
+     pr-url: https://github.com/nodejs/node/pull/27836
+     description: Support the `allowHalfOpen` option.
+@@ -1295,23 +1235,6 @@ changes:
+     verified against the list of supplied CAs. An `'error'` event is emitted if
+     verification fails; `err.code` contains the OpenSSL error code. **Default:**
+     `true`.
+-  * `pskCallback` {Function}
+-    * hint: {string} optional message sent from the server to help client
+-      decide which identity to use during negotiation.
+-      Always `null` if TLS 1.3 is used.
+-    * Returns: {Object} in the form
+-      `{ psk: <Buffer|TypedArray|DataView>, identity: <string> }`
+-      or `null` to stop the negotiation process. `psk` must be
+-      compatible with the selected cipher's digest.
+-      `identity` must use UTF-8 encoding.
+-    When negotiating TLS-PSK (pre-shared keys), this function is called
+-    with optional identity `hint` provided by the server or `null`
+-    in case of TLS 1.3 where `hint` was removed.
+-    It will be necessary to provide a custom `tls.checkServerIdentity()`
+-    for the connection as the default one will try to check hostname/IP
+-    of the server against the certificate but that's not applicable for PSK
+-    because there won't be a certificate present.
+-    More information can be found in the [RFC 4279][].
+   * `ALPNProtocols`: {string[]|Buffer[]|TypedArray[]|DataView[]|Buffer|
+     TypedArray|DataView}
+     An array of strings, `Buffer`s or `TypedArray`s or `DataView`s, or a
+@@ -1427,10 +1350,6 @@ changes:
+     pr-url: https://github.com/nodejs/node/pull/28973
+     description: Added `privateKeyIdentifier` and `privateKeyEngine` options
+                  to get private key from an OpenSSL engine.
+-  - version: v12.11.0
+-    pr-url: https://github.com/nodejs/node/pull/29598
+-    description: Added `sigalgs` option to override supported signature
+-                 algorithms.
+   - version: v12.0.0
+     pr-url: https://github.com/nodejs/node/pull/26209
+     description: TLSv1.3 support added.
+@@ -1491,12 +1410,6 @@ changes:
+     order as their private keys in `key`. If the intermediate certificates are
+     not provided, the peer will not be able to validate the certificate, and the
+     handshake will fail.
+-  * `sigalgs` {string} Colon-separated list of supported signature algorithms.
+-    The list can contain digest algorithms (`SHA256`, `MD5` etc.), public key
+-    algorithms (`RSA-PSS`, `ECDSA` etc.), combination of both (e.g
+-    'RSA+SHA384') or TLS v1.3 scheme names (e.g. `rsa_pss_pss_sha512`).
+-    See [OpenSSL man pages](https://www.openssl.org/docs/man1.1.1/man3/SSL_CTX_set1_sigalgs_list.html)
+-    for more info.
+   * `ciphers` {string} Cipher suite specification, replacing the default. For
+     more information, see [modifying the default cipher suite][]. Permitted
+     ciphers can be obtained via [`tls.getCiphers()`][]. Cipher names must be
+@@ -1647,30 +1560,8 @@ changes:
+     provided the default callback with high-level API will be used (see below).
+   * `ticketKeys`: {Buffer} 48-bytes of cryptographically strong pseudo-random
+     data. See [Session Resumption][] for more information.
+-  * `pskCallback` {Function}
+-    * socket: {tls.TLSSocket} the server [`tls.TLSSocket`][] instance for
+-      this connection.
+-    * identity: {string} identity parameter sent from the client.
+-    * Returns: {Buffer|TypedArray|DataView} pre-shared key that must either be
+-      a buffer or `null` to stop the negotiation process. Returned PSK must be
+-      compatible with the selected cipher's digest.
+-    When negotiating TLS-PSK (pre-shared keys), this function is called
+-    with the identity provided by the client.
+-    If the return value is `null` the negotiation process will stop and an
+-    "unknown_psk_identity" alert message will be sent to the other party.
+-    If the server wishes to hide the fact that the PSK identity was not known,
+-    the callback must provide some random data as `psk` to make the connection
+-    fail with "decrypt_error" before negotiation is finished.
+-    PSK ciphers are disabled by default, and using TLS-PSK thus
+-    requires explicitly specifying a cipher suite with the `ciphers` option.
+-    More information can be found in the [RFC 4279][].
+-  * `pskIdentityHint` {string} optional hint to send to a client to help
+-    with selecting the identity during TLS-PSK negotiation. Will be ignored
+-    in TLS 1.3. Upon failing to set pskIdentityHint `'tlsClientError'` will be
+-    emitted with `'ERR_TLS_PSK_SET_IDENTIY_HINT_FAILED'` code.
+   * ...: Any [`tls.createSecureContext()`][] option can be provided. For
+-    servers, the identity options (`pfx`, `key`/`cert` or `pskCallback`)
+-    are usually required.
++    servers, the identity options (`pfx` or `key`/`cert`) are usually required.
+   * ...: Any [`net.createServer()`][] option can be provided.
+ * `secureConnectionListener` {Function}
+ * Returns: {tls.Server}
+@@ -1946,5 +1837,3 @@ where `secureSocket` has the same API as `pair.cleartext`.
+ [cipher list format]: https://www.openssl.org/docs/man1.1.1/man1/ciphers.html#CIPHER-LIST-FORMAT
+ [modifying the default cipher suite]: #tls_modifying_the_default_tls_cipher_suite
+ [specific attacks affecting larger AES key sizes]: https://www.schneier.com/blog/archives/2009/07/another_new_aes.html
+-[RFC 4279]: https://tools.ietf.org/html/rfc4279
+-[RFC 4086]: https://tools.ietf.org/html/rfc4086
+diff --git a/doc/node.1 b/doc/node.1
+index 675bfc9..ff31555 100644
+--- a/doc/node.1
++++ b/doc/node.1
+@@ -330,11 +330,6 @@ Specify process.title on startup.
+ Specify an alternative default TLS cipher list.
+ Requires Node.js to be built with crypto support. (Default)
+ .
+-.It Fl -tls-keylog Ns = Ns Ar file
+-Log TLS key material to a file. The key material is in NSS SSLKEYLOGFILE
+-format and can be used by software (such as Wireshark) to decrypt the TLS
+-traffic.
+-.
+ .It Fl -tls-max-v1.2
+ Set default  maxVersion to 'TLSv1.2'. Use to disable support for TLSv1.3.
+ .
+diff --git a/lib/_http_agent.js b/lib/_http_agent.js
+index b3cd60b..d607a97 100644
+--- a/lib/_http_agent.js
++++ b/lib/_http_agent.js
+@@ -32,7 +32,7 @@ const net = require('net');
+ const EventEmitter = require('events');
+ const debug = require('internal/util/debuglog').debuglog('http');
+ const { async_id_symbol } = require('internal/async_hooks').symbols;
+-const kOnKeylog = Symbol('onkeylog');
++
+ // New Agent code.
+ 
+ // The largest departure from the previous implementation is that
+@@ -125,28 +125,10 @@ function Agent(options) {
+       }
+     }
+   });
+-
+-  // Don't emit keylog events unless there is a listener for them.
+-  this.on('newListener', maybeEnableKeylog);
+ }
+ ObjectSetPrototypeOf(Agent.prototype, EventEmitter.prototype);
+ ObjectSetPrototypeOf(Agent, EventEmitter);
+ 
+-function maybeEnableKeylog(eventName) {
+-  if (eventName === 'keylog') {
+-    this.removeListener('newListener', maybeEnableKeylog);
+-    // Future sockets will listen on keylog at creation.
+-    const agent = this;
+-    this[kOnKeylog] = function onkeylog(keylog) {
+-      agent.emit('keylog', keylog, this);
+-    };
+-    // Existing sockets will start listening on keylog now.
+-    for (const socket of ObjectValues(this.sockets)) {
+-      socket.on('keylog', this[kOnKeylog]);
+-    }
+-  }
+-}
+-
+ Agent.defaultMaxSockets = Infinity;
+ 
+ Agent.prototype.createConnection = net.createConnection;
+@@ -320,10 +302,6 @@ function installListeners(agent, s, options) {
+     s.removeListener('agentRemove', onRemove);
+   }
+   s.on('agentRemove', onRemove);
+-
+-  if (agent[kOnKeylog]) {
+-    s.on('keylog', agent[kOnKeylog]);
+-  }
+ }
+ 
+ Agent.prototype.removeSocket = function removeSocket(s, options) {
+diff --git a/lib/_tls_common.js b/lib/_tls_common.js
+index 32e4a77..1e36b54 100644
+--- a/lib/_tls_common.js
++++ b/lib/_tls_common.js
+@@ -150,19 +150,6 @@ exports.createSecureContext = function createSecureContext(options) {
+     }
+   }
+ 
+-  const sigalgs = options.sigalgs;
+-  if (sigalgs !== undefined) {
+-    if (typeof sigalgs !== 'string') {
+-      throw new ERR_INVALID_ARG_TYPE('options.sigalgs', 'string', sigalgs);
+-    }
+-
+-    if (sigalgs === '') {
+-      throw new ERR_INVALID_OPT_VALUE('sigalgs', sigalgs);
+-    }
+-
+-    c.context.setSigalgs(sigalgs);
+-  }
+-
+   const { privateKeyIdentifier, privateKeyEngine } = options;
+   if (privateKeyIdentifier !== undefined) {
+     if (privateKeyEngine === undefined) {
+diff --git a/lib/_tls_wrap.js b/lib/_tls_wrap.js
+index 0207d9b..0284fb4 100644
+--- a/lib/_tls_wrap.js
++++ b/lib/_tls_wrap.js
+@@ -49,12 +49,10 @@ const { TCP, constants: TCPConstants } = internalBinding('tcp_wrap');
+ const tls_wrap = internalBinding('tls_wrap');
+ const { Pipe, constants: PipeConstants } = internalBinding('pipe_wrap');
+ const { owner_symbol } = require('internal/async_hooks').symbols;
+-const { isArrayBufferView } = require('internal/util/types');
+ const { SecureContext: NativeSecureContext } = internalBinding('crypto');
+ const { connResetException, codes } = require('internal/errors');
+ const {
+   ERR_INVALID_ARG_TYPE,
+-  ERR_INVALID_ARG_VALUE,
+   ERR_INVALID_CALLBACK,
+   ERR_MULTIPLE_CALLBACK,
+   ERR_SOCKET_CLOSED,
+@@ -66,12 +64,9 @@ const {
+   ERR_TLS_SESSION_ATTACK,
+   ERR_TLS_SNI_FROM_SERVER
+ } = codes;
+-const { onpskexchange: kOnPskExchange } = internalBinding('symbols');
+ const { getOptionValue } = require('internal/options');
+-const { validateString, validateBuffer } = require('internal/validators');
++const { validateString } = require('internal/validators');
+ const traceTls = getOptionValue('--trace-tls');
+-const tlsKeylog = getOptionValue('--tls-keylog');
+-const { appendFile } = require('fs');
+ const kConnectOptions = Symbol('connect-options');
+ const kDisableRenegotiation = Symbol('disable-renegotiation');
+ const kErrorEmitted = Symbol('error-emitted');
+@@ -79,8 +74,6 @@ const kHandshakeTimeout = Symbol('handshake-timeout');
+ const kRes = Symbol('res');
+ const kSNICallback = Symbol('snicallback');
+ const kEnableTrace = Symbol('enableTrace');
+-const kPskCallback = Symbol('pskcallback');
+-const kPskIdentityHint = Symbol('pskidentityhint');
+ 
+ const noop = () => {};
+ 
+@@ -300,67 +293,6 @@ function onnewsession(sessionId, session) {
+     done();
+ }
+ 
+-function onPskServerCallback(identity, maxPskLen) {
+-  const owner = this[owner_symbol];
+-  const ret = owner[kPskCallback](owner, identity);
+-  if (ret == null)
+-    return undefined;
+-
+-  let psk;
+-  if (isArrayBufferView(ret)) {
+-    psk = ret;
+-  } else {
+-    if (typeof ret !== 'object') {
+-      throw new ERR_INVALID_ARG_TYPE(
+-        'ret',
+-        ['Object', 'Buffer', 'TypedArray', 'DataView'],
+-        ret
+-      );
+-    }
+-    psk = ret.psk;
+-    validateBuffer(psk, 'psk');
+-  }
+-
+-  if (psk.length > maxPskLen) {
+-    throw new ERR_INVALID_ARG_VALUE(
+-      'psk',
+-      psk,
+-      `Pre-shared key exceeds ${maxPskLen} bytes`
+-    );
+-  }
+-
+-  return psk;
+-}
+-
+-function onPskClientCallback(hint, maxPskLen, maxIdentityLen) {
+-  const owner = this[owner_symbol];
+-  const ret = owner[kPskCallback](hint);
+-  if (ret == null)
+-    return undefined;
+-
+-  if (typeof ret !== 'object')
+-    throw new ERR_INVALID_ARG_TYPE('ret', 'Object', ret);
+-
+-  validateBuffer(ret.psk, 'psk');
+-  if (ret.psk.length > maxPskLen) {
+-    throw new ERR_INVALID_ARG_VALUE(
+-      'psk',
+-      ret.psk,
+-      `Pre-shared key exceeds ${maxPskLen} bytes`
+-    );
+-  }
+-
+-  validateString(ret.identity, 'identity');
+-  if (Buffer.byteLength(ret.identity) > maxIdentityLen) {
+-    throw new ERR_INVALID_ARG_VALUE(
+-      'identity',
+-      ret.identity,
+-      `PSK identity exceeds ${maxIdentityLen} bytes`
+-    );
+-  }
+-
+-  return { psk: ret.psk, identity: ret.identity };
+-}
+ 
+ function onkeylogclient(line) {
+   debug('client onkeylog');
+@@ -636,8 +568,6 @@ TLSSocket.prototype._destroySSL = function _destroySSL() {
+ };
+ 
+ // Constructor guts, arbitrarily factored out.
+-let warnOnTlsKeylog = true;
+-let warnOnTlsKeylogError = true;
+ TLSSocket.prototype._init = function(socket, wrap) {
+   const options = this._tlsOptions;
+   const ssl = this._handle;
+@@ -721,24 +651,6 @@ TLSSocket.prototype._init = function(socket, wrap) {
+     }
+   }
+ 
+-  if (tlsKeylog) {
+-    if (warnOnTlsKeylog) {
+-      warnOnTlsKeylog = false;
+-      process.emitWarning('Using --tls-keylog makes TLS connections insecure ' +
+-        'by writing secret key material to file ' + tlsKeylog);
+-      ssl.enableKeylogCallback();
+-      this.on('keylog', (line) => {
+-        appendFile(tlsKeylog, line, { mode: 0o600 }, (err) => {
+-          if (err && warnOnTlsKeylogError) {
+-            warnOnTlsKeylogError = false;
+-            process.emitWarning('Failed to write TLS keylog (this warning ' +
+-              'will not be repeated): ' + err);
+-          }
+-        });
+-      });
+-    }
+-  }
+-
+   ssl.onerror = onerror;
+ 
+   // If custom SNICallback was given, or if
+@@ -759,32 +671,6 @@ TLSSocket.prototype._init = function(socket, wrap) {
+     ssl.setALPNProtocols(ssl._secureContext.alpnBuffer);
+   }
+ 
+-  if (options.pskCallback && ssl.enablePskCallback) {
+-    if (typeof options.pskCallback !== 'function') {
+-      throw new ERR_INVALID_ARG_TYPE('pskCallback',
+-                                     'function',
+-                                     options.pskCallback);
+-    }
+-
+-    ssl[kOnPskExchange] = options.isServer ?
+-      onPskServerCallback : onPskClientCallback;
+-
+-    this[kPskCallback] = options.pskCallback;
+-    ssl.enablePskCallback();
+-
+-    if (options.pskIdentityHint) {
+-      if (typeof options.pskIdentityHint !== 'string') {
+-        throw new ERR_INVALID_ARG_TYPE(
+-          'options.pskIdentityHint',
+-          'string',
+-          options.pskIdentityHint
+-        );
+-      }
+-      ssl.setPskIdentityHint(options.pskIdentityHint);
+-    }
+-  }
+-
+-
+   if (options.handshakeTimeout > 0)
+     this.setTimeout(options.handshakeTimeout, this._handleTimeout);
+ 
+@@ -983,7 +869,6 @@ function makeSocketMethodProxy(name) {
+ 
+ [
+   'getCipher',
+-  'getSharedSigalgs',
+   'getEphemeralKeyInfo',
+   'getFinished',
+   'getPeerFinished',
+@@ -996,7 +881,7 @@ function makeSocketMethodProxy(name) {
+   TLSSocket.prototype[method] = makeSocketMethodProxy(method);
+ });
+ 
+-// TODO: support anonymous (nocert)
++// TODO: support anonymous (nocert) and PSK
+ 
+ 
+ function onServerSocketSecure() {
+@@ -1052,8 +937,6 @@ function tlsConnectionListener(rawSocket) {
+     SNICallback: this[kSNICallback] || SNICallback,
+     enableTrace: this[kEnableTrace],
+     pauseOnConnect: this.pauseOnConnect,
+-    pskCallback: this[kPskCallback],
+-    pskIdentityHint: this[kPskIdentityHint],
+   });
+ 
+   socket.on('secure', onServerSocketSecure);
+@@ -1158,8 +1041,6 @@ function Server(options, listener) {
+ 
+   this[kHandshakeTimeout] = options.handshakeTimeout || (120 * 1000);
+   this[kSNICallback] = options.SNICallback;
+-  this[kPskCallback] = options.pskCallback;
+-  this[kPskIdentityHint] = options.pskIdentityHint;
+ 
+   if (typeof this[kHandshakeTimeout] !== 'number') {
+     throw new ERR_INVALID_ARG_TYPE(
+@@ -1171,18 +1052,6 @@ function Server(options, listener) {
+       'options.SNICallback', 'function', options.SNICallback);
+   }
+ 
+-  if (this[kPskCallback] && typeof this[kPskCallback] !== 'function') {
+-    throw new ERR_INVALID_ARG_TYPE(
+-      'options.pskCallback', 'function', options.pskCallback);
+-  }
+-  if (this[kPskIdentityHint] && typeof this[kPskIdentityHint] !== 'string') {
+-    throw new ERR_INVALID_ARG_TYPE(
+-      'options.pskIdentityHint',
+-      'string',
+-      options.pskIdentityHint
+-    );
+-  }
+-
+   // constructor call
+   net.Server.call(this, options, tlsConnectionListener);
+ 
+@@ -1255,8 +1124,6 @@ Server.prototype.setSecureContext = function(options) {
+   else
+     this.crl = undefined;
+ 
+-  this.sigalgs = options.sigalgs;
+-
+   if (options.ciphers)
+     this.ciphers = options.ciphers;
+   else
+@@ -1298,7 +1165,6 @@ Server.prototype.setSecureContext = function(options) {
+     clientCertEngine: this.clientCertEngine,
+     ca: this.ca,
+     ciphers: this.ciphers,
+-    sigalgs: this.sigalgs,
+     ecdhCurve: this.ecdhCurve,
+     dhparam: this.dhparam,
+     minVersion: this.minVersion,
+@@ -1379,8 +1245,6 @@ Server.prototype.setOptions = deprecate(function(options) {
+                                   .digest('hex')
+                                   .slice(0, 32);
+   }
+-  if (options.pskCallback) this[kPskCallback] = options.pskCallback;
+-  if (options.pskIdentityHint) this[kPskIdentityHint] = options.pskIdentityHint;
+ }, 'Server.prototype.setOptions() is deprecated', 'DEP0122');
+ 
+ // SNI Contexts High-Level API
+@@ -1568,8 +1432,7 @@ exports.connect = function connect(...args) {
+     session: options.session,
+     ALPNProtocols: options.ALPNProtocols,
+     requestOCSP: options.requestOCSP,
+-    enableTrace: options.enableTrace,
+-    pskCallback: options.pskCallback,
++    enableTrace: options.enableTrace
+   });
+ 
+   tlssock[kConnectOptions] = options;
+diff --git a/lib/internal/crypto/cipher.js b/lib/internal/crypto/cipher.js
+index ee1422d..941ebe0 100644
+--- a/lib/internal/crypto/cipher.js
++++ b/lib/internal/crypto/cipher.js
+@@ -52,16 +52,10 @@ function rsaFunctionFor(method, defaultPadding, keyType) {
+         preparePrivateKey(options) :
+         preparePublicOrPrivateKey(options);
+     const padding = options.padding || defaultPadding;
+-    const { oaepHash, oaepLabel } = options;
++    const { oaepHash } = options;
+     if (oaepHash !== undefined && typeof oaepHash !== 'string')
+       throw new ERR_INVALID_ARG_TYPE('options.oaepHash', 'string', oaepHash);
+-    if (oaepLabel !== undefined && !isArrayBufferView(oaepLabel)) {
+-      throw new ERR_INVALID_ARG_TYPE('options.oaepLabel',
+-                                     ['Buffer', 'TypedArray', 'DataView'],
+-                                     oaepLabel);
+-    }
+-    return method(data, format, type, passphrase, buffer, padding, oaepHash,
+-                  oaepLabel);
++    return method(data, format, type, passphrase, buffer, padding, oaepHash);
+   };
+ }
+ 
+diff --git a/lib/internal/crypto/sig.js b/lib/internal/crypto/sig.js
+index 27930ce..1fd99f9 100644
+--- a/lib/internal/crypto/sig.js
++++ b/lib/internal/crypto/sig.js
+@@ -13,8 +13,6 @@ const { validateString } = require('internal/validators');
+ const {
+   Sign: _Sign,
+   Verify: _Verify,
+-  kSigEncDER,
+-  kSigEncP1363,
+   signOneShot: _signOneShot,
+   verifyOneShot: _verifyOneShot
+ } = internalBinding('crypto');
+@@ -63,20 +61,6 @@ function getSaltLength(options) {
+   return getIntOption('saltLength', options);
+ }
+ 
+-function getDSASignatureEncoding(options) {
+-  if (typeof options === 'object') {
+-    const { dsaEncoding = 'der' } = options;
+-    if (dsaEncoding === 'der')
+-      return kSigEncDER;
+-    else if (dsaEncoding === 'ieee-p1363')
+-      return kSigEncP1363;
+-    else
+-      throw new ERR_INVALID_OPT_VALUE('dsaEncoding', dsaEncoding);
+-  }
+-
+-  return kSigEncDER;
+-}
+-
+ function getIntOption(name, options) {
+   const value = options[name];
+   if (value !== undefined) {
+@@ -99,11 +83,8 @@ Sign.prototype.sign = function sign(options, encoding) {
+   const rsaPadding = getPadding(options);
+   const pssSaltLength = getSaltLength(options);
+ 
+-  // Options specific to (EC)DSA
+-  const dsaSigEnc = getDSASignatureEncoding(options);
+-
+   const ret = this[kHandle].sign(data, format, type, passphrase, rsaPadding,
+-                                 pssSaltLength, dsaSigEnc);
++                                 pssSaltLength);
+ 
+   encoding = encoding || getDefaultEncoding();
+   if (encoding && encoding !== 'buffer')
+@@ -138,11 +119,8 @@ function signOneShot(algorithm, data, key) {
+   const rsaPadding = getPadding(key);
+   const pssSaltLength = getSaltLength(key);
+ 
+-  // Options specific to (EC)DSA
+-  const dsaSigEnc = getDSASignatureEncoding(key);
+-
+   return _signOneShot(keyData, keyFormat, keyType, keyPassphrase, data,
+-                      algorithm, rsaPadding, pssSaltLength, dsaSigEnc);
++                      algorithm, rsaPadding, pssSaltLength);
+ }
+ 
+ function Verify(algorithm, options) {
+@@ -173,15 +151,13 @@ Verify.prototype.verify = function verify(options, signature, sigEncoding) {
+ 
+   // Options specific to RSA
+   const rsaPadding = getPadding(options);
+-  const pssSaltLength = getSaltLength(options);
+ 
+-  // Options specific to (EC)DSA
+-  const dsaSigEnc = getDSASignatureEncoding(options);
++  const pssSaltLength = getSaltLength(options);
+ 
+   signature = getArrayBufferView(signature, 'signature', sigEncoding);
+ 
+   return this[kHandle].verify(data, format, type, passphrase, signature,
+-                              rsaPadding, pssSaltLength, dsaSigEnc);
++                              rsaPadding, pssSaltLength);
+ };
+ 
+ function verifyOneShot(algorithm, data, key, signature) {
+@@ -207,9 +183,6 @@ function verifyOneShot(algorithm, data, key, signature) {
+   const rsaPadding = getPadding(key);
+   const pssSaltLength = getSaltLength(key);
+ 
+-  // Options specific to (EC)DSA
+-  const dsaSigEnc = getDSASignatureEncoding(key);
+-
+   if (!isArrayBufferView(signature)) {
+     throw new ERR_INVALID_ARG_TYPE(
+       'signature',
+@@ -219,7 +192,7 @@ function verifyOneShot(algorithm, data, key, signature) {
+   }
+ 
+   return _verifyOneShot(keyData, keyFormat, keyType, keyPassphrase, signature,
+-                        data, algorithm, rsaPadding, pssSaltLength, dsaSigEnc);
++                        data, algorithm, rsaPadding, pssSaltLength);
+ }
+ 
+ module.exports = {
+diff --git a/src/env.h b/src/env.h
+index 60b7c4b..5b1884b 100644
+--- a/src/env.h
++++ b/src/env.h
+@@ -161,12 +161,11 @@ constexpr size_t kFsStatsBufferLength =
+ 
+ // Symbols are per-isolate primitives but Environment proxies them
+ // for the sake of convenience.
+-#define PER_ISOLATE_SYMBOL_PROPERTIES(V)                                       \
+-  V(handle_onclose_symbol, "handle_onclose")                                   \
+-  V(no_message_symbol, "no_message_symbol")                                    \
+-  V(oninit_symbol, "oninit")                                                   \
+-  V(owner_symbol, "owner")                                                     \
+-  V(onpskexchange_symbol, "onpskexchange")                                     \
++#define PER_ISOLATE_SYMBOL_PROPERTIES(V)                                      \
++  V(handle_onclose_symbol, "handle_onclose")                                  \
++  V(no_message_symbol, "no_message_symbol")                                   \
++  V(oninit_symbol, "oninit")                                                  \
++  V(owner_symbol, "owner")                                                    \
+ 
+ // Strings are per-isolate primitives but Environment proxies them
+ // for the sake of convenience.  Strings should be ASCII-only.
+@@ -325,7 +324,6 @@ constexpr size_t kFsStatsBufferLength =
+   V(priority_string, "priority")                                               \
+   V(process_string, "process")                                                 \
+   V(promise_string, "promise")                                                 \
+-  V(psk_string, "psk")                                                         \
+   V(pubkey_string, "pubkey")                                                   \
+   V(query_string, "query")                                                     \
+   V(raw_string, "raw")                                                         \
+@@ -353,7 +351,6 @@ constexpr size_t kFsStatsBufferLength =
+   V(sni_context_string, "sni_context")                                         \
+   V(source_string, "source")                                                   \
+   V(stack_string, "stack")                                                     \
+-  V(standard_name_string, "standardName")                                      \
+   V(start_time_string, "startTime")                                            \
+   V(status_string, "status")                                                   \
+   V(stdio_string, "stdio")                                                     \
+diff --git a/src/node_crypto.cc b/src/node_crypto.cc
+index 332b6f3..934c17c 100644
+--- a/src/node_crypto.cc
++++ b/src/node_crypto.cc
+@@ -737,7 +737,6 @@ void SecureContext::Initialize(Environment* env, Local<Object> target) {
+   env->SetProtoMethod(t, "addRootCerts", AddRootCerts);
+   env->SetProtoMethod(t, "setCipherSuites", SetCipherSuites);
+   env->SetProtoMethod(t, "setCiphers", SetCiphers);
+-  env->SetProtoMethod(t, "setSigalgs", SetSigalgs);
+   env->SetProtoMethod(t, "setECDHCurve", SetECDHCurve);
+   env->SetProtoMethod(t, "setDHParam", SetDHParam);
+   env->SetProtoMethod(t, "setMaxProto", SetMaxProto);
+@@ -1021,23 +1020,6 @@ void SecureContext::SetKey(const FunctionCallbackInfo<Value>& args) {
+   }
+ }
+ 
+-void SecureContext::SetSigalgs(const FunctionCallbackInfo<Value>& args) {
+-  SecureContext* sc;
+-  ASSIGN_OR_RETURN_UNWRAP(&sc, args.Holder());
+-  Environment* env = sc->env();
+-  ClearErrorOnReturn clear_error_on_return;
+-
+-  CHECK_EQ(args.Length(), 1);
+-  CHECK(args[0]->IsString());
+-
+-  const node::Utf8Value sigalgs(env->isolate(), args[0]);
+-
+-  int rv = SSL_CTX_set1_sigalgs_list(sc->ctx_.get(), *sigalgs);
+-
+-  if (rv == 0) {
+-    return ThrowCryptoError(env, ERR_get_error());
+-  }
+-}
+ 
+ #ifndef OPENSSL_NO_ENGINE
+ // Helpers for the smart pointer.
+@@ -2080,7 +2062,6 @@ void SSLWrap<Base>::AddMethods(Environment* env, Local<FunctionTemplate> t) {
+   env->SetProtoMethodNoSideEffect(t, "isSessionReused", IsSessionReused);
+   env->SetProtoMethodNoSideEffect(t, "verifyError", VerifyError);
+   env->SetProtoMethodNoSideEffect(t, "getCipher", GetCipher);
+-  env->SetProtoMethodNoSideEffect(t, "getSharedSigalgs", GetSharedSigalgs);
+   env->SetProtoMethod(t, "endParser", EndParser);
+   env->SetProtoMethod(t, "certCbDone", CertCbDone);
+   env->SetProtoMethod(t, "renegotiate", Renegotiate);
+@@ -2987,16 +2968,6 @@ void SSLWrap<Base>::VerifyError(const FunctionCallbackInfo<Value>& args) {
+   if (X509* peer_cert = SSL_get_peer_certificate(w->ssl_.get())) {
+     X509_free(peer_cert);
+     x509_verify_error = SSL_get_verify_result(w->ssl_.get());
+-  } else {
+-    const SSL_CIPHER* curr_cipher = SSL_get_current_cipher(w->ssl_.get());
+-    const SSL_SESSION* sess = SSL_get_session(w->ssl_.get());
+-    // Allow no-cert for PSK authentication in TLS1.2 and lower.
+-    // In TLS1.3 check that session was reused because TLS1.3 PSK
+-    // looks like session resumption. Is there a better way?
+-    if (SSL_CIPHER_get_auth_nid(curr_cipher) == NID_auth_psk ||
+-        (SSL_SESSION_get_protocol_version(sess) == TLS1_3_VERSION &&
+-         SSL_session_reused(w->ssl_.get())))
+-      return args.GetReturnValue().SetNull();
+   }
+ 
+   if (x509_verify_error == X509_V_OK)
+@@ -3062,9 +3033,6 @@ void SSLWrap<Base>::GetCipher(const FunctionCallbackInfo<Value>& args) {
+   const char* cipher_name = SSL_CIPHER_get_name(c);
+   info->Set(context, env->name_string(),
+             OneByteString(args.GetIsolate(), cipher_name)).Check();
+-  const char* cipher_standard_name = SSL_CIPHER_standard_name(c);
+-  info->Set(context, env->standard_name_string(),
+-            OneByteString(args.GetIsolate(), cipher_standard_name)).Check();
+   const char* cipher_version = SSL_CIPHER_get_version(c);
+   info->Set(context, env->version_string(),
+             OneByteString(args.GetIsolate(), cipher_version)).Check();
+@@ -3073,87 +3041,6 @@ void SSLWrap<Base>::GetCipher(const FunctionCallbackInfo<Value>& args) {
+ 
+ 
+ template <class Base>
+-void SSLWrap<Base>::GetSharedSigalgs(const FunctionCallbackInfo<Value>& args) {
+-  Base* w;
+-  ASSIGN_OR_RETURN_UNWRAP(&w, args.Holder());
+-  Environment* env = w->ssl_env();
+-
+-  SSL* ssl = w->ssl_.get();
+-  int nsig = SSL_get_shared_sigalgs(ssl, 0, nullptr, nullptr, nullptr, nullptr,
+-                                    nullptr);
+-  MaybeStackBuffer<Local<Value>, 16> ret_arr(nsig);
+-
+-  for (int i = 0; i < nsig; i++) {
+-    int hash_nid;
+-    int sign_nid;
+-    std::string sig_with_md;
+-
+-    SSL_get_shared_sigalgs(ssl, i, &sign_nid, &hash_nid, nullptr, nullptr,
+-                           nullptr);
+-
+-    switch (sign_nid) {
+-      case EVP_PKEY_RSA:
+-        sig_with_md = "RSA+";
+-        break;
+-
+-      case EVP_PKEY_RSA_PSS:
+-        sig_with_md = "RSA-PSS+";
+-        break;
+-
+-      case EVP_PKEY_DSA:
+-        sig_with_md = "DSA+";
+-        break;
+-
+-      case EVP_PKEY_EC:
+-        sig_with_md = "ECDSA+";
+-        break;
+-
+-      case NID_ED25519:
+-        sig_with_md = "Ed25519+";
+-        break;
+-
+-      case NID_ED448:
+-        sig_with_md = "Ed448+";
+-        break;
+-#ifndef OPENSSL_NO_GOST
+-      case NID_id_GostR3410_2001:
+-        sig_with_md = "gost2001+";
+-        break;
+-
+-      case NID_id_GostR3410_2012_256:
+-        sig_with_md = "gost2012_256+";
+-        break;
+-
+-      case NID_id_GostR3410_2012_512:
+-        sig_with_md = "gost2012_512+";
+-        break;
+-#endif  // !OPENSSL_NO_GOST
+-      default:
+-        const char* sn = OBJ_nid2sn(sign_nid);
+-
+-        if (sn != nullptr) {
+-          sig_with_md = std::string(sn) + "+";
+-        } else {
+-          sig_with_md = "UNDEF+";
+-        }
+-        break;
+-    }
+-
+-    const char* sn_hash = OBJ_nid2sn(hash_nid);
+-    if (sn_hash != nullptr) {
+-      sig_with_md += std::string(sn_hash);
+-    } else {
+-      sig_with_md += "UNDEF";
+-    }
+-    ret_arr[i] = OneByteString(env->isolate(), sig_with_md.c_str());
+-  }
+-
+-  args.GetReturnValue().Set(
+-                 Array::New(env->isolate(), ret_arr.out(), ret_arr.length()));
+-}
+-
+-
+-template <class Base>
+ void SSLWrap<Base>::GetProtocol(const FunctionCallbackInfo<Value>& args) {
+   Base* w;
+   ASSIGN_OR_RETURN_UNWRAP(&w, args.Holder());
+@@ -5300,9 +5187,6 @@ void CheckThrow(Environment* env, SignBase::Error error) {
+     case SignBase::Error::kSignNotInitialised:
+       return env->ThrowError("Not initialised");
+ 
+-    case SignBase::Error::kSignMalformedSignature:
+-      return env->ThrowError("Malformed signature");
+-
+     case SignBase::Error::kSignInit:
+     case SignBase::Error::kSignUpdate:
+     case SignBase::Error::kSignPrivateKey:
+@@ -5409,85 +5293,6 @@ static int GetDefaultSignPadding([[maybe_unused]] const ManagedEVPPKey& key) {
+ #endif // OPENSSL_VERSION_NUMBER < 0x10100000L
+ }
+ 
+-static const unsigned int kNoDsaSignature = static_cast<unsigned int>(-1);
+-
+-// Returns the maximum size of each of the integers (r, s) of the DSA signature.
+-static unsigned int GetBytesOfRS(const ManagedEVPPKey& pkey) {
+-  int bits, base_id = EVP_PKEY_base_id(pkey.get());
+-
+-  if (base_id == EVP_PKEY_DSA) {
+-    DSA* dsa_key = EVP_PKEY_get0_DSA(pkey.get());
+-    // Both r and s are computed mod q, so their width is limited by that of q.
+-    bits = BN_num_bits(DSA_get0_q(dsa_key));
+-  } else if (base_id == EVP_PKEY_EC) {
+-    EC_KEY* ec_key = EVP_PKEY_get0_EC_KEY(pkey.get());
+-    const EC_GROUP* ec_group = EC_KEY_get0_group(ec_key);
+-    bits = EC_GROUP_order_bits(ec_group);
+-  } else {
+-    return kNoDsaSignature;
+-  }
+-
+-  return (bits + 7) / 8;
+-}
+-
+-static AllocatedBuffer ConvertSignatureToP1363(Environment* env,
+-                                               const ManagedEVPPKey& pkey,
+-                                               AllocatedBuffer&& signature) {
+-  unsigned int n = GetBytesOfRS(pkey);
+-  if (n == kNoDsaSignature)
+-    return std::move(signature);
+-
+-  const unsigned char* sig_data =
+-      reinterpret_cast<unsigned char*>(signature.data());
+-
+-  ECDSASigPointer asn1_sig(d2i_ECDSA_SIG(nullptr, &sig_data, signature.size()));
+-  if (!asn1_sig)
+-    return AllocatedBuffer();
+-
+-  AllocatedBuffer buf = env->AllocateManaged(2 * n);
+-  unsigned char* data = reinterpret_cast<unsigned char*>(buf.data());
+-
+-  const BIGNUM* r = ECDSA_SIG_get0_r(asn1_sig.get());
+-  const BIGNUM* s = ECDSA_SIG_get0_s(asn1_sig.get());
+-  CHECK_EQ(n, static_cast<unsigned int>(BN_bn2binpad(r, data, n)));
+-  CHECK_EQ(n, static_cast<unsigned int>(BN_bn2binpad(s, data + n, n)));
+-
+-  return buf;
+-}
+-
+-static ByteSource ConvertSignatureToDER(
+-      const ManagedEVPPKey& pkey,
+-      const ArrayBufferViewContents<char>& signature) {
+-  unsigned int n = GetBytesOfRS(pkey);
+-  if (n == kNoDsaSignature)
+-    return ByteSource::Foreign(signature.data(), signature.length());
+-
+-  const unsigned char* sig_data =
+-      reinterpret_cast<const  unsigned char*>(signature.data());
+-
+-  if (signature.length() != 2 * n)
+-    return ByteSource();
+-
+-  ECDSASigPointer asn1_sig(ECDSA_SIG_new());
+-  CHECK(asn1_sig);
+-  BIGNUM* r = BN_new();
+-  CHECK_NOT_NULL(r);
+-  BIGNUM* s = BN_new();
+-  CHECK_NOT_NULL(s);
+-  CHECK_EQ(r, BN_bin2bn(sig_data, n, r));
+-  CHECK_EQ(s, BN_bin2bn(sig_data + n, n, s));
+-  CHECK_EQ(1, ECDSA_SIG_set0(asn1_sig.get(), r, s));
+-
+-  unsigned char* data = nullptr;
+-  int len = i2d_ECDSA_SIG(asn1_sig.get(), &data);
+-
+-  if (len <= 0)
+-    return ByteSource();
+-
+-  CHECK_NOT_NULL(data);
+-
+-  return ByteSource::Allocated(reinterpret_cast<char*>(data), len);
+-}
+ 
+ static AllocatedBuffer Node_SignFinal(Environment* env,
+                                       EVPMDPointer&& mdctx,
+@@ -5548,8 +5353,7 @@ static inline bool ValidateDSAParameters(EVP_PKEY* key) {
+ Sign::SignResult Sign::SignFinal(
+     const ManagedEVPPKey& pkey,
+     int padding,
+-    const Maybe<int>& salt_len,
+-    DSASigEnc dsa_sig_enc) {
++    const Maybe<int>& salt_len) {
+   if (!mdctx_)
+     return SignResult(kSignNotInitialised);
+ 
+@@ -5561,10 +5365,6 @@ Sign::SignResult Sign::SignFinal(
+   AllocatedBuffer buffer =
+       Node_SignFinal(env(), std::move(mdctx), pkey, padding, salt_len);
+   Error error = buffer.data() == nullptr ? kSignPrivateKey : kSignOk;
+-  if (error == kSignOk && dsa_sig_enc == kSigEncP1363) {
+-    buffer = ConvertSignatureToP1363(env(), pkey, std::move(buffer));
+-    CHECK_NOT_NULL(buffer.data());
+-  }
+   return SignResult(error, std::move(buffer));
+ }
+ 
+@@ -5592,15 +5392,10 @@ void Sign::SignFinal(const FunctionCallbackInfo<Value>& args) {
+     salt_len = Just<int>(args[offset + 1].As<Int32>()->Value());
+   }
+ 
+-  CHECK(args[offset + 2]->IsInt32());
+-  DSASigEnc dsa_sig_enc =
+-      static_cast<DSASigEnc>(args[offset + 2].As<Int32>()->Value());
+-
+   SignResult ret = sign->SignFinal(
+       key,
+       padding,
+-      salt_len,
+-      dsa_sig_enc);
++      salt_len);
+ 
+   if (ret.error != kSignOk)
+     return sign->CheckThrow(ret.error);
+@@ -5644,10 +5439,6 @@ void SignOneShot(const FunctionCallbackInfo<Value>& args) {
+     rsa_salt_len = Just<int>(args[offset + 3].As<Int32>()->Value());
+   }
+ 
+-  CHECK(args[offset + 4]->IsInt32());
+-  DSASigEnc dsa_sig_enc =
+-      static_cast<DSASigEnc>(args[offset + 4].As<Int32>()->Value());
+-
+   EVP_PKEY_CTX* pkctx = nullptr;
+   EVPMDPointer mdctx(EVP_MD_CTX_new());
+   if (!mdctx ||
+@@ -5675,10 +5466,6 @@ void SignOneShot(const FunctionCallbackInfo<Value>& args) {
+ 
+   signature.Resize(sig_len);
+ 
+-  if (dsa_sig_enc == kSigEncP1363) {
+-    signature = ConvertSignatureToP1363(env, key, std::move(signature));
+-  }
+-
+   args.GetReturnValue().Set(signature.ToBuffer().ToLocalChecked());
+ }
+ 
+@@ -5784,17 +5571,6 @@ void Verify::VerifyFinal(const FunctionCallbackInfo<Value>& args) {
+     salt_len = Just<int>(args[offset + 2].As<Int32>()->Value());
+   }
+ 
+-  CHECK(args[offset + 3]->IsInt32());
+-  DSASigEnc dsa_sig_enc =
+-      static_cast<DSASigEnc>(args[offset + 3].As<Int32>()->Value());
+-
+-  ByteSource signature = ByteSource::Foreign(hbuf.data(), hbuf.length());
+-  if (dsa_sig_enc == kSigEncP1363) {
+-    signature = ConvertSignatureToDER(pkey, hbuf);
+-    if (signature.get() == nullptr)
+-      return verify->CheckThrow(Error::kSignMalformedSignature);
+-  }
+-
+   bool verify_result;
+   Error err = verify->VerifyFinal(pkey, hbuf.data(), hbuf.length(), padding,
+                                   salt_len, &verify_result);
+@@ -5838,10 +5614,6 @@ void VerifyOneShot(const FunctionCallbackInfo<Value>& args) {
+     rsa_salt_len = Just<int>(args[offset + 4].As<Int32>()->Value());
+   }
+ 
+-  CHECK(args[offset + 5]->IsInt32());
+-  DSASigEnc dsa_sig_enc =
+-      static_cast<DSASigEnc>(args[offset + 5].As<Int32>()->Value());
+-
+   EVP_PKEY_CTX* pkctx = nullptr;
+   EVPMDPointer mdctx(EVP_MD_CTX_new());
+   if (!mdctx ||
+@@ -5852,18 +5624,11 @@ void VerifyOneShot(const FunctionCallbackInfo<Value>& args) {
+   if (!ApplyRSAOptions(key, pkctx, rsa_padding, rsa_salt_len))
+     return CheckThrow(env, SignBase::Error::kSignPublicKey);
+ 
+-  ByteSource sig_bytes = ByteSource::Foreign(sig.data(), sig.length());
+-  if (dsa_sig_enc == kSigEncP1363) {
+-    sig_bytes = ConvertSignatureToDER(key, sig);
+-    if (!sig_bytes)
+-      return CheckThrow(env, SignBase::Error::kSignMalformedSignature);
+-  }
+-
+   bool verify_result;
+   const int r = EVP_DigestVerify(
+     mdctx.get(),
+-    reinterpret_cast<const unsigned char*>(sig_bytes.get()),
+-    sig_bytes.size(),
++    reinterpret_cast<const unsigned char*>(sig.data()),
++    sig.length(),
+     reinterpret_cast<const unsigned char*>(data.data()),
+     data.length());
+   switch (r) {
+@@ -5887,8 +5652,6 @@ bool PublicKeyCipher::Cipher(Environment* env,
+                              const ManagedEVPPKey& pkey,
+                              int padding,
+                              const EVP_MD* digest,
+-                             const void* oaep_label,
+-                             size_t oaep_label_len,
+                              const unsigned char* data,
+                              int len,
+                              AllocatedBuffer* out) {
+@@ -5905,17 +5668,6 @@ bool PublicKeyCipher::Cipher(Environment* env,
+       return false;
+   }
+ 
+-  if (oaep_label_len != 0) {
+-    // OpenSSL takes ownership of the label, so we need to create a copy.
+-    void* label = OPENSSL_memdup(oaep_label, oaep_label_len);
+-    CHECK_NOT_NULL(label);
+-    if (0 >= EVP_PKEY_CTX_set0_rsa_oaep_label(ctx.get(),
+-                reinterpret_cast<unsigned char*>(label),
+-                                      oaep_label_len)) {
+-      OPENSSL_free(label);
+-      return false;
+-    }
+-  }
+ 
+   size_t out_len = 0;
+   if (EVP_PKEY_cipher(ctx.get(), nullptr, &out_len, data, len) <= 0)
+@@ -5962,12 +5714,6 @@ void PublicKeyCipher::Cipher(const FunctionCallbackInfo<Value>& args) {
+       return THROW_ERR_OSSL_EVP_INVALID_DIGEST(env);
+   }
+ 
+-  ArrayBufferViewContents<unsigned char> oaep_label;
+-  if (!args[offset + 3]->IsUndefined()) {
+-    CHECK(args[offset + 3]->IsArrayBufferView());
+-    oaep_label.Read(args[offset + 3].As<ArrayBufferView>());
+-  }
+-
+   AllocatedBuffer out;
+ 
+   ClearErrorOnReturn clear_error_on_return;
+@@ -5977,8 +5723,6 @@ void PublicKeyCipher::Cipher(const FunctionCallbackInfo<Value>& args) {
+       pkey,
+       padding,
+       digest,
+-      oaep_label.data(),
+-      oaep_label.length(),
+       buf.data(),
+       buf.length(),
+       &out);
+@@ -7709,8 +7453,6 @@ void Initialize(Local<Object> target,
+   NODE_DEFINE_CONSTANT(target, kKeyTypeSecret);
+   NODE_DEFINE_CONSTANT(target, kKeyTypePublic);
+   NODE_DEFINE_CONSTANT(target, kKeyTypePrivate);
+-  NODE_DEFINE_CONSTANT(target, kSigEncDER);
+-  NODE_DEFINE_CONSTANT(target, kSigEncP1363);
+   env->SetMethod(target, "randomBytes", RandomBytes);
+   env->SetMethod(target, "signOneShot", SignOneShot);
+   env->SetMethod(target, "verifyOneShot", VerifyOneShot);
+diff --git a/src/node_crypto.h b/src/node_crypto.h
+index 580ca6a..18ac9b5 100644
+--- a/src/node_crypto.h
++++ b/src/node_crypto.h
+@@ -171,7 +171,6 @@ class SecureContext : public BaseObject {
+   static void AddRootCerts(const v8::FunctionCallbackInfo<v8::Value>& args);
+   static void SetCipherSuites(const v8::FunctionCallbackInfo<v8::Value>& args);
+   static void SetCiphers(const v8::FunctionCallbackInfo<v8::Value>& args);
+-  static void SetSigalgs(const v8::FunctionCallbackInfo<v8::Value>& args);
+   static void SetECDHCurve(const v8::FunctionCallbackInfo<v8::Value>& args);
+   static void SetDHParam(const v8::FunctionCallbackInfo<v8::Value>& args);
+   static void SetOptions(const v8::FunctionCallbackInfo<v8::Value>& args);
+@@ -304,7 +303,6 @@ class SSLWrap {
+   static void IsSessionReused(const v8::FunctionCallbackInfo<v8::Value>& args);
+   static void VerifyError(const v8::FunctionCallbackInfo<v8::Value>& args);
+   static void GetCipher(const v8::FunctionCallbackInfo<v8::Value>& args);
+-  static void GetSharedSigalgs(const v8::FunctionCallbackInfo<v8::Value>& args);
+   static void EndParser(const v8::FunctionCallbackInfo<v8::Value>& args);
+   static void CertCbDone(const v8::FunctionCallbackInfo<v8::Value>& args);
+   static void Renegotiate(const v8::FunctionCallbackInfo<v8::Value>& args);
+@@ -375,13 +373,6 @@ class ByteSource {
+   const char* get() const;
+   size_t size() const;
+ 
+-  inline operator bool() const {
+-    return data_ != nullptr;
+-  }
+-
+-  static ByteSource Allocated(char* data, size_t size);
+-  static ByteSource Foreign(const char* data, size_t size);
+-
+   static ByteSource FromStringOrBuffer(Environment* env,
+                                        v8::Local<v8::Value> value);
+ 
+@@ -406,6 +397,9 @@ class ByteSource {
+   size_t size_ = 0;
+ 
+   ByteSource(const char* data, char* allocated_data, size_t size);
++
++  static ByteSource Allocated(char* data, size_t size);
++  static ByteSource Foreign(const char* data, size_t size);
+ };
+ 
+ enum PKEncodingType {
+@@ -681,8 +675,7 @@ class SignBase : public BaseObject {
+     kSignNotInitialised,
+     kSignUpdate,
+     kSignPrivateKey,
+-    kSignPublicKey,
+-    kSignMalformedSignature
++    kSignPublicKey
+   } Error;
+ 
+   SignBase(Environment* env, v8::Local<v8::Object> wrap)
+@@ -703,10 +696,6 @@ class SignBase : public BaseObject {
+   EVPMDPointer mdctx_;
+ };
+ 
+-enum DSASigEnc {
+-  kSigEncDER, kSigEncP1363
+-};
+-
+ class Sign : public SignBase {
+  public:
+   static void Initialize(Environment* env, v8::Local<v8::Object> target);
+@@ -724,8 +713,7 @@ class Sign : public SignBase {
+   SignResult SignFinal(
+       const ManagedEVPPKey& pkey,
+       int padding,
+-      const v8::Maybe<int>& saltlen,
+-      DSASigEnc dsa_sig_enc);
++      const v8::Maybe<int>& saltlen);
+ 
+  protected:
+   static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
+@@ -779,8 +767,6 @@ class PublicKeyCipher {
+                      const ManagedEVPPKey& pkey,
+                      int padding,
+                      const EVP_MD* digest,
+-                     const void* oaep_label,
+-                     size_t oaep_label_size,
+                      const unsigned char* data,
+                      int len,
+                      AllocatedBuffer* out);
+diff --git a/src/node_errors.h b/src/node_errors.h
+index 426b059..48ae915 100644
+--- a/src/node_errors.h
++++ b/src/node_errors.h
+@@ -58,7 +58,6 @@ void PrintErrorString(const char* format, ...);
+   V(ERR_STRING_TOO_LONG, Error)                                              \
+   V(ERR_TLS_INVALID_PROTOCOL_METHOD, TypeError)                              \
+   V(ERR_TRANSFERRING_EXTERNALIZED_SHAREDARRAYBUFFER, TypeError)              \
+-  V(ERR_TLS_PSK_SET_IDENTIY_HINT_FAILED, Error)                              \
+ 
+ #define V(code, type)                                                         \
+   inline v8::Local<v8::Value> code(v8::Isolate* isolate,                      \
+@@ -102,7 +101,6 @@ void PrintErrorString(const char* format, ...);
+     "Script execution was interrupted by `SIGINT`")                          \
+   V(ERR_TRANSFERRING_EXTERNALIZED_SHAREDARRAYBUFFER,                         \
+     "Cannot serialize externalized SharedArrayBuffer")                       \
+-  V(ERR_TLS_PSK_SET_IDENTIY_HINT_FAILED, "Failed to set PSK identity hint")  \
+ 
+ #define V(code, message)                                                     \
+   inline v8::Local<v8::Value> code(v8::Isolate* isolate) {                   \
+diff --git a/src/node_options.cc b/src/node_options.cc
+index 4e473ca..710d794 100644
+--- a/src/node_options.cc
++++ b/src/node_options.cc
+@@ -572,10 +572,6 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
+ 
+   AddOption("--napi-modules", "", NoOp{}, kAllowedInEnvironment);
+ 
+-  AddOption("--tls-keylog",
+-            "log TLS decryption keys to named file for traffic analysis",
+-            &EnvironmentOptions::tls_keylog, kAllowedInEnvironment);
+-
+   AddOption("--tls-min-v1.0",
+             "set default TLS minimum to TLSv1.0 (default: TLSv1.2)",
+             &EnvironmentOptions::tls_min_v1_0,
+diff --git a/src/node_options.h b/src/node_options.h
+index 60daf36..0d9aa34 100644
+--- a/src/node_options.h
++++ b/src/node_options.h
+@@ -167,7 +167,6 @@ class EnvironmentOptions : public Options {
+   bool tls_min_v1_3 = false;
+   bool tls_max_v1_2 = false;
+   bool tls_max_v1_3 = false;
+-  std::string tls_keylog;
+ 
+   std::vector<std::string> preload_modules;
+ 
+diff --git a/src/tls_wrap.cc b/src/tls_wrap.cc
+index 75cfddd..b8a55c6 100644
+--- a/src/tls_wrap.cc
++++ b/src/tls_wrap.cc
+@@ -28,7 +28,6 @@
+ #include "node_crypto_bio.h"  // NodeBIO
+ // ClientHelloParser
+ #include "node_crypto_clienthello-inl.h"
+-#include "node_errors.h"
+ #include "stream_base-inl.h"
+ #include "util-inl.h"
+ 
+@@ -43,11 +42,8 @@ using v8::Exception;
+ using v8::Function;
+ using v8::FunctionCallbackInfo;
+ using v8::FunctionTemplate;
+-using v8::Integer;
+ using v8::Isolate;
+ using v8::Local;
+-using v8::Maybe;
+-using v8::MaybeLocal;
+ using v8::Object;
+ using v8::ReadOnly;
+ using v8::Signature;
+@@ -1076,131 +1072,6 @@ int TLSWrap::SelectSNIContextCallback(SSL* s, int* ad, void* arg) {
+   return SSL_TLSEXT_ERR_OK;
+ }
+ 
+-#ifndef OPENSSL_NO_PSK
+-
+-void TLSWrap::SetPskIdentityHint(const FunctionCallbackInfo<Value>& args) {
+-  TLSWrap* p;
+-  ASSIGN_OR_RETURN_UNWRAP(&p, args.Holder());
+-  CHECK_NOT_NULL(p->ssl_);
+-
+-  Environment* env = p->env();
+-  Isolate* isolate = env->isolate();
+-
+-  CHECK(args[0]->IsString());
+-  node::Utf8Value hint(isolate, args[0].As<String>());
+-
+-  if (!SSL_use_psk_identity_hint(p->ssl_.get(), *hint)) {
+-    Local<Value> err = node::ERR_TLS_PSK_SET_IDENTIY_HINT_FAILED(isolate);
+-    p->MakeCallback(env->onerror_string(), 1, &err);
+-  }
+-}
+-
+-void TLSWrap::EnablePskCallback(const FunctionCallbackInfo<Value>& args) {
+-  TLSWrap* wrap;
+-  ASSIGN_OR_RETURN_UNWRAP(&wrap, args.Holder());
+-  CHECK_NOT_NULL(wrap->ssl_);
+-
+-  SSL_set_psk_server_callback(wrap->ssl_.get(), PskServerCallback);
+-  SSL_set_psk_client_callback(wrap->ssl_.get(), PskClientCallback);
+-}
+-
+-unsigned int TLSWrap::PskServerCallback(SSL* s,
+-                                        const char* identity,
+-                                        unsigned char* psk,
+-                                        unsigned int max_psk_len) {
+-  TLSWrap* p = static_cast<TLSWrap*>(SSL_get_app_data(s));
+-
+-  Environment* env = p->env();
+-  Isolate* isolate = env->isolate();
+-  HandleScope scope(isolate);
+-
+-  MaybeLocal<String> maybe_identity_str =
+-      v8::String::NewFromUtf8(isolate, identity, v8::NewStringType::kNormal);
+-
+-  v8::Local<v8::String> identity_str;
+-  if (!maybe_identity_str.ToLocal(&identity_str)) return 0;
+-
+-  // Make sure there are no utf8 replacement symbols.
+-  v8::String::Utf8Value identity_utf8(isolate, identity_str);
+-  if (strcmp(*identity_utf8, identity) != 0) return 0;
+-
+-  Local<Value> argv[] = {identity_str,
+-                         Integer::NewFromUnsigned(isolate, max_psk_len)};
+-
+-  MaybeLocal<Value> maybe_psk_val =
+-      p->MakeCallback(env->onpskexchange_symbol(), arraysize(argv), argv);
+-  Local<Value> psk_val;
+-  if (!maybe_psk_val.ToLocal(&psk_val) || !psk_val->IsArrayBufferView())
+-    return 0;
+-
+-  char* psk_buf = Buffer::Data(psk_val);
+-  size_t psk_buflen = Buffer::Length(psk_val);
+-
+-  if (psk_buflen > max_psk_len) return 0;
+-
+-  memcpy(psk, psk_buf, psk_buflen);
+-  return psk_buflen;
+-}
+-
+-unsigned int TLSWrap::PskClientCallback(SSL* s,
+-                                        const char* hint,
+-                                        char* identity,
+-                                        unsigned int max_identity_len,
+-                                        unsigned char* psk,
+-                                        unsigned int max_psk_len) {
+-  TLSWrap* p = static_cast<TLSWrap*>(SSL_get_app_data(s));
+-
+-  Environment* env = p->env();
+-  Isolate* isolate = env->isolate();
+-  HandleScope scope(isolate);
+-
+-  Local<Value> argv[] = {Null(isolate),
+-                         Integer::NewFromUnsigned(isolate, max_psk_len),
+-                         Integer::NewFromUnsigned(isolate, max_identity_len)};
+-  if (hint != nullptr) {
+-    MaybeLocal<String> maybe_hint = String::NewFromUtf8(isolate, hint);
+-
+-    Local<String> local_hint;
+-    if (!maybe_hint.ToLocal(&local_hint)) return 0;
+-
+-    argv[0] = local_hint;
+-  }
+-  MaybeLocal<Value> maybe_ret =
+-      p->MakeCallback(env->onpskexchange_symbol(), arraysize(argv), argv);
+-  Local<Value> ret;
+-  if (!maybe_ret.ToLocal(&ret) || !ret->IsObject()) return 0;
+-  Local<Object> obj = ret.As<Object>();
+-
+-  MaybeLocal<Value> maybe_psk_val = obj->Get(env->context(), env->psk_string());
+-
+-  Local<Value> psk_val;
+-  if (!maybe_psk_val.ToLocal(&psk_val) || !psk_val->IsArrayBufferView())
+-    return 0;
+-
+-  char* psk_buf = Buffer::Data(psk_val);
+-  size_t psk_buflen = Buffer::Length(psk_val);
+-
+-  if (psk_buflen > max_psk_len) return 0;
+-
+-  MaybeLocal<Value> maybe_identity_val =
+-      obj->Get(env->context(), env->identity_string());
+-  Local<Value> identity_val;
+-  if (!maybe_identity_val.ToLocal(&identity_val) || !identity_val->IsString())
+-    return 0;
+-  Local<String> identity_str = identity_val.As<String>();
+-
+-  String::Utf8Value identity_buf(isolate, identity_str);
+-  size_t identity_len = identity_buf.length();
+-
+-  if (identity_len > max_identity_len) return 0;
+-
+-  memcpy(identity, *identity_buf, identity_len);
+-  memcpy(psk, psk_buf, psk_buflen);
+-
+-  return psk_buflen;
+-}
+-
+-#endif
+ 
+ void TLSWrap::GetWriteQueueSize(const FunctionCallbackInfo<Value>& info) {
+   TLSWrap* wrap;
+@@ -1266,11 +1137,6 @@ void TLSWrap::Initialize(Local<Object> target,
+   env->SetProtoMethod(t, "destroySSL", DestroySSL);
+   env->SetProtoMethod(t, "enableCertCb", EnableCertCb);
+ 
+-#ifndef OPENSSL_NO_PSK
+-  env->SetProtoMethod(t, "setPskIdentityHint", SetPskIdentityHint);
+-  env->SetProtoMethod(t, "enablePskCallback", EnablePskCallback);
+-#endif
+-
+   StreamBase::AddMethods(env, t);
+   SSLWrap<TLSWrap>::AddMethods(env, t);
+ 
+diff --git a/src/tls_wrap.h b/src/tls_wrap.h
+index 7bb33b4..14b7327 100644
+--- a/src/tls_wrap.h
++++ b/src/tls_wrap.h
+@@ -169,23 +169,6 @@ class TLSWrap : public AsyncWrap,
+   static void SetServername(const v8::FunctionCallbackInfo<v8::Value>& args);
+   static int SelectSNIContextCallback(SSL* s, int* ad, void* arg);
+ 
+-#ifndef OPENSSL_NO_PSK
+-  static void SetPskIdentityHint(
+-      const v8::FunctionCallbackInfo<v8::Value>& args);
+-  static void EnablePskCallback(
+-      const v8::FunctionCallbackInfo<v8::Value>& args);
+-  static unsigned int PskServerCallback(SSL* s,
+-                                        const char* identity,
+-                                        unsigned char* psk,
+-                                        unsigned int max_psk_len);
+-  static unsigned int PskClientCallback(SSL* s,
+-                                        const char* hint,
+-                                        char* identity,
+-                                        unsigned int max_identity_len,
+-                                        unsigned char* psk,
+-                                        unsigned int max_psk_len);
+-#endif
+-
+   crypto::SecureContext* sc_;
+   // BIO buffers hold encrypted data.
+   BIO* enc_in_ = nullptr;   // StreamListener fills this for SSL_read().
+diff --git a/test/fixtures/rsa-oaep-test-vectors.js b/test/fixtures/rsa-oaep-test-vectors.js
+deleted file mode 100644
+index 47e681f..0000000
+--- a/test/fixtures/rsa-oaep-test-vectors.js
++++ /dev/null
+@@ -1,30 +0,0 @@
+-{
+-  "comment": "RSA-OAEP test vectors for test-crypto-rsa-dsa.js",
+-  "decryptionTests": [
+-    {
+-      "ct": "16ece59cf985a8cf1a3434e4b9707c922c20638fdf9abf7e5dc7943f4136899348c54116d15b2c17563b9c7143f9d5b85b45615ad0598ea6d21c900f3957b65400612306a9bebae441f005646f7a7c97129a103ab54e777168ef966514adb17786b968ea0ff430a524904c4a11c683764b7c8dbb60df0952768381cdba4d665e5006034393a10d56d33e75b2714db824a18da46441ef7f94a34a7058c0bbad0394083a038558bcc6dd370f8e518e1bd8d73b296fc51d77da44799e4ee774926ded7910e8768f92db76f63107338d33354b735d3ad094240dbd7ffdfda27ef0255306dcf4a6462849492abd1a97fdd37743ff87c4d2ec89866c5cdbb696bd2b30"
+-    },
+-    {
+-      "ct": "16ece59cf985a8cf1a3434e4b9707c922c20638fdf9abf7e5dc7943f4136899348c54116d15b2c17563b9c7143f9d5b85b45615ad0598ea6d21c900f3957b65400612306a9bebae441f005646f7a7c97129a103ab54e777168ef966514adb17786b968ea0ff430a524904c4a11c683764b7c8dbb60df0952768381cdba4d665e5006034393a10d56d33e75b2714db824a18da46441ef7f94a34a7058c0bbad0394083a038558bcc6dd370f8e518e1bd8d73b296fc51d77da44799e4ee774926ded7910e8768f92db76f63107338d33354b735d3ad094240dbd7ffdfda27ef0255306dcf4a6462849492abd1a97fdd37743ff87c4d2ec89866c5cdbb696bd2b30",
+-      "oaepHash": "sha1"
+-    },
+-    {
+-      "ct": "16ccf09afe5eb0130182b9fc1ca4af61a38e772047cac42146bfa0fa5879aa9639203e4d01442d212ff95bddfbe4661222215a2e91908c37ab926edea7cfc53f83357bc27f86af0f5f2818ae141f4e9e934d4e66189aff30f062c9c3f6eb9bc495a59082cb978f99b56ce5fa530a8469e46129258e5c42897cb194b6805e936e5cbbeaa535bad6b1d3cdfc92119b7dd325a2e6d2979e316bdacc9f80e29c7bbdf6846d738e380deadcb48df8c1e8aabf7a9dd2f8c71d6681dbec7dcadc01887c51288674268796bc77fdf8f1c94c9ca50b1cc7cddbaf4e56cb151d23e2c699d2844c0104ee2e7e9dcdb907cfab43339120a40c59ca54f32b8d21b48a29656c77",
+-      "oaepHash": "sha256"
+-    },
+-    {
+-      "ct": "831b72e8dd91841729ecbddf2647d6f19dc0094734f8803d8c651b5655a12ae6156b74d9b594bcc0eacd002728380b94f46e8657f130f354e03b6e7815ee257eda78dba296d67d24410c31c48e5875cc79e4bde594b412be5f357f57a7ac1f1d18b718e408df162d1795508e6a0616192b647ad942ea068a44fb2b323d35a3a61b926feb105d6c0b2a8fc8050222d1cf4a9e44da1f95bbc677fd643749c6c89ac551d072f04cd9320c97a8d94755c8a804954c082bed7fa59199a00aca154c14a7b584b63c538daf9b9c7c90abfca19387d2131f9d9b9ecfc8672249c33144d1be3bfc41558a13f994663661a3af24fd0a97619d508db36f5fc131af86fc68cf",
+-      "oaepHash": "sha512"
+-    },
+-    {
+-      "ct": "04a25a3dbe0a44b10b7dde19632ce0963e7a7e9876905cd4a4f68ba8e0bda593a738847235df4494f9c28927b165511d22006ef6fae0eb7fe01883e4ae495643328d21e13dad65e71e45f885c7e1e2fe77c39fa84b8bbd2d7d3ed72fea2bf3c87a5c864bdc41b45caa3d668ca3f35297f43dc97950fa959ee88031c8385da7628d03923dfd26a7e0568c95a2f38ec5760335b00fa30935abdd9ab5b3581fc319ff787c59930319707caa24fe9e5d0ce6c48eff4ee6e124fd6c595353acc29a194863dbf7b74d08edf7129ca52eb5f4ccf3888311e97602fcd37b476c41749b260efad4e0760064082f7c9ea0f8704134936b2e38fd0f82886486b5f7e5fb9696",
+-      "oaepHash": "sha384",
+-      "oaepLabel": "01020304"
+-    },
+-    {
+-      "ct": "678f9ff724e0f48b48e6ff3cbdac5eb995d263da1c23f948d8d09411131f69f40da07f0c650e1aedc82fbaf0972a5d3b3e8f1f82cc4fa1780abfebb4e06b6827a52bf768b12388817c1e3ee1324342e05135733a4056a6cc02f5211172c338eb96e5e33c1d6f53560e3f3aab2419c13a600c4e67648088ffe8aac2cea8bce78e2ab899741cf7c9a9d5246cde6ce97aae0157f42db68eea380dec6dcd842c1e6900ae21d5275c4bf21810b5e1b0e1bc0441cbce34e00a31b9e857f6f2c791257d45997c278ea928f42e8cb6476f633f5de102fa0c4af964a9c4f4336869509e933ebc0aa94ad16b0b1db2aaa924f409a5f9f29dfbd88849c5eaa4818e1c3e335e",
+-      "oaepHash": "sha1",
+-      "oaepLabel": "00112233445566778899"
+-    }
+-  ]
+-}
+diff --git a/test/parallel/test-crypto-rsa-dsa.js b/test/parallel/test-crypto-rsa-dsa.js
+index 30ef7ec..c773aae 100644
+--- a/test/parallel/test-crypto-rsa-dsa.js
++++ b/test/parallel/test-crypto-rsa-dsa.js
+@@ -202,21 +202,59 @@ common.expectsError(() => {
+ // The following RSA-OAEP test cases were created using the WebCrypto API to
+ // ensure compatibility when using non-SHA1 hash functions.
+ {
+-  const { decryptionTests } =
+-      JSON.parse(fixtures.readSync('rsa-oaep-test-vectors.js', 'utf8'));
+-
+-  for (const { ct, oaepHash, oaepLabel } of decryptionTests) {
++  function testDecrypt(oaepHash, ciphertext) {
+     const decrypted = crypto.privateDecrypt({
+       key: rsaPkcs8KeyPem,
+-      oaepHash,
+-      oaepLabel: oaepLabel ? Buffer.from(oaepLabel, 'hex') : undefined
+-    }, Buffer.from(ct, 'hex'));
++      oaepHash
++    }, Buffer.from(ciphertext, 'hex'));
+ 
+     assert.strictEqual(decrypted.toString('utf8'), 'Hello Node.js');
+   }
++
++  testDecrypt(undefined, '16ece59cf985a8cf1a3434e4b9707c922c20638fdf9abf7e5dc' +
++                         '7943f4136899348c54116d15b2c17563b9c7143f9d5b85b4561' +
++                         '5ad0598ea6d21c900f3957b65400612306a9bebae441f005646' +
++                         'f7a7c97129a103ab54e777168ef966514adb17786b968ea0ff4' +
++                         '30a524904c4a11c683764b7c8dbb60df0952768381cdba4d665' +
++                         'e5006034393a10d56d33e75b2714db824a18da46441ef7f94a3' +
++                         '4a7058c0bbad0394083a038558bcc6dd370f8e518e1bd8d73b2' +
++                         '96fc51d77da44799e4ee774926ded7910e8768f92db76f63107' +
++                         '338d33354b735d3ad094240dbd7ffdfda27ef0255306dcf4a64' +
++                         '62849492abd1a97fdd37743ff87c4d2ec89866c5cdbb696bd2b' +
++                         '30');
++  testDecrypt('sha1', '16ece59cf985a8cf1a3434e4b9707c922c20638fdf9abf7e5dc794' +
++                      '3f4136899348c54116d15b2c17563b9c7143f9d5b85b45615ad059' +
++                      '8ea6d21c900f3957b65400612306a9bebae441f005646f7a7c9712' +
++                      '9a103ab54e777168ef966514adb17786b968ea0ff430a524904c4a' +
++                      '11c683764b7c8dbb60df0952768381cdba4d665e5006034393a10d' +
++                      '56d33e75b2714db824a18da46441ef7f94a34a7058c0bbad039408' +
++                      '3a038558bcc6dd370f8e518e1bd8d73b296fc51d77da44799e4ee7' +
++                      '74926ded7910e8768f92db76f63107338d33354b735d3ad094240d' +
++                      'bd7ffdfda27ef0255306dcf4a6462849492abd1a97fdd37743ff87' +
++                      'c4d2ec89866c5cdbb696bd2b30');
++  testDecrypt('sha256', '16ccf09afe5eb0130182b9fc1ca4af61a38e772047cac42146bf' +
++                        'a0fa5879aa9639203e4d01442d212ff95bddfbe4661222215a2e' +
++                        '91908c37ab926edea7cfc53f83357bc27f86af0f5f2818ae141f' +
++                        '4e9e934d4e66189aff30f062c9c3f6eb9bc495a59082cb978f99' +
++                        'b56ce5fa530a8469e46129258e5c42897cb194b6805e936e5cbb' +
++                        'eaa535bad6b1d3cdfc92119b7dd325a2e6d2979e316bdacc9f80' +
++                        'e29c7bbdf6846d738e380deadcb48df8c1e8aabf7a9dd2f8c71d' +
++                        '6681dbec7dcadc01887c51288674268796bc77fdf8f1c94c9ca5' +
++                        '0b1cc7cddbaf4e56cb151d23e2c699d2844c0104ee2e7e9dcdb9' +
++                        '07cfab43339120a40c59ca54f32b8d21b48a29656c77');
++  testDecrypt('sha512', '831b72e8dd91841729ecbddf2647d6f19dc0094734f8803d8c65' +
++                        '1b5655a12ae6156b74d9b594bcc0eacd002728380b94f46e8657' +
++                        'f130f354e03b6e7815ee257eda78dba296d67d24410c31c48e58' +
++                        '75cc79e4bde594b412be5f357f57a7ac1f1d18b718e408df162d' +
++                        '1795508e6a0616192b647ad942ea068a44fb2b323d35a3a61b92' +
++                        '6feb105d6c0b2a8fc8050222d1cf4a9e44da1f95bbc677fd6437' +
++                        '49c6c89ac551d072f04cd9320c97a8d94755c8a804954c082bed' +
++                        '7fa59199a00aca154c14a7b584b63c538daf9b9c7c90abfca193' +
++                        '87d2131f9d9b9ecfc8672249c33144d1be3bfc41558a13f99466' +
++                        '3661a3af24fd0a97619d508db36f5fc131af86fc68cf');
+ }
+ 
+-// Test invalid oaepHash and oaepLabel options.
++// Test invalid oaepHash options.
+ for (const fn of [crypto.publicEncrypt, crypto.privateDecrypt]) {
+   assert.throws(() => {
+     fn({
+@@ -237,17 +275,6 @@ for (const fn of [crypto.publicEncrypt, crypto.privateDecrypt]) {
+       code: 'ERR_INVALID_ARG_TYPE'
+     });
+   }
+-
+-  for (const oaepLabel of [0, false, null, Symbol(), () => {}, {}, 'foo']) {
+-    common.expectsError(() => {
+-      fn({
+-        key: rsaPubPem,
+-        oaepLabel
+-      }, Buffer.alloc(10));
+-    }, {
+-      code: 'ERR_INVALID_ARG_TYPE'
+-    });
+-  }
+ }
+ 
+ // Test RSA key signing/verification
+diff --git a/test/parallel/test-crypto-sign-verify.js b/test/parallel/test-crypto-sign-verify.js
+index d98317a..b3861dd 100644
+--- a/test/parallel/test-crypto-sign-verify.js
++++ b/test/parallel/test-crypto-sign-verify.js
+@@ -501,91 +501,21 @@ common.expectsError(
+ });
+ 
+ {
++  const privKey = fixtures.readKey('ec-key.pem');
+   const data = Buffer.from('Hello world');
+-  const keys = [['ec-key.pem', 64], ['dsa_private_1025.pem', 40]];
+-
+-  for (const [file, length] of keys) {
+-    const privKey = fixtures.readKey(file);
+-    [
+-      crypto.createSign('sha1').update(data).sign(privKey),
+-      crypto.sign('sha1', data, privKey),
+-      crypto.sign('sha1', data, { key: privKey, dsaEncoding: 'der' })
+-    ].forEach((sig) => {
+-      // Signature length variability due to DER encoding
+-      assert(sig.length >= length + 4 && sig.length <= length + 8);
+-
+-      assert.strictEqual(
+-        crypto.createVerify('sha1').update(data).verify(privKey, sig),
+-        true
+-      );
+-      assert.strictEqual(crypto.verify('sha1', data, privKey, sig), true);
+-    });
+-
+-    // Test (EC)DSA signature conversion.
+-    const opts = { key: privKey, dsaEncoding: 'ieee-p1363' };
+-    let sig = crypto.sign('sha1', data, opts);
+-    // Unlike DER signatures, IEEE P1363 signatures have a predictable length.
+-    assert.strictEqual(sig.length, length);
+-    assert.strictEqual(crypto.verify('sha1', data, opts, sig), true);
+-
+-    // Test invalid signature lengths.
+-    for (const i of [-2, -1, 1, 2, 4, 8]) {
+-      sig = crypto.randomBytes(length + i);
+-      common.expectsError(() => {
+-        crypto.verify('sha1', data, opts, sig);
+-      }, {
+-        message: 'Malformed signature'
+-      });
+-    }
+-  }
++  [
++    crypto.createSign('sha1').update(data).sign(privKey),
++    crypto.sign('sha1', data, privKey)
++  ].forEach((sig) => {
++    // Signature length variability due to DER encoding
++    assert.strictEqual(sig.length >= 68, true);
+ 
+-  // Test verifying externally signed messages.
+-  const extSig = Buffer.from('494c18ab5c8a62a72aea5041966902bcfa229821af2bf65' +
+-                             '0b5b4870d1fe6aebeaed9460c62210693b5b0a300033823' +
+-                             '33d9529c8abd8c5948940af944828be16c', 'hex');
+-  for (const ok of [true, false]) {
+     assert.strictEqual(
+-      crypto.verify('sha256', data, {
+-        key: fixtures.readKey('ec-key.pem'),
+-        dsaEncoding: 'ieee-p1363'
+-      }, extSig),
+-      ok
++      crypto.createVerify('sha1').update(data).verify(privKey, sig),
++      true
+     );
+-
+-    extSig[Math.floor(Math.random() * extSig.length)] ^= 1;
+-  }
+-
+-  // Non-(EC)DSA keys should ignore the option.
+-  const sig = crypto.sign('sha1', data, {
+-    key: keyPem,
+-    dsaEncoding: 'ieee-p1363'
++    assert.strictEqual(crypto.verify('sha1', data, privKey, sig), true);
+   });
+-  assert.strictEqual(crypto.verify('sha1', data, certPem, sig), true);
+-  assert.strictEqual(
+-    crypto.verify('sha1', data, {
+-      key: certPem,
+-      dsaEncoding: 'ieee-p1363'
+-    }, sig),
+-    true
+-  );
+-  assert.strictEqual(
+-    crypto.verify('sha1', data, {
+-      key: certPem,
+-      dsaEncoding: 'der'
+-    }, sig),
+-    true
+-  );
+-
+-  for (const dsaEncoding of ['foo', null, {}, 5, true, NaN]) {
+-    common.expectsError(() => {
+-      crypto.sign('sha1', data, {
+-        key: certPem,
+-        dsaEncoding
+-      });
+-    }, {
+-      code: 'ERR_INVALID_OPT_VALUE'
+-    });
+-  }
+ }
+ 
+ 
+diff --git a/test/parallel/test-https-agent-keylog.js b/test/parallel/test-https-agent-keylog.js
+deleted file mode 100644
+index 2fc13cb..0000000
+--- a/test/parallel/test-https-agent-keylog.js
++++ /dev/null
+@@ -1,44 +0,0 @@
+-'use strict';
+-
+-const common = require('../common');
+-if (!common.hasCrypto)
+-  common.skip('missing crypto');
+-
+-const assert = require('assert');
+-const https = require('https');
+-const fixtures = require('../common/fixtures');
+-
+-const server = https.createServer({
+-  key: fixtures.readKey('agent2-key.pem'),
+-  cert: fixtures.readKey('agent2-cert.pem'),
+-  // Amount of keylog events depends on negotiated protocol
+-  // version, so force a specific one:
+-  minVersion: 'TLSv1.3',
+-  maxVersion: 'TLSv1.3',
+-}, (req, res) => {
+-  res.end('bye');
+-}).listen(() => {
+-  https.get({
+-    port: server.address().port,
+-    rejectUnauthorized: false,
+-  }, (res) => {
+-    res.resume();
+-    res.on('end', () => {
+-      // Trigger TLS connection reuse
+-      https.get({
+-        port: server.address().port,
+-        rejectUnauthorized: false,
+-      }, (res) => {
+-        server.close();
+-        res.resume();
+-      });
+-    });
+-  });
+-});
+-
+-const verifyKeylog = (line, tlsSocket) => {
+-  assert(Buffer.isBuffer(line));
+-  assert.strictEqual(tlsSocket.encrypted, true);
+-};
+-server.on('keylog', common.mustCall(verifyKeylog, 10));
+-https.globalAgent.on('keylog', common.mustCall(verifyKeylog, 10));
+diff --git a/test/parallel/test-tls-enable-keylog-cli.js b/test/parallel/test-tls-enable-keylog-cli.js
+deleted file mode 100644
+index 5d05069..0000000
+--- a/test/parallel/test-tls-enable-keylog-cli.js
++++ /dev/null
+@@ -1,57 +0,0 @@
+-'use strict';
+-const common = require('../common');
+-if (!common.hasCrypto) common.skip('missing crypto');
+-const fixtures = require('../common/fixtures');
+-
+-// Test --tls-keylog CLI flag.
+-
+-const assert = require('assert');
+-const path = require('path');
+-const fs = require('fs');
+-const { fork } = require('child_process');
+-
+-if (process.argv[2] === 'test')
+-  return test();
+-
+-const tmpdir = require('../common/tmpdir');
+-tmpdir.refresh();
+-const file = path.resolve(tmpdir.path, 'keylog.log');
+-
+-const child = fork(__filename, ['test'], {
+-  execArgv: ['--tls-keylog=' + file]
+-});
+-
+-child.on('close', common.mustCall((code, signal) => {
+-  assert.strictEqual(code, 0);
+-  assert.strictEqual(signal, null);
+-  const log = fs.readFileSync(file, 'utf8');
+-  assert(/SECRET/.test(log));
+-}));
+-
+-function test() {
+-  const {
+-    connect, keys
+-  } = require(fixtures.path('tls-connect'));
+-
+-  connect({
+-    client: {
+-      checkServerIdentity: (servername, cert) => { },
+-      ca: `${keys.agent1.cert}\n${keys.agent6.ca}`,
+-    },
+-    server: {
+-      cert: keys.agent6.cert,
+-      key: keys.agent6.key
+-    },
+-  }, common.mustCall((err, pair, cleanup) => {
+-    if (pair.server.err) {
+-      console.trace('server', pair.server.err);
+-    }
+-    if (pair.client.err) {
+-      console.trace('client', pair.client.err);
+-    }
+-    assert.ifError(pair.server.err);
+-    assert.ifError(pair.client.err);
+-
+-    return cleanup();
+-  }));
+-}
+diff --git a/test/parallel/test-tls-getcipher.js b/test/parallel/test-tls-getcipher.js
+index 744276a..624f8ef 100644
+--- a/test/parallel/test-tls-getcipher.js
++++ b/test/parallel/test-tls-getcipher.js
+@@ -52,7 +52,6 @@ server.listen(0, '127.0.0.1', common.mustCall(function() {
+   }, common.mustCall(function() {
+     const cipher = this.getCipher();
+     assert.strictEqual(cipher.name, 'AES128-SHA256');
+-    assert.strictEqual(cipher.standardName, 'TLS_RSA_WITH_AES_128_CBC_SHA256');
+     assert.strictEqual(cipher.version, 'TLSv1.2');
+     this.end();
+   }));
+@@ -66,8 +65,6 @@ server.listen(0, '127.0.0.1', common.mustCall(function() {
+   }, common.mustCall(function() {
+     const cipher = this.getCipher();
+     assert.strictEqual(cipher.name, 'ECDHE-RSA-AES128-GCM-SHA256');
+-    assert.strictEqual(cipher.standardName,
+-                       'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256');
+     assert.strictEqual(cipher.version, 'TLSv1.2');
+     this.end();
+   }));
+@@ -89,7 +86,6 @@ tls.createServer({
+   }, common.mustCall(() => {
+     const cipher = client.getCipher();
+     assert.strictEqual(cipher.name, 'TLS_AES_128_CCM_8_SHA256');
+-    assert.strictEqual(cipher.standardName, cipher.name);
+     assert.strictEqual(cipher.version, 'TLSv1.3');
+     client.end();
+   }));
+diff --git a/test/parallel/test-tls-keylog-tlsv13.js b/test/parallel/test-tls-keylog-tlsv13.js
+index f26dece..0f65564 100644
+--- a/test/parallel/test-tls-keylog-tlsv13.js
++++ b/test/parallel/test-tls-keylog-tlsv13.js
+@@ -21,13 +21,9 @@ const server = tls.createServer({
+     rejectUnauthorized: false,
+   });
+ 
+-  server.on('keylog', common.mustCall((line, tlsSocket) => {
+-    assert(Buffer.isBuffer(line));
+-    assert.strictEqual(tlsSocket.encrypted, true);
+-  }, 5));
+-  client.on('keylog', common.mustCall((line) => {
+-    assert(Buffer.isBuffer(line));
+-  }, 5));
++  const verifyBuffer = (line) => assert(Buffer.isBuffer(line));
++  server.on('keylog', common.mustCall(verifyBuffer, 5));
++  client.on('keylog', common.mustCall(verifyBuffer, 5));
+ 
+   client.once('secureConnect', () => {
+     server.close();
+diff --git a/test/parallel/test-tls-multi-key.js b/test/parallel/test-tls-multi-key.js
+index b9eaa05..c5e66f3 100644
+--- a/test/parallel/test-tls-multi-key.js
++++ b/test/parallel/test-tls-multi-key.js
+@@ -157,7 +157,6 @@ function test(options) {
+     }, common.mustCall(function() {
+       assert.deepStrictEqual(ecdsa.getCipher(), {
+         name: 'ECDHE-ECDSA-AES256-GCM-SHA384',
+-        standardName: 'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384',
+         version: 'TLSv1.2'
+       });
+       assert.strictEqual(ecdsa.getPeerCertificate().subject.CN, eccCN);
+@@ -176,7 +175,6 @@ function test(options) {
+     }, common.mustCall(function() {
+       assert.deepStrictEqual(rsa.getCipher(), {
+         name: 'ECDHE-RSA-AES256-GCM-SHA384',
+-        standardName: 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384',
+         version: 'TLSv1.2'
+       });
+       assert.strictEqual(rsa.getPeerCertificate().subject.CN, rsaCN);
+diff --git a/test/parallel/test-tls-multi-pfx.js b/test/parallel/test-tls-multi-pfx.js
+index c20376a..3b0c059 100644
+--- a/test/parallel/test-tls-multi-pfx.js
++++ b/test/parallel/test-tls-multi-pfx.js
+@@ -42,11 +42,9 @@ const server = tls.createServer(options, function(conn) {
+ process.on('exit', function() {
+   assert.deepStrictEqual(ciphers, [{
+     name: 'ECDHE-ECDSA-AES256-GCM-SHA384',
+-    standardName: 'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384',
+     version: 'TLSv1.2'
+   }, {
+     name: 'ECDHE-RSA-AES256-GCM-SHA384',
+-    standardName: 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384',
+     version: 'TLSv1.2'
+   }]);
+ });
+diff --git a/test/parallel/test-tls-psk-circuit.js b/test/parallel/test-tls-psk-circuit.js
+deleted file mode 100644
+index 4bcdf36..0000000
+--- a/test/parallel/test-tls-psk-circuit.js
++++ /dev/null
+@@ -1,72 +0,0 @@
+-'use strict';
+-const common = require('../common');
+-
+-if (!common.hasCrypto)
+-  common.skip('missing crypto');
+-
+-const assert = require('assert');
+-const tls = require('tls');
+-
+-const CIPHERS = 'PSK+HIGH:TLS_AES_128_GCM_SHA256';
+-const USERS = {
+-  UserA: Buffer.allocUnsafe(128),
+-  UserB: Buffer.from('82072606b502b0f4025e90eb75fe137d', 'hex'),
+-};
+-const TEST_DATA = 'x';
+-
+-const serverOptions = {
+-  ciphers: CIPHERS,
+-  pskCallback(socket, id) {
+-    assert.ok(socket instanceof tls.TLSSocket);
+-    assert.ok(typeof id === 'string');
+-    return USERS[id];
+-  },
+-};
+-
+-function test(secret, opts, error) {
+-  const cb = !error ?
+-    common.mustCall((c) => { c.pipe(c); }) :
+-    common.mustNotCall();
+-  const server = tls.createServer(serverOptions, cb);
+-  server.listen(0, common.mustCall(() => {
+-    const options = {
+-      port: server.address().port,
+-      ciphers: CIPHERS,
+-      checkServerIdentity: () => {},
+-      pskCallback: common.mustCall(() => secret),
+-      ...opts,
+-    };
+-
+-    if (!error) {
+-      const client = tls.connect(options, common.mustCall(() => {
+-        client.end(TEST_DATA);
+-
+-        client.on('data', common.mustCall((data) => {
+-          assert.strictEqual(data.toString(), TEST_DATA);
+-        }));
+-        client.on('close', common.mustCall(() => server.close()));
+-      }));
+-    } else {
+-      const client = tls.connect(options, common.mustNotCall());
+-      client.on('error', common.mustCall((err) => {
+-        assert.strictEqual(err.message, error);
+-        server.close();
+-      }));
+-    }
+-  }));
+-}
+-
+-const DISCONNECT_MESSAGE =
+-  'Client network socket disconnected before ' +
+-  'secure TLS connection was established';
+-
+-test({ psk: USERS.UserA, identity: 'UserA' });
+-test({ psk: USERS.UserA, identity: 'UserA' }, { maxVersion: 'TLSv1.2' });
+-test({ psk: USERS.UserA, identity: 'UserA' }, { minVersion: 'TLSv1.3' });
+-test({ psk: USERS.UserB, identity: 'UserB' });
+-test({ psk: USERS.UserB, identity: 'UserB' }, { minVersion: 'TLSv1.3' });
+-// Unrecognized user should fail handshake
+-test({ psk: USERS.UserB, identity: 'UserC' }, {}, DISCONNECT_MESSAGE);
+-// Recognized user but incorrect secret should fail handshake
+-test({ psk: USERS.UserA, identity: 'UserB' }, {}, DISCONNECT_MESSAGE);
+-test({ psk: USERS.UserB, identity: 'UserB' });
+diff --git a/test/parallel/test-tls-psk-errors.js b/test/parallel/test-tls-psk-errors.js
+deleted file mode 100644
+index 4864a66..0000000
+--- a/test/parallel/test-tls-psk-errors.js
++++ /dev/null
+@@ -1,32 +0,0 @@
+-'use strict';
+-const common = require('../common');
+-
+-if (!common.hasCrypto)
+-  common.skip('missing crypto');
+-
+-const assert = require('assert');
+-const tls = require('tls');
+-
+-{
+-  // Check tlsClientError on invalid pskIdentityHint.
+-
+-  const server = tls.createServer({
+-    ciphers: 'PSK+HIGH',
+-    pskCallback: () => {},
+-    pskIdentityHint: 'a'.repeat(512), // Too long identity hint.
+-  });
+-  server.on('tlsClientError', (err) => {
+-    assert.ok(err instanceof Error);
+-    assert.strictEqual(err.code, 'ERR_TLS_PSK_SET_IDENTIY_HINT_FAILED');
+-    server.close();
+-  });
+-  server.listen(0, () => {
+-    const client = tls.connect({
+-      port: server.address().port,
+-      ciphers: 'PSK+HIGH',
+-      checkServerIdentity: () => {},
+-      pskCallback: () => {},
+-    }, () => {});
+-    client.on('error', common.expectsError({ code: 'ECONNRESET' }));
+-  });
+-}
+diff --git a/test/parallel/test-tls-psk-server.js b/test/parallel/test-tls-psk-server.js
+deleted file mode 100644
+index 69b850c..0000000
+--- a/test/parallel/test-tls-psk-server.js
++++ /dev/null
+@@ -1,77 +0,0 @@
+-'use strict';
+-const common = require('../common');
+-
+-if (!common.hasCrypto)
+-  common.skip('missing crypto');
+-if (!common.opensslCli)
+-  common.skip('missing openssl cli');
+-
+-const assert = require('assert');
+-
+-const tls = require('tls');
+-const spawn = require('child_process').spawn;
+-
+-const CIPHERS = 'PSK+HIGH';
+-const KEY = 'd731ef57be09e5204f0b205b60627028';
+-const IDENTITY = 'TestUser';
+-
+-const server = tls.createServer({
+-  ciphers: CIPHERS,
+-  pskIdentityHint: IDENTITY,
+-  pskCallback(socket, identity) {
+-    assert.ok(socket instanceof tls.TLSSocket);
+-    assert.ok(typeof identity === 'string');
+-    if (identity === IDENTITY)
+-      return Buffer.from(KEY, 'hex');
+-  }
+-});
+-
+-server.on('connection', common.mustCall());
+-
+-server.on('secureConnection', (socket) => {
+-  socket.write('hello\r\n');
+-
+-  socket.on('data', (data) => {
+-    socket.write(data);
+-  });
+-});
+-
+-let gotHello = false;
+-let sentWorld = false;
+-let gotWorld = false;
+-
+-server.listen(0, () => {
+-  const client = spawn(common.opensslCli, [
+-    's_client',
+-    '-connect', '127.0.0.1:' + server.address().port,
+-    '-cipher', CIPHERS,
+-    '-psk', KEY,
+-    '-psk_identity', IDENTITY
+-  ]);
+-
+-  let out = '';
+-
+-  client.stdout.setEncoding('utf8');
+-  client.stdout.on('data', (d) => {
+-    out += d;
+-
+-    if (!gotHello && /hello/.test(out)) {
+-      gotHello = true;
+-      client.stdin.write('world\r\n');
+-      sentWorld = true;
+-    }
+-
+-    if (!gotWorld && /world/.test(out)) {
+-      gotWorld = true;
+-      client.stdin.end();
+-    }
+-  });
+-
+-  client.on('exit', common.mustCall((code) => {
+-    assert.ok(gotHello);
+-    assert.ok(sentWorld);
+-    assert.ok(gotWorld);
+-    assert.strictEqual(code, 0);
+-    server.close();
+-  }));
+-});
+diff --git a/test/parallel/test-tls-set-sigalgs.js b/test/parallel/test-tls-set-sigalgs.js
+deleted file mode 100644
+index 59dc2ca..0000000
+--- a/test/parallel/test-tls-set-sigalgs.js
++++ /dev/null
+@@ -1,74 +0,0 @@
+-'use strict';
+-const common = require('../common');
+-if (!common.hasCrypto) common.skip('missing crypto');
+-const fixtures = require('../common/fixtures');
+-
+-// Test sigalgs: option for TLS.
+-
+-const {
+-  assert, connect, keys
+-} = require(fixtures.path('tls-connect'));
+-
+-function assert_arrays_equal(left, right) {
+-  assert.strictEqual(left.length, right.length);
+-  for (let i = 0; i < left.length; i++) {
+-    assert.strictEqual(left[i], right[i]);
+-  }
+-}
+-
+-function test(csigalgs, ssigalgs, shared_sigalgs, cerr, serr) {
+-  assert(shared_sigalgs || serr || cerr, 'test missing any expectations');
+-  connect({
+-    client: {
+-      checkServerIdentity: (servername, cert) => { },
+-      ca: `${keys.agent1.cert}\n${keys.agent6.ca}`,
+-      cert: keys.agent2.cert,
+-      key: keys.agent2.key,
+-      sigalgs: csigalgs
+-    },
+-    server: {
+-      cert: keys.agent6.cert,
+-      key: keys.agent6.key,
+-      ca: keys.agent2.ca,
+-      context: {
+-        requestCert: true,
+-        rejectUnauthorized: true
+-      },
+-      sigalgs: ssigalgs
+-    },
+-  }, common.mustCall((err, pair, cleanup) => {
+-    if (shared_sigalgs) {
+-      assert.ifError(err);
+-      assert.ifError(pair.server.err);
+-      assert.ifError(pair.client.err);
+-      assert(pair.server.conn);
+-      assert(pair.client.conn);
+-      assert_arrays_equal(pair.server.conn.getSharedSigalgs(), shared_sigalgs);
+-    } else {
+-      if (serr) {
+-        assert(pair.server.err);
+-        assert(pair.server.err.code, serr);
+-      }
+-
+-      if (cerr) {
+-        assert(pair.client.err);
+-        assert(pair.client.err.code, cerr);
+-      }
+-    }
+-
+-    return cleanup();
+-  }));
+-}
+-
+-// Have shared sigalgs
+-test('RSA-PSS+SHA384', 'RSA-PSS+SHA384', ['RSA-PSS+SHA384']);
+-test('RSA-PSS+SHA256:RSA-PSS+SHA512:ECDSA+SHA256',
+-     'RSA-PSS+SHA256:ECDSA+SHA256',
+-     ['RSA-PSS+SHA256', 'ECDSA+SHA256']);
+-
+-// Do not have shared sigalgs.
+-test('RSA-PSS+SHA384', 'ECDSA+SHA256',
+-     undefined, 'ECONNRESET', 'ERR_SSL_NO_SHARED_SIGNATURE_ALGORITMS');
+-
+-test('RSA-PSS+SHA384:ECDSA+SHA256', 'ECDSA+SHA384:RSA-PSS+SHA256',
+-     undefined, 'ECONNRESET', 'ERR_SSL_NO_SHARED_SIGNATURE_ALGORITMS');
+diff --git a/test/sequential/test-tls-psk-client.js b/test/sequential/test-tls-psk-client.js
+deleted file mode 100644
+index 7c9fb93..0000000
+--- a/test/sequential/test-tls-psk-client.js
++++ /dev/null
+@@ -1,96 +0,0 @@
+-'use strict';
+-const common = require('../common');
+-
+-if (!common.hasCrypto)
+-  common.skip('missing crypto');
+-if (!common.opensslCli)
+-  common.skip('missing openssl cli');
+-
+-const assert = require('assert');
+-const tls = require('tls');
+-const net = require('net');
+-const { spawn } = require('child_process');
+-
+-const CIPHERS = 'PSK+HIGH';
+-const KEY = 'd731ef57be09e5204f0b205b60627028';
+-const IDENTITY = 'Client_identity';  // Hardcoded by `openssl s_server`
+-
+-const server = spawn(common.opensslCli, [
+-  's_server',
+-  '-accept', common.PORT,
+-  '-cipher', CIPHERS,
+-  '-psk', KEY,
+-  '-psk_hint', IDENTITY,
+-  '-nocert',
+-  '-rev',
+-]);
+-
+-const cleanUp = (err) => {
+-  clearTimeout(timeout);
+-  if (err)
+-    console.log('Failed:', err);
+-  server.kill();
+-  process.exitCode = err ? 1 : 0;
+-};
+-
+-const timeout = setTimeout(() => cleanUp('Timeouted'), 5000);
+-
+-function waitForPort(port, cb) {
+-  const socket = net.connect(common.PORT, () => {
+-    socket.end();
+-    socket.on('end', cb);
+-  });
+-  socket.on('error', (e) => {
+-    if (e.code === 'ENOENT' || e.code === 'ECONNREFUSED') {
+-      setTimeout(() => waitForPort(port, cb), 1000);
+-    } else {
+-      cb(e);
+-    }
+-  });
+-}
+-
+-waitForPort(common.PORT, common.mustCall((err) => {
+-  if (err) {
+-    cleanUp(err);
+-    return;
+-  }
+-
+-  const message = 'hello';
+-  const reverse = message.split('').reverse().join('');
+-  runClient(message, common.mustCall((err, data) => {
+-    try {
+-      if (!err) assert.strictEqual(data.trim(), reverse);
+-    } finally {
+-      cleanUp(err);
+-    }
+-  }));
+-}));
+-
+-function runClient(message, cb) {
+-  const s = tls.connect(common.PORT, {
+-    ciphers: CIPHERS,
+-    checkServerIdentity: () => {},
+-    pskCallback(hint) {
+-      // 'hint' will be null in TLS1.3.
+-      if (hint === null || hint === IDENTITY) {
+-        return {
+-          identity: IDENTITY,
+-          psk: Buffer.from(KEY, 'hex')
+-        };
+-      }
+-    }
+-  });
+-  s.on('secureConnect', common.mustCall(() => {
+-    let data = '';
+-    s.on('data', common.mustCallAtLeast((d) => {
+-      data += d;
+-    }));
+-    s.on('end', common.mustCall(() => {
+-      cb(null, data);
+-    }));
+-    s.end(message);
+-  }));
+-  s.on('error', (e) => {
+-    cb(e);
+-  });
+-}
+-- 
+1.8.3.1
+

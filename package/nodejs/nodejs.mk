@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-NODEJS_VERSION = 12.14.0
+NODEJS_VERSION = 12.16.1
 NODEJS_SOURCE = node-v$(NODEJS_VERSION).tar.xz
 NODEJS_SITE = http://nodejs.org/dist/v$(NODEJS_VERSION)
 NODEJS_DEPENDENCIES = host-python host-nodejs c-ares \
@@ -41,6 +41,16 @@ endif
 
 ifneq ($(BR2_PACKAGE_NODEJS_NPM),y)
 NODEJS_CONF_OPTS += --without-npm
+endif
+
+# Apply patches for OpenSSL 1.0.2 when using FIPS or that version
+define NODEJS_PATCHES_OPENSSL_1_0_2
+	if [ -d $(NODEJS_PKGDIR)/openssl_1_0_2 ]; then \
+	  $(APPLY_PATCHES) $(@D) $(NODEJS_PKGDIR)/openssl_1_0_2 \*.patch; \
+	fi
+endef
+ifneq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES)$(BR2_PACKAGE_LIBOPENSSL_1_0_2)),)
+	NODEJS_POST_PATCH_HOOKS = NODEJS_PATCHES_OPENSSL_1_0_2
 endif
 
 # Define HOST_NPM for other packages to use

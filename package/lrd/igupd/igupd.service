@@ -5,7 +5,7 @@ After=network.target deviced.service rodata.mount
 
 [Service]
 BusName=com.lairdtech.security.UpdateService
-ExecStart=python3 /usr/bin/igupd
+ExecStart=python3 --check-hash-based-pycs never /usr/bin/igupd
 KeyringMode=inherit
 
 [Install]

@@ -1,0 +1,237 @@
+From b432ec3d812467099f3a632e2e69a00371de39c4 Mon Sep 17 00:00:00 2001
+From: Zuzana Svetlikova <zsvetlik@redhat.com>
+Date: Wed, 19 Feb 2020 10:32:33 +0000
+Subject: [PATCH 4/4] fix libuv
+
+---
+ deps/uv/src/unix/fs.c             | 91 ---------------------------------------
+ deps/uv/src/unix/linux-syscalls.c | 32 --------------
+ deps/uv/src/unix/linux-syscalls.h | 35 ---------------
+ 3 files changed, 158 deletions(-)
+
+diff --git a/deps/uv/src/unix/fs.c b/deps/uv/src/unix/fs.c
+index 916d710..c227f4c 100644
+--- a/deps/uv/src/unix/fs.c
++++ b/deps/uv/src/unix/fs.c
+@@ -1278,93 +1278,10 @@ static void uv__to_stat(struct stat* src, uv_stat_t* dst) {
+ }
+ 
+ 
+-static int uv__fs_statx(int fd,
+-                        const char* path,
+-                        int is_fstat,
+-                        int is_lstat,
+-                        uv_stat_t* buf) {
+-  STATIC_ASSERT(UV_ENOSYS != -1);
+-#ifdef __linux__
+-  static int no_statx;
+-  struct uv__statx statxbuf;
+-  int dirfd;
+-  int flags;
+-  int mode;
+-  int rc;
+-
+-  if (no_statx)
+-    return UV_ENOSYS;
+-
+-  dirfd = AT_FDCWD;
+-  flags = 0; /* AT_STATX_SYNC_AS_STAT */
+-  mode = 0xFFF; /* STATX_BASIC_STATS + STATX_BTIME */
+-
+-  if (is_fstat) {
+-    dirfd = fd;
+-    flags |= 0x1000; /* AT_EMPTY_PATH */
+-  }
+-
+-  if (is_lstat)
+-    flags |= AT_SYMLINK_NOFOLLOW;
+-
+-  rc = uv__statx(dirfd, path, flags, mode, &statxbuf);
+-
+-  switch (rc) {
+-  case 0:
+-    break;
+-  case -1:
+-    /* EPERM happens when a seccomp filter rejects the system call.
+-     * Has been observed with libseccomp < 2.3.3 and docker < 18.04.
+-     */
+-    if (errno != EINVAL && errno != EPERM && errno != ENOSYS)
+-      return -1;
+-    /* Fall through. */
+-  default:
+-    /* Normally on success, zero is returned and On error, -1 is returned.
+-     * Observed on S390 RHEL running in a docker container with statx not
+-     * implemented, rc might return 1 with 0 set as the error code in which
+-     * case we return ENOSYS.
+-     */
+-    no_statx = 1;
+-    return UV_ENOSYS;
+-  }
+-
+-  buf->st_dev = 256 * statxbuf.stx_dev_major + statxbuf.stx_dev_minor;
+-  buf->st_mode = statxbuf.stx_mode;
+-  buf->st_nlink = statxbuf.stx_nlink;
+-  buf->st_uid = statxbuf.stx_uid;
+-  buf->st_gid = statxbuf.stx_gid;
+-  buf->st_rdev = statxbuf.stx_rdev_major;
+-  buf->st_ino = statxbuf.stx_ino;
+-  buf->st_size = statxbuf.stx_size;
+-  buf->st_blksize = statxbuf.stx_blksize;
+-  buf->st_blocks = statxbuf.stx_blocks;
+-  buf->st_atim.tv_sec = statxbuf.stx_atime.tv_sec;
+-  buf->st_atim.tv_nsec = statxbuf.stx_atime.tv_nsec;
+-  buf->st_mtim.tv_sec = statxbuf.stx_mtime.tv_sec;
+-  buf->st_mtim.tv_nsec = statxbuf.stx_mtime.tv_nsec;
+-  buf->st_ctim.tv_sec = statxbuf.stx_ctime.tv_sec;
+-  buf->st_ctim.tv_nsec = statxbuf.stx_ctime.tv_nsec;
+-  buf->st_birthtim.tv_sec = statxbuf.stx_btime.tv_sec;
+-  buf->st_birthtim.tv_nsec = statxbuf.stx_btime.tv_nsec;
+-  buf->st_flags = 0;
+-  buf->st_gen = 0;
+-
+-  return 0;
+-#else
+-  return UV_ENOSYS;
+-#endif /* __linux__ */
+-}
+-
+-
+ static int uv__fs_stat(const char *path, uv_stat_t *buf) {
+   struct stat pbuf;
+   int ret;
+ 
+-  ret = uv__fs_statx(-1, path, /* is_fstat */ 0, /* is_lstat */ 0, buf);
+-  if (ret != UV_ENOSYS)
+-    return ret;
+-
+   ret = stat(path, &pbuf);
+   if (ret == 0)
+     uv__to_stat(&pbuf, buf);
+@@ -1377,10 +1294,6 @@ static int uv__fs_lstat(const char *path, uv_stat_t *buf) {
+   struct stat pbuf;
+   int ret;
+ 
+-  ret = uv__fs_statx(-1, path, /* is_fstat */ 0, /* is_lstat */ 1, buf);
+-  if (ret != UV_ENOSYS)
+-    return ret;
+-
+   ret = lstat(path, &pbuf);
+   if (ret == 0)
+     uv__to_stat(&pbuf, buf);
+@@ -1393,10 +1306,6 @@ static int uv__fs_fstat(int fd, uv_stat_t *buf) {
+   struct stat pbuf;
+   int ret;
+ 
+-  ret = uv__fs_statx(fd, "", /* is_fstat */ 1, /* is_lstat */ 0, buf);
+-  if (ret != UV_ENOSYS)
+-    return ret;
+-
+   ret = fstat(fd, &pbuf);
+   if (ret == 0)
+     uv__to_stat(&pbuf, buf);
+diff --git a/deps/uv/src/unix/linux-syscalls.c b/deps/uv/src/unix/linux-syscalls.c
+index 9503878..9560fe6 100644
+--- a/deps/uv/src/unix/linux-syscalls.c
++++ b/deps/uv/src/unix/linux-syscalls.c
+@@ -187,22 +187,6 @@
+ # endif
+ #endif /* __NR_pwritev */
+ 
+-#ifndef __NR_statx
+-# if defined(__x86_64__)
+-#  define __NR_statx 332
+-# elif defined(__i386__)
+-#  define __NR_statx 383
+-# elif defined(__aarch64__)
+-#  define __NR_statx 397
+-# elif defined(__arm__)
+-#  define __NR_statx (UV_SYSCALL_BASE + 397)
+-# elif defined(__ppc__)
+-#  define __NR_statx 383
+-# elif defined(__s390__)
+-#  define __NR_statx 379
+-# endif
+-#endif /* __NR_statx */
+-
+ #ifndef __NR_getrandom
+ # if defined(__x86_64__)
+ #  define __NR_getrandom 318
+@@ -369,22 +353,6 @@ int uv__dup3(int oldfd, int newfd, int flags) {
+ }
+ 
+ 
+-int uv__statx(int dirfd,
+-              const char* path,
+-              int flags,
+-              unsigned int mask,
+-              struct uv__statx* statxbuf) {
+-  /* __NR_statx make Android box killed by SIGSYS.
+-   * That looks like a seccomp2 sandbox filter rejecting the system call.
+-   */
+-#if defined(__NR_statx) && !defined(__ANDROID__)
+-  return syscall(__NR_statx, dirfd, path, flags, mask, statxbuf);
+-#else
+-  return errno = ENOSYS, -1;
+-#endif
+-}
+-
+-
+ ssize_t uv__getrandom(void* buf, size_t buflen, unsigned flags) {
+ #if defined(__NR_getrandom)
+   return syscall(__NR_getrandom, buf, buflen, flags);
+diff --git a/deps/uv/src/unix/linux-syscalls.h b/deps/uv/src/unix/linux-syscalls.h
+index b7729b8..7312b0c 100644
+--- a/deps/uv/src/unix/linux-syscalls.h
++++ b/deps/uv/src/unix/linux-syscalls.h
+@@ -80,36 +80,6 @@
+ #define UV__IN_DELETE_SELF    0x400
+ #define UV__IN_MOVE_SELF      0x800
+ 
+-struct uv__statx_timestamp {
+-  int64_t tv_sec;
+-  uint32_t tv_nsec;
+-  int32_t unused0;
+-};
+-
+-struct uv__statx {
+-  uint32_t stx_mask;
+-  uint32_t stx_blksize;
+-  uint64_t stx_attributes;
+-  uint32_t stx_nlink;
+-  uint32_t stx_uid;
+-  uint32_t stx_gid;
+-  uint16_t stx_mode;
+-  uint16_t unused0;
+-  uint64_t stx_ino;
+-  uint64_t stx_size;
+-  uint64_t stx_blocks;
+-  uint64_t stx_attributes_mask;
+-  struct uv__statx_timestamp stx_atime;
+-  struct uv__statx_timestamp stx_btime;
+-  struct uv__statx_timestamp stx_ctime;
+-  struct uv__statx_timestamp stx_mtime;
+-  uint32_t stx_rdev_major;
+-  uint32_t stx_rdev_minor;
+-  uint32_t stx_dev_major;
+-  uint32_t stx_dev_minor;
+-  uint64_t unused1[14];
+-};
+-
+ struct uv__inotify_event {
+   int32_t wd;
+   uint32_t mask;
+@@ -143,11 +113,6 @@ int uv__sendmmsg(int fd,
+ ssize_t uv__preadv(int fd, const struct iovec *iov, int iovcnt, int64_t offset);
+ ssize_t uv__pwritev(int fd, const struct iovec *iov, int iovcnt, int64_t offset);
+ int uv__dup3(int oldfd, int newfd, int flags);
+-int uv__statx(int dirfd,
+-              const char* path,
+-              int flags,
+-              unsigned int mask,
+-              struct uv__statx* statxbuf);
+ ssize_t uv__getrandom(void* buf, size_t buflen, unsigned flags);
+ 
+ #endif /* UV_LINUX_SYSCALL_H_ */
+-- 
+1.8.3.1
+
