@@ -5,7 +5,7 @@ After=network.target igprovd.service
 
 [Service]
 Type=notify
-ExecStart=python3 /usr/bin/igconfd
+ExecStart=python3 --check-hash-based-pycs never /usr/bin/igconfd
 KeyringMode=inherit
 
 [Install]
