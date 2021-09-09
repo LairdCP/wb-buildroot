@@ -37,15 +37,17 @@ do_mount()
         exit 1
     fi
 
-    # Get info for this drive: $ID_FS_LABEL, $ID_FS_UUID, and $ID_FS_TYPE
+    # Get info for this drive: ID_FS_LABEL and ID_FS_TYPE
     if [ -z "${ID_FS_TYPE}" ]; then
-        eval $(/sbin/blkid -o udev ${DEVICE})
-        [ -n "${ID_FS_TYPE}" ] || \
+        eval $(/sbin/blkid -o export ${DEVICE})
+        [ -n "${TYPE}" ] || \
 			{ echo "${DEVICE} is not a fileystem"; exit 1; }
+    else
+        LABEL="${ID_FS_LABEL}"
+        TYPE="${ID_FS_TYPE}"
     fi
 
     # Figure out a mount point to use
-    LABEL=${ID_FS_LABEL}
     if [ -z "${LABEL}" ]; then
         LABEL=${DEVBASE}
     elif /bin/grep -q " ${MOUNT_ROOT}/${LABEL} " /proc/mounts; then
@@ -62,10 +64,10 @@ do_mount()
     OPTS="rw,relatime,noexec,nosuid,nodev"
 
     # File system type specific mount options
-    if [ ${ID_FS_TYPE} == "vfat" ]; then
+    if [ ${TYPE} == "vfat" ]; then
         OPTS="${OPTS},users,umask=000,shortname=mixed,utf8=1,flush"
-        if [ -n "$MOUNT_USER" ]; then
-            OPTS="${OPTS},uid=`id -u ${MOUNT_USER}`,gid=`id -g ${MOUNT_USER}`"
+        if [ -n "${MOUNT_USER}" ]; then
+            OPTS="${OPTS},uid=$(id -u ${MOUNT_USER}),gid=$(id -g ${MOUNT_USER})"
         else
             OPTS="${OPTS},gid=100"
         fi
