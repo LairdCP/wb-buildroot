@@ -21,16 +21,12 @@ OUTPUT_DIR ?= $(abspath $(BR_DIR)/output)
 TARGETS_ALL = $(TARGETS) $(TARGETS_COMPONENT)
 
 ifeq ($(VERSION),)
-release_file = $(OUTPUT_DIR)/$(1)/images/$(1)-laird.tar
+release_name = $(1)$(BR2_LRD_BUILD_SUFFIX)-laird
 else
-release_file = $(OUTPUT_DIR)/$(1)/images/$(1)-laird-$(VERSION).tar
+release_name = $(1)$(BR2_LRD_BUILD_SUFFIX)-laird-$(VERSION)
 endif
 
-ifeq ($(VERSION),)
-release_name = $(1)-laird
-else
-release_name = $(1)-laird-$(VERSION)
-endif
+release_file = $(OUTPUT_DIR)/$(1)/images/$(call release_name,$(1)).tar
 
 .NOTPARALLEL:
 
