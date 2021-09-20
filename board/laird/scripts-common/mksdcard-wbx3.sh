@@ -13,7 +13,14 @@ if [ -z "${DRIVE}" ] || [ -z "${ARG}" ]; then
     exit
 fi
 
-if [ ! -b ${DRIVE} ] || [ "$(cat ${DRIVE_SIZE})" -eq 0 ]; then
+if [ ! -b ${DRIVE} ]; then
+    echo "Can not find destination drive \"${DRIVE}\""
+    exit
+fi
+
+DRIVE_BLOCKS=$(cat ${DRIVE_SIZE})
+
+if [ "${DRIVE_BLOCKS}" -eq 0 ]; then
     echo "Can not find destination drive \"${DRIVE}\""
     exit
 fi
@@ -57,8 +64,9 @@ hdparm -z ${DRIVE} >/dev/null
 
 echo "[Partitioning ${DRIVE}...]"
 
-# Wipe MBR and Partition Table
-dd if=/dev/zero of=${DRIVE} bs=512 count=1 status=none
+# Wipe MBR, GPT, and Partition Table
+dd if=/dev/zero of=${DRIVE} bs=512 count=34 status=none
+dd if=/dev/zero of=${DRIVE} bs=512 count=34 seek=$((DRIVE_BLOCKS-34)) status=none
 dd if=/dev/zero of=${DRIVE} bs=1KiB count=1 seek=1024 status=none
 
 parted -s ${DRIVE} mklabel msdos unit MiB \
