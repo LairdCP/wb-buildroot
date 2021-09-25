@@ -14,6 +14,20 @@ WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON
 WEBLCM_PYTHON_DEFAULT_USERNAME = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_USERNAME))
 WEBLCM_PYTHON_DEFAULT_PASSWORD = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_PASSWORD))
 
+ifeq ($(BR2_PACKAGE_WEBLCM_BLUETOOTH_PYTHON),y)
+	WEBLCM_PYTHON_EXTRA_MODULES += weblcm_bluetooth weblcm_ble weblcm_bluetooth_plugin
+endif
+ifeq ($(BR2_PACKAGE_WEBLCM_HID_PYTHON),y)
+	WEBLCM_PYTHON_EXTRA_MODULES += weblcm_hid_barcode_scanner
+endif
+ifeq ($(BR2_PACKAGE_WEBLCM_VSP_PYTHON),y)
+	WEBLCM_PYTHON_EXTRA_MODULES += weblcm_vsp_connection
+endif
+ifneq ($(BR2_PACKAGE_WEBLCM_HID_PYTHON)$(BR2_PACKAGE_WEBLCM_VSP_PYTHON),)
+	WEBLCM_PYTHON_EXTRA_MODULES += weblcm_tcp_connection
+endif
+WEBLCM_PYTHON_ENV = WEBLCM_PYTHON_EXTRA_MODULES='$(WEBLCM_PYTHON_EXTRA_MODULES)'
+
 ifeq ($(BR2_REPRODUCIBLE),y)
 define WEBLCM_PYTHON_FIX_TIME
 	sed -i -e 's/ExecStart=python/ExecStart=python --check-hash-based-pycs never/g' $(TARGET_DIR)/usr/lib/systemd/system/weblcm-python.service

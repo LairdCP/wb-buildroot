@@ -16,7 +16,6 @@ config BR2_PACKAGE_WEBLCM_PYTHON
 	select BR2_PACKAGE_LIBOPENSSL_BIN
 	select BR2_PACKAGE_LRD_FACTORY_RESET_TOOLKIT
 
-
 if BR2_PACKAGE_WEBLCM_PYTHON
 
 config BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_USERNAME
@@ -47,5 +46,25 @@ config BR2_PACKAGE_WEBLCM_PYTHON_UNMANAGED_HARDWARE_DEVICES
 	help
 		Space separated hardware devices like eth0, wlan0 etc which are managed by networkManager,
 		but don't want to be managed by weblcm-python.
+
+config BR2_PACKAGE_WEBLCM_BLUETOOTH_PYTHON
+	bool "Bluetooth support for weblcm"
+	depends on BR2_PACKAGE_BLUEZ5_UTILS
+	default y
+	help
+		Add basic Bluetooth REST API support to weblcm (scanning/pairing/connecting).
+
+config BR2_PACKAGE_WEBLCM_VSP_PYTHON
+	bool "BLE VSP support for weblcm"
+	depends on BR2_PACKAGE_WEBLCM_BLUETOOTH_PYTHON
+	help
+		Add BLE VSP support (rx/tx transfers over chosen GATT characteristics to TCP server) to weblcm.
+
+config BR2_PACKAGE_WEBLCM_HID_PYTHON
+	bool "HID BT barcode scanner support for weblcm"
+	depends on BR2_PACKAGE_WEBLCM_BLUETOOTH_PYTHON
+	select BR2_PACKAGE_PYTHON_PYUDEV
+	help
+		Add Bluetooth HID barcode scanner support to weblcm.
 
 endif
