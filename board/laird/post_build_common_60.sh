@@ -85,6 +85,10 @@ done
 [ -d ${TARGET_DIR}/etc/NetworkManager/dispatcher.d ] && \
 	find ${TARGET_DIR}/etc/NetworkManager/dispatcher.d -type f -exec chmod 700 {} \;
 
+if [ -x ${TARGET_DIR}/usr/sbin/firewalld ]; then
+	sed -i "s/firewall-backend=.*/firewall-backend=none/g" ${TARGET_DIR}/etc/NetworkManager/NetworkManager.conf
+fi
+
 # Remove bluetooth support when BlueZ 5 not present
 if [ ! -x ${TARGET_DIR}/usr/bin/btattach ]; then
 	rm -rf ${TARGET_DIR}/etc/bluetooth
