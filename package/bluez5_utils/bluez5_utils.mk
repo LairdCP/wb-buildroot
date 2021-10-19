@@ -167,7 +167,11 @@ define BLUEZ5_UTILS_INSTALL_BTMGMT
 	cd $(@D) && cp ./tools/btmgmt $(TARGET_DIR)/usr/bin/ -fr
 endef
 
-BLUEZ5_UTILS_POST_INSTALL_TARGET_HOOKS += BLUEZ5_UTILS_INSTALL_BTMGMT
+define BLUEZ5_UTILS_INSTALL_MAIN_CONF
+	$(INSTALL) -D -m 0644 $(@D)/src/main.conf $(TARGET_DIR)/etc/bluetooth/main.conf
+endef
+
+BLUEZ5_UTILS_POST_INSTALL_TARGET_HOOKS += BLUEZ5_UTILS_INSTALL_BTMGMT BLUEZ5_UTILS_INSTALL_MAIN_CONF
 endif
 
 $(eval $(autotools-package))

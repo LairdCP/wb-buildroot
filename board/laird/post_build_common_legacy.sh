@@ -61,6 +61,11 @@ else
 	rm -f ${TARGET_DIR}/etc/init.d/S95bluetooth*
 fi
 
+# Customize BlueZ Bluetooth advertised name
+if [ -e ${TARGET_DIR}/etc/bluetooth/main.conf ]; then
+	sed -i "s/.*Name *=.*/Name = Laird-${BR2_LRD_PRODUCT^^}/" ${TARGET_DIR}/etc/bluetooth/main.conf
+fi
+
 if [ ! -x ${TARGET_DIR}/usr/sbin/hostapd ]; then
 	rm -rf ${TARGET_DIR}/etc/hostapd
 	rm -rf ${TARGET_DIR}/bin/hostapd_mode
