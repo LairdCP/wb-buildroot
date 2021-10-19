@@ -30,3 +30,8 @@ if [ -e $BINARIES_DIR/$UBOOT_BINARY ]; then
     $HOST_DIR/bin/mkimage -A $MKIMAGE_ARCH -O linux -T script -C none -a 0 -e 0 \
         -n "upgrade script" -d $BOARD_DIR/upgrade.cmd $TARGET_DIR/upgrade.scr
 fi
+
+# Customize BlueZ Bluetooth advertised name
+if [ -e ${TARGET_DIR}/etc/bluetooth/main.conf ]; then
+	sed -i "s/.*Name *=.*/Name = Laird-${BR2_LRD_PRODUCT^^}/" ${TARGET_DIR}/etc/bluetooth/main.conf
+fi
