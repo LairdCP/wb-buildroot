@@ -25,7 +25,7 @@ while getopts m:s:x:qv name; do
     x)  [ x == "${OPTARG/*r*/x}" ] && o_restart=false ;;
     q)  o_quiet=true ;;
     v)  o_verbose="-v" ;;
-    ?)  printf "Usage: %s: [-n <method>] [-s <side>] [-x value] [-q] [-v] <url>\n" $0
+    ?)  printf "Usage: %s: [-m <method>] [-s <side>] [-x value] [-q] [-v] <url>\n" $0
         exit 1 ;;
     esac
 done
