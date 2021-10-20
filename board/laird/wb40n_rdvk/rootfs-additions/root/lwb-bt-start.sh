@@ -9,4 +9,4 @@ sleep 1
 
 /usr/bin/nohup /usr/bin/btattach -B /dev/ttyS1 -P bcm &
 
-/usr/bin/hciconfig hci0 up
+bluetoothctl power up

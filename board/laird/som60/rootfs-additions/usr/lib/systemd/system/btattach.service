@@ -1,6 +1,8 @@
 [Unit]
-Description=Enable Bluetooth for lrdmwl
+Description=Enable Bluetooth
 
 [Service]
-Type=simple
-ExecStart=/usr/bin/btattach -B /dev/ttyS1 -P h4 -S 3000000
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/bt-service.sh start
+ExecStop=/usr/bin/bt-service.sh stop
