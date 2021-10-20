@@ -11,4 +11,4 @@ mfg_mode=/sys/class/ieee80211/phy0/device/lrd/mfg_mode
 
 /usr/bin/nohup /usr/bin/btattach -B /dev/ttyS1 -P h4 -S ${baud} &
 
-bluetoothctl power up
+bluetoothctl power on
