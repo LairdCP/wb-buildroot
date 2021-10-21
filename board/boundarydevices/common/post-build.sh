@@ -1,4 +1,3 @@
-#!/bin/sh
 # post-build fixups
 # for further details, see
 #
