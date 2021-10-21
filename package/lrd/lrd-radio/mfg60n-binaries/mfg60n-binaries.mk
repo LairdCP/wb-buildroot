@@ -25,9 +25,20 @@ endef
 endif
 
 ifeq ($(BR2_PACKAGE_MFG60N_BINARIES_REGULATORY),y)
+
+ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS),y)
+define MFG60N_BINARIES_BTLRU_INSTALL_TARGET_CMD
+	$(INSTALL) -D -m 755 $(@D)/files/btlru $(TARGET_DIR)/usr/bin/btlru
+endef
+else ifeq ($(BR2_PACKAGE_BLUEZ_UTILS),y)
+define MFG60N_BINARIES_BTLRU_INSTALL_TARGET_CMD
+	$(INSTALL) -D -m 755 $(@D)/files/btlru $(TARGET_DIR)/usr/bin/btlru
+endef
+endif
+
 define MFG60N_BINARIES_REGULATORY_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 755 $(@D)/files/lru $(TARGET_DIR)/usr/bin/lru
-	$(INSTALL) -D -m 755 $(@D)/files/btlru $(TARGET_DIR)/usr/bin/btlru
+	$(MFG60N_BINARIES_BTLRU_INSTALL_TARGET_CMD)
 	$(INSTALL) -D -m 644 $(@D)/files/88W8997_mfg* -t $(TARGET_DIR)/lib/firmware/lrdmwl/
 endef
 endif
