@@ -6,23 +6,36 @@ BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_C
 echo "${BR2_LRD_PRODUCT^^} POST BUILD script: starting..."
 
 if [[ "${BR2_LRD_PRODUCT}" == mfg60* ]]; then
+NL=$'\n'
+MANIFEST_FILES=
 
 #lrt and other vendor mfg tools are mutually exclusive
 [ -f ${TARGET_DIR}/usr/bin/lrt ] &&  exit 0
 
+if [ -f ${TARGET_DIR}/usr/bin/lmu ]; then
+MANIFEST_FILES="${MANIFEST_FILES}${NL}/usr/bin/lmu"
+fi
+
+if [ -f ${TARGET_DIR}/usr/bin/lru ]; then
+MANIFEST_FILES="${MANIFEST_FILES}${NL}/usr/bin/lru"
+fi
+
+if [ -f ${TARGET_DIR}/usr/bin/btlru ]; then
+MANIFEST_FILES="${MANIFEST_FILES}${NL}/usr/bin/btlru"
+fi
+
+if [ -f ${TARGET_DIR}/usr/lib/libedit.so ]; then
 LIBEDIT=$(readlink $TARGET_DIR/usr/lib/libedit.so)
 LIBEDITLRD=${LIBEDIT/libedit./libedit.lrd.}
+MANIFEST_FILES="${MANIFEST_FILES}${NL}/usr/lib/${LIBEDITLRD}"
+cp "${TARGET_DIR}/usr/lib/${LIBEDIT}" "${TARGET_DIR}/usr/lib/${LIBEDITLRD}"
+fi
 
-echo "/usr/bin/lmu
-/usr/bin/lru
-/usr/bin/btlru
-/usr/lib/${LIBEDITLRD}" \
-> "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
+echo "${MANIFEST_FILES}" \
+ > "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
 
 ls "${TARGET_DIR}/lib/firmware/lrdmwl/88W8997_mfg_"* | sed "s,^${TARGET_DIR},," \
 	>> "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
-
-cp "${TARGET_DIR}/usr/lib/${LIBEDIT}" "${TARGET_DIR}/usr/lib/${LIBEDITLRD}"
 
 elif [[ "${BR2_LRD_PRODUCT}" == reg50* ]] || [[ "${BR2_LRD_PRODUCT}" == reg45* ]]; then
 
