@@ -30,6 +30,9 @@ config BR2_PACKAGE_NODEJS
 	select BR2_PACKAGE_LIBUV
 	select BR2_PACKAGE_ZLIB
 	select BR2_PACKAGE_NGHTTP2
+	# Laird: Add dependency on node-ssl-shim if using OpenSSL 1.0.2 or Laird
+	# FIPS OpenSSL binaries
+	select BR2_PACKAGE_NODE_SSL_SHIM if BR2_PACKAGE_LIBOPENSSL_1_0_2 || BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES
 	help
 	  Event-driven I/O server-side JavaScript environment based on
 	  V8.

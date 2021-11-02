@@ -1,0 +1,354 @@
+From 64d17e7087842f367a931fb5694ef9a2c6af6a8e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jan=20Stan=C4=9Bk?= <jstanek@redhat.com>
+Date: Thu, 8 Jul 2021 14:10:02 +0200
+Subject: [PATCH] Disable unsupported OpenSSL features
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Disable no-certificate PSK authentication
+
+  There is no obvious way to reimplement it using only OpenSSL 1.0 public APIs.
+
+- Disable queries for standard cipher name
+
+  OpenSSL 1.0 does not record said names.
+
+- Remove ClientHello getters
+
+  The disabled functions internally use
+  `SSL_client_hello_get0_ext`/`SSL_client_hello_get0_ciphers`,
+  which are not available on legacy OpenSSL.
+  There may be another way to get to the same data,
+  but nothing jumps out in the OpenSSL 1.0.2 documentation.
+
+- Remove TLSv1.3 CLI options
+
+Signed-off-by: Jan Staněk <jstanek@redhat.com>
+---
+ doc/api/cli.md                                 | 18 ------------------
+ doc/api/tls.md                                 | 15 +++++++--------
+ src/env.h                                      | 11 ++++++++++-
+ src/node_crypto_common.cc                      | 12 ++++++++++++
+ src/node_crypto_common.h                       |  6 ++++++
+ src/node_options.cc                            | 10 +++++++++-
+ .../test-tls-cli-max-version-1.3.js            |  0
+ .../test-tls-cli-min-max-conflict.js           |  0
+ .../test-tls-cli-min-version-1.3.js            |  0
+ 9 files changed, 44 insertions(+), 28 deletions(-)
+ rename test/{parallel => known_issues}/test-tls-cli-max-version-1.3.js (100%)
+ rename test/{parallel => known_issues}/test-tls-cli-min-max-conflict.js (100%)
+ rename test/{parallel => known_issues}/test-tls-cli-min-version-1.3.js (100%)
+
+diff --git a/doc/api/cli.md b/doc/api/cli.md
+index 86635f267b..6a1cad9b74 100644
+--- a/doc/api/cli.md
++++ b/doc/api/cli.md
+@@ -816,14 +816,6 @@ added: v12.0.0
+ Set [`tls.DEFAULT_MAX_VERSION`][] to 'TLSv1.2'. Use to disable support for
+ TLSv1.3.
+ 
+-### `--tls-max-v1.3`
+-<!-- YAML
+-added: v12.0.0
+--->
+-
+-Set default [`tls.DEFAULT_MAX_VERSION`][] to 'TLSv1.3'. Use to enable support
+-for TLSv1.3.
+-
+ ### `--tls-min-v1.0`
+ <!-- YAML
+ added: v12.0.0
+@@ -849,14 +841,6 @@ Set default [`tls.DEFAULT_MIN_VERSION`][] to 'TLSv1.2'. This is the default for
+ 12.x and later, but the option is supported for compatibility with older Node.js
+ versions.
+ 
+-### `--tls-min-v1.3`
+-<!-- YAML
+-added: v12.0.0
+--->
+-
+-Set default [`tls.DEFAULT_MIN_VERSION`][] to 'TLSv1.3'. Use to disable support
+-for TLSv1.2, which is not as secure as TLSv1.3.
+-
+ ### `--trace-deprecation`
+ <!-- YAML
+ added: v0.8.0
+@@ -1240,11 +1224,9 @@ Node.js options that are allowed are:
+ * `--tls-cipher-list`
+ * `--tls-keylog`
+ * `--tls-max-v1.2`
+-* `--tls-max-v1.3`
+ * `--tls-min-v1.0`
+ * `--tls-min-v1.1`
+ * `--tls-min-v1.2`
+-* `--tls-min-v1.3`
+ * `--trace-deprecation`
+ * `--trace-event-categories`
+ * `--trace-event-file-pattern`
+diff --git a/doc/api/tls.md b/doc/api/tls.md
+index c9fabbc5b5..3c2dec97c3 100644
+--- a/doc/api/tls.md
++++ b/doc/api/tls.md
+@@ -1947,10 +1947,10 @@ added: v11.4.0
+ 
+ * {string} The default value of the `maxVersion` option of
+   [`tls.createSecureContext()`][]. It can be assigned any of the supported TLS
+-  protocol versions, `'TLSv1.3'`, `'TLSv1.2'`, `'TLSv1.1'`, or `'TLSv1'`.
+-  **Default:** `'TLSv1.3'`, unless changed using CLI options. Using
+-  `--tls-max-v1.2` sets the default to `'TLSv1.2'`. Using `--tls-max-v1.3` sets
+-  the default to `'TLSv1.3'`. If multiple of the options are provided, the
++  protocol versions, `'TLSv1.2'`, `'TLSv1.1'`, or `'TLSv1'`.
++  **Default:** `'TLSv1.2'`, unless changed using CLI options. Using
++  `--tls-max-v1.2` sets the default to `'TLSv1.2'`.
++  If multiple of the options are provided, the
+   highest maximum is used.
+ 
+ ## `tls.DEFAULT_MIN_VERSION`
+@@ -1960,12 +1960,11 @@ added: v11.4.0
+ 
+ * {string} The default value of the `minVersion` option of
+   [`tls.createSecureContext()`][]. It can be assigned any of the supported TLS
+-  protocol versions, `'TLSv1.3'`, `'TLSv1.2'`, `'TLSv1.1'`, or `'TLSv1'`.
++  protocol versions, `'TLSv1.2'`, `'TLSv1.1'`, or `'TLSv1'`.
+   **Default:** `'TLSv1.2'`, unless changed using CLI options. Using
+   `--tls-min-v1.0` sets the default to `'TLSv1'`. Using `--tls-min-v1.1` sets
+-  the default to `'TLSv1.1'`. Using `--tls-min-v1.3` sets the default to
+-  `'TLSv1.3'`. If multiple of the options are provided, the lowest minimum is
+-  used.
++  the default to `'TLSv1.1'`. If multiple of the options are provided,
++  the lowest minimum is used.
+ 
+ [`'newSession'`]: #tls_event_newsession
+ [`'resumeSession'`]: #tls_event_resumesession
+diff --git a/src/env.h b/src/env.h
+index ed058866e9..cca3a26d0a 100644
+--- a/src/env.h
++++ b/src/env.h
+@@ -51,6 +51,8 @@
+ #include <unordered_set>
+ #include <vector>
+ 
++#include <node-ssl-shim/ssl-shim.h>
++
+ struct nghttp2_rcbuf;
+ 
+ namespace node {
+@@ -148,6 +150,13 @@ constexpr size_t kFsStatsBufferLength =
+ // Make sure that any macro V defined for use with the PER_ISOLATE_* macros is
+ // undefined again after use.
+ 
++// Some symbols/strings are not defined when using legacy OpenSSL
++#if OPENSSL_IS_LEGACY
++#   define NODE_ENV_STANDARD_NAME_STRING
++#else // OPENSSL_IS_LEGACY
++#   define NODE_ENV_STANDARD_NAME_STRING V(standard_name_string, "standardName")
++#endif // OPENSSL_IS_LEGACY
++
+ // Private symbols are per-isolate primitives but Environment proxies them
+ // for the sake of convenience.  Strings should be ASCII-only and have a
+ // "node:" prefix to avoid name clashes with third-party code.
+@@ -369,7 +378,7 @@ constexpr size_t kFsStatsBufferLength =
+   V(sni_context_string, "sni_context")                                         \
+   V(source_string, "source")                                                   \
+   V(stack_string, "stack")                                                     \
+-  V(standard_name_string, "standardName")                                      \
++  NODE_ENV_STANDARD_NAME_STRING                                                \
+   V(start_time_string, "startTime")                                            \
+   V(status_string, "status")                                                   \
+   V(stdio_string, "stdio")                                                     \
+diff --git a/src/node_crypto_common.cc b/src/node_crypto_common.cc
+index d1d9edd6cd..a5724a51fe 100644
+--- a/src/node_crypto_common.cc
++++ b/src/node_crypto_common.cc
+@@ -210,6 +210,7 @@ long VerifyPeerCertificate(  // NOLINT(runtime/int)
+   if (X509* peer_cert = SSL_get_peer_certificate(ssl.get())) {
+     X509_free(peer_cert);
+     err = SSL_get_verify_result(ssl.get());
++#if !OPENSSL_IS_LEGACY
+   } else {
+     const SSL_CIPHER* curr_cipher = SSL_get_current_cipher(ssl.get());
+     const SSL_SESSION* sess = SSL_get_session(ssl.get());
+@@ -221,6 +222,7 @@ long VerifyPeerCertificate(  // NOLINT(runtime/int)
+          SSL_session_reused(ssl.get()))) {
+       return X509_V_OK;
+     }
++#endif // !OPENSSL_IS_LEGACY
+   }
+   return err;
+ }
+@@ -238,6 +240,7 @@ int UseSNIContext(const SSLPointer& ssl, BaseObjectPtr<SecureContext> context) {
+   return err;
+ }
+ 
++#if !OPENSSL_IS_LEGACY
+ const char* GetClientHelloALPN(const SSLPointer& ssl) {
+   const unsigned char* buf;
+   size_t len;
+@@ -284,6 +287,7 @@ const char* GetClientHelloServerName(const SSLPointer& ssl) {
+     return nullptr;
+   return reinterpret_cast<const char*>(buf + 5);
+ }
++#endif // !OPENSSL_IS_LEGACY
+ 
+ const char* GetServerName(SSL* ssl) {
+   return SSL_get_servername(ssl, TLSEXT_NAMETYPE_host_name);
+@@ -405,11 +409,13 @@ MaybeLocal<Value> GetCipherName(Environment* env, const SSL_CIPHER* cipher) {
+   return GetCipherValue(env, cipher, SSL_CIPHER_get_name);
+ }
+ 
++#if !OPENSSL_IS_LEGACY
+ MaybeLocal<Value> GetCipherStandardName(
+     Environment* env,
+     const SSL_CIPHER* cipher) {
+   return GetCipherValue(env, cipher, SSL_CIPHER_standard_name);
+ }
++#endif  // !OPENSSL_IS_LEGACY
+ 
+ MaybeLocal<Value> GetCipherVersion(Environment* env, const SSL_CIPHER* cipher) {
+   return GetCipherValue(env, cipher, SSL_CIPHER_get_version);
+@@ -761,16 +767,19 @@ MaybeLocal<Value> GetCipherName(Environment* env, const SSLPointer& ssl) {
+   return GetCipherName(env, SSL_get_current_cipher(ssl.get()));
+ }
+ 
++#if !OPENSSL_IS_LEGACY
+ MaybeLocal<Value> GetCipherStandardName(
+     Environment* env,
+     const SSLPointer& ssl) {
+   return GetCipherStandardName(env, SSL_get_current_cipher(ssl.get()));
+ }
++#endif // !OPENSSL_IS_LEGACY
+ 
+ MaybeLocal<Value> GetCipherVersion(Environment* env, const SSLPointer& ssl) {
+   return GetCipherVersion(env, SSL_get_current_cipher(ssl.get()));
+ }
+ 
++#if !OPENSSL_IS_LEGACY
+ MaybeLocal<Array> GetClientHelloCiphers(
+     Environment* env,
+     const SSLPointer& ssl) {
+@@ -803,6 +812,7 @@ MaybeLocal<Array> GetClientHelloCiphers(
+   Local<Array> ret = Array::New(env->isolate(), ciphers.out(), count);
+   return scope.Escape(ret);
+ }
++#endif // !OPENSSL_IS_LEGACY
+ 
+ 
+ MaybeLocal<Object> GetCipherInfo(Environment* env, const SSLPointer& ssl) {
+@@ -813,10 +823,12 @@ MaybeLocal<Object> GetCipherInfo(Environment* env, const SSLPointer& ssl) {
+                   info,
+                   env->name_string(),
+                   GetCipherName(env, ssl)) ||
++#if !OPENSSL_IS_LEGACY
+       !Set<Value>(env->context(),
+                   info,
+                   env->standard_name_string(),
+                   GetCipherStandardName(env, ssl)) ||
++#endif // !OPENSSL_IS_LEGACY
+       !Set<Value>(env->context(),
+                   info,
+                   env->version_string(),
+diff --git a/src/node_crypto_common.h b/src/node_crypto_common.h
+index c373a97e47..220cb109bc 100644
+--- a/src/node_crypto_common.h
++++ b/src/node_crypto_common.h
+@@ -73,15 +73,19 @@ long VerifyPeerCertificate(  // NOLINT(runtime/int)
+ 
+ int UseSNIContext(const SSLPointer& ssl, BaseObjectPtr<SecureContext> context);
+ 
++#if !OPENSSL_IS_LEGACY
+ const char* GetClientHelloALPN(const SSLPointer& ssl);
+ 
+ const char* GetClientHelloServerName(const SSLPointer& ssl);
++#endif // !OPENSSL_IS_LEGACY
+ 
+ const char* GetServerName(SSL* ssl);
+ 
++#if !OPENSSL_IS_LEGACY
+ v8::MaybeLocal<v8::Array> GetClientHelloCiphers(
+     Environment* env,
+     const SSLPointer& ssl);
++#endif // !OPENSSL_IS_LEGACY
+ 
+ bool SetGroups(SecureContext* sc, const char* groups);
+ 
+@@ -97,9 +101,11 @@ v8::MaybeLocal<v8::Value> GetCipherName(
+     Environment* env,
+     const SSLPointer& ssl);
+ 
++#if !OPENSSL_IS_LEGACY
+ v8::MaybeLocal<v8::Value> GetCipherStandardName(
+     Environment* env,
+     const SSLPointer& ssl);
++#endif // !OPENSSL_IS_LEGACY
+ 
+ v8::MaybeLocal<v8::Value> GetCipherVersion(
+     Environment* env,
+diff --git a/src/node_options.cc b/src/node_options.cc
+index 0240b2ef58..8affde8753 100644
+--- a/src/node_options.cc
++++ b/src/node_options.cc
+@@ -9,6 +9,8 @@
+ #include <sstream>
+ #include <cstdlib>  // strtoul, errno
+ 
++#include <node-ssl-shim/features.h>
++
+ using v8::Boolean;
+ using v8::Context;
+ using v8::FunctionCallbackInfo;
+@@ -115,10 +117,12 @@ void EnvironmentOptions::CheckOptions(std::vector<std::string>* errors) {
+     errors->push_back("invalid value for --unhandled-rejections");
+   }
+ 
++#if !OPENSSL_IS_LEGACY
+   if (tls_min_v1_3 && tls_max_v1_2) {
+     errors->push_back("either --tls-min-v1.3 or --tls-max-v1.2 can be "
+                       "used, not both");
+   }
++#endif // !OPENSSL_IS_LEGACY
+ 
+ #if HAVE_INSPECTOR
+   if (!cpu_prof) {
+@@ -526,14 +530,17 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
+             "set default TLS minimum to TLSv1.2 (default: TLSv1.2)",
+             &EnvironmentOptions::tls_min_v1_2,
+             kAllowedInEnvironment);
++#if !OPENSSL_IS_LEGACY
+   AddOption("--tls-min-v1.3",
+             "set default TLS minimum to TLSv1.3 (default: TLSv1.2)",
+             &EnvironmentOptions::tls_min_v1_3,
+             kAllowedInEnvironment);
++#endif // !OPENSSL_IS_LEGACY
+   AddOption("--tls-max-v1.2",
+-            "set default TLS maximum to TLSv1.2 (default: TLSv1.3)",
++            "set default TLS maximum to TLSv1.2 (default: TLSv1.2)",
+             &EnvironmentOptions::tls_max_v1_2,
+             kAllowedInEnvironment);
++#if !OPENSSL_IS_LEGACY
+   // Current plan is:
+   // - 11.x and below: TLS1.3 is opt-in with --tls-max-v1.3
+   // - 12.x: TLS1.3 is opt-out with --tls-max-v1.2
+@@ -542,6 +549,7 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
+             "set default TLS maximum to TLSv1.3 (default: TLSv1.3)",
+             &EnvironmentOptions::tls_max_v1_3,
+             kAllowedInEnvironment);
++#endif // !OPENSSL_IS_LEGACY
+ }
+ 
+ PerIsolateOptionsParser::PerIsolateOptionsParser(
+diff --git a/test/parallel/test-tls-cli-max-version-1.3.js b/test/known_issues/test-tls-cli-max-version-1.3.js
+similarity index 100%
+rename from test/parallel/test-tls-cli-max-version-1.3.js
+rename to test/known_issues/test-tls-cli-max-version-1.3.js
+diff --git a/test/parallel/test-tls-cli-min-max-conflict.js b/test/known_issues/test-tls-cli-min-max-conflict.js
+similarity index 100%
+rename from test/parallel/test-tls-cli-min-max-conflict.js
+rename to test/known_issues/test-tls-cli-min-max-conflict.js
+diff --git a/test/parallel/test-tls-cli-min-version-1.3.js b/test/known_issues/test-tls-cli-min-version-1.3.js
+similarity index 100%
+rename from test/parallel/test-tls-cli-min-version-1.3.js
+rename to test/known_issues/test-tls-cli-min-version-1.3.js
+-- 
+2.31.1
+

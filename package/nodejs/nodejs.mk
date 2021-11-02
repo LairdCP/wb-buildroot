@@ -10,7 +10,7 @@ NODEJS_SITE = http://nodejs.org/dist/v$(NODEJS_VERSION)
 NODEJS_DEPENDENCIES = host-python host-nodejs c-ares \
 	libuv zlib nghttp2 \
 	$(call qstrip,$(BR2_PACKAGE_NODEJS_MODULES_ADDITIONAL_DEPS))
-HOST_NODEJS_DEPENDENCIES = host-icu host-libopenssl host-python host-zlib
+HOST_NODEJS_DEPENDENCIES = host-libopenssl host-python host-zlib
 NODEJS_INSTALL_STAGING = YES
 NODEJS_LICENSE = MIT (core code); MIT, Apache and BSD family licenses (Bundled components)
 NODEJS_LICENSE_FILES = LICENSE
@@ -54,6 +54,9 @@ define NODEJS_PATCHES_OPENSSL_1_0_2
 endef
 ifneq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES)$(BR2_PACKAGE_LIBOPENSSL_1_0_2),)
 	NODEJS_POST_PATCH_HOOKS = NODEJS_PATCHES_OPENSSL_1_0_2
+
+	NODEJS_DEPENDENCIES += node-ssl-shim
+	NODEJS_CONFIGURE_PREPEND_CMDS = ln -sf $(STAGING_DIR)/usr $(@D)/deps/node-ssl-shim
 endif
 
 # Define HOST_NPM for other packages to use
@@ -87,7 +90,7 @@ define HOST_NODEJS_CONFIGURE_CMDS
 		--shared-openssl-libpath=$(HOST_DIR)/lib \
 		--shared-zlib \
 		--no-cross-compiling \
-		--with-intl=system-icu \
+		--with-intl=small-icu \
 	)
 endef
 
@@ -172,6 +175,7 @@ NODEJS_LDFLAGS += -latomic
 endif
 
 define NODEJS_CONFIGURE_CMDS
+	$(NODEJS_CONFIGURE_PREPEND_CMDS)
 	mkdir -p $(@D)/bin
 	ln -sf $(HOST_DIR)/bin/python2 $(@D)/bin/python
 

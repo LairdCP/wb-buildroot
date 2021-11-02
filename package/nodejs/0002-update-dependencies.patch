@@ -1,0 +1,21 @@
+--- a/node.gyp	2021-08-10 21:39:10.000000000 -0400
++++ b/node.gyp	2021-10-20 10:37:59.390523000 -0400
+@@ -534,11 +534,18 @@
+ 
+       'include_dirs': [
+         'src',
++        'deps/cares/src/lib',
++        'deps/uv/include',
++        'deps/uv/src',
++        'deps/nghttp2/lib/include',
++        'deps/nghttp2/lib',
+         '<(SHARED_INTERMEDIATE_DIR)' # for node_natives.h
+       ],
+       'dependencies': [
+         'deps/histogram/histogram.gyp:histogram',
+         'deps/uvwasi/uvwasi.gyp:uvwasi',
++        'deps/uv/uv.gyp:libuv',
++        'deps/nghttp2/nghttp2.gyp:nghttp2'
+       ],
+ 
+       'sources': [

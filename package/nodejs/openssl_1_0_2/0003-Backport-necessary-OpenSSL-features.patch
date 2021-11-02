@@ -1,0 +1,355 @@
+From aef9bc657e0da83f5b540d8aeea100d0784aab4f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jan=20Stan=C4=9Bk?= <jstanek@redhat.com>
+Date: Thu, 8 Jul 2021 14:09:22 +0200
+Subject: [PATCH] Backport necessary OpenSSL features
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Remove uses of SSL_CTX_{get,set}_{min,max}_proto_version()
+
+  These functions are not provided by OpenSSL v1.0,
+  and unfortunately cannot be fully re-implemented using available APIs.
+
+- Implement SSL_{get,set}_{min,max}_proto_version on NodeJS level
+
+  The shim layer cannot provide implementation for the above functions,
+  as there is no place to store the current boundary information.
+  Setting them can be simulated by using SSL_CTX options,
+  but getting them is tricky and starts to fail once the boundaries meet.
+
+  Since Node wraps the secure context in it's own structure,
+  that structure can be extended to record the last set boundaries,
+  and then set the appropriate options on the OpenSSL structure.
+
+  This patch is a first draft of this implementation.
+  The boundaries are stored directly as private members of
+  `node::crypto::SecureContext`.
+  In order to actually apply them, a new private `_SyncMinMaxProto()`
+  method has to be called.
+  This will modify the option mask of the associated SSL_CTX structure
+  to match the recorded boundaries.
+  Use with care!
+
+- Provide locking mechanism for legacy OpenSSL
+
+  This commit is probably a good candidate for inclusion in the shim,
+  although probably as some sort of extras – it is not trivial!
+
+Signed-off-by: Jan Staněk <jstanek@redhat.com>
+---
+ src/node_crypto.cc | 174 ++++++++++++++++++++++++++++++++++++++++++---
+ src/node_crypto.h  |  14 ++++
+ 2 files changed, 180 insertions(+), 8 deletions(-)
+
+diff --git a/src/node_crypto.cc b/src/node_crypto.cc
+index 0cc97f99ea..65912d7db4 100644
+--- a/src/node_crypto.cc
++++ b/src/node_crypto.cc
+@@ -518,6 +518,11 @@ inline void SecureContext::Reset() {
+   ctx_.reset();
+   cert_.reset();
+   issuer_.reset();
++
++#if OPENSSL_IS_LEGACY
++  _min_proto_version = 0;
++  _max_proto_version = 0;
++#endif // OPENSSL_IS_LEGACY
+ }
+ 
+ SecureContext::~SecureContext() {
+@@ -531,7 +536,11 @@ void SecureContext::New(const FunctionCallbackInfo<Value>& args) {
+ 
+ // A maxVersion of 0 means "any", but OpenSSL may support TLS versions that
+ // Node.js doesn't, so pin the max to what we do support.
++#if OPENSSL_IS_LEGACY
++const int MAX_SUPPORTED_VERSION = TLS1_2_VERSION;
++#else // OPENSSL_IS_LEGACY
+ const int MAX_SUPPORTED_VERSION = TLS1_3_VERSION;
++#endif // OPENSSL_IS_LEGACY
+ 
+ void SecureContext::Init(const FunctionCallbackInfo<Value>& args) {
+   SecureContext* sc;
+@@ -588,36 +597,39 @@ void SecureContext::Init(const FunctionCallbackInfo<Value>& args) {
+     } else if (sslmethod == "TLSv1_method") {
+       min_version = TLS1_VERSION;
+       max_version = TLS1_VERSION;
++      method = TLSv1_method();
+     } else if (sslmethod == "TLSv1_server_method") {
+       min_version = TLS1_VERSION;
+       max_version = TLS1_VERSION;
+-      method = TLS_server_method();
++      method = TLSv1_server_method();
+     } else if (sslmethod == "TLSv1_client_method") {
+       min_version = TLS1_VERSION;
+       max_version = TLS1_VERSION;
+-      method = TLS_client_method();
++      method = TLSv1_client_method();
+     } else if (sslmethod == "TLSv1_1_method") {
+       min_version = TLS1_1_VERSION;
+       max_version = TLS1_1_VERSION;
++      method = TLSv1_1_method();
+     } else if (sslmethod == "TLSv1_1_server_method") {
+       min_version = TLS1_1_VERSION;
+       max_version = TLS1_1_VERSION;
+-      method = TLS_server_method();
++      method = TLSv1_1_server_method();
+     } else if (sslmethod == "TLSv1_1_client_method") {
+       min_version = TLS1_1_VERSION;
+       max_version = TLS1_1_VERSION;
+-      method = TLS_client_method();
++      method = TLSv1_1_client_method();
+     } else if (sslmethod == "TLSv1_2_method") {
+       min_version = TLS1_2_VERSION;
+       max_version = TLS1_2_VERSION;
++      method = TLSv1_2_method();
+     } else if (sslmethod == "TLSv1_2_server_method") {
+       min_version = TLS1_2_VERSION;
+       max_version = TLS1_2_VERSION;
+-      method = TLS_server_method();
++      method = TLSv1_2_server_method();
+     } else if (sslmethod == "TLSv1_2_client_method") {
+       min_version = TLS1_2_VERSION;
+       max_version = TLS1_2_VERSION;
+-      method = TLS_client_method();
++      method = TLSv1_2_client_method();
+     } else {
+       const std::string msg("Unknown method: ");
+       THROW_ERR_TLS_INVALID_PROTOCOL_METHOD(env, (msg + * sslmethod).c_str());
+@@ -647,8 +659,14 @@ void SecureContext::Init(const FunctionCallbackInfo<Value>& args) {
+                                  SSL_SESS_CACHE_NO_INTERNAL |
+                                  SSL_SESS_CACHE_NO_AUTO_CLEAR);
+ 
++#if OPENSSL_IS_LEGACY
++  sc->_min_proto_version = min_version;
++  sc->_max_proto_version = max_version;
++  sc->_SyncMinMaxProto();
++#else
+   SSL_CTX_set_min_proto_version(sc->ctx_.get(), min_version);
+   SSL_CTX_set_max_proto_version(sc->ctx_.get(), max_version);
++#endif // !OPENSSL_IS_LEGACY
+ 
+   // OpenSSL 1.1.0 changed the ticket key size, but the OpenSSL 1.0.x size was
+   // exposed in the public API. To retain compatibility, install a callback
+@@ -1248,6 +1266,65 @@ void SecureContext::SetDHParam(const FunctionCallbackInfo<Value>& args) {
+     return env->ThrowTypeError("Error setting temp DH parameter");
+ }
+ 
++#if OPENSSL_IS_LEGACY
++int SecureContext::_SyncMinMaxProto() {
++  // Node explicitly disables SSLv2 and v3 – do not intefere with that
++  static const auto ALL_SUPPORTED_VERSIONS =
++    SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2;
++
++  auto mask = long(0);
++
++  // Setup minimum version
++  switch (_min_proto_version) {
++    default: return 0; // unsupported version
++    case TLS1_3_VERSION:
++      mask |= SSL_OP_NO_TLSv1_2;
++      [[fallthrough]];
++    case TLS1_2_VERSION:
++      mask |= SSL_OP_NO_TLSv1_1;
++      [[fallthrough]];
++    case TLS1_1_VERSION:
++      mask |= SSL_OP_NO_TLSv1;
++      [[fallthrough]];
++    case TLS1_VERSION:
++      mask |= SSL_OP_NO_SSLv3;
++      [[fallthrough]];
++    case SSL3_VERSION:
++      mask |= SSL_OP_NO_SSLv2;
++      [[fallthrough]];
++    case 0: // any supported version
++      break;
++  }
++
++  // Setup maximum version
++  switch (_max_proto_version) {
++    default: return 0; // unsupported version
++    case SSL3_VERSION:
++      mask |= SSL_OP_NO_TLSv1;
++      [[fallthrough]];
++    case TLS1_VERSION:
++      mask |= SSL_OP_NO_TLSv1_1;
++      [[fallthrough]];
++    case TLS1_1_VERSION:
++      mask |= SSL_OP_NO_TLSv1_2;
++      [[fallthrough]];
++    case TLS1_2_VERSION:
++      // no-op, legacy OpenSSL does not know about TLSv1.3
++      [[fallthrough]];
++    case TLS1_3_VERSION:
++      [[fallthrough]];
++    case 0: // any version
++      break;
++  }
++
++  // Reset current context mask
++  auto *raw_context = ctx_.get();
++  SSL_CTX_clear_options(raw_context, ALL_SUPPORTED_VERSIONS);
++  SSL_CTX_set_options(raw_context, mask);
++
++  return 1;
++}
++#endif // OPENSSL_IS_LEGACY
+ 
+ void SecureContext::SetMinProto(const FunctionCallbackInfo<Value>& args) {
+   SecureContext* sc;
+@@ -1258,7 +1335,12 @@ void SecureContext::SetMinProto(const FunctionCallbackInfo<Value>& args) {
+ 
+   int version = args[0].As<Int32>()->Value();
+ 
++#if OPENSSL_IS_LEGACY
++  sc->_min_proto_version = version;
++  CHECK(sc->_SyncMinMaxProto());
++#else  // OPENSSL_IS_LEGACY
+   CHECK(SSL_CTX_set_min_proto_version(sc->ctx_.get(), version));
++#endif  // OPENSSL_IS_LEGACY
+ }
+ 
+ 
+@@ -1271,7 +1353,12 @@ void SecureContext::SetMaxProto(const FunctionCallbackInfo<Value>& args) {
+ 
+   int version = args[0].As<Int32>()->Value();
+ 
++#if OPENSSL_IS_LEGACY
++  sc->_max_proto_version = version;
++  CHECK(sc->_SyncMinMaxProto());
++#else // OPENSSL_IS_LEGACY
+   CHECK(SSL_CTX_set_max_proto_version(sc->ctx_.get(), version));
++#endif // OPENSSL_IS_LEGACY
+ }
+ 
+ 
+@@ -1282,7 +1369,11 @@ void SecureContext::GetMinProto(const FunctionCallbackInfo<Value>& args) {
+   CHECK_EQ(args.Length(), 0);
+ 
+   long version =  // NOLINT(runtime/int)
++#if OPENSSL_IS_LEGACY
++    sc->_min_proto_version;
++#else // OPENSSL_IS_LEGACY
+     SSL_CTX_get_min_proto_version(sc->ctx_.get());
++#endif // OPENSSL_IS_LEGACY
+   args.GetReturnValue().Set(static_cast<uint32_t>(version));
+ }
+ 
+@@ -1294,11 +1385,14 @@ void SecureContext::GetMaxProto(const FunctionCallbackInfo<Value>& args) {
+   CHECK_EQ(args.Length(), 0);
+ 
+   long version =  // NOLINT(runtime/int)
++#if OPENSSL_IS_LEGACY
++    sc->_max_proto_version;
++#else // OPENSSL_IS_LEGACY
+     SSL_CTX_get_max_proto_version(sc->ctx_.get());
++#endif // OPENSSL_IS_LEGACY
+   args.GetReturnValue().Set(static_cast<uint32_t>(version));
+ }
+ 
+-
+ void SecureContext::SetOptions(const FunctionCallbackInfo<Value>& args) {
+   SecureContext* sc;
+   ASSIGN_OR_RETURN_UNWRAP(&sc, args.Holder());
+@@ -6900,8 +6994,72 @@ void TimingSafeEqual(const FunctionCallbackInfo<Value>& args) {
+       CRYPTO_memcmp(buf1.data(), buf2.data(), buf1.length()) == 0);
+ }
+ 
++
++#if OPENSSL_IS_LEGACY
++// Array of mutexes provided for OpenSSL internal use
++static std::unique_ptr<Mutex[]> openssl_lock_array = nullptr;
++
++// OpenSSL callback – lock/unlock a mutex
++static void openssl_lock_callback(
++    int mode, int which, const char *file [[maybe_unused]], int line [[maybe_unused]])
++{
++  // Exactly one of CRYPTO_LOCK or CRYPTO_UNLOCK is set
++  CHECK(!(mode & CRYPTO_LOCK) ^ !(mode & CRYPTO_UNLOCK));
++  // Exactly one of CRYPTO_READ or CRYPTO_WRITE is set
++  CHECK(!(mode & CRYPTO_READ) ^ !(mode & CRYPTO_WRITE));
++  // FIXME: No easy way to make a array bounds check
++
++  auto mtx = &openssl_lock_array[which];
++  if (mode & CRYPTO_LOCK) {
++    mtx->Lock();
++  } else {
++    mtx->Unlock();
++  }
++}
++
++// OpenSSL callback - retrieve current thread ID
++static void openssl_threadid_callback(CRYPTO_THREADID *thread_id) {
++  static_assert(sizeof (uv_thread_t) <= sizeof (void *), "uv_thread_t does not fit in a pointer");
++  CRYPTO_THREADID_set_pointer(thread_id, reinterpret_cast<void *>(uv_thread_self()));
++}
++
++// Initialize (reset) the provided locking mechanism
++static void openssl_reset_locking() {
++  openssl_lock_array = std::make_unique<Mutex[]>(CRYPTO_num_locks());
++
++  CRYPTO_THREADID_set_callback(openssl_threadid_callback);
++  CRYPTO_set_locking_callback(openssl_lock_callback);
++}
++
++#endif // OPENSSL_IS_LEGACY
++
+ void InitCryptoOnce() {
+-#ifndef OPENSSL_IS_BORINGSSL
++#if defined(OPENSSL_IS_BORINGSSL) || OPENSSL_IS_LEGACY
++  SSL_load_error_strings();
++  OPENSSL_no_config();
++
++  if (!per_process::cli_options->openssl_config.empty()) {
++    OPENSSL_load_builtin_modules();
++#ifndef OPENSSL_NO_ENGINE
++    ENGINE_load_builtin_engines();
++#endif // OPENSSL_NO_ENGINE
++    ERR_clear_error();
++
++    const char *conf_path = per_process::cli_options->openssl_config.c_str();
++    CONF_modules_load_file(conf_path, nullptr, CONF_MFLAGS_DEFAULT_SECTION);
++    auto err = ERR_get_error();
++    if (err != 0) {
++      fprintf(stderr, "openssl config failed: %s\n", ERR_error_string(err, nullptr));
++      CHECK_NE(err, 0);
++    }
++  }
++
++  // Initialize OpenSSL library
++  SSL_library_init();
++  OpenSSL_add_all_algorithms();
++  // Provide mutex array for OpenSSL
++  openssl_reset_locking();
++#else
+   OPENSSL_INIT_SETTINGS* settings = OPENSSL_INIT_new();
+ 
+   // --openssl-config=...
+diff --git a/src/node_crypto.h b/src/node_crypto.h
+index 780e1893f4..2787e257ad 100644
+--- a/src/node_crypto.h
++++ b/src/node_crypto.h
+@@ -182,6 +182,20 @@ class SecureContext final : public BaseObject {
+ 
+   SecureContext(Environment* env, v8::Local<v8::Object> wrap);
+   void Reset();
++
++#if OPENSSL_IS_LEGACY
++ private:
++  // Legacy OpenSSL does not store min-max allowed versions of SSL/TLS;
++  // instead it relies on flags and enabling/disabling specific versions.
++  //
++  // In order to provide enough information for *getting* the allowed
++  // versions last set, record the boundaries on our secure context.
++  int _min_proto_version = 0;
++  int _max_proto_version = 0;
++
++  /** Sync _{min,max}_proto_version to wrapped context. */
++  int _SyncMinMaxProto();
++#endif // OPENSSL_IS_LEGACY
+ };
+ 
+ // SSLWrap implicitly depends on the inheriting class' handle having an
+-- 
+2.31.1
+

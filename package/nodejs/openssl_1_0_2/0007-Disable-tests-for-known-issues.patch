@@ -1,0 +1,176 @@
+From 7d2fcf06ab09ed018a8c8bef84c072f93218b7ff Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jan=20Stan=C4=9Bk?= <jstanek@redhat.com>
+Date: Thu, 8 Jul 2021 14:11:48 +0200
+Subject: [PATCH] Disable tests for known issues
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Disable tests failing with different kinds of errors than expected
+
+  For example, tests which are expected to emit
+  `ERR_SSL_UNSUPPORTED_PROTOCOL` but instead emit `ECONNRESET`.
+
+  It is unclear if this is error in RedHat patches or just behavioral
+  difference between OpenSSL versions.
+
+- Disable failing TLS tests
+
+  Cause of the failures here is not clear.
+  Further investigation may be in order.
+
+  See rhbz#1873155 for the related bug.
+
+- Disable failing async tests
+
+- Disable failing REPL tests
+
+- Disable sequential/test-worker-prof
+
+  It times out on s390x.
+
+Signed-off-by: Jan Staněk <jstanek@redhat.com>
+---
+ test/{sequential => known_issues}/test-async-wrap-getasyncid.js   | 0
+ test/{parallel => known_issues}/test-repl-pretty-custom-stack.js  | 0
+ test/{parallel => known_issues}/test-repl-pretty-stack.js         | 0
+ test/{parallel => known_issues}/test-repl.js                      | 0
+ test/{parallel => known_issues}/test-tls-cli-max-version-1.2.js   | 0
+ test/{parallel => known_issues}/test-tls-cli-min-version-1.1.js   | 0
+ test/{parallel => known_issues}/test-tls-cli-min-version-1.2.js   | 0
+ test/{parallel => known_issues}/test-tls-exportkeyingmaterial.js  | 0
+ test/{parallel => known_issues}/test-tls-getcipher.js             | 0
+ test/{parallel => known_issues}/test-tls-honorcipherorder.js      | 0
+ test/{parallel => known_issues}/test-tls-multi-key.js             | 0
+ test/{parallel => known_issues}/test-tls-multi-pfx.js             | 0
+ test/{parallel => known_issues}/test-tls-no-sslv3.js              | 0
+ test/{parallel => known_issues}/test-tls-psk-circuit.js           | 0
+ test/{sequential => known_issues}/test-tls-psk-client.js          | 0
+ test/{parallel => known_issues}/test-tls-psk-errors.js            | 0
+ test/{sequential => known_issues}/test-tls-securepair-client.js   | 0
+ .../test-tls-server-capture-rejection.js                          | 0
+ test/{sequential => known_issues}/test-tls-session-timeout.js     | 0
+ test/{parallel => known_issues}/test-tls-set-ciphers-error.js     | 0
+ test/{parallel => known_issues}/test-tls-set-ciphers.js           | 0
+ test/{parallel => known_issues}/test-tls-set-sigalgs.js           | 0
+ test/{sequential => known_issues}/test-worker-prof.js             | 0
+ 23 files changed, 0 insertions(+), 0 deletions(-)
+ rename test/{sequential => known_issues}/test-async-wrap-getasyncid.js (100%)
+ rename test/{parallel => known_issues}/test-repl-pretty-custom-stack.js (100%)
+ rename test/{parallel => known_issues}/test-repl-pretty-stack.js (100%)
+ rename test/{parallel => known_issues}/test-repl.js (100%)
+ rename test/{parallel => known_issues}/test-tls-cli-max-version-1.2.js (100%)
+ rename test/{parallel => known_issues}/test-tls-cli-min-version-1.1.js (100%)
+ rename test/{parallel => known_issues}/test-tls-cli-min-version-1.2.js (100%)
+ rename test/{parallel => known_issues}/test-tls-exportkeyingmaterial.js (100%)
+ rename test/{parallel => known_issues}/test-tls-getcipher.js (100%)
+ rename test/{parallel => known_issues}/test-tls-honorcipherorder.js (100%)
+ rename test/{parallel => known_issues}/test-tls-multi-key.js (100%)
+ rename test/{parallel => known_issues}/test-tls-multi-pfx.js (100%)
+ rename test/{parallel => known_issues}/test-tls-no-sslv3.js (100%)
+ rename test/{parallel => known_issues}/test-tls-psk-circuit.js (100%)
+ rename test/{sequential => known_issues}/test-tls-psk-client.js (100%)
+ rename test/{parallel => known_issues}/test-tls-psk-errors.js (100%)
+ rename test/{sequential => known_issues}/test-tls-securepair-client.js (100%)
+ rename test/{parallel => known_issues}/test-tls-server-capture-rejection.js (100%)
+ rename test/{sequential => known_issues}/test-tls-session-timeout.js (100%)
+ rename test/{parallel => known_issues}/test-tls-set-ciphers-error.js (100%)
+ rename test/{parallel => known_issues}/test-tls-set-ciphers.js (100%)
+ rename test/{parallel => known_issues}/test-tls-set-sigalgs.js (100%)
+ rename test/{sequential => known_issues}/test-worker-prof.js (100%)
+
+diff --git a/test/sequential/test-async-wrap-getasyncid.js b/test/known_issues/test-async-wrap-getasyncid.js
+similarity index 100%
+rename from test/sequential/test-async-wrap-getasyncid.js
+rename to test/known_issues/test-async-wrap-getasyncid.js
+diff --git a/test/parallel/test-repl-pretty-custom-stack.js b/test/known_issues/test-repl-pretty-custom-stack.js
+similarity index 100%
+rename from test/parallel/test-repl-pretty-custom-stack.js
+rename to test/known_issues/test-repl-pretty-custom-stack.js
+diff --git a/test/parallel/test-repl-pretty-stack.js b/test/known_issues/test-repl-pretty-stack.js
+similarity index 100%
+rename from test/parallel/test-repl-pretty-stack.js
+rename to test/known_issues/test-repl-pretty-stack.js
+diff --git a/test/parallel/test-repl.js b/test/known_issues/test-repl.js
+similarity index 100%
+rename from test/parallel/test-repl.js
+rename to test/known_issues/test-repl.js
+diff --git a/test/parallel/test-tls-cli-max-version-1.2.js b/test/known_issues/test-tls-cli-max-version-1.2.js
+similarity index 100%
+rename from test/parallel/test-tls-cli-max-version-1.2.js
+rename to test/known_issues/test-tls-cli-max-version-1.2.js
+diff --git a/test/parallel/test-tls-cli-min-version-1.1.js b/test/known_issues/test-tls-cli-min-version-1.1.js
+similarity index 100%
+rename from test/parallel/test-tls-cli-min-version-1.1.js
+rename to test/known_issues/test-tls-cli-min-version-1.1.js
+diff --git a/test/parallel/test-tls-cli-min-version-1.2.js b/test/known_issues/test-tls-cli-min-version-1.2.js
+similarity index 100%
+rename from test/parallel/test-tls-cli-min-version-1.2.js
+rename to test/known_issues/test-tls-cli-min-version-1.2.js
+diff --git a/test/parallel/test-tls-exportkeyingmaterial.js b/test/known_issues/test-tls-exportkeyingmaterial.js
+similarity index 100%
+rename from test/parallel/test-tls-exportkeyingmaterial.js
+rename to test/known_issues/test-tls-exportkeyingmaterial.js
+diff --git a/test/parallel/test-tls-getcipher.js b/test/known_issues/test-tls-getcipher.js
+similarity index 100%
+rename from test/parallel/test-tls-getcipher.js
+rename to test/known_issues/test-tls-getcipher.js
+diff --git a/test/parallel/test-tls-honorcipherorder.js b/test/known_issues/test-tls-honorcipherorder.js
+similarity index 100%
+rename from test/parallel/test-tls-honorcipherorder.js
+rename to test/known_issues/test-tls-honorcipherorder.js
+diff --git a/test/parallel/test-tls-multi-key.js b/test/known_issues/test-tls-multi-key.js
+similarity index 100%
+rename from test/parallel/test-tls-multi-key.js
+rename to test/known_issues/test-tls-multi-key.js
+diff --git a/test/parallel/test-tls-multi-pfx.js b/test/known_issues/test-tls-multi-pfx.js
+similarity index 100%
+rename from test/parallel/test-tls-multi-pfx.js
+rename to test/known_issues/test-tls-multi-pfx.js
+diff --git a/test/parallel/test-tls-no-sslv3.js b/test/known_issues/test-tls-no-sslv3.js
+similarity index 100%
+rename from test/parallel/test-tls-no-sslv3.js
+rename to test/known_issues/test-tls-no-sslv3.js
+diff --git a/test/parallel/test-tls-psk-circuit.js b/test/known_issues/test-tls-psk-circuit.js
+similarity index 100%
+rename from test/parallel/test-tls-psk-circuit.js
+rename to test/known_issues/test-tls-psk-circuit.js
+diff --git a/test/sequential/test-tls-psk-client.js b/test/known_issues/test-tls-psk-client.js
+similarity index 100%
+rename from test/sequential/test-tls-psk-client.js
+rename to test/known_issues/test-tls-psk-client.js
+diff --git a/test/parallel/test-tls-psk-errors.js b/test/known_issues/test-tls-psk-errors.js
+similarity index 100%
+rename from test/parallel/test-tls-psk-errors.js
+rename to test/known_issues/test-tls-psk-errors.js
+diff --git a/test/sequential/test-tls-securepair-client.js b/test/known_issues/test-tls-securepair-client.js
+similarity index 100%
+rename from test/sequential/test-tls-securepair-client.js
+rename to test/known_issues/test-tls-securepair-client.js
+diff --git a/test/parallel/test-tls-server-capture-rejection.js b/test/known_issues/test-tls-server-capture-rejection.js
+similarity index 100%
+rename from test/parallel/test-tls-server-capture-rejection.js
+rename to test/known_issues/test-tls-server-capture-rejection.js
+diff --git a/test/sequential/test-tls-session-timeout.js b/test/known_issues/test-tls-session-timeout.js
+similarity index 100%
+rename from test/sequential/test-tls-session-timeout.js
+rename to test/known_issues/test-tls-session-timeout.js
+diff --git a/test/parallel/test-tls-set-ciphers-error.js b/test/known_issues/test-tls-set-ciphers-error.js
+similarity index 100%
+rename from test/parallel/test-tls-set-ciphers-error.js
+rename to test/known_issues/test-tls-set-ciphers-error.js
+diff --git a/test/parallel/test-tls-set-ciphers.js b/test/known_issues/test-tls-set-ciphers.js
+similarity index 100%
+rename from test/parallel/test-tls-set-ciphers.js
+rename to test/known_issues/test-tls-set-ciphers.js
+diff --git a/test/parallel/test-tls-set-sigalgs.js b/test/known_issues/test-tls-set-sigalgs.js
+similarity index 100%
+rename from test/parallel/test-tls-set-sigalgs.js
+rename to test/known_issues/test-tls-set-sigalgs.js
+diff --git a/test/sequential/test-worker-prof.js b/test/known_issues/test-worker-prof.js
+similarity index 100%
+rename from test/sequential/test-worker-prof.js
+rename to test/known_issues/test-worker-prof.js
+-- 
+2.31.1
+

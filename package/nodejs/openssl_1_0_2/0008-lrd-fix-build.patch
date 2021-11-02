@@ -1,0 +1,14 @@
+--- a/node.gyp	2021-08-10 21:39:10.000000000 -0400
++++ b/node.gyp	2021-10-20 10:37:59.390523000 -0400
+@@ -541,2 +541,3 @@
+         'deps/nghttp2/lib',
++        'deps/node-ssl-shim/include',
+         '<(SHARED_INTERMEDIATE_DIR)' # for node_natives.h
+only in patch2:
+--- a/node.gypi	2021-10-21 10:58:01.433003386 -0400
++++ b/node.gypi	2021-10-21 10:57:40.497886419 -0400
+@@ -320,3 +320,3 @@
+     [ 'node_use_openssl=="true"', {
+-      'defines': [ 'HAVE_OPENSSL=1' ],
++      'defines': [ 'HAVE_OPENSSL=1', 'OPENSSL_NO_GOST=1' ],
+       'conditions': [

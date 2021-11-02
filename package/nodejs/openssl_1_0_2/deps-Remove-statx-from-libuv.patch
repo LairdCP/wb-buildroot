@@ -1,19 +1,20 @@
-From b432ec3d812467099f3a632e2e69a00371de39c4 Mon Sep 17 00:00:00 2001
+From cf239aeb9b24ac397a3a9a3c20f000c31c3e3a77 Mon Sep 17 00:00:00 2001
 From: Zuzana Svetlikova <zsvetlik@redhat.com>
 Date: Wed, 19 Feb 2020 10:32:33 +0000
-Subject: [PATCH 4/4] fix libuv
+Subject: [PATCH] deps: Remove statx from libuv
 
+Signed-off-by: rpm-build <rpm-build>
 ---
- deps/uv/src/unix/fs.c             | 91 ---------------------------------------
- deps/uv/src/unix/linux-syscalls.c | 32 --------------
- deps/uv/src/unix/linux-syscalls.h | 35 ---------------
+ deps/uv/src/unix/fs.c             | 91 -------------------------------
+ deps/uv/src/unix/linux-syscalls.c | 32 -----------
+ deps/uv/src/unix/linux-syscalls.h | 35 ------------
  3 files changed, 158 deletions(-)
 
 diff --git a/deps/uv/src/unix/fs.c b/deps/uv/src/unix/fs.c
-index 916d710..c227f4c 100644
+index 87cb8b8..0a85307 100644
 --- a/deps/uv/src/unix/fs.c
 +++ b/deps/uv/src/unix/fs.c
-@@ -1278,93 +1278,10 @@ static void uv__to_stat(struct stat* src, uv_stat_t* dst) {
+@@ -1370,93 +1370,10 @@ static void uv__to_stat(struct stat* src, uv_stat_t* dst) {
  }
  
  
@@ -31,7 +32,7 @@ index 916d710..c227f4c 100644
 -  int mode;
 -  int rc;
 -
--  if (no_statx)
+-  if (uv__load_relaxed(&no_statx))
 -    return UV_ENOSYS;
 -
 -  dirfd = AT_FDCWD;
@@ -64,7 +65,7 @@ index 916d710..c227f4c 100644
 -     * implemented, rc might return 1 with 0 set as the error code in which
 -     * case we return ENOSYS.
 -     */
--    no_statx = 1;
+-    uv__store_relaxed(&no_statx, 1);
 -    return UV_ENOSYS;
 -  }
 -
@@ -107,7 +108,7 @@ index 916d710..c227f4c 100644
    ret = stat(path, &pbuf);
    if (ret == 0)
      uv__to_stat(&pbuf, buf);
-@@ -1377,10 +1294,6 @@ static int uv__fs_lstat(const char *path, uv_stat_t *buf) {
+@@ -1469,10 +1386,6 @@ static int uv__fs_lstat(const char *path, uv_stat_t *buf) {
    struct stat pbuf;
    int ret;
  
@@ -118,7 +119,7 @@ index 916d710..c227f4c 100644
    ret = lstat(path, &pbuf);
    if (ret == 0)
      uv__to_stat(&pbuf, buf);
-@@ -1393,10 +1306,6 @@ static int uv__fs_fstat(int fd, uv_stat_t *buf) {
+@@ -1485,10 +1398,6 @@ static int uv__fs_fstat(int fd, uv_stat_t *buf) {
    struct stat pbuf;
    int ret;
  
@@ -130,12 +131,12 @@ index 916d710..c227f4c 100644
    if (ret == 0)
      uv__to_stat(&pbuf, buf);
 diff --git a/deps/uv/src/unix/linux-syscalls.c b/deps/uv/src/unix/linux-syscalls.c
-index 9503878..9560fe6 100644
+index 160056b..e41f8c9 100644
 --- a/deps/uv/src/unix/linux-syscalls.c
 +++ b/deps/uv/src/unix/linux-syscalls.c
-@@ -187,22 +187,6 @@
+@@ -112,22 +112,6 @@
  # endif
- #endif /* __NR_pwritev */
+ #endif /* __NR_copy_file_range */
  
 -#ifndef __NR_statx
 -# if defined(__x86_64__)
@@ -156,7 +157,7 @@ index 9503878..9560fe6 100644
  #ifndef __NR_getrandom
  # if defined(__x86_64__)
  #  define __NR_getrandom 318
-@@ -369,22 +353,6 @@ int uv__dup3(int oldfd, int newfd, int flags) {
+@@ -220,22 +204,6 @@ uv__fs_copy_file_range(int fd_in,
  }
  
  
@@ -180,12 +181,12 @@ index 9503878..9560fe6 100644
  #if defined(__NR_getrandom)
    return syscall(__NR_getrandom, buf, buflen, flags);
 diff --git a/deps/uv/src/unix/linux-syscalls.h b/deps/uv/src/unix/linux-syscalls.h
-index b7729b8..7312b0c 100644
+index 761ff32..5dcf3a3 100644
 --- a/deps/uv/src/unix/linux-syscalls.h
 +++ b/deps/uv/src/unix/linux-syscalls.h
-@@ -80,36 +80,6 @@
- #define UV__IN_DELETE_SELF    0x400
- #define UV__IN_MOVE_SELF      0x800
+@@ -31,36 +31,6 @@
+ #include <sys/time.h>
+ #include <sys/socket.h>
  
 -struct uv__statx_timestamp {
 -  int64_t tv_sec;
@@ -217,13 +218,13 @@ index b7729b8..7312b0c 100644
 -  uint64_t unused1[14];
 -};
 -
- struct uv__inotify_event {
-   int32_t wd;
-   uint32_t mask;
-@@ -143,11 +113,6 @@ int uv__sendmmsg(int fd,
  ssize_t uv__preadv(int fd, const struct iovec *iov, int iovcnt, int64_t offset);
  ssize_t uv__pwritev(int fd, const struct iovec *iov, int iovcnt, int64_t offset);
  int uv__dup3(int oldfd, int newfd, int flags);
+@@ -71,11 +41,6 @@ uv__fs_copy_file_range(int fd_in,
+                        ssize_t* off_out,
+                        size_t len,
+                        unsigned int flags);
 -int uv__statx(int dirfd,
 -              const char* path,
 -              int flags,
@@ -233,5 +234,5 @@ index b7729b8..7312b0c 100644
  
  #endif /* UV_LINUX_SYSCALL_H_ */
 -- 
-1.8.3.1
+2.28.0
 

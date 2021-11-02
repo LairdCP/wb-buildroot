@@ -1,0 +1,165 @@
+From 6d27ddf97c68d2e80925dc25b790d598170b7a0f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jan=20Stan=C4=9Bk?= <jstanek@redhat.com>
+Date: Thu, 8 Jul 2021 14:08:31 +0200
+Subject: [PATCH] Use OpenSSL 1.0 API
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Pass non-const pointer to BIO_new
+
+  In legacy OpenSSL, the method parameter for BIO_new is not marked const,
+  although the function does not need it to be mutable.
+  This is likely an oversight in the interface.
+
+  The provided "fix" is potentially dangerous,
+  as casting away `const`-ness is potentially an undefined behaviour.
+  Since the code around assumes it is constant anyway,
+  it *should* be fine here – but use with care.
+
+- Remove const-classifier for SSL_SESSION callback argument
+
+  In legacy OpenSSL, the parameter is expected to be mutable.
+  Using `const` prevents passing the method as a function pointer
+  to other OpenSSL API functions.
+
+- Provide GetCipherValue wrapper for non-const strings
+
+- Sanitize inputs into PBKDF2
+
+- Setup ECDHE curve negotiation
+
+  - SSL_OP_SINGLE_ECDH_USE is no-op and default in OpenSSL 1.1,
+    but should be specified in OpenSSL 1.0
+  - SSL_CTX_set_ecdh_auto() is presumably the same case;
+    does not even exist in OpenSSL 1.1
+
+  Without this setup, ECDHE curve negotiation is broken: rhbz#1910749
+
+Signed-off-by: Jan Staněk <jstanek@redhat.com>
+---
+ src/node_crypto.cc        | 30 ++++++++++++++++++++++++++++--
+ src/node_crypto.h         |  4 ++++
+ src/node_crypto_bio.cc    |  4 ++++
+ src/node_crypto_common.cc |  8 ++++++++
+ 4 files changed, 44 insertions(+), 2 deletions(-)
+
+diff --git a/src/node_crypto.cc b/src/node_crypto.cc
+index e472892b68..0cc97f99ea 100644
+--- a/src/node_crypto.cc
++++ b/src/node_crypto.cc
+@@ -123,7 +123,11 @@ template int SSLWrap<TLSWrap>::SetCACerts(SecureContext* sc);
+ template void SSLWrap<TLSWrap>::MemoryInfo(MemoryTracker* tracker) const;
+ template SSL_SESSION* SSLWrap<TLSWrap>::GetSessionCallback(
+     SSL* s,
++#if OPENSSL_IS_LEGACY
++    unsigned char *key,
++#else
+     const unsigned char* key,
++#endif
+     int len,
+     int* copy);
+ template int SSLWrap<TLSWrap>::NewSessionCallback(SSL* s,
+@@ -1189,6 +1193,10 @@ void SecureContext::SetECDHCurve(const FunctionCallbackInfo<Value>& args) {
+   THROW_AND_RETURN_IF_NOT_STRING(env, args[0], "ECDH curve name");
+ 
+   node::Utf8Value curve(env->isolate(), args[0]);
++#if OPENSSL_IS_LEGACY
++  SSL_CTX_set_options(sc->ctx_.get(), SSL_OP_SINGLE_ECDH_USE);
++  SSL_CTX_set_ecdh_auto(sc->ctx_.get(), 1);
++#endif
+ 
+   if (strcmp(*curve, "auto") == 0)
+     return;
+@@ -1746,7 +1754,11 @@ void SSLWrap<Base>::ConfigureSecureContext(SecureContext* sc) {
+ 
+ template <class Base>
+ SSL_SESSION* SSLWrap<Base>::GetSessionCallback(SSL* s,
++#if OPENSSL_IS_LEGACY
++                                               unsigned char* key,
++#else
+                                                const unsigned char* key,
++#endif
+                                                int len,
+                                                int* copy) {
+   Base* w = static_cast<Base*>(SSL_get_app_data(s));
+@@ -5921,9 +5933,23 @@ struct PBKDF2Job : public CryptoJob {
+   }
+ 
+   inline void DoThreadPoolWork() override {
+-    auto salt_data = reinterpret_cast<const unsigned char*>(salt.data());
++    static const char * const empty = "";
++
++    auto pass_data = reinterpret_cast<const char *>(empty);
++    auto pass_size = int(0);
++    auto salt_data = reinterpret_cast<const unsigned char *>(empty);
++    auto salt_size = int(0);
++
++    if (pass.size() > 0) {
++      pass_data = pass.data(), pass_size = pass.size();
++    }
++    if (salt.size() > 0) {
++      salt_data = reinterpret_cast<const unsigned char *>(salt.data());
++      salt_size = salt.size();
++    }
++
+     const bool ok =
+-        PKCS5_PBKDF2_HMAC(pass.data(), pass.size(), salt_data, salt.size(),
++        PKCS5_PBKDF2_HMAC(pass_data, pass_size, salt_data, salt_size,
+                           iteration_count, digest, keybuf_size, keybuf_data);
+     success = Just(ok);
+     Cleanse();
+diff --git a/src/node_crypto.h b/src/node_crypto.h
+index 7bce7706a9..780e1893f4 100644
+--- a/src/node_crypto.h
++++ b/src/node_crypto.h
+@@ -234,7 +234,11 @@ class SSLWrap {
+   static void AddMethods(Environment* env, v8::Local<v8::FunctionTemplate> t);
+ 
+   static SSL_SESSION* GetSessionCallback(SSL* s,
++#if OPENSSL_IS_LEGACY
++                                         unsigned char* key,
++#else // OPENSSL_IS_LEGACY
+                                          const unsigned char* key,
++#endif // OPENSSL_IS_LEGACY
+                                          int len,
+                                          int* copy);
+   static int NewSessionCallback(SSL* s, SSL_SESSION* sess);
+diff --git a/src/node_crypto_bio.cc b/src/node_crypto_bio.cc
+index 55f5e8a5a3..c2a44fdb86 100644
+--- a/src/node_crypto_bio.cc
++++ b/src/node_crypto_bio.cc
+@@ -31,7 +31,11 @@ namespace node {
+ namespace crypto {
+ 
+ BIOPointer NodeBIO::New(Environment* env) {
++#if OPENSSL_IS_LEGACY
++  BIOPointer bio(BIO_new(const_cast<BIO_METHOD *>(GetMethod())));
++#else
+   BIOPointer bio(BIO_new(GetMethod()));
++#endif
+   if (bio && env != nullptr)
+     NodeBIO::FromBIO(bio.get())->env_ = env;
+   return bio;
+diff --git a/src/node_crypto_common.cc b/src/node_crypto_common.cc
+index 6c3bb0b1b6..d1d9edd6cd 100644
+--- a/src/node_crypto_common.cc
++++ b/src/node_crypto_common.cc
+@@ -392,6 +392,14 @@ MaybeLocal<Value> GetCipherValue(Environment* env,
+ 
+   return OneByteString(env->isolate(), getstr(cipher));
+ }
++MaybeLocal<Value> GetCipherValue(Environment* env,
++    const SSL_CIPHER* cipher,
++    char* (*getstr)(const SSL_CIPHER* cipher)) {
++  if (cipher == nullptr) {
++    return Undefined(env->isolate());
++  }
++  return OneByteString(env->isolate(), const_cast<const char *>(getstr(cipher)));
++}
+ 
+ MaybeLocal<Value> GetCipherName(Environment* env, const SSL_CIPHER* cipher) {
+   return GetCipherValue(env, cipher, SSL_CIPHER_get_name);
+-- 
+2.31.1
+

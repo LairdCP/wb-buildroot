@@ -1,0 +1,34 @@
+From f38eb150309c6bb4ddf97e40b6cc9078a82125bb Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jan=20Stan=C4=9Bk?= <jstanek@redhat.com>
+Date: Tue, 6 Oct 2020 12:56:20 +0200
+Subject: [PATCH] tools/test: Replace malformed input from tests
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This ensures that even if a test output contains byte sequence invalid
+in utf-8, the whole test suite do not crash.
+
+Signed-off-by: Jan Staněk <jstanek@redhat.com>
+---
+ tools/test.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tools/test.py b/tools/test.py
+index 811db91..8c56d88 100755
+--- a/tools/test.py
++++ b/tools/test.py
+@@ -749,8 +749,8 @@ def Execute(args, context, timeout=None, env=None, disable_core_files=False, std
+   )
+   os.close(fd_out)
+   os.close(fd_err)
+-  output = open(outname, encoding='utf8').read()
+-  errors = open(errname, encoding='utf8').read()
++  output = open(outname, encoding='utf8', errors='replace').read()
++  errors = open(errname, encoding='utf8', errors='replace').read()
+   CheckedUnlink(outname)
+   CheckedUnlink(errname)
+ 
+-- 
+2.26.2
+

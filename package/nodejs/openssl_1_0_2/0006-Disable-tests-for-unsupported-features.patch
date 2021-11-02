@@ -1,0 +1,814 @@
+From babb845ad3cf7b65e228826385ee060c53e68e8d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jan=20Stan=C4=9Bk?= <jstanek@redhat.com>
+Date: Thu, 8 Jul 2021 14:11:32 +0200
+Subject: [PATCH] Disable tests for unsupported features
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Remove tests relying on unsupported features
+
+  These test either test some unsupported algorithm itself,
+  or use fixtures/data created by such algorithm.
+  Either way, the legacy OpenSSL cannot deal with them.
+
+- Remove tests for TLSv1.3
+
+Signed-off-by: Jan Staněk <jstanek@redhat.com>
+---
+ lib/tls.js                                    |   8 +-
+ .../test-crypto-certificate.js                |   0
+ .../test-crypto-des3-wrap.js                  |   0
+ .../test-crypto-hash-stream-pipe.js           |   0
+ .../test-https-agent-keylog.js                |   0
+ .../test-tls-client-getephemeralkeyinfo.js    |   0
+ .../test-tls-client-renegotiation-13.js       |   0
+ .../test-tls-ecdh-auto.js                     |   0
+ .../test-tls-ecdh-multiple.js                 |   0
+ .../test-tls-ecdh.js                          |   0
+ .../test-tls-enable-keylog-cli.js             |   0
+ .../test-tls-keylog-tlsv13.js                 |   0
+ test/parallel/test-crypto-aes-wrap.js         |   6 +-
+ test/parallel/test-crypto-authenticated.js    |  17 +-
+ test/parallel/test-crypto-dh-stateless.js     |  17 --
+ test/parallel/test-crypto-hash.js             |  63 --------
+ test/parallel/test-crypto-key-objects.js      | 151 ------------------
+ test/parallel/test-crypto-keygen.js           |  51 ------
+ test/parallel/test-crypto-sign-verify.js      | 108 -------------
+ test/parallel/test-tls-cli-min-version-1.0.js |   2 +-
+ test/parallel/test-tls-cli-min-version-1.1.js |   2 +-
+ test/parallel/test-tls-cli-min-version-1.2.js |   2 +-
+ test/parallel/test-tls-destroy-stream.js      |   2 +-
+ test/parallel/test-tls-getcipher.js           |  22 ---
+ test/parallel/test-tls-min-max-version.js     |  19 +--
+ test/parallel/test-tls-psk-circuit.js         |   4 +-
+ 26 files changed, 33 insertions(+), 441 deletions(-)
+ rename test/{parallel => known_issues}/test-crypto-certificate.js (100%)
+ rename test/{parallel => known_issues}/test-crypto-des3-wrap.js (100%)
+ rename test/{parallel => known_issues}/test-crypto-hash-stream-pipe.js (100%)
+ rename test/{parallel => known_issues}/test-https-agent-keylog.js (100%)
+ rename test/{parallel => known_issues}/test-tls-client-getephemeralkeyinfo.js (100%)
+ rename test/{parallel => known_issues}/test-tls-client-renegotiation-13.js (100%)
+ rename test/{parallel => known_issues}/test-tls-ecdh-auto.js (100%)
+ rename test/{parallel => known_issues}/test-tls-ecdh-multiple.js (100%)
+ rename test/{parallel => known_issues}/test-tls-ecdh.js (100%)
+ rename test/{parallel => known_issues}/test-tls-enable-keylog-cli.js (100%)
+ rename test/{parallel => known_issues}/test-tls-keylog-tlsv13.js (100%)
+
+diff --git a/lib/tls.js b/lib/tls.js
+index 2ccbe409c9..21e6f3a814 100644
+--- a/lib/tls.js
++++ b/lib/tls.js
+@@ -66,17 +66,13 @@ else if (getOptionValue('--tls-min-v1.1'))
+   exports.DEFAULT_MIN_VERSION = 'TLSv1.1';
+ else if (getOptionValue('--tls-min-v1.2'))
+   exports.DEFAULT_MIN_VERSION = 'TLSv1.2';
+-else if (getOptionValue('--tls-min-v1.3'))
+-  exports.DEFAULT_MIN_VERSION = 'TLSv1.3';
+ else
+   exports.DEFAULT_MIN_VERSION = 'TLSv1.2';
+ 
+-if (getOptionValue('--tls-max-v1.3'))
+-  exports.DEFAULT_MAX_VERSION = 'TLSv1.3';
+-else if (getOptionValue('--tls-max-v1.2'))
++if (getOptionValue('--tls-max-v1.2'))
+   exports.DEFAULT_MAX_VERSION = 'TLSv1.2';
+ else
+-  exports.DEFAULT_MAX_VERSION = 'TLSv1.3'; // Will depend on node version.
++  exports.DEFAULT_MAX_VERSION = 'TLSv1.2'; // Will depend on node version.
+ 
+ 
+ exports.getCiphers = internalUtil.cachedResult(
+diff --git a/test/parallel/test-crypto-certificate.js b/test/known_issues/test-crypto-certificate.js
+similarity index 100%
+rename from test/parallel/test-crypto-certificate.js
+rename to test/known_issues/test-crypto-certificate.js
+diff --git a/test/parallel/test-crypto-des3-wrap.js b/test/known_issues/test-crypto-des3-wrap.js
+similarity index 100%
+rename from test/parallel/test-crypto-des3-wrap.js
+rename to test/known_issues/test-crypto-des3-wrap.js
+diff --git a/test/parallel/test-crypto-hash-stream-pipe.js b/test/known_issues/test-crypto-hash-stream-pipe.js
+similarity index 100%
+rename from test/parallel/test-crypto-hash-stream-pipe.js
+rename to test/known_issues/test-crypto-hash-stream-pipe.js
+diff --git a/test/parallel/test-https-agent-keylog.js b/test/known_issues/test-https-agent-keylog.js
+similarity index 100%
+rename from test/parallel/test-https-agent-keylog.js
+rename to test/known_issues/test-https-agent-keylog.js
+diff --git a/test/parallel/test-tls-client-getephemeralkeyinfo.js b/test/known_issues/test-tls-client-getephemeralkeyinfo.js
+similarity index 100%
+rename from test/parallel/test-tls-client-getephemeralkeyinfo.js
+rename to test/known_issues/test-tls-client-getephemeralkeyinfo.js
+diff --git a/test/parallel/test-tls-client-renegotiation-13.js b/test/known_issues/test-tls-client-renegotiation-13.js
+similarity index 100%
+rename from test/parallel/test-tls-client-renegotiation-13.js
+rename to test/known_issues/test-tls-client-renegotiation-13.js
+diff --git a/test/parallel/test-tls-ecdh-auto.js b/test/known_issues/test-tls-ecdh-auto.js
+similarity index 100%
+rename from test/parallel/test-tls-ecdh-auto.js
+rename to test/known_issues/test-tls-ecdh-auto.js
+diff --git a/test/parallel/test-tls-ecdh-multiple.js b/test/known_issues/test-tls-ecdh-multiple.js
+similarity index 100%
+rename from test/parallel/test-tls-ecdh-multiple.js
+rename to test/known_issues/test-tls-ecdh-multiple.js
+diff --git a/test/parallel/test-tls-ecdh.js b/test/known_issues/test-tls-ecdh.js
+similarity index 100%
+rename from test/parallel/test-tls-ecdh.js
+rename to test/known_issues/test-tls-ecdh.js
+diff --git a/test/parallel/test-tls-enable-keylog-cli.js b/test/known_issues/test-tls-enable-keylog-cli.js
+similarity index 100%
+rename from test/parallel/test-tls-enable-keylog-cli.js
+rename to test/known_issues/test-tls-enable-keylog-cli.js
+diff --git a/test/parallel/test-tls-keylog-tlsv13.js b/test/known_issues/test-tls-keylog-tlsv13.js
+similarity index 100%
+rename from test/parallel/test-tls-keylog-tlsv13.js
+rename to test/known_issues/test-tls-keylog-tlsv13.js
+diff --git a/test/parallel/test-crypto-aes-wrap.js b/test/parallel/test-crypto-aes-wrap.js
+index 6fe35258f7..7639ec632d 100644
+--- a/test/parallel/test-crypto-aes-wrap.js
++++ b/test/parallel/test-crypto-aes-wrap.js
+@@ -8,7 +8,7 @@ const crypto = require('crypto');
+ 
+ const test = [
+   {
+-    algorithm: 'aes128-wrap',
++    algorithm: 'id-aes128-wrap',
+     key: 'b26f309fbe57e9b3bb6ae5ef31d54450',
+     iv: '3fd838af4093d749',
+     text: '12345678123456781234567812345678'
+@@ -20,7 +20,7 @@ const test = [
+     text: '12345678123456781234567812345678123'
+   },
+   {
+-    algorithm: 'aes192-wrap',
++    algorithm: 'id-aes192-wrap',
+     key: '40978085d68091f7dfca0d7dfc7a5ee76d2cc7f2f345a304',
+     iv: '3fd838af4093d749',
+     text: '12345678123456781234567812345678'
+@@ -32,7 +32,7 @@ const test = [
+     text: '12345678123456781234567812345678123'
+   },
+   {
+-    algorithm: 'aes256-wrap',
++    algorithm: 'id-aes256-wrap',
+     key: '29c9eab5ed5ad44134a1437fe2e673b4d88a5b7c72e68454fea08721392b7323',
+     iv: '3fd838af4093d749',
+     text: '12345678123456781234567812345678'
+diff --git a/test/parallel/test-crypto-authenticated.js b/test/parallel/test-crypto-authenticated.js
+index 863907bafd..8c10b350c0 100644
+--- a/test/parallel/test-crypto-authenticated.js
++++ b/test/parallel/test-crypto-authenticated.js
+@@ -405,6 +405,11 @@ for (const test of TEST_CASES) {
+ // authentication tag has been specified.
+ {
+   for (const mode of ['ccm', 'ocb']) {
++    if (!ciphers.includes(`aes-256-${mode}`)) {
++      common.printSkipMessage(`unsupported aes-256-${mode} test`);
++      continue;
++    }
++
+     assert.throws(() => {
+       crypto.createCipheriv(`aes-256-${mode}`,
+                             'FxLKsqdmv0E9xrQhp0b1ZgI0K7JFZJM8',
+@@ -565,6 +570,11 @@ for (const test of TEST_CASES) {
+   const iv = Buffer.from('0123456789ab', 'utf8');
+ 
+   for (const mode of ['gcm', 'ocb']) {
++    if (!ciphers.includes(`aes-128-${mode}`)) {
++      common.printSkipMessage(`unsupported aes-128-${mode} test`);
++      continue;
++    }
++
+     for (const authTagLength of mode === 'gcm' ? [undefined, 8] : [8]) {
+       const cipher = crypto.createCipheriv(`aes-128-${mode}`, key, iv, {
+         authTagLength
+@@ -599,6 +609,11 @@ for (const test of TEST_CASES) {
+   const opts = { authTagLength: 8 };
+ 
+   for (const mode of ['gcm', 'ccm', 'ocb']) {
++    if (!ciphers.includes(`aes-128-${mode}`)) {
++      common.printSkipMessage(`unsupported aes-128-${mode} test`);
++      continue;
++    }
++
+     const cipher = crypto.createCipheriv(`aes-128-${mode}`, key, iv, opts);
+     const ciphertext = Buffer.concat([cipher.update(plain), cipher.final()]);
+     const tag = cipher.getAuthTag();
+@@ -659,7 +674,7 @@ for (const test of TEST_CASES) {
+       Buffer.from(valid.key, 'hex'),
+       Buffer.from(H(prefix) + valid.iv, 'hex'),
+       { authTagLength: valid.tag.length / 2 }
+-    ), errMessages.length, `iv length ${ivLength} was not rejected`);
++    ), /.*/, `iv length ${ivLength} was not rejected`);
+ 
+     function H(length) { return '00'.repeat(length); }
+   }
+diff --git a/test/parallel/test-crypto-dh-stateless.js b/test/parallel/test-crypto-dh-stateless.js
+index b01cea76b2..b91d15fcb5 100644
+--- a/test/parallel/test-crypto-dh-stateless.js
++++ b/test/parallel/test-crypto-dh-stateless.js
+@@ -204,20 +204,3 @@ assert.throws(() => {
+   name: 'Error',
+   code: 'ERR_OSSL_EVP_DIFFERENT_PARAMETERS'
+ });
+-
+-// Test ECDH-ES.
+-
+-test(crypto.generateKeyPairSync('x448'),
+-     crypto.generateKeyPairSync('x448'));
+-
+-test(crypto.generateKeyPairSync('x25519'),
+-     crypto.generateKeyPairSync('x25519'));
+-
+-assert.throws(() => {
+-  test(crypto.generateKeyPairSync('x448'),
+-       crypto.generateKeyPairSync('x25519'));
+-}, {
+-  name: 'Error',
+-  code: 'ERR_CRYPTO_INCOMPATIBLE_KEY',
+-  message: 'Incompatible key types for Diffie-Hellman: x448 and x25519'
+-});
+diff --git a/test/parallel/test-crypto-hash.js b/test/parallel/test-crypto-hash.js
+index f3f4df928c..e4db1ba88a 100644
+--- a/test/parallel/test-crypto-hash.js
++++ b/test/parallel/test-crypto-hash.js
+@@ -182,76 +182,13 @@ assert.throws(
+                                    ' when called without `new`');
+ }
+ 
+-// Test XOF hash functions and the outputLength option.
+ {
+-  // Default outputLengths.
+-  assert.strictEqual(crypto.createHash('shake128').digest('hex'),
+-                     '7f9c2ba4e88f827d616045507605853e');
+-  assert.strictEqual(crypto.createHash('shake128', null).digest('hex'),
+-                     '7f9c2ba4e88f827d616045507605853e');
+-  assert.strictEqual(crypto.createHash('shake256').digest('hex'),
+-                     '46b9dd2b0ba88d13233b3feb743eeb24' +
+-                     '3fcd52ea62b81b82b50c27646ed5762f');
+-  assert.strictEqual(crypto.createHash('shake256', { outputLength: 0 })
+-                           .copy()  // Default outputLength.
+-                           .digest('hex'),
+-                     '46b9dd2b0ba88d13233b3feb743eeb24' +
+-                     '3fcd52ea62b81b82b50c27646ed5762f');
+-
+-  // Short outputLengths.
+-  assert.strictEqual(crypto.createHash('shake128', { outputLength: 0 })
+-                           .digest('hex'),
+-                     '');
+-  assert.strictEqual(crypto.createHash('shake128', { outputLength: 5 })
+-                           .copy({ outputLength: 0 })
+-                           .digest('hex'),
+-                     '');
+-  assert.strictEqual(crypto.createHash('shake128', { outputLength: 5 })
+-                           .digest('hex'),
+-                     '7f9c2ba4e8');
+-  assert.strictEqual(crypto.createHash('shake128', { outputLength: 0 })
+-                           .copy({ outputLength: 5 })
+-                           .digest('hex'),
+-                     '7f9c2ba4e8');
+-  assert.strictEqual(crypto.createHash('shake128', { outputLength: 15 })
+-                           .digest('hex'),
+-                     '7f9c2ba4e88f827d61604550760585');
+-  assert.strictEqual(crypto.createHash('shake256', { outputLength: 16 })
+-                           .digest('hex'),
+-                     '46b9dd2b0ba88d13233b3feb743eeb24');
+-
+-  // Large outputLengths.
+-  assert.strictEqual(crypto.createHash('shake128', { outputLength: 128 })
+-                           .digest('hex'),
+-                     '7f9c2ba4e88f827d616045507605853e' +
+-                     'd73b8093f6efbc88eb1a6eacfa66ef26' +
+-                     '3cb1eea988004b93103cfb0aeefd2a68' +
+-                     '6e01fa4a58e8a3639ca8a1e3f9ae57e2' +
+-                     '35b8cc873c23dc62b8d260169afa2f75' +
+-                     'ab916a58d974918835d25e6a435085b2' +
+-                     'badfd6dfaac359a5efbb7bcc4b59d538' +
+-                     'df9a04302e10c8bc1cbf1a0b3a5120ea');
+-  const superLongHash = crypto.createHash('shake256', {
+-    outputLength: 1024 * 1024
+-  }).update('The message is shorter than the hash!')
+-    .digest('hex');
+-  assert.strictEqual(superLongHash.length, 2 * 1024 * 1024);
+-  assert.ok(superLongHash.endsWith('193414035ddba77bf7bba97981e656ec'));
+-  assert.ok(superLongHash.startsWith('a2a28dbc49cfd6e5d6ceea3d03e77748'));
+-
+   // Non-XOF hash functions should accept valid outputLength options as well.
+   assert.strictEqual(crypto.createHash('sha224', { outputLength: 28 })
+                            .digest('hex'),
+                      'd14a028c2a3a2bc9476102bb288234c4' +
+                      '15a2b01f828ea62ac5b3e42f');
+ 
+-  // Passing invalid sizes should throw during creation.
+-  assert.throws(() => {
+-    crypto.createHash('sha256', { outputLength: 28 });
+-  }, {
+-    code: 'ERR_OSSL_EVP_NOT_XOF_OR_INVALID_LENGTH'
+-  });
+-
+   for (const outputLength of [null, {}, 'foo', false]) {
+     assert.throws(() => crypto.createHash('sha256', { outputLength }),
+                   { code: 'ERR_INVALID_ARG_TYPE' });
+diff --git a/test/parallel/test-crypto-key-objects.js b/test/parallel/test-crypto-key-objects.js
+index d3011db79d..644a52a1c7 100644
+--- a/test/parallel/test-crypto-key-objects.js
++++ b/test/parallel/test-crypto-key-objects.js
+@@ -242,18 +242,6 @@ const privateDsa = fixtures.readKey('dsa_private_encrypted_1025.pem',
+ }
+ 
+ [
+-  { private: fixtures.readKey('ed25519_private.pem', 'ascii'),
+-    public: fixtures.readKey('ed25519_public.pem', 'ascii'),
+-    keyType: 'ed25519' },
+-  { private: fixtures.readKey('ed448_private.pem', 'ascii'),
+-    public: fixtures.readKey('ed448_public.pem', 'ascii'),
+-    keyType: 'ed448' },
+-  { private: fixtures.readKey('x25519_private.pem', 'ascii'),
+-    public: fixtures.readKey('x25519_public.pem', 'ascii'),
+-    keyType: 'x25519' },
+-  { private: fixtures.readKey('x448_private.pem', 'ascii'),
+-    public: fixtures.readKey('x448_public.pem', 'ascii'),
+-    keyType: 'x448' },
+ ].forEach((info) => {
+   const keyType = info.keyType;
+ 
+@@ -323,145 +311,6 @@ const privateDsa = fixtures.readKey('dsa_private_encrypted_1025.pem',
+ 
+ }
+ 
+-{
+-  // Test RSA-PSS.
+-  {
+-    // This key pair does not restrict the message digest algorithm or salt
+-    // length.
+-    const publicPem = fixtures.readKey('rsa_pss_public_2048.pem');
+-    const privatePem = fixtures.readKey('rsa_pss_private_2048.pem');
+-
+-    const publicKey = createPublicKey(publicPem);
+-    const privateKey = createPrivateKey(privatePem);
+-
+-    assert.strictEqual(publicKey.type, 'public');
+-    assert.strictEqual(publicKey.asymmetricKeyType, 'rsa-pss');
+-
+-    assert.strictEqual(privateKey.type, 'private');
+-    assert.strictEqual(privateKey.asymmetricKeyType, 'rsa-pss');
+-
+-    for (const key of [privatePem, privateKey]) {
+-      // Any algorithm should work.
+-      for (const algo of ['sha1', 'sha256']) {
+-        // Any salt length should work.
+-        for (const saltLength of [undefined, 8, 10, 12, 16, 18, 20]) {
+-          const signature = createSign(algo)
+-                            .update('foo')
+-                            .sign({ key, saltLength });
+-
+-          for (const pkey of [key, publicKey, publicPem]) {
+-            const okay = createVerify(algo)
+-                         .update('foo')
+-                         .verify({ key: pkey, saltLength }, signature);
+-
+-            assert.ok(okay);
+-          }
+-        }
+-      }
+-    }
+-
+-    // Exporting the key using PKCS#1 should not work since this would discard
+-    // any algorithm restrictions.
+-    assert.throws(() => {
+-      publicKey.export({ format: 'pem', type: 'pkcs1' });
+-    }, {
+-      code: 'ERR_CRYPTO_INCOMPATIBLE_KEY_OPTIONS'
+-    });
+-  }
+-
+-  {
+-    // This key pair enforces sha256 as the message digest and the MGF1
+-    // message digest and a salt length of at least 16 bytes.
+-    const publicPem =
+-      fixtures.readKey('rsa_pss_public_2048_sha256_sha256_16.pem');
+-    const privatePem =
+-      fixtures.readKey('rsa_pss_private_2048_sha256_sha256_16.pem');
+-
+-    const publicKey = createPublicKey(publicPem);
+-    const privateKey = createPrivateKey(privatePem);
+-
+-    assert.strictEqual(publicKey.type, 'public');
+-    assert.strictEqual(publicKey.asymmetricKeyType, 'rsa-pss');
+-
+-    assert.strictEqual(privateKey.type, 'private');
+-    assert.strictEqual(privateKey.asymmetricKeyType, 'rsa-pss');
+-
+-    for (const key of [privatePem, privateKey]) {
+-      // Signing with anything other than sha256 should fail.
+-      assert.throws(() => {
+-        createSign('sha1').sign(key);
+-      }, /digest not allowed/);
+-
+-      // Signing with salt lengths less than 16 bytes should fail.
+-      for (const saltLength of [8, 10, 12]) {
+-        assert.throws(() => {
+-          createSign('sha1').sign({ key, saltLength });
+-        }, /pss saltlen too small/);
+-      }
+-
+-      // Signing with sha256 and appropriate salt lengths should work.
+-      for (const saltLength of [undefined, 16, 18, 20]) {
+-        const signature = createSign('sha256')
+-                          .update('foo')
+-                          .sign({ key, saltLength });
+-
+-        for (const pkey of [key, publicKey, publicPem]) {
+-          const okay = createVerify('sha256')
+-                       .update('foo')
+-                       .verify({ key: pkey, saltLength }, signature);
+-
+-          assert.ok(okay);
+-        }
+-      }
+-    }
+-  }
+-
+-  {
+-    // This key enforces sha512 as the message digest and sha256 as the MGF1
+-    // message digest.
+-    const publicPem =
+-      fixtures.readKey('rsa_pss_public_2048_sha512_sha256_20.pem');
+-    const privatePem =
+-      fixtures.readKey('rsa_pss_private_2048_sha512_sha256_20.pem');
+-
+-    const publicKey = createPublicKey(publicPem);
+-    const privateKey = createPrivateKey(privatePem);
+-
+-    assert.strictEqual(publicKey.type, 'public');
+-    assert.strictEqual(publicKey.asymmetricKeyType, 'rsa-pss');
+-
+-    assert.strictEqual(privateKey.type, 'private');
+-    assert.strictEqual(privateKey.asymmetricKeyType, 'rsa-pss');
+-
+-    // Node.js usually uses the same hash function for the message and for MGF1.
+-    // However, when a different MGF1 message digest algorithm has been
+-    // specified as part of the key, it should automatically switch to that.
+-    // This behavior is required by sections 3.1 and 3.3 of RFC4055.
+-    for (const key of [privatePem, privateKey]) {
+-      // sha256 matches the MGF1 hash function and should be used internally,
+-      // but it should not be permitted as the main message digest algorithm.
+-      for (const algo of ['sha1', 'sha256']) {
+-        assert.throws(() => {
+-          createSign(algo).sign(key);
+-        }, /digest not allowed/);
+-      }
+-
+-      // sha512 should produce a valid signature.
+-      const signature = createSign('sha512')
+-                        .update('foo')
+-                        .sign(key);
+-
+-      for (const pkey of [key, publicKey, publicPem]) {
+-        const okay = createVerify('sha512')
+-                     .update('foo')
+-                     .verify(pkey, signature);
+-
+-        assert.ok(okay);
+-      }
+-    }
+-  }
+-}
+-
+ {
+   // Exporting an encrypted private key requires a cipher
+   const privateKey = createPrivateKey(privatePem);
+diff --git a/test/parallel/test-crypto-keygen.js b/test/parallel/test-crypto-keygen.js
+index 384f4fa68a..38432254f0 100644
+--- a/test/parallel/test-crypto-keygen.js
++++ b/test/parallel/test-crypto-keygen.js
+@@ -265,42 +265,7 @@ const sec1EncExp = (cipher) => getRegExpForPEM('EC PRIVATE KEY', cipher);
+   }));
+ }
+ 
+-{
+-  // Test RSA-PSS.
+-  generateKeyPair('rsa-pss', {
+-    modulusLength: 512,
+-    saltLength: 16,
+-    hash: 'sha256',
+-    mgf1Hash: 'sha256'
+-  }, common.mustCall((err, publicKey, privateKey) => {
+-    assert.ifError(err);
+-
+-    assert.strictEqual(publicKey.type, 'public');
+-    assert.strictEqual(publicKey.asymmetricKeyType, 'rsa-pss');
+-
+-    assert.strictEqual(privateKey.type, 'private');
+-    assert.strictEqual(privateKey.asymmetricKeyType, 'rsa-pss');
+ 
+-    // Unlike RSA, RSA-PSS does not allow encryption.
+-    assert.throws(() => {
+-      testEncryptDecrypt(publicKey, privateKey);
+-    }, /operation not supported for this keytype/);
+-
+-    // RSA-PSS also does not permit signing with PKCS1 padding.
+-    assert.throws(() => {
+-      testSignVerify({
+-        key: publicKey,
+-        padding: constants.RSA_PKCS1_PADDING
+-      }, {
+-        key: privateKey,
+-        padding: constants.RSA_PKCS1_PADDING
+-      });
+-    }, /illegal or unsupported padding mode/);
+-
+-    // The padding should correctly default to RSA_PKCS1_PSS_PADDING now.
+-    testSignVerify(publicKey, privateKey);
+-  }));
+-}
+ 
+ {
+   const privateKeyEncoding = {
+@@ -975,22 +940,6 @@ const sec1EncExp = (cipher) => getRegExpForPEM('EC PRIVATE KEY', cipher);
+   }));
+ }
+ 
+-// Test EdDSA key generation.
+-{
+-  if (!/^1\.1\.0/.test(process.versions.openssl)) {
+-    ['ed25519', 'ed448', 'x25519', 'x448'].forEach((keyType) => {
+-      generateKeyPair(keyType, common.mustCall((err, publicKey, privateKey) => {
+-        assert.ifError(err);
+-
+-        assert.strictEqual(publicKey.type, 'public');
+-        assert.strictEqual(publicKey.asymmetricKeyType, keyType);
+-
+-        assert.strictEqual(privateKey.type, 'private');
+-        assert.strictEqual(privateKey.asymmetricKeyType, keyType);
+-      }));
+-    });
+-  }
+-}
+ 
+ // Test classic Diffie-Hellman key generation.
+ {
+diff --git a/test/parallel/test-crypto-sign-verify.js b/test/parallel/test-crypto-sign-verify.js
+index ff410dcf00..a7a293a740 100644
+--- a/test/parallel/test-crypto-sign-verify.js
++++ b/test/parallel/test-crypto-sign-verify.js
+@@ -425,14 +425,6 @@ assert.throws(
+ }
+ 
+ [
+-  { private: fixtures.readKey('ed25519_private.pem', 'ascii'),
+-    public: fixtures.readKey('ed25519_public.pem', 'ascii'),
+-    algo: null,
+-    sigLen: 64 },
+-  { private: fixtures.readKey('ed448_private.pem', 'ascii'),
+-    public: fixtures.readKey('ed448_public.pem', 'ascii'),
+-    algo: null,
+-    sigLen: 114 },
+   { private: fixtures.readKey('rsa_private_2048.pem', 'ascii'),
+     public: fixtures.readKey('rsa_public_2048.pem', 'ascii'),
+     algo: 'sha1',
+@@ -514,106 +506,6 @@ assert.throws(
+   assert.throws(() => crypto.verify(null, data, 'test', input), errObj);
+ });
+ 
+-{
+-  const data = Buffer.from('Hello world');
+-  const keys = [['ec-key.pem', 64], ['dsa_private_1025.pem', 40]];
+-
+-  for (const [file, length] of keys) {
+-    const privKey = fixtures.readKey(file);
+-    [
+-      crypto.createSign('sha1').update(data).sign(privKey),
+-      crypto.sign('sha1', data, privKey),
+-      crypto.sign('sha1', data, { key: privKey, dsaEncoding: 'der' })
+-    ].forEach((sig) => {
+-      // Signature length variability due to DER encoding
+-      assert(sig.length >= length + 4 && sig.length <= length + 8);
+-
+-      assert.strictEqual(
+-        crypto.createVerify('sha1').update(data).verify(privKey, sig),
+-        true
+-      );
+-      assert.strictEqual(crypto.verify('sha1', data, privKey, sig), true);
+-    });
+-
+-    // Test (EC)DSA signature conversion.
+-    const opts = { key: privKey, dsaEncoding: 'ieee-p1363' };
+-    let sig = crypto.sign('sha1', data, opts);
+-    // Unlike DER signatures, IEEE P1363 signatures have a predictable length.
+-    assert.strictEqual(sig.length, length);
+-    assert.strictEqual(crypto.verify('sha1', data, opts, sig), true);
+-    assert.strictEqual(crypto.createVerify('sha1')
+-                             .update(data)
+-                             .verify(opts, sig), true);
+-
+-    // Test invalid signature lengths.
+-    for (const i of [-2, -1, 1, 2, 4, 8]) {
+-      sig = crypto.randomBytes(length + i);
+-      assert.throws(() => {
+-        crypto.verify('sha1', data, opts, sig);
+-      }, {
+-        message: 'Malformed signature'
+-      });
+-    }
+-  }
+-
+-  // Test verifying externally signed messages.
+-  const extSig = Buffer.from('494c18ab5c8a62a72aea5041966902bcfa229821af2bf65' +
+-                             '0b5b4870d1fe6aebeaed9460c62210693b5b0a300033823' +
+-                             '33d9529c8abd8c5948940af944828be16c', 'hex');
+-  for (const ok of [true, false]) {
+-    assert.strictEqual(
+-      crypto.verify('sha256', data, {
+-        key: fixtures.readKey('ec-key.pem'),
+-        dsaEncoding: 'ieee-p1363'
+-      }, extSig),
+-      ok
+-    );
+-
+-    assert.strictEqual(
+-      crypto.createVerify('sha256').update(data).verify({
+-        key: fixtures.readKey('ec-key.pem'),
+-        dsaEncoding: 'ieee-p1363'
+-      }, extSig),
+-      ok
+-    );
+-
+-    extSig[Math.floor(Math.random() * extSig.length)] ^= 1;
+-  }
+-
+-  // Non-(EC)DSA keys should ignore the option.
+-  const sig = crypto.sign('sha1', data, {
+-    key: keyPem,
+-    dsaEncoding: 'ieee-p1363'
+-  });
+-  assert.strictEqual(crypto.verify('sha1', data, certPem, sig), true);
+-  assert.strictEqual(
+-    crypto.verify('sha1', data, {
+-      key: certPem,
+-      dsaEncoding: 'ieee-p1363'
+-    }, sig),
+-    true
+-  );
+-  assert.strictEqual(
+-    crypto.verify('sha1', data, {
+-      key: certPem,
+-      dsaEncoding: 'der'
+-    }, sig),
+-    true
+-  );
+-
+-  for (const dsaEncoding of ['foo', null, {}, 5, true, NaN]) {
+-    assert.throws(() => {
+-      crypto.sign('sha1', data, {
+-        key: certPem,
+-        dsaEncoding
+-      });
+-    }, {
+-      code: 'ERR_INVALID_OPT_VALUE'
+-    });
+-  }
+-}
+-
+-
+ // RSA-PSS Sign test by verifying with 'openssl dgst -verify'
+ // Note: this particular test *must* be the last in this file as it will exit
+ // early if no openssl binary is found
+diff --git a/test/parallel/test-tls-cli-min-version-1.0.js b/test/parallel/test-tls-cli-min-version-1.0.js
+index 577562782e..0a227c0b94 100644
+--- a/test/parallel/test-tls-cli-min-version-1.0.js
++++ b/test/parallel/test-tls-cli-min-version-1.0.js
+@@ -8,7 +8,7 @@ if (!common.hasCrypto) common.skip('missing crypto');
+ const assert = require('assert');
+ const tls = require('tls');
+ 
+-assert.strictEqual(tls.DEFAULT_MAX_VERSION, 'TLSv1.3');
++assert.strictEqual(tls.DEFAULT_MAX_VERSION, 'TLSv1.2');
+ assert.strictEqual(tls.DEFAULT_MIN_VERSION, 'TLSv1');
+ 
+ // Check the min-max version protocol versions against these CLI settings.
+diff --git a/test/parallel/test-tls-cli-min-version-1.1.js b/test/parallel/test-tls-cli-min-version-1.1.js
+index 3af2b39546..1219c82030 100644
+--- a/test/parallel/test-tls-cli-min-version-1.1.js
++++ b/test/parallel/test-tls-cli-min-version-1.1.js
+@@ -8,7 +8,7 @@ if (!common.hasCrypto) common.skip('missing crypto');
+ const assert = require('assert');
+ const tls = require('tls');
+ 
+-assert.strictEqual(tls.DEFAULT_MAX_VERSION, 'TLSv1.3');
++assert.strictEqual(tls.DEFAULT_MAX_VERSION, 'TLSv1.2');
+ assert.strictEqual(tls.DEFAULT_MIN_VERSION, 'TLSv1.1');
+ 
+ // Check the min-max version protocol versions against these CLI settings.
+diff --git a/test/parallel/test-tls-cli-min-version-1.2.js b/test/parallel/test-tls-cli-min-version-1.2.js
+index 8385eabd0b..058dc180f6 100644
+--- a/test/parallel/test-tls-cli-min-version-1.2.js
++++ b/test/parallel/test-tls-cli-min-version-1.2.js
+@@ -8,7 +8,7 @@ if (!common.hasCrypto) common.skip('missing crypto');
+ const assert = require('assert');
+ const tls = require('tls');
+ 
+-assert.strictEqual(tls.DEFAULT_MAX_VERSION, 'TLSv1.3');
++assert.strictEqual(tls.DEFAULT_MAX_VERSION, 'TLSv1.2');
+ assert.strictEqual(tls.DEFAULT_MIN_VERSION, 'TLSv1.2');
+ 
+ // Check the min-max version protocol versions against these CLI settings.
+diff --git a/test/parallel/test-tls-destroy-stream.js b/test/parallel/test-tls-destroy-stream.js
+index a49e985a7e..1964f676c2 100644
+--- a/test/parallel/test-tls-destroy-stream.js
++++ b/test/parallel/test-tls-destroy-stream.js
+@@ -9,7 +9,7 @@ const net = require('net');
+ const assert = require('assert');
+ const tls = require('tls');
+ 
+-tls.DEFAULT_MAX_VERSION = 'TLSv1.3';
++tls.DEFAULT_MAX_VERSION = 'TLSv1.2';
+ 
+ // This test ensures that an instance of StreamWrap should emit "end" and
+ // "close" when the socket on the other side call `destroy()` instead of
+diff --git a/test/parallel/test-tls-getcipher.js b/test/parallel/test-tls-getcipher.js
+index 744276aa59..47d3bbdd98 100644
+--- a/test/parallel/test-tls-getcipher.js
++++ b/test/parallel/test-tls-getcipher.js
+@@ -72,25 +72,3 @@ server.listen(0, '127.0.0.1', common.mustCall(function() {
+     this.end();
+   }));
+ }));
+-
+-tls.createServer({
+-  key: fixtures.readKey('agent2-key.pem'),
+-  cert: fixtures.readKey('agent2-cert.pem'),
+-  ciphers: 'TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_CCM_8_SHA256',
+-  maxVersion: 'TLSv1.3',
+-}, common.mustCall(function() {
+-  this.close();
+-})).listen(0, common.mustCall(function() {
+-  const client = tls.connect({
+-    port: this.address().port,
+-    ciphers: 'TLS_AES_128_CCM_8_SHA256',
+-    maxVersion: 'TLSv1.3',
+-    rejectUnauthorized: false
+-  }, common.mustCall(() => {
+-    const cipher = client.getCipher();
+-    assert.strictEqual(cipher.name, 'TLS_AES_128_CCM_8_SHA256');
+-    assert.strictEqual(cipher.standardName, cipher.name);
+-    assert.strictEqual(cipher.version, 'TLSv1.3');
+-    client.end();
+-  }));
+-}));
+diff --git a/test/parallel/test-tls-min-max-version.js b/test/parallel/test-tls-min-max-version.js
+index 4fcb9247d3..085e123264 100644
+--- a/test/parallel/test-tls-min-max-version.js
++++ b/test/parallel/test-tls-min-max-version.js
+@@ -219,26 +219,19 @@ test(U, U, 'TLSv1_method', 'TLSv1', 'TLSv1.2', U, 'TLSv1');
+ test(U, U, 'TLSv1_1_method', 'TLSv1', 'TLSv1.2', U, 'TLSv1.1');
+ test(U, U, 'TLSv1_2_method', 'TLSv1', 'TLSv1.2', U, 'TLSv1.2');
+ 
+-test('TLSv1', 'TLSv1.1', U, 'TLSv1', 'TLSv1.3', U, 'TLSv1.1');
+ test('TLSv1', 'TLSv1.1', U, 'TLSv1', 'TLSv1.2', U, 'TLSv1.1');
+ test('TLSv1', 'TLSv1.2', U, 'TLSv1', 'TLSv1.1', U, 'TLSv1.1');
+-test('TLSv1', 'TLSv1.3', U, 'TLSv1', 'TLSv1.1', U, 'TLSv1.1');
+ test('TLSv1', 'TLSv1', U, 'TLSv1', 'TLSv1.1', U, 'TLSv1');
+ test('TLSv1', 'TLSv1.2', U, 'TLSv1', 'TLSv1', U, 'TLSv1');
+-test('TLSv1', 'TLSv1.3', U, 'TLSv1', 'TLSv1', U, 'TLSv1');
+ test('TLSv1.1', 'TLSv1.1', U, 'TLSv1', 'TLSv1.2', U, 'TLSv1.1');
+ test('TLSv1', 'TLSv1.2', U, 'TLSv1.1', 'TLSv1.1', U, 'TLSv1.1');
+-test('TLSv1', 'TLSv1.2', U, 'TLSv1', 'TLSv1.3', U, 'TLSv1.2');
+ 
+ // v-any client can connect to v-specific server
+-test('TLSv1', 'TLSv1.3', U, 'TLSv1.3', 'TLSv1.3', U, 'TLSv1.3');
+-test('TLSv1', 'TLSv1.3', U, 'TLSv1.2', 'TLSv1.3', U, 'TLSv1.3');
+-test('TLSv1', 'TLSv1.3', U, 'TLSv1.2', 'TLSv1.2', U, 'TLSv1.2');
+-test('TLSv1', 'TLSv1.3', U, 'TLSv1.1', 'TLSv1.1', U, 'TLSv1.1');
+-test('TLSv1', 'TLSv1.3', U, 'TLSv1', 'TLSv1', U, 'TLSv1');
++test('TLSv1', 'TLSv1.2', U, 'TLSv1.2', 'TLSv1.2', U, 'TLSv1.2');
++test('TLSv1', 'TLSv1.2', U, 'TLSv1.1', 'TLSv1.1', U, 'TLSv1.1');
++test('TLSv1', 'TLSv1.2', U, 'TLSv1', 'TLSv1', U, 'TLSv1');
+ 
+ // v-specific client can connect to v-any server
+-test('TLSv1.3', 'TLSv1.3', U, 'TLSv1', 'TLSv1.3', U, 'TLSv1.3');
+-test('TLSv1.2', 'TLSv1.2', U, 'TLSv1', 'TLSv1.3', U, 'TLSv1.2');
+-test('TLSv1.1', 'TLSv1.1', U, 'TLSv1', 'TLSv1.3', U, 'TLSv1.1');
+-test('TLSv1', 'TLSv1', U, 'TLSv1', 'TLSv1.3', U, 'TLSv1');
++test('TLSv1.2', 'TLSv1.2', U, 'TLSv1', 'TLSv1.2', U, 'TLSv1.2');
++test('TLSv1.1', 'TLSv1.1', U, 'TLSv1', 'TLSv1.2', U, 'TLSv1.1');
++test('TLSv1', 'TLSv1', U, 'TLSv1', 'TLSv1.2', U, 'TLSv1');
+diff --git a/test/parallel/test-tls-psk-circuit.js b/test/parallel/test-tls-psk-circuit.js
+index 4bcdf36860..0642e18d5e 100644
+--- a/test/parallel/test-tls-psk-circuit.js
++++ b/test/parallel/test-tls-psk-circuit.js
+@@ -62,9 +62,9 @@ const DISCONNECT_MESSAGE =
+ 
+ test({ psk: USERS.UserA, identity: 'UserA' });
+ test({ psk: USERS.UserA, identity: 'UserA' }, { maxVersion: 'TLSv1.2' });
+-test({ psk: USERS.UserA, identity: 'UserA' }, { minVersion: 'TLSv1.3' });
++test({ psk: USERS.UserA, identity: 'UserA' }, { minVersion: 'TLSv1.2' });
+ test({ psk: USERS.UserB, identity: 'UserB' });
+-test({ psk: USERS.UserB, identity: 'UserB' }, { minVersion: 'TLSv1.3' });
++test({ psk: USERS.UserB, identity: 'UserB' }, { minVersion: 'TLSv1.2' });
+ // Unrecognized user should fail handshake
+ test({ psk: USERS.UserB, identity: 'UserC' }, {}, DISCONNECT_MESSAGE);
+ // Recognized user but incorrect secret should fail handshake
+-- 
+2.31.1
+
