@@ -81,12 +81,7 @@ case $1 in
         echo "Using ${2} for passthrough."
 
         echo -n "Shutting down Bluetooth..."
-        # Shutdown bt/smartbasic via the init script
-        if ! /etc/init.d/S95bluetooth.bg stop > /dev/null
-        then
-            echo "failed!"
-            exit 1
-        fi
+        systemctl stop btattach
         echo "done."
 
         echo -n "Mapping reset pin and resetting..."
@@ -145,8 +140,7 @@ case $1 in
         sleep 1
 
         echo -n "Starting Bluetooth..."
-        # Shutdown bt/smartbasic via the init script
-        /etc/init.d/S95bluetooth.bg start > /dev/null
+        systemctl start btattach
         echo "done."
     ;;
 
