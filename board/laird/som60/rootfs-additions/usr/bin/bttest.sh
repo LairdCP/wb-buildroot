@@ -13,12 +13,12 @@
 # PERFORMANCE OF THIS SOFTWARE.
 #
 
-# bttest.sh - manage bluetooth testing for the WB50 in production
+# bttest.sh - manage bluetooth testing for the SOM60 in production
 #
 
 ERROR_LOG="/var/log/bttest.log"
-BT_PATH="/dev/ttyS4"
-BT_PARAMS="0:0:19b2:0:0:0:0:0:0:1:1:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0"
+BT_PATH="/dev/ttyS1"
+BT_PARAMS="0:4:1cb2:a30:3:1c:7f:15:4:0:1:0:11:13:1a:0:12:f:17:16:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0"
 # These parameters equate to:
 # speed 115200 baud;
 # line = 0;
@@ -41,7 +41,7 @@ do_() {
 }
 
 display_usage() {
-    echo "Use to set the WB50 into passthrough mode for production testing."
+    echo "Use to set the SOM60 into passthrough mode for production testing."
     echo
     echo "Action:"
     echo "  start - set test mode for Bluetooth"
@@ -52,19 +52,9 @@ display_usage() {
     echo
 }
 
-bt_on_off()
-{
-  if [ ! -f /sys/class/gpio/pioE5/value ]; then
-    echo 133 > /sys/class/gpio/export 2> /dev/null
-    echo out > /sys/class/gpio/pioE5/direction
-  fi
+exec 2> ${ERROR_LOG}
 
-  echo ${1} > /sys/class/gpio/pioE5/value
-}
-
-exec 2>${ERROR_LOG}
-
-case $1 in
+case ${1} in
     start) # Start testing Bluetooth on the specified port
         if [ $# -lt 2 ] || [ ! -c "${2}" ] || [ "${BT_PATH}" = "${2}" ]
         then
@@ -81,35 +71,20 @@ case $1 in
         echo "Using ${2} for passthrough."
 
         echo -n "Shutting down Bluetooth..."
-        # Shutdown bt/smartbasic via the init script
-        if ! /etc/init.d/S95bluetooth.bg stop > /dev/null
-        then
-            echo "failed!"
-            exit 1
-        fi
-        echo "done."
-
-        echo -n "Mapping reset pin and resetting..."
-        # Initialize the bt reset gpio, and hold in reset
-        bt_on_off 0
-        echo "done."
-
-        # Allow time for the radio to reset
-        sleep 1
-
-        echo -n "Releasing radio from reset..."
-        # Enable the bt chip by releasing the reset gpio
-        bt_on_off 1
-        echo "done."
-
-        echo -n "Loading Bluetooth firmware..."
-        /usr/bin/bccmd -t bcsp -d ${BT_PATH} -b 115200 psload -r /lib/firmware/bluetopia/DWM-W311.psr >/dev/null
+        systemctl stop btattach
         echo "done."
 
         echo -n "Setting parameters for ports..."
         # Setup serial port baudrate + params
         stty -F ${BT_PATH} ${BT_PARAMS} > /dev/null
         stty -F ${2} ${BT_PARAMS} > /dev/null
+
+        mfg_mode=/sys/class/ieee80211/phy0/device/lrd/mfg_mode
+        if [ ! -e "${mfg_mode}" ] || [ "$(cat ${mfg_mode})" == 0 ]
+        then
+            stty -F ${BT_PATH} speed 3000000 > /dev/null
+        fi
+
         echo "done."
 
         echo -n "Setting up passthrough..."
@@ -121,7 +96,7 @@ case $1 in
         echo "done."
 
         echo
-        echo "WB50 Bluetooth now in passthrough test mode."
+        echo "SOM60 Bluetooth now in passthrough test mode."
     ;;
 
     stop) # Stop testing
@@ -131,10 +106,6 @@ case $1 in
             exit 1
         fi
 
-        echo -n "Mapping reset pin and resetting..."
-        bt_on_off 0
-        echo "done."
-
         echo -n "Tearing down passthrough..."
         # Kill the PID's of the passthrough
         read -r BT_RXPID < /tmp/bttest.rx.pid && kill ${BT_RXPID}
@@ -142,11 +113,8 @@ case $1 in
         rm -f /tmp/bttest*
         echo "done."
 
-        sleep 1
-
         echo -n "Starting Bluetooth..."
-        # Shutdown bt/smartbasic via the init script
-        /etc/init.d/S95bluetooth.bg start > /dev/null
+        systemctl start btattach
         echo "done."
     ;;
 

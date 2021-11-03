@@ -30,6 +30,16 @@ await_interface() {
   return $rv
 }
 
+bt_on_off()
+{
+  if [ ! -f /sys/class/gpio/pioE5/value ]; then
+    echo 133 > /sys/class/gpio/export 2> /dev/null
+    echo out > /sys/class/gpio/pioE5/direction
+  fi
+
+  echo ${1} > /sys/class/gpio/pioE5/value
+}
+
 start()
 {
   echo "Starting bluetooth"
@@ -43,9 +53,8 @@ start()
     # this is due to the Bluetooth clock being fed from the WiFi chip
     [ -n "rcS_" ] && eval $rcS_awaitscript && rcS_awaitscript network
 
-    echo 133 > /sys/class/gpio/export
-    echo out > /sys/class/gpio/pioE5/direction
-    echo 1 > /sys/class/gpio/pioE5/value
+    bt_on_off 1
+
     bccmd -t bcsp -d /dev/ttyS4 -b 115200 psload -r /lib/firmware/bluetopia/DWM-W311.psr 2>/dev/null >/dev/null
     hciattach -p /dev/ttyS4 bcsp 115200 2>/dev/null >/dev/null &
   fi
@@ -58,15 +67,27 @@ start()
   rv=$?
 
   # turn the bluetooth daemon on if available
-  if [ -x /usr/libexec/bluetooth/bluetoothd ]
-  then
+  [ -x /usr/libexec/bluetooth/bluetoothd ] && \
     /usr/libexec/bluetooth/bluetoothd &
-  fi
 }
 
 stop()
 {
   echo "Stopping bluetooth"
+
+  hciconfig hci0 down
+
+  if grep -q "45N" /sys/firmware/devicetree/base/model; then
+    modprobe -r btusb
+  else
+    killall hciattach
+    usleep 200000
+    bt_on_off 0
+  fi
+
+  [ -x /usr/libexec/bluetooth/bluetoothd ] && \
+    killall bluetoothd
+
 }
 
 
@@ -85,4 +106,3 @@ case $1 in
     echo "Usage: $0 {stop|start|restart}"
     exit 1
 esac
-
