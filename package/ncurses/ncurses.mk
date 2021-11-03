@@ -53,6 +53,9 @@ NCURSES_PATCH = \
 
 NCURSES_CVE_VERSION = 6.1.20200118
 
+# 0002-CVE-2021-39537-fix-heap-based-buffer-overflow.patch
+NCURSES_IGNORE_CVES += CVE-2021-39537
+
 NCURSES_CONF_OPTS = \
 	--without-cxx \
 	--without-cxx-binding \
