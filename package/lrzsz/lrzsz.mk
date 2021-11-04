@@ -12,6 +12,9 @@ LRZSZ_LICENSE_FILES = COPYING
 LRZSZ_DEPENDENCIES = $(TARGET_NLS_DEPENDENCIES)
 LRZSZ_CONF_ENV = LIBS=$(TARGET_NLS_LIBS)
 
+# 0001-CVE-2018-10195-fix-incorrect-length-check.patch
+LRZSZ_IGNORE_CVES += CVE-2018-10195
+
 define LRZSZ_POST_CONFIGURE_HOOKS
 	$(SED) "s/-lnsl//;" $(@D)/src/Makefile
 	$(SED) "s~\(#define ENABLE_SYSLOG.*\)~/* \1 */~;" $(@D)/config.h
