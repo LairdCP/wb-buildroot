@@ -26,5 +26,9 @@ PCRE_CONF_OPTS += $(if $(BR2_PACKAGE_PCRE_32),--enable-pcre32,--disable-pcre32)
 PCRE_CONF_OPTS += $(if $(BR2_PACKAGE_PCRE_UTF),--enable-utf,--disable-utf)
 PCRE_CONF_OPTS += $(if $(BR2_PACKAGE_PCRE_UCP),--enable-unicode-properties,--disable-unicode-properties)
 
+# CVE-2017-11164
+PCRE_CONF_OPTS += --with-match-limit-recursion=8192
+PCRE_IGNORE_CVES += CVE-2017-11164
+
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))
