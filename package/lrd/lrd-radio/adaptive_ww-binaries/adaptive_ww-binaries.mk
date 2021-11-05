@@ -46,7 +46,7 @@ AWM_PARAMS += -C $(BR2_PACKAGE_ADAPTIVE_WW_BINARIES_CFG_FILE)
 endif
 
 define AWM_BINARIES_CONFIG_INSTALL_TARGET_CMDS
-	mkdir -p "$(TARGET_DIR)/etc/default"
+	$(INSTALL) -d "$(TARGET_DIR)/etc/default"
 	echo "AWM_ARGS=$(AWM_PARAMS)" > $(TARGET_DIR)/etc/default/adaptive_ww
 endef
 
