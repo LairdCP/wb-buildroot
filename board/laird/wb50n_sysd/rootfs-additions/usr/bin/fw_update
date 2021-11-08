@@ -13,7 +13,7 @@ update_ok=false
 
 # determine update side
 side=$(fw_printenv -n bootside)
-[ ${side} == b ] && o_side=a || o_side=b
+[ "${side}" = b ] && o_side=a || o_side=b
 
 grep -q "root=/dev/mmcblk" /proc/cmdline && \
     run_on_sd=true || run_on_sd=false
@@ -22,7 +22,7 @@ while getopts m:s:x:qv name; do
     case $name in
     m)  o_method=${OPTARG} ;;
     s)  o_side=${OPTARG} ;;
-    x)  [ x == "${OPTARG/*r*/x}" ] && o_restart=false ;;
+    x)  [ x = "${OPTARG/*r*/x}" ] && o_restart=false ;;
     q)  o_quiet=true ;;
     v)  o_verbose="-v" ;;
     ?)  printf "Usage: %s: [-m <method>] [-s <side>] [-x value] [-q] [-v] <url>\n" $0
@@ -33,7 +33,7 @@ shift $((OPTIND - 1))
 
 url="${1}"
 
-[ "${o_method}" == complete ] && o_complete=true || o_complete=false
+[ "${o_method}" = complete ] && o_complete=true || o_complete=false
 
 ${o_complete} && p_method=${o_method} || p_method=${o_method}-${o_side}
 
@@ -48,10 +48,18 @@ ${o_quiet} && exec >/dev/null
 case "${url}" in
 *://*)
     if  ${o_complete}; then
-        wget "${url}" || exit 5
+        fname=${url##*/}
+        if [ -e /usr/bin/wget ]; then
+           /usr/bin/wget ${url} || exit 5
+        elif [ -e /usr/bin/curl ]; then
+           /usr/bin/curl ${url} -o ${fname} || exit 5
+        else
+            die "Cannot download ${url}, wget or curl not present"
+        fi
+
         . erase_som_nand >/dev/null
-        swupdate -e stable,${p_method} ${o_verbose} -i "${url##*/}" && update_ok=true
-        rm -f "${url##*/}"
+        swupdate -e stable,${p_method} ${o_verbose} -i ${fname} && update_ok=true
+        rm -f ${fname}
     else
         swupdate -e stable,${p_method} ${o_verbose} -d "-u ${url}" && update_ok=true
     fi
