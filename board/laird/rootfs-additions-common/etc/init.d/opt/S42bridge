@@ -46,7 +46,7 @@ waitfor_interface() {
 waitfor_initscript() {
   delay='usleep 1000000'
   let n=0
-  # if script active, then wait for it to finish 
+  # if script active, then wait for it to finish
   while ps |grep -q "S[0-9][0-9]${1}"
   do
     [ 0 -eq $n ] && echo \ \ waiting for $1...
@@ -54,7 +54,7 @@ waitfor_initscript() {
     let n+=1
     $delay
   done
-  #echo -en $xc 
+  #echo -en $xc
   killall udhcpc dhclient dhcpcd dhcp3-client 2>/dev/null
 }
 
@@ -67,10 +67,10 @@ start() {
   waitfor_interface $ETH_WIRED || exit 1
   ifconfig $ETH_WIRED up || { echo $ETH_WIRED error; exit 1; }
   ifconfig $ETH_WIRED 0.0.0.0 || { echo $ETH_WIRED cfg error; exit 1; }
-	
+
   waitfor_interface $ETH_WIFI || /etc/network/wireless.sh start || exit 1
   ifconfig $ETH_WIFI 0.0.0.0 || { echo $ETH_WIRED cfg error; exit 1; }
-  
+
   brctl addbr $BRIDGE
   brctl stp $BRIDGE off
   brctl setfd $BRIDGE 0
@@ -106,9 +106,9 @@ stop() {
   brctl delbr $BRIDGE
 }
 
-# optional -x is no-wait-on-network 
+# optional -x is no-wait-on-network
 nwon=true
-[ "$1" == "-x" ] && nwon=false && shift
+[ "$1" = "-x" ] && nwon=false && shift
 
 case $1 in
   stop)
@@ -130,4 +130,3 @@ case $1 in
     ;;
 esac
 exit 0
-

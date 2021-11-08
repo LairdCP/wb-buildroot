@@ -8,7 +8,7 @@ DATA_TARGET=${MOUNT_POINT}
 do_data_migration=1
 
 exit_on_error() {
-	[ "${1}" == 1 ] && /bin/umount "${MOUNT_POINT}"
+	[ "${1}" = 1 ] && /bin/umount "${MOUNT_POINT}"
 	echo "${2}"
 	exit 1
 }
@@ -16,11 +16,12 @@ exit_on_error() {
 find_ubi_device() {
 	ubi_dev=""
 	for f in /sys/class/ubi/*; do
-		if [ -f "${f}/name" ]; then
-			if [ "${1}" == `cat "${f}/name"` ]; then
-				ubi_dev="/dev/${f#/sys/class/ubi/}"
-				break
-			fi
+		if [ -f "${f}/name" ] && \
+		   read -r ubi_name < ${f}/name && \
+		   [ "${1}" = "${ubi_name}" ]
+		then
+			ubi_dev="/dev/${f#/sys/class/ubi/}"
+			break
 		fi
 	done
 	[ -z "${ubi_dev}" ] && exit_on_error 0 "UBI Volume ${1} Does not Exist"
@@ -60,7 +61,7 @@ migrate_data() {
 mkdir -p "${MOUNT_POINT}" || exit_on_error 0 "Directory Creation for ${MOUNT_POINT} Failed"
 
 #Don't migrate data from SD
-cmdline=$(cat /proc/cmdline)
+read -r cmdline </proc/cmdline
 rootsd="/dev/mmc" #SD builds boot from /dev/mmc*
 case ${cmdline} in
 	*${rootsd}*) do_data_migration=0 ;;

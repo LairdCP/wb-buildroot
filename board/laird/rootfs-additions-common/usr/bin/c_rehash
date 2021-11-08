@@ -35,7 +35,7 @@ rm -f [0-9a-z][0-9a-z][0-9a-z][0-9a-z][0-9a-z][0-9a-z][0-9a-z][0-9a-z].[0-9]*
 ls -1 *.pem | while read cert_file
 do
 	hash=`openssl x509 -hash -noout -in $cert_file 2> /dev/null`
-	if [ $? == 0 ]
+	if [ $? = 0 ]
 	then
 		suffix=0
 		while [ -e $hash.$suffix ]
@@ -45,4 +45,3 @@ do
 		ln -s $cert_file $hash.$suffix
 	fi
 done
-

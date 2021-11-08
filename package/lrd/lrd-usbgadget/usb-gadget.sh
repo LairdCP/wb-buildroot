@@ -75,7 +75,7 @@ create_gadgets () {
 	[ ${USB_GADGET_SERIAL_PORTS:-0} -gt 0 ] || \
 		{ echo "No usb-gadget specified"; exit 1; }
 
-	if [ "$(cat /sys/devices/soc0/soc_id)" == "at91sam9g20" ]; then
+	if [ "$(cat /sys/devices/soc0/soc_id)" = "at91sam9g20" ]; then
 		modprobe at91_udc
 	else
 		modprobe atmel_usba_udc

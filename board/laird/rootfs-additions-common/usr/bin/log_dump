@@ -137,7 +137,7 @@ cd $FW_PATH
 n='[0-9]'
 for x in fw_v*.bin
 do
-	label= [ "`readlink ${FW_LINK} 2>/dev/null`" == $x ] && label="${FW_LINK}"
+	label= [ "`readlink ${FW_LINK} 2>/dev/null`" = $x ] && label="${FW_LINK}"
 
 if command_exists md5sum ; then
 	echo -e "${label:-  -  }" \

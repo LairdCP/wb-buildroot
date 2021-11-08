@@ -80,10 +80,9 @@ case ${1} in
         stty -F ${2} ${BT_PARAMS} > /dev/null
 
         mfg_mode=/sys/class/ieee80211/phy0/device/lrd/mfg_mode
-        if [ ! -e "${mfg_mode}" ] || [ "$(cat ${mfg_mode})" == 0 ]
-        then
-            stty -F ${BT_PATH} speed 3000000 > /dev/null
-        fi
+        [ -f "${mfg_mode}" ] && read -r mfg_val < ${mfg_mode} && \
+        [ "${mfg_val}" = 1 ] && baud=115200 || baud=3000000
+        stty -F ${BT_PATH} speed ${baud} > /dev/null
 
         echo "done."
 
