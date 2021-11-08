@@ -55,7 +55,6 @@ check_fipsInit() {
 case "${1}" in
   fips) ## set fips only
     bootargs="$(fw_printenv -n bootargs)" || return 1
-    booargs="fips=0"
     check_fipsInit
     bootmod fips 1
     bootmod fips_wifi 0
