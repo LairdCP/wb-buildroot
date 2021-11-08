@@ -20,22 +20,63 @@ warning() {
   echo "Changes will take effect after reboot"
 }
 
+bootmod() {
+  bname=${1}
+  bval=${2}
+  found=false
+
+  set -- ${bootargs}
+  for x in "$@"; do
+    case "${x}" in
+      "${bname}=${bval}")
+        found=true
+        break;
+        ;;
+      "${bname}="*)
+        bootargs=${bootargs/${bname}=[! \t]/${bname}=${bval}}
+        found=true
+        break;
+        ;;
+    esac
+  done
+  ${found} || bootargs="${bootargs} ${bname}=${bval}"
+}
+
+check_fipsInit() {
+  case "${bootargs}" in
+    *init=/usr/sbin/fipsInit.sh*) ;;
+    *)
+      #bootargs does not contain init=/usr/sbin/fipsInit.sh
+      bootargs="${bootargs} init=/usr/sbin/fipsInit.sh"
+      ;;
+  esac
+}
+
 case "${1}" in
   fips) ## set fips only
-    fw_setenv fips_wifi  || return 1
-    fw_setenv fips 1
+    bootargs="$(fw_printenv -n bootargs)" || return 1
+    booargs="fips=0"
+    check_fipsInit
+    bootmod fips 1
+    bootmod fips_wifi 0
+    fw_setenv bootargs "${bootargs}"
     warning
     ;;
 
   fips_wifi) ## set fips wifi
-    fw_setenv fips 1  || return 1
-    fw_setenv fips_wifi 1
+    bootargs="$(fw_printenv -n bootargs)" || return 1
+    check_fipsInit
+    bootmod fips 1
+    bootmod fips_wifi 1
+    fw_setenv bootargs "${bootargs}"
     warning
     ;;
 
   unset) ## unset
-    fw_setenv fips || return 1
-    fw_setenv fips_wifi
+    bootargs="$(fw_printenv -n bootargs)" || return 1
+    bootmod fips 0
+    bootmod fips_wifi 0
+    fw_setenv bootargs "${bootargs}"
     warning
     ;;
 

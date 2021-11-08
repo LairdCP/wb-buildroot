@@ -11,9 +11,10 @@ mount -t proc proc /proc 2> /dev/null
 PROC_MOUNT=$?
 BOOT_MOUNT=1
 
-set -- $(cat /proc/cmdline)
+read -r cmdline < /proc/cmdline
+set -- ${cmdline}
 for x in "$@"; do
-	case "$x" in
+	case "${x}" in
 		ubi.mtd=*)
 			KERNEL=/dev/mtd$((${x#*=} - 2))
 			;;
@@ -24,9 +25,10 @@ for x in "$@"; do
 	esac
 done
 
-FIPS_ENABLED=$(cat /proc/sys/crypto/fips_enabled 2>/dev/null)
+[ -f /proc/sys/crypto/fips_enabled ] && \
+	read -r FIPS_ENABLED < /proc/sys/crypto/fips_enabled
 
-if [ "${FIPS_ENABLED}" == "1" ] && [ -n "${KERNEL}" ]; then
+if [ "${FIPS_ENABLED}" = "1" ] && [ -n "${KERNEL}" ]; then
 	# trigger kernel crypto ccm self-test
 	modprobe tcrypt mode=37
 	modprobe -r tcrypt
@@ -60,7 +62,7 @@ fi
 
 echo -e "Launching: ${INIT}\n"
 
-if [ "${INIT#*.}" == "sh" ]; then
+if [ "${INIT#*.}" = "sh" ]; then
 	. ${INIT}
 else
 	exec ${INIT}

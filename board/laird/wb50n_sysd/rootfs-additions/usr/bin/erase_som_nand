@@ -6,8 +6,8 @@ for i in $(ls ${mtd}); do
     case ${i} in
     mtd?)
         echo Erasing ${i}
-        [ "$(cat ${mtd}/${i}/name)" ==  ubi ] && \
-                { ubidetach -p /dev/${i} 2>/dev/null || true; }
+        read -r ubi_name <${mtd}/${i}/name && [ "${ubi_name}" =  ubi ] && \
+            { ubidetach -p /dev/${i} 2>/dev/null || true }
         flash_erase /dev/${i} 0 0
         ;;
     esac
