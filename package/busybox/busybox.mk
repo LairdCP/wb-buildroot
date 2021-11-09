@@ -4,27 +4,12 @@
 #
 ################################################################################
 
-BUSYBOX_VERSION = 1.29.3
-BUSYBOX_SITE = http://www.busybox.net/downloads
+BUSYBOX_VERSION = 1.34.1
+BUSYBOX_SITE = https://www.busybox.net/downloads
 BUSYBOX_SOURCE = busybox-$(BUSYBOX_VERSION).tar.bz2
-BUSYBOX_LICENSE = GPL-2.0
-BUSYBOX_LICENSE_FILES = LICENSE
-
-# 0004-udhcpc-check-that-4-byte-options-are-indeed-4-byte-closes-11506.patch
-BUSYBOX_IGNORE_CVES += CVE-2018-20679
-
-# 0005-udhcpc-when-decoding-DHCP_SUBNET-ensure-it-is-4-bytes-long.patch
-BUSYBOX_IGNORE_CVES += CVE-2019-5747
-
-# 0009-wget-implement-verification.patch
-BUSYBOX_IGNORE_CVES += CVE-2018-1000500
-
-# 0010-decompress_gunzip-Fix-DoS-if-gzip-is-corrupt.patch.patch
-BUSYBOX_IGNORE_CVES += CVE-2021-28831
-
-define BUSYBOX_HELP_CMDS
-	@echo '  busybox-menuconfig     - Run BusyBox menuconfig'
-endef
+BUSYBOX_LICENSE = GPL-2.0, bzip2-1.0.4
+BUSYBOX_LICENSE_FILES = LICENSE archival/libarchive/bz/LICENSE
+BUSYBOX_CPE_ID_VENDOR = busybox
 
 BUSYBOX_CFLAGS = \
 	$(TARGET_CFLAGS)
