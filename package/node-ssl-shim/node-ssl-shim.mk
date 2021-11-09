@@ -18,7 +18,8 @@ define NODE_SSL_SHIM_BUILD_CMDS
 endef
 
 define NODE_SSL_SHIM_INSTALL_STAGING_CMDS
-	$(MAKE) install -C $(@D) prefix=$(STAGING_DIR)/usr
+	$(INSTALL) -D -t $(STAGING_DIR)/usr/lib -m 0644 $(@D)/libnode-ssl-shim.a
+	$(INSTALL) -D -t $(STAGING_DIR)/usr/include/node-ssl-shim -m 0644 $(@D)/src/*.h
 endef
 
 $(eval $(generic-package))
