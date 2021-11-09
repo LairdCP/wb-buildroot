@@ -1,5 +1,5 @@
-# From https://www.python.org/downloads/release/python-3710/
-md5 9e34914bc804ab2e7d955b49c5e1e391 Python-3.7.10.tar.xz
+# From https://www.python.org/downloads/release/python-3712/
+md5 352ea082224121a8b7bc4d6d06e5de39 Python-3.7.12.tar.xz
 # Locally computed
-sha256 f8d82e7572c86ec9d55c8627aae5040124fd2203af400c383c821b980306ee6b Python-3.7.10.tar.xz
+sha256 f77bf7fb47839f213e5cbf7827281078ea90de7e72b44f10d7ef385ea8c43210 Python-3.7.12.tar.xz
 sha256 88af2ad14407446d00b47cd0a83c6707c9f563cf64f94a57878e551031eb48a9 LICENSE
