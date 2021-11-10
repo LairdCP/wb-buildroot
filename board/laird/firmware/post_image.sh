@@ -55,6 +55,25 @@ create_bcm4339_firmware_archive()
 	)
 }
 
+create_bcm43439_firmware_archive()
+{
+	grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_BCM43439=y" ${BR2_CONFIG} || return
+
+	local BRCM_DIR=${FW_DIR}/brcm
+
+	(
+	cd ${TARGET_DIR}
+	tar -cjf "${BINARIES_DIR}/laird-lwbplus-firmware${RELEASE_SUFFIX}.tar.bz2" \
+		lib/firmware/brcm/BCM4343A2.hcd \
+		lib/firmware/brcm/brcmfmac43439-sdio.bin \
+		lib/firmware/brcm/brcmfmac43439-sdio-prod.bin \
+		lib/firmware/brcm/brcmfmac43439-sdio.txt \
+		lib/firmware/brcm/brcmfmac43439-sdio.clm_blob \
+		-C ${BOARD_DIR} \
+		LICENSE
+	)
+}
+
 create_bcm4373_sdio_uart_firmware_archive()
 {
 	grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_${1^^}=y" ${BR2_CONFIG} || return
@@ -167,6 +186,8 @@ create_bcm4339_firmware_archive etsi
 create_bcm4339_firmware_archive ic
 create_bcm4339_firmware_archive jp
 fi
+
+create_bcm43439_firmware_archive
 
 create_bcm4373_sdio_uart_firmware_archive sa sa
 create_bcm4373_sdio_uart_firmware_archive div div
