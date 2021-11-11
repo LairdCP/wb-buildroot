@@ -28,7 +28,7 @@ case ${DEVBASE} in
 esac
 
 # See if this drive is already mounted, and if so where
-MOUNT_POINT="$(/bin/awk -v DEV=${DEVICE} '(${1} == DEV) { print ${2} }' /proc/mounts)"
+MOUNT_POINT="$(/bin/awk -v DEV=${DEVICE} '($1 == DEV) { print $2 }' /proc/mounts)"
 
 do_mount()
 {
