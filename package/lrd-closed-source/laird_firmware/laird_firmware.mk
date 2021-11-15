@@ -48,53 +48,56 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343),y)
 define LAIRD_FW_BCM4343_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac43430-sdio-prod.bin $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac43430-sdio.bin $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac43430-sdio-prod_*.bin $(BRCM_DIR)
+	cd $(BRCM_DIR) && ln -srf brcmfmac43430-sdio-prod_*.bin brcmfmac43430-sdio.bin
 	cp -rad $(@D)/brcm/brcmfmac43430-sdio*.txt $(BRCM_DIR)
 	cp -rad $(@D)/brcm/brcmfmac43430-sdio.clm_blob $(BRCM_DIR)
-	cp -rad $(@D)/brcm/BCM43430A1.hcd $(BRCM_DIR)
+	cp -rad $(@D)/brcm/BCM43430A1_*.hcd $(BRCM_DIR)
+	cd $(BRCM_DIR) && ln -srf BCM43430A1_*.hcd BCM43430A1.hcd
 endef
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343_MFG),y)
 define LAIRD_FW_BCM4343_MFG_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac43430-sdio-mfg.bin $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac43430-sdio-mfg_*.bin $(BRCM_DIR)
 endef
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM43439),y)
 define LAIRD_FW_BCM43439_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac43439-sdio-prod.bin $(BRCM_DIR)
-	cd $(BRCM_DIR) && ln -srf brcmfmac43439-sdio-prod.bin brcmfmac43439-sdio.bin
+	cp -rad $(@D)/brcm/brcmfmac43439-sdio-prod_*.bin $(BRCM_DIR)
+	cd $(BRCM_DIR) && ln -srf brcmfmac43439-sdio-prod_*.bin brcmfmac43439-sdio.bin
 	cp -rad $(@D)/brcm/brcmfmac43439-sdio.txt $(BRCM_DIR)
 	cp -rad $(@D)/brcm/brcmfmac43439-sdio.clm_blob $(BRCM_DIR)
-	cp -rad $(@D)/brcm/BCM4343A2.hcd $(BRCM_DIR)
+	cp -rad $(@D)/brcm/BCM4343A2_*.hcd $(BRCM_DIR)
+	cd $(BRCM_DIR) && ln -srf BCM4343A2_*.hcd BCM4343A2.hcd
 endef
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM43439_MFG),y)
 define LAIRD_FW_BCM43439_MFG_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac43439-sdio-mfg.bin $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac43439-sdio-mfg_*.bin $(BRCM_DIR)
 endef
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339),y)
 define LAIRD_FW_BCM4339_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac4339-sdio-prod.bin $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac4339-sdio.bin $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4339-sdio-prod_*.bin $(BRCM_DIR)
+	cd $(BRCM_DIR) && ln -srf brcmfmac4339-sdio-prod_*.bin brcmfmac4339-sdio.bin
 	cp -rad $(@D)/brcm/brcmfmac4339-sdio*.txt $(BRCM_DIR)
-	cp -rad $(@D)/brcm/BCM4335C0.hcd $(BRCM_DIR)
+	cp -rad $(@D)/brcm/BCM4335C0_*.hcd $(BRCM_DIR)
+	cd $(BRCM_DIR) && ln -srf BCM4335C0_*.hcd BCM4335C0.hcd
 endef
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339_MFG),y)
 define LAIRD_FW_BCM4339_MFG_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/brcm/brcmfmac4339-sdio-mfg.bin $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4339-sdio-mfg_*.bin $(BRCM_DIR)
 endef
 endif
 
@@ -103,12 +106,12 @@ define make_bcm4373sdio_fw
 	mkdir -p -m 0755 $(BRCM_DIR)
 	cp -rad $(@D)/brcm/brcmfmac4373-clm-$(3).clm_blob $(BRCM_DIR)/brcmfmac4373-clm-$(1).clm_blob
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-$(1).clm_blob brcmfmac4373-sdio.clm_blob
-	cp -rad $(@D)/brcm/BCM4373A0-sdio-$(3).hcd $(BRCM_DIR)/BCM4373A0-sdio-$(1).hcd
-	cd $(BRCM_DIR) && ln -srf BCM4373A0-sdio-$(1).hcd BCM4373A0.hcd
+	for file in $(@D)/brcm/BCM4373A0-sdio-$(3)_*.hcd; do basename=$${file##*/}; cp -rad "$$file" "$(BRCM_DIR)/$${basename/$(3)/$(1)}"; done
+	cd $(BRCM_DIR) && ln -srf BCM4373A0-sdio-$(1)_*.hcd BCM4373A0.hcd
 	cp -rad $(@D)/brcm/brcmfmac4373-$(2).txt $(BRCM_DIR)/brcmfmac4373-$(1).txt
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-$(1).txt brcmfmac4373-sdio.txt
-	cp -rad $(@D)/brcm/brcmfmac4373-sdio-prod.bin $(BRCM_DIR)
-	cd $(BRCM_DIR) && ln -srf brcmfmac4373-sdio-prod.bin brcmfmac4373-sdio.bin
+	cp -rad $(@D)/brcm/brcmfmac4373-sdio-prod_*.bin $(BRCM_DIR)
+	cd $(BRCM_DIR) && ln -srf brcmfmac4373-sdio-prod_*.bin brcmfmac4373-sdio.bin
 endef
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV),y)
@@ -130,9 +133,9 @@ endef
 endif
 
 NVRAM_FILE = $(@D)/brcm/brcmfmac4373-$(1).txt
-FW_BASE_FILE = $(@D)/brcm/brcmfmac4373-usb-base-$(1).bin
-FW_FINAL_FILE = $(BRCM_DIR)/brcmfmac4373-usb-$(1)-$(2).bin
-
+FW_BASE_FILE=$(wildcard $(@D)/brcm/brcmfmac4373-usb-base-$(1)_*.bin)
+# Final file will be e.g. brcmfmac4373-usb-div-prod_v13.10.246.261.bin
+FW_FINAL_FILE=$(BRCM_DIR)/$(subst usb-base-$(2)_,usb-$(1)-$(2)_,$(notdir $(call FW_BASE_FILE,$(2))))
 define make_bcm4373usb_fw
 	grep -v NVRAMRev $(call NVRAM_FILE,$(2)) > $(BRCM_DIR)/tmp_nvram.txt
 	$(@D)/brcm/bin/nvserial -a -o $(BRCM_DIR)/tmp_nvram.nvm $(BRCM_DIR)/tmp_nvram.txt
@@ -150,10 +153,10 @@ define LAIRD_FW_BCM4373_USB_DIV_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
 	cp -rad $(@D)/brcm/brcmfmac4373-clm-switch.clm_blob $(BRCM_DIR)/brcmfmac4373-clm-div.clm_blob
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-div.clm_blob brcmfmac4373.clm_blob
-	cp -rad $(@D)/brcm/BCM4373A0-usb-switch.hcd $(BRCM_DIR)/BCM4373A0-usb-div.hcd
-	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-div.hcd BCM4373A0-04b4-640c.hcd
+	for file in $(@D)/brcm/BCM4373A0-usb-switch_*.hcd; do basename=$${file##*/}; cp -rad "$$file" "$(BRCM_DIR)/$${basename/usb-switch/usb-div}"; done
+	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-div_*.hcd BCM4373A0-04b4-640c.hcd
 	$(call make_bcm4373usb_fw,div,div-switch,prod)
-	cd $(BRCM_DIR) && ln -srf $(BRCM_DIR)/brcmfmac4373-usb-div-prod.bin brcmfmac4373.bin
+	cd $(BRCM_DIR) && ln -srf $(BRCM_DIR)/brcmfmac4373-usb-div-prod_*.bin brcmfmac4373.bin
 endef
 endif
 
@@ -162,10 +165,10 @@ define LAIRD_FW_BCM4373_USB_SA_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
 	cp -rad $(@D)/brcm/brcmfmac4373-clm-noswitch.clm_blob $(BRCM_DIR)/brcmfmac4373-clm-sa.clm_blob
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-sa.clm_blob brcmfmac4373.clm_blob
-	cp -rad $(@D)/brcm/BCM4373A0-usb-noswitch.hcd $(BRCM_DIR)/BCM4373A0-usb-sa.hcd
-	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-sa.hcd BCM4373A0-04b4-640c.hcd
+	for file in $(@D)/brcm/BCM4373A0-usb-noswitch_*.hcd; do basename=$${file##*/}; cp -rad "$$file" "$(BRCM_DIR)/$${basename/usb-noswitch/usb-sa}"; done
+	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-sa_*.hcd BCM4373A0-04b4-640c.hcd
 	$(call make_bcm4373usb_fw,sa,sa-noswitch,prod)
-	cd $(BRCM_DIR) && ln -srf $(BRCM_DIR)/brcmfmac4373-usb-sa-prod.bin brcmfmac4373.bin
+	cd $(BRCM_DIR) && ln -srf $(BRCM_DIR)/brcmfmac4373-usb-sa-prod_*.bin brcmfmac4373.bin
 endef
 endif
 
@@ -174,10 +177,10 @@ define LAIRD_FW_BCM4373_USB_SA_M2_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(BRCM_DIR)
 	cp -rad $(@D)/brcm/brcmfmac4373-clm-switch.clm_blob $(BRCM_DIR)/brcmfmac4373-clm-sa-m2.clm_blob
 	cd $(BRCM_DIR) && ln -srf brcmfmac4373-clm-sa-m2.clm_blob brcmfmac4373.clm_blob
-	cp -rad $(@D)/brcm/BCM4373A0-usb-switch.hcd $(BRCM_DIR)/BCM4373A0-usb-sa-m2.hcd
-	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-sa-m2.hcd BCM4373A0-04b4-640c.hcd
+	for file in $(@D)/brcm/BCM4373A0-usb-switch_*.hcd; do basename=$${file##*/}; cp -rad "$$file" "$(BRCM_DIR)/$${basename/usb-switch/usb-sa-m2}"; done
+	cd $(BRCM_DIR) && ln -srf BCM4373A0-usb-sa-m2_*.hcd BCM4373A0-04b4-640c.hcd
 	$(call make_bcm4373usb_fw,sa-m2,sa-switch,prod)
-	cd $(BRCM_DIR) && ln -srf $(BRCM_DIR)/brcmfmac4373-usb-sa-m2-prod.bin brcmfmac4373.bin
+	cd $(BRCM_DIR) && ln -srf $(BRCM_DIR)/brcmfmac4373-usb-sa-m2-prod_*.bin brcmfmac4373.bin
 endef
 endif
 
@@ -194,7 +197,7 @@ define LAIRD_FW_BCM4373_MFG_INSTALL_TARGET_CMDS
 	$(call make_bcm4373usb_fw,div,div-mfg,mfg)
 	$(call make_bcm4373usb_fw,sa,sa-noswitch,mfg)
 	$(call make_bcm4373usb_fw,sa-m2,sa-switch,mfg)
-	cp -rad $(@D)/brcm/brcmfmac4373-sdio-mfg.bin $(BRCM_DIR)
+	cp -rad $(@D)/brcm/brcmfmac4373-sdio-mfg_*.bin $(BRCM_DIR)
 	cp -rad $(@D)/brcm/brcmfmac4373-div-mfg.txt $(BRCM_DIR)
 endef
 endif

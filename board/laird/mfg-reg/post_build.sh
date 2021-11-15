@@ -63,10 +63,13 @@ cp board/laird/mfg-reg/rootfs-additions/tcmd.sh ${TARGET_DIR}/usr/bin
 
 elif [[ "${BR2_LRD_PRODUCT}" == regCypress* ]]; then
 
-echo "/usr/bin/wl
-/lib/firmware/brcm/brcmfmac4339-sdio-mfg.bin
-/lib/firmware/brcm/brcmfmac43430-sdio-mfg.bin" \
+echo "/usr/bin/wl" \
 > "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
+
+ls "${TARGET_DIR}/lib/firmware/brcm/brcmfmac4339-sdio-mfg_"*".bin" | sed "s,^${TARGET_DIR},," \
+	>> "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
+ls "${TARGET_DIR}/lib/firmware/brcm/brcmfmac43430-sdio-mfg_"*".bin" | sed "s,^${TARGET_DIR},," \
+	>> "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
 
 elif [[ "${BR2_LRD_PRODUCT}" == regLWB5plus* ]]; then
 
@@ -79,7 +82,7 @@ echo "/usr/bin/lru
 /usr/lib/${LIBEDITLRD}" \
 > "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
 
-ls "${TARGET_DIR}/lib/firmware/brcm/brcmfmac4373-"*"-mfg.bin" | sed "s,^${TARGET_DIR},," \
+ls "${TARGET_DIR}/lib/firmware/brcm/brcmfmac4373-"*"-mfg_"*".bin" | sed "s,^${TARGET_DIR},," \
 	>> "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
 
 cp "${TARGET_DIR}/usr/lib/${LIBEDIT}" "${TARGET_DIR}/usr/lib/${LIBEDITLRD}"
@@ -93,7 +96,7 @@ echo "/usr/bin/lru
 /usr/lib/${LIBEDITLRD}" \
 > "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
 
-ls "${TARGET_DIR}/lib/firmware/brcm/brcmfmac43439-sdio-mfg.bin" | sed "s,^${TARGET_DIR},," \
+ls "${TARGET_DIR}/lib/firmware/brcm/brcmfmac43439-sdio-mfg_"*".bin" | sed "s,^${TARGET_DIR},," \
 	>> "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
 
 cp "${TARGET_DIR}/usr/lib/${LIBEDIT}" "${TARGET_DIR}/usr/lib/${LIBEDITLRD}"
