@@ -5,12 +5,16 @@ config BR2_PACKAGE_OPENSSL_FIPS
 	  Build FIPS support for openssl.
 	  http://www.openssl.org/
 
+if BR2_PACKAGE_OPENSSL_FIPS
+
 config BR2_PACKAGE_LAIRD_OPENSSL_FIPS
 	bool "Laird openssl-fips version"
 	help
 	  Builds the Laird openssl-fips/openssl.
 
 config BR2_PACKAGE_LAIRD_OPENSSL_FIPS_DEBUG
-	bool "Laird openssl-fips debug version for functional testing"
+	bool "openssl-fips debug version for functional testing"
 	help
 	  Builds the Laird openssl-fips/openssl debug version.
+
+endif
