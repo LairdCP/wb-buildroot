@@ -19,12 +19,17 @@ choice BR2_PACKAGE_LRD_USBGADGET_TYPE
 config BR2_PACKAGE_LRD_USBGADGET_TYPE_RNDIS
 	bool "RNDIS"
 	help
-	  Laird RNDIS USB Ethernet Gadget RNDIS
+	  Laird RNDIS USB Ethernet Gadget
 
 config BR2_PACKAGE_LRD_USBGADGET_TYPE_NCM
 	bool "NCM"
 	help
-	  Laird RNDIS USB Ethernet Gadget NCM
+	  Laird NCM USB Ethernet Gadget
+
+config BR2_PACKAGE_LRD_USBGADGET_TYPE_ECM
+	bool "ECM"
+	help
+	  Laird ECM USB Ethernet Gadget
 
 endchoice
 
@@ -45,6 +50,7 @@ config BR2_PACKAGE_LRD_USBGADGET_TYPE_STRING
 	string
 	default "rndis" if BR2_PACKAGE_LRD_USBGADGET_TYPE_RNDIS
 	default "ncm"   if BR2_PACKAGE_LRD_USBGADGET_TYPE_NCM
+	default "ecm"   if BR2_PACKAGE_LRD_USBGADGET_TYPE_ECM
 
 config BR2_PACKAGE_LRD_USBGADGET_SERIAL_PORTS
 	int "USB Gadget Serial ports"
