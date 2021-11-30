@@ -50,6 +50,7 @@ config BR2_PACKAGE_WEBLCM_PYTHON_UNMANAGED_HARDWARE_DEVICES
 config BR2_PACKAGE_WEBLCM_PYTHON_BLUETOOTH
 	bool "Bluetooth support for weblcm"
 	depends on BR2_PACKAGE_BLUEZ5_UTILS
+	select BR2_PACKAGE_IGSDK
 	default y
 	help
 		Add basic Bluetooth REST API support to weblcm (scanning/pairing/connecting).

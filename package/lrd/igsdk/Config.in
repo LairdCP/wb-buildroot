@@ -1,0 +1,8 @@
+config BR2_PACKAGE_IGSDK
+	bool "Laird Industrial Gateway SDK"
+	select BR2_PACKAGE_PYTHON3
+	select BR2_PACKAGE_GOBJECT_INTROSPECTION
+	select BR2_PACKAGE_PYTHON3_GOBJECT
+
+	help
+	  Laird Industrial Gateway SDK
