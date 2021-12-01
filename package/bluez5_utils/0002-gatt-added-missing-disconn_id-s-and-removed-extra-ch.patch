@@ -1,0 +1,48 @@
+From 259407032af93cc861b3648780f7478921172572 Mon Sep 17 00:00:00 2001
+From: Bernie Conrad <bernie@allthenticate.com>
+Date: Tue, 12 Oct 2021 14:51:51 -0700
+Subject: [PATCH] gatt: added missing disconn_id's and removed extra check
+
+Adds missing assignment to disconn_id for pending operations and removes
+check that is already handled by checking if the owner_queue of the op
+is gone at the start of write_reply_cb.
+---
+ src/gatt-database.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/src/gatt-database.c b/src/gatt-database.c
+index 475e7873c..dbe9415a3 100644
+--- a/src/gatt-database.c
++++ b/src/gatt-database.c
+@@ -978,7 +978,7 @@ static struct pending_op *pending_ccc_new(struct bt_att *att,
+ 	op->attrib = attrib;
+ 	op->link_type = link_type;
+ 
+-	bt_att_register_disconnect(att,
++	op->disconn_id = bt_att_register_disconnect(att,
+ 				   pending_disconnect_cb,
+ 				   op,
+ 				   NULL);
+@@ -2387,9 +2387,7 @@ static void write_reply_cb(DBusMessage *message, void *user_data)
+ 	}
+ 
+ done:
+-	/* Make sure that only reply if the device is connected */
+-	if (!bt_att_get_fd(op->att))
+-		gatt_db_attribute_write_result(op->attrib, op->id, ecode);
++	gatt_db_attribute_write_result(op->attrib, op->id, ecode);
+ }
+ 
+ static struct pending_op *pending_write_new(struct bt_att *att,
+@@ -2418,7 +2416,7 @@ static struct pending_op *pending_write_new(struct bt_att *att,
+ 	op->prep_authorize = prep_authorize;
+ 	queue_push_tail(owner_queue, op);
+ 
+-	bt_att_register_disconnect(att,
++	op->disconn_id = bt_att_register_disconnect(att,
+ 			    pending_disconnect_cb,
+ 			    op, NULL);
+ 
+-- 
+2.17.1
+
