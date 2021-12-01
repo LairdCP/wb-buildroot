@@ -38,7 +38,7 @@ endef
 endif
 
 ifeq ($(BR2_PACKAGE_MFG60N_LRU),y)
-	MFG60N_DEPENDENCIES += libnl openssl
+	MFG60N_DEPENDENCIES += libnl
 define LAIRD_MFG60N_VENDOR_BUILD_LRU_CMD
 	$(MFG60N_MAKE_ENV) $(MAKE) $(MFG60N_MAKE_OPTS) -C $(@D)/lru
 endef
