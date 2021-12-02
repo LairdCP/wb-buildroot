@@ -99,6 +99,6 @@ case "${1}" in
     ;;
 
   *)
-    echo "Usage: fips-set <fips | fips_wifi | status>"
+    echo "Usage: fips-set <fips | fips_wifi | unset | status>"
     ;;
 esac
