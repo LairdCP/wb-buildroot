@@ -15,16 +15,13 @@ WEBLCM_PYTHON_DEFAULT_USERNAME = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_DEFAU
 WEBLCM_PYTHON_DEFAULT_PASSWORD = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_PASSWORD))
 
 ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_BLUETOOTH),y)
-	WEBLCM_PYTHON_EXTRA_MODULES += weblcm_bluetooth weblcm_ble weblcm_bluetooth_plugin weblcm_bluetooth_ble weblcm_bluetooth_ble_logger
+	WEBLCM_PYTHON_EXTRA_MODULES += weblcm_bluetooth weblcm_ble weblcm_bluetooth_plugin weblcm_bluetooth_ble weblcm_bluetooth_ble_logger weblcm_tcp_connection
 endif
 ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_HID),y)
 	WEBLCM_PYTHON_EXTRA_MODULES += weblcm_hid_barcode_scanner
 endif
 ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_VSP),y)
 	WEBLCM_PYTHON_EXTRA_MODULES += weblcm_vsp_connection
-endif
-ifneq ($(BR2_PACKAGE_WEBLCM_PYTHON_HID)$(BR2_PACKAGE_WEBLCM_PYTHON_VSP),)
-	WEBLCM_PYTHON_EXTRA_MODULES += weblcm_tcp_connection
 endif
 WEBLCM_PYTHON_ENV = WEBLCM_PYTHON_EXTRA_MODULES='$(WEBLCM_PYTHON_EXTRA_MODULES)'
 
