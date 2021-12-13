@@ -940,39 +940,5 @@ index 2fbf57e7..9fcf34cf 100644
      g_free (self->priv->operator_id);
 
      G_OBJECT_CLASS (mm_broadband_modem_ublox_parent_class)->finalize (object);
-diff --git a/plugins/ublox/mm-plugin-ublox.c b/plugins/ublox/mm-plugin-ublox.c
-index db7b8be7..7f7a5211 100644
---- a/plugins/ublox/mm-plugin-ublox.c
-+++ b/plugins/ublox/mm-plugin-ublox.c
-@@ -66,14 +66,14 @@ ublox_grab_port (MMPlugin *self,
-             mm_port_probe_get_port_name (probe));
-         pflags = MM_PORT_SERIAL_AT_FLAG_SECONDARY;
-     } else if (g_strcmp0 ("gsmtty3", mm_port_probe_get_port_name (probe)) == 0) {
--        mm_dbg ("ublox: port '%s/%s' flagged as GSP control",
-+        mm_dbg ("ublox: AT port '%s/%s type %d' flagged as GPS control",
-             mm_port_probe_get_port_subsys (probe),
--            mm_port_probe_get_port_name (probe));
-+            mm_port_probe_get_port_name (probe), ptype);
-         pflags = MM_PORT_SERIAL_AT_FLAG_GPS_CONTROL;
--    } else {
--        mm_dbg ("ublox: AT port '%s/%s' flagged as NMEA",
-+    } else if (g_strcmp0 ("gsmtty4", mm_port_probe_get_port_name (probe)) == 0) {
-+        mm_dbg ("ublox: AT port '%s/%s type %d' flagged as NMEA",
-             mm_port_probe_get_port_subsys (probe),
--            mm_port_probe_get_port_name (probe));
-+            mm_port_probe_get_port_name (probe), ptype);
-         ptype = MM_PORT_TYPE_GPS;
-     }
- out:
-@@ -305,7 +305,7 @@ mm_plugin_create (void)
-     static const gchar *subsystems[] = { "tty", "net", NULL };
-     static const guint16 vendor_ids[] = { 0x1546, 0 };
-     static const gchar *vendor_strings[] = { "u-blox", NULL };
--    static const gchar *drivers[] = { "gsmtty", "atmel_usart", NULL };
-+    static const gchar *drivers[] = { "gsmtty", NULL };
-     static const MMAsyncMethod custom_init = {
-         .async  = G_CALLBACK (ublox_custom_init),
-         .finish = G_CALLBACK (ublox_custom_init_finish),
 --
 2.17.1
-

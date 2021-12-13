@@ -456,14 +456,14 @@ index 6a0d140..db7b8be 100644
 +            mm_port_probe_get_port_name (probe));
 +        pflags = MM_PORT_SERIAL_AT_FLAG_SECONDARY;
 +    } else if (g_strcmp0 ("gsmtty3", mm_port_probe_get_port_name (probe)) == 0) {
-+        mm_dbg ("ublox: port '%s/%s' flagged as GSP control",
++        mm_dbg ("ublox: AT port '%s/%s type %d' flagged as GPS control",
 +            mm_port_probe_get_port_subsys (probe),
-+            mm_port_probe_get_port_name (probe));
++            mm_port_probe_get_port_name (probe), ptype);
 +        pflags = MM_PORT_SERIAL_AT_FLAG_GPS_CONTROL;
-+    } else {
-+        mm_dbg ("ublox: AT port '%s/%s' flagged as NMEA",
++    } else if (g_strcmp0 ("gsmtty4", mm_port_probe_get_port_name (probe)) == 0) {
++        mm_dbg ("ublox: AT port '%s/%s type %d' flagged as NMEA",
 +            mm_port_probe_get_port_subsys (probe),
-+            mm_port_probe_get_port_name (probe));
++            mm_port_probe_get_port_name (probe), ptype);
 +        ptype = MM_PORT_TYPE_GPS;
 +    }
 +out:
@@ -481,7 +481,7 @@ index 6a0d140..db7b8be 100644
      static const gchar *subsystems[] = { "tty", "net", NULL };
      static const guint16 vendor_ids[] = { 0x1546, 0 };
      static const gchar *vendor_strings[] = { "u-blox", NULL };
-+    static const gchar *drivers[] = { "gsmtty", "atmel_usart", NULL };
++    static const gchar *drivers[] = { "gsmtty", NULL };
      static const MMAsyncMethod custom_init = {
          .async  = G_CALLBACK (ublox_custom_init),
          .finish = G_CALLBACK (ublox_custom_init_finish),
@@ -567,4 +567,3 @@ index 6d5ee1b..f374405 100644
      }
 --
 2.17.1
-
