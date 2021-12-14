@@ -8,12 +8,6 @@ config BR2_PACKAGE_ADAPTIVE_WW
 
 if BR2_PACKAGE_ADAPTIVE_WW
 
-config BR2_PACKAGE_ADAPTIVE_WW_REGPWRDB
-	bool "Adaptive World Mode Regulatory Power Database"
-	default y
-	help
-		A default Adaptive World Mode Regulatory Power Database
-
 config BR2_PACKAGE_ADAPTIVE_WW_CFG_FILE
 	string "Additional Configuration File"
 	help

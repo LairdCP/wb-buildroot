@@ -69,7 +69,9 @@ create_60_firmware_archive()
 		--owner=0 --group=0 --numeric-owner \
 		lib/firmware/lrdmwl/88W8997_${2}.bin \
 		lib/firmware/lrdmwl/${FW_FILE} \
+		lib/firmware/lrdmwl/regpwr.db \
 		lib/firmware/regulatory_${FW_PROD}.db lib/firmware/regulatory.db
+
 }
 
 create_60_firmware_archive ST sdio uart
@@ -97,6 +99,7 @@ if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM60=y" ${BR2_CONFIG}; then
 		--owner=0 --group=0 --numeric-owner \
 		lib/firmware/lrdmwl/88W8997_sdio.bin \
 		lib/firmware/lrdmwl/${FW_FILE} \
+		lib/firmware/lrdmwl/regpwr.db \
 		lib/firmware/regulatory_summit60.db lib/firmware/regulatory.db
 fi
 

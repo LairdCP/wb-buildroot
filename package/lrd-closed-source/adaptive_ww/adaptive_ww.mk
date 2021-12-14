@@ -27,12 +27,6 @@ endef
 #
 #Install
 #
-ifeq ($(BR2_PACKAGE_ADAPTIVE_WW_REGPWRDB),y)
-define AWM_REGPWRDB_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0644 $(@D)/lpt/db/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl/regpwr.db
-endef
-endif
-
 ifeq ($(BR2_INIT_NONE),y)
 define AWM_STARTUP_INSTALL_TARGET_CMDS
 	$(INSTALL) -m 0644 -D $(@D)/awm/adaptive_ww.service $(TARGET_DIR)/usr/lib/systemd/system/adaptive_ww.service
@@ -48,7 +42,6 @@ endef
 
 define ADAPTIVE_WW_INSTALL_TARGET_CMDS
 	$(AWM_ADAPTIVE_WW_INSTALL_TARGET_CMDS)
-	$(AWM_REGPWRDB_INSTALL_TARGET_CMDS)
 	$(AWM_STARTUP_INSTALL_TARGET_CMDS)
 	$(AWM_CONFIG_INSTALL_TARGET_CMDS)
 endef
@@ -89,7 +82,6 @@ endef
 #
 define ADAPTIVE_WW_UNINSTALL_TARGET_CMDS
 	rm -f $(TARGET_DIR)/usr/bin/adaptive_ww
-	rm -f $(TARGET_DIR)/lib/firmware/lrdmwl/regpwr.db
 endef
 
 $(eval $(generic-package))

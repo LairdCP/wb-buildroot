@@ -13,12 +13,6 @@ config BR2_PACKAGE_ADAPTIVE_WW_BINARIES_OPENSSL
 	string
 	default "_openssl_1_0_2" if BR2_PACKAGE_LIBOPENSSL_1_0_2 || BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES
 
-config BR2_PACKAGE_ADAPTIVE_WW_BINARIES_REGPWRDB
-	bool "Adaptive World Mode Regulatory Powers Database"
-	default y
-	help
-		A default Adaptive World Mode Regulatory Powers Database
-
 config BR2_PACKAGE_ADAPTIVE_WW_BINARIES_CFG_FILE
 	string "Additional Configuration File"
 	help
