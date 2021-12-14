@@ -1,9 +1,16 @@
-#! /bin/ash
+#! /bin/sh
 
 die() {
     echo "${1}" >&2
     exit 2
 }
+
+usage() {
+    echo "Usage: $0: [-m <method>] [-s <side>] [-x value] [-q] [-v] <url>"
+    exit 1
+}
+
+[ $# -ge 1 ] || usage
 
 o_method=main
 o_quiet=false
@@ -19,14 +26,15 @@ grep -q "root=/dev/mmcblk" /proc/cmdline && \
     run_on_sd=true || run_on_sd=false
 
 while getopts m:s:x:qv name; do
-    case $name in
+    case ${name} in
     m)  o_method=${OPTARG} ;;
     s)  o_side=${OPTARG} ;;
-    x)  [ x = "${OPTARG/*r*/x}" ] && o_restart=false ;;
+    x)  case "${OPTARG}" in
+            *r*) o_restart=false ;;
+        esac ;;
     q)  o_quiet=true ;;
     v)  o_verbose="-v" ;;
-    ?)  printf "Usage: %s: [-m <method>] [-s <side>] [-x value] [-q] [-v] <url>\n" $0
-        exit 1 ;;
+    ?)  usage ;;
     esac
 done
 shift $((OPTIND - 1))
@@ -56,7 +64,7 @@ case "${url}" in
         else
             die "Cannot download ${url}, wget or curl not present"
         fi
-        . erase_som_nand >/dev/null
+        . erase_som_nand
         swupdate -e stable,${p_method} ${o_verbose} -i ${fname} && update_ok=true
         rm -f ${fname}
     else
