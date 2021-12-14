@@ -205,6 +205,7 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_SDIO_UART),y)
 define LAIRD_FW_LRDMWL_ST60_SDIO_UART_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/ST/88W8997_ST_sdio_uart_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_ST_sdio_uart_*.bin 88W8997_sdio.bin
 endef
@@ -213,6 +214,7 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_SDIO_SDIO),y)
 define LAIRD_FW_LRDMWL_ST60_SDIO_SDIO_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/ST/88W8997_ST_sdio_sdio_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_ST_sdio_sdio_*.bin 88W8997_sdio.bin
 endef
@@ -221,6 +223,7 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_PCIE_UART),y)
 define LAIRD_FW_LRDMWL_ST60_PCIE_UART_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/ST/88W8997_ST_pcie_uart_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_ST_pcie_uart_*.bin 88W8997_pcie.bin
 endef
@@ -229,6 +232,7 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_PCIE_USB),y)
 define LAIRD_FW_LRDMWL_ST60_PCIE_USB_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/ST/88W8997_ST_pcie_usb_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_ST_pcie_usb_*.bin 88W8997_pcie.bin
 endef
@@ -237,6 +241,7 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_USB_UART),y)
 define LAIRD_FW_LRDMWL_ST60_USB_UART_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/ST/88W8997_ST_usb_uart_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_ST_usb_uart_*.bin 88W8997_usb.bin
 endef
@@ -245,6 +250,7 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_USB_USB),y)
 define LAIRD_FW_LRDMWL_ST60_USB_USB_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/ST/88W8997_ST_usb_usb_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_ST_usb_usb_*.bin 88W8997_usb.bin
 endef
@@ -253,6 +259,7 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_SDIO_UART),y)
 define LAIRD_FW_LRDMWL_SU60_SDIO_UART_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/SU/88W8997_SU_sdio_uart_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_SU_sdio_uart_*.bin 88W8997_sdio.bin
 endef
@@ -261,6 +268,7 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_SDIO_SDIO),y)
 define LAIRD_FW_LRDMWL_SU60_SDIO_SDIO_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/SU/88W8997_SU_sdio_sdio_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_SU_sdio_sdio_*.bin 88W8997_sdio.bin
 endef
@@ -269,6 +277,7 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_PCIE_UART),y)
 define LAIRD_FW_LRDMWL_SU60_PCIE_UART_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/SU/88W8997_SU_pcie_uart_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_SU_pcie_uart_*.bin 88W8997_pcie.bin
 endef
@@ -277,6 +286,7 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_PCIE_USB),y)
 define LAIRD_FW_LRDMWL_SU60_PCIE_USB_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/SU/88W8997_SU_pcie_usb_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_SU_pcie_usb_*.bin 88W8997_pcie.bin
 endef
@@ -285,6 +295,7 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_USB_UART),y)
 define LAIRD_FW_LRDMWL_SU60_USB_UART_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/SU/88W8997_SU_usb_uart_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_SU_usb_uart_*.bin 88W8997_usb.bin
 endef
@@ -293,6 +304,7 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_USB_USB),y)
 define LAIRD_FW_LRDMWL_SU60_USB_USB_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/SU/88W8997_SU_usb_usb_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_SU_usb_usb_*.bin 88W8997_usb.bin
 endef
@@ -311,12 +323,14 @@ endif
 ifeq ($(LAIRD_ADD_SOM_SYMLINK),y)
 define LAIRD_FW_LRDMWL_SOM60_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/SOM/88W8997_SOM_sdio_uart_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 	cd $(TARGET_DIR)/lib/firmware/lrdmwl/ && ln -sf 88W8997_SOM_sdio_uart_*.bin 88W8997_sdio.bin
 endef
 else
 define LAIRD_FW_LRDMWL_SOM60_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp -P $(@D)/lrdmwl/SOM/88W8997_SOM_sdio_uart_*.bin $(TARGET_DIR)/lib/firmware/lrdmwl
 endef
 endif
@@ -326,6 +340,7 @@ ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997_MFG),y)
 define LAIRD_FW_LRDMWL_SD8997_MFG_INSTALL_TARGET_CMDS
 	rm -r -f $(TARGET_DIR)/lib/firmware/lrdmwl/mfg/*
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
+	$(INSTALL) -D -m 0644 $(@D)/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl
 	cp $(@D)/lrdmwl/mfg/* $(TARGET_DIR)/lib/firmware/lrdmwl
 endef
 endif
