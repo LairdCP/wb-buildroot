@@ -51,9 +51,10 @@ config BR2_PACKAGE_WEBLCM_PYTHON_BLUETOOTH
 	bool "Bluetooth support for weblcm"
 	depends on BR2_PACKAGE_BLUEZ5_UTILS
 	select BR2_PACKAGE_IGSDK
+	select BR2_PACKAGE_PYTHON_WS4PY
 	default y
 	help
-		Add basic Bluetooth REST API support to weblcm (scanning/pairing/connecting).
+		Add basic Bluetooth REST API support to weblcm (scanning/pairing/connecting), and BLE REST API (GATT central role).
 
 config BR2_PACKAGE_WEBLCM_PYTHON_VSP
 	bool "BLE VSP support for weblcm"
