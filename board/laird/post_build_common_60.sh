@@ -95,11 +95,12 @@ if [ ! -x ${TARGET_DIR}/usr/bin/btattach ]; then
 	rm -f ${TARGET_DIR}/etc/udev/rules.d/80-btattach.rules
 	rm -f ${TARGET_DIR}/usr/lib/systemd/system/btattach.service
 	rm -f ${TARGET_DIR}/usr/bin/bt-service.sh
-fi
-
-# Customize BlueZ Bluetooth advertised name
-if [ -e ${TARGET_DIR}/etc/bluetooth/main.conf ]; then
-	sed -i "s/.*Name *=.*/Name = Laird-${BR2_LRD_PRODUCT^^}/" ${TARGET_DIR}/etc/bluetooth/main.conf
+	rm -f ${TARGET_DIR}/usr/bin/bttest.sh
+else
+	# Customize BlueZ Bluetooth advertised name
+	if [ -e ${TARGET_DIR}/etc/bluetooth/main.conf ]; then
+		sed -i "s/.*Name *=.*/Name = Laird-${BR2_LRD_PRODUCT^^}/" ${TARGET_DIR}/etc/bluetooth/main.conf
+	fi
 fi
 
 # Remove autoloading cryptodev module when not present

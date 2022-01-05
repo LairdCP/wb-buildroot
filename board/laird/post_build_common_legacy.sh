@@ -57,13 +57,14 @@ ln -rsf ${TARGET_DIR}/etc/network/wireless.sh ${TARGET_DIR}/sbin/wireless
 if [ -x ${TARGET_DIR}/usr/sbin/hciconfig ]; then
 	# background the bluetooth init-script
 	mv ${TARGET_DIR}/etc/init.d/S95bluetooth ${TARGET_DIR}/etc/init.d/S95bluetooth.bg
+
+	# Customize BlueZ Bluetooth advertised name
+	if [ -e ${TARGET_DIR}/etc/bluetooth/main.conf ]; then
+		sed -i "s/.*Name *=.*/Name = Laird-${BR2_LRD_PRODUCT^^}/" ${TARGET_DIR}/etc/bluetooth/main.conf
+	fi
 else
 	rm -f ${TARGET_DIR}/etc/init.d/S95bluetooth*
-fi
-
-# Customize BlueZ Bluetooth advertised name
-if [ -e ${TARGET_DIR}/etc/bluetooth/main.conf ]; then
-	sed -i "s/.*Name *=.*/Name = Laird-${BR2_LRD_PRODUCT^^}/" ${TARGET_DIR}/etc/bluetooth/main.conf
+	rm -f ${TARGET_DIR}/usr/bin/bttest.sh
 fi
 
 if [ ! -x ${TARGET_DIR}/usr/sbin/hostapd ]; then
