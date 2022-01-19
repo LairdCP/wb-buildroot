@@ -11,22 +11,11 @@ else
   ADAPTIVE_WW_BINARIES_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(ADAPTIVE_WW_BINARIES_VERSION)
 endif
 
-ifeq ($(BR2_PACKAGE_ADAPTIVE_WW_BINARIES_REGPWRDB),y)
-define AWM_BINARIES_REGPWRDB_INSTALL_TARGET_CMDS
-	if [ -e "$(@D)/lib/firmware/lrdmwl/regpwr.db" ]; then \
-		$(INSTALL) -D -m 0644 $(@D)/lib/firmware/lrdmwl/regpwr.db $(TARGET_DIR)/lib/firmware/lrdmwl/regpwr.db; \
-	else \
-		$(INSTALL) -D -m 0644 $(@D)/lib/firmware/regpwr.db $(TARGET_DIR)/lib/firmware/regpwr.db; \
-	fi
-endef
-endif
-
 define AWM_BINARIES_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 0755 $(@D)/usr/bin/adaptive_ww $(TARGET_DIR)/usr/bin/adaptive_ww
 endef
 
 define ADAPTIVE_WW_BINARIES_INSTALL_TARGET_CMDS
-	$(AWM_BINARIES_REGPWRDB_INSTALL_TARGET_CMDS)
 	$(AWM_BINARIES_INSTALL_TARGET_CMDS)
 	$(AWM_BINARIES_CONFIG_INSTALL_TARGET_CMDS)
 endef
