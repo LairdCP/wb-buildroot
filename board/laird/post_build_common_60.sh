@@ -50,7 +50,7 @@ else
 	sed -i 's,^/boot/,# /boot/,' ${TARGET_DIR}/etc/fw_env.config
 fi
 
-if ${ENCRYPTED_TOOLKIT} || [ "${BUILD_TYPE}" == ig60 ]; then
+if [ ${ENCRYPTED_TOOLKIT} -ne 0 ] || [ "${BUILD_TYPE}" == ig60 ]; then
 	# Securely mount /var on tmpfs
 	echo "tmpfs /var tmpfs mode=1777,noexec,nosuid,nodev,noatime 0 0" >> ${TARGET_DIR}/etc/fstab
 fi
