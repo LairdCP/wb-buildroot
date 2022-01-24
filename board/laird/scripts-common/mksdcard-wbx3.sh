@@ -89,7 +89,7 @@ MNT_BOOT=/mnt/${PART_BOOT##*/}
 
 # Copy files to boot partition
 mkdir -p ${MNT_BOOT}
-mount ${PART_BOOT} ${MNT_BOOT}
+mount -o noatime ${PART_BOOT} ${MNT_BOOT}
 
 cp ${SRCDIR}/u-boot-spl.bin ${MNT_BOOT}/boot.bin
 cp ${SRCDIR}/u-boot.itb ${MNT_BOOT}
