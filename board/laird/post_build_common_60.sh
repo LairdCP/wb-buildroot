@@ -39,30 +39,20 @@ echo -ne \
 # Copy the product specific rootfs additions, strip host user access control
 rsync -rlptDWK --no-perms --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
 
-# Do not update access time in flash/card
-sed -i 's/auto rw/auto,noatime rw/g' ${TARGET_DIR}/etc/fstab
-
-# Do not run fsck for read-only file systems
-awk '{if ($6 == 1 && $4 == "ro") $6=0}; 1' ${TARGET_DIR}/etc/fstab > ${TARGET_DIR}/etc/fstab.tmp
-mv -f ${TARGET_DIR}/etc/fstab.tmp ${TARGET_DIR}/etc/fstab
-
 if [ ${SD} -ne 0 ]; then
-	grep -q "/dev/mmcblk0p2" ${TARGET_DIR}/etc/fstab ||\
-		echo '/dev/mmcblk0p2 swap swap defaults,noatime 0 0' >> ${TARGET_DIR}/etc/fstab
-
-	grep -q "/dev/mmcblk0p1" ${TARGET_DIR}/etc/fstab ||\
-		echo '/dev/mmcblk0p1 /boot vfat defaults,noatime 0 0' >> ${TARGET_DIR}/etc/fstab
+	echo '/dev/root / auto rw,noatime 0 1' > ${TARGET_DIR}/etc/fstab
+	echo '/dev/mmcblk0p2 swap swap defaults,noatime 0 0' >> ${TARGET_DIR}/etc/fstab
+	echo '/dev/mmcblk0p1 /boot vfat rw,noexec,nosuid,nodev,noatime 0 0' >> ${TARGET_DIR}/etc/fstab
 
 	sed -i 's,^/dev/mtd,# /dev/mtd,' ${TARGET_DIR}/etc/fw_env.config
 else
+	echo '/dev/root / auto ro 0 0' > ${TARGET_DIR}/etc/fstab
 	sed -i 's,^/boot/,# /boot/,' ${TARGET_DIR}/etc/fw_env.config
 fi
 
-if [ ${ENCRYPTED_TOOLKIT} -ne 0 ] || [ "${BUILD_TYPE}" == ig60 ]; then
+if ${ENCRYPTED_TOOLKIT} || [ "${BUILD_TYPE}" == ig60 ]; then
 	# Securely mount /var on tmpfs
-	grep -q "^tmpfs" ${TARGET_DIR}/etc/fstab &&
-		sed -ie '/^tmpfs/ s/mode=1777 /mode=1777,noexec,nosuid,nodev,noatime /' ${TARGET_DIR}/etc/fstab ||
-		echo "tmpfs /var tmpfs mode=1777,noexec,nosuid,nodev,noatime 0 0" >> ${TARGET_DIR}/etc/fstab
+	echo "tmpfs /var tmpfs mode=1777,noexec,nosuid,nodev,noatime 0 0" >> ${TARGET_DIR}/etc/fstab
 fi
 
 # No need to detect SmartMedia cards, thus remove errors and speedup boot

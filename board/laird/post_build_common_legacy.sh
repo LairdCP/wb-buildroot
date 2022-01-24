@@ -122,8 +122,9 @@ sed -i "s/DEFAULT_AUTH_DIR=.*/DEFAULT_AUTH_DIR=\/etc\/.ssh/" ${TARGET_DIR}/etc/i
 fi
 
 # Fixup and add debugfs to fstab
+sed -i 's|/dev/root.*|/dev/root	/		auto	rw,noauto,noatime	0	1|' ${TARGET_DIR}/etc/fstab
 grep -q "/sys/kernel/debug" ${TARGET_DIR}/etc/fstab ||\
-	echo 'nodev /sys/kernel/debug   debugfs   defaults   0  0' >> ${TARGET_DIR}/etc/fstab
+	echo 'nodev		/sys/kernel/debug debugfs defaults	0	0' >> ${TARGET_DIR}/etc/fstab
 
 # create a compressed backup copy of the /e/n/i file
 gzip -c ${TARGET_DIR}/etc/network/interfaces >${TARGET_DIR}/etc/network/interfaces~.gz

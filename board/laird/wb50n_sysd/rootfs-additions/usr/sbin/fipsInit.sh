@@ -9,7 +9,7 @@ fail() {
 
 mount -t proc proc /proc 2> /dev/null
 PROC_MOUNT=$?
-BOOT_MOUNT=1
+BOOT_MOUNT=false
 
 read -r cmdline < /proc/cmdline
 set -- ${cmdline}
@@ -21,7 +21,7 @@ for x in "$@"; do
 
 		root=/dev/mmcblk0p*)
 			KERNEL=/boot/kernel.itb
-			BOOT_MOUNT=0
+			BOOT_MOUNT=true
 			;;
 
 		initlrd=*)
@@ -41,9 +41,9 @@ if [ "${FIPS_ENABLED}" = "1" ] && [ -n "${KERNEL}" ]; then
 	mount -o mode=1777,nosuid,nodev -t tmpfs tmpfs /tmp 2> /dev/null
 	TMP_MOUNT=$?
 
-	if [ ${BOOT_MOUNT} -eq 0 ]; then
+	if ${BOOT_MOUNT}; then
 		mkdir -p /boot
-		mount -t vfat /dev/mmcblk0p1 /boot 2>/dev/null ||
+		mount -t vfat -o noatime,ro /dev/mmcblk0p1 /boot 2>/dev/null ||
 			fail "Cannot mount /boot: $?"
 	fi
 
@@ -55,7 +55,7 @@ if [ "${FIPS_ENABLED}" = "1" ] && [ -n "${KERNEL}" ]; then
 
 	shred -zu -n 1 /tmp/Image.gz
 
-	[ ${BOOT_MOUNT} -eq 0 ] && umount /boot
+	${BOOT_MOUNT} && umount /boot
 	[ ${TMP_MOUNT} -eq 0 ] && umount /tmp
 
 	echo -e "\nFIPS Integrity check Success\n"

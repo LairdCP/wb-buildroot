@@ -116,7 +116,7 @@ umount -f ${MNT_BOOT} && rm -rf ${MNT_BOOT}
 
 # Copy files to rootfs partition
 mkdir -p ${MNT_ROOTFS}
-mount ${PART_ROOTFS} ${MNT_ROOTFS} || exit
+mount -o noatime ${PART_ROOTFS} ${MNT_ROOTFS} || exit
 
 tar xf ${SRCDIR}/rootfs.tar -C ${MNT_ROOTFS}
 sync

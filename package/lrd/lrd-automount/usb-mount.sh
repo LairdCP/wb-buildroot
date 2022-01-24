@@ -61,7 +61,7 @@ do_mount()
     /bin/mkdir -p "${MOUNT_POINT}"
 
     # Global mount options
-    OPTS="rw,relatime,noexec,nosuid,nodev"
+    OPTS="rw,noatime,noexec,nosuid,nodev"
 
     # File system type specific mount options
     if [ "${TYPE}" = "vfat" ]; then
