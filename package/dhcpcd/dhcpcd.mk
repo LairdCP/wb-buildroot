@@ -19,6 +19,10 @@ ifeq ($(BR2_USE_MMU),)
 DHCPCD_CONFIG_OPTS += --disable-fork --disable-privsep
 endif
 
+ifneq ($(BR2_PACKAGE_CHRONY)$(BR2_PACKAGE_NTP_NTPD),)
+DHCPCD_CONFIG_OPTS += --with-hook=ntp
+endif
+
 define DHCPCD_CONFIGURE_CMDS
 	(cd $(@D); \
 	$(TARGET_CONFIGURE_OPTS) ./configure \
