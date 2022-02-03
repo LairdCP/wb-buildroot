@@ -1,7 +1,7 @@
-diff -Naur mint-1.2/src/ipv4_net.c override/src/ipv4_net.c
---- mint-1.2/src/ipv4_net.c	2002-11-06 19:19:42.000000000 +0000
-+++ override/src/ipv4_net.c	2013-11-21 13:32:26.660902690 +0000
-@@ -128,7 +128,7 @@
+diff -git a/src/ipv4_net.c b/src/ipv4_net.c
+--- a/src/ipv4_net.c
++++ b/src/ipv4_net.c
+@@ -128,7 +128,7 @@ int mc_receiver(char *host, int port_num, int delay)
  int mc_sender(char *host, int port_num, int ttl_val, 
  			u_char loop, int num, int qos_val, int send_bytes)
  	{
@@ -10,7 +10,7 @@ diff -Naur mint-1.2/src/ipv4_net.c override/src/ipv4_net.c
  	struct sockaddr_in address;
    	struct in_addr group_addr;
          char *sndstr[send_bytes];
-@@ -179,21 +179,12 @@
+@@ -179,21 +179,12 @@ int mc_sender(char *host, int port_num, int ttl_val,
  		close(s);
  		return -ENETWORK;
  		}

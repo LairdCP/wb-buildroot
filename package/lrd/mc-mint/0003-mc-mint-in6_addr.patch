@@ -1,7 +1,7 @@
-diff -aur orig/src/ipv6_net.c new/src/ipv6_net.c
---- orig/src/ipv6_net.c	2002-11-06 19:19:42.000000000 +0000
-+++ new/src/ipv6_net.c	2013-09-07 12:22:02.678881481 +0100
-@@ -37,11 +37,7 @@
+diff --git a/src/ipv6_net.c b/src/ipv6_net.c
+--- a/src/ipv6_net.c
++++ b/src/ipv6_net.c
+@@ -37,11 +37,7 @@ static int host2addr(char *ip6_host, struct in6_addr *group6_addr)
  		memcpy(group6_addr, hp->h_addr_list[0], 16);
  		}
  	

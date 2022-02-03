@@ -1,7 +1,11 @@
-diff -aur orig/Makefile new/Makefile
---- orig/Makefile	2002-11-06 19:19:11.000000000 +0000
-+++ new/Makefile	2013-09-07 15:03:43.951241542 +0100
-@@ -5,22 +5,22 @@
+--- a/Makefile
++++ b/Makefile
+@@ -1,26 +1,25 @@
+ TARGET = mint
+ OBJECTS = mint.o ipv4_net.o ipv6_net.o transmit.o  log.o
+-CFLAGS = -W -Wall -O3 -g
+-LDFLAGS =
++CFLAGS += -W -Wall -O3 -g
  SRCDIR = src/
  
  all:	$(OBJECTS)	
