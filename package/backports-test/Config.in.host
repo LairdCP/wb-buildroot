@@ -1,2 +1,3 @@
 config BR2_PACKAGE_HOST_BACKPORTS_TEST
 	bool "host backports regression test"
+	select BR2_PACKAGE_HOST_ZSTD
