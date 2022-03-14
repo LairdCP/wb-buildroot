@@ -111,6 +111,41 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_MFG
 	  Install Laird's manufacturing test firmware
 	  for the LWB5+ Sterling radio.
 
+config BR2_PACKAGE_LAIRD_FIRMWARE_CYW55571_PCIE
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB6 PCIE/UART"
+	help
+	  Install Laird's firmware for the LWB6 (1x1) Sterling radio with
+	  PCIE/UART interface.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_CYW55571_SDIO
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB6 SDIO/UART"
+	help
+	  Install Laird's firmware for the LWB6 (1x1) Sterling radio with
+	  SDIO/UART interface.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_CYW55573_PCIE
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB6+ PCIE/UART"
+	help
+	  Install Laird's firmware for the LWB6+ (2x2) Sterling radio with
+	  PCIE/UART interface.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_CYW55573_SDIO
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB6+ SDIO/UART"
+	help
+	  Install Laird's firmware for the LWB6+ (2x2) Sterling radio with
+	  SDIO/UART interface.
+
+config BR2_PACKAGE_LAIRD_FIRMWARE_CYW5557X_MFG
+	depends on BR2_PACKAGE_LAIRD_FIRMWARE
+	bool "Laird LWB6x MFG"
+	help
+	  Install Laird's manufacturing test firmware
+	  for the LWB6/LWB6+ Sterling radio.
+
 config BR2_PACKAGE_LAIRD_FIRMWARE_MRVL_SD8997
 	bool "Upstream full-MAC SD8997"
 	help

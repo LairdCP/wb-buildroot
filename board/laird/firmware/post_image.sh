@@ -203,6 +203,34 @@ create_bcm4373_usb_usb_firmware_archive sa sa
 create_bcm4373_usb_usb_firmware_archive div div
 create_bcm4373_usb_usb_firmware_archive sa_m2 sa-m2
 
+create_cyw5557x_firmware_archive()
+{
+	grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_${1^^}_${2^^}=y" ${BR2_CONFIG} || return
+
+	local CYPRESS_DIR=${FW_DIR}/cypress
+	[ "${1}" == "cyw55571" ] && FW_PROD=lwb6 || FW_PROD=lwb6plus
+
+	ln -rsf ${CYPRESS_DIR}/cyfmac55560-${FW_PROD}-${2}.txt ${CYPRESS_DIR}/cyfmac55560-${2}.txt
+
+	(
+	cd ${TARGET_DIR}
+	tar -cjf "${BINARIES_DIR}/laird-${FW_PROD}-${2}-firmware${RELEASE_SUFFIX}.tar.bz2" \
+		lib/firmware/cypress/CYW55560A1.hcd \
+		lib/firmware/cypress/CYW55560A1_*.hcd \
+		lib/firmware/cypress/cyfmac55560-${2}.trxse \
+		lib/firmware/cypress/cyfmac55560-${2}-prod*.trxse \
+		lib/firmware/cypress/cyfmac55560-${2}.txt \
+		lib/firmware/cypress/cyfmac55560-${FW_PROD}-${2}.txt \
+		-C ${BOARD_DIR} \
+		LICENSE
+	)
+}
+
+create_cyw5557x_firmware_archive cyw55571 pcie
+create_cyw5557x_firmware_archive cyw55571 sdio
+create_cyw5557x_firmware_archive cyw55573 pcie
+create_cyw5557x_firmware_archive cyw55573 sdio
+
 if grep -qF "BR2_PACKAGE_LAIRD_FIRMWARE_AR6003=y" ${BR2_CONFIG}; then
 ln -rsf ${FW_DIR}/regulatory_default.db ${FW_DIR}/regulatory.db
 tar -cjf "${BINARIES_DIR}/laird-ath6k-6003-firmware${RELEASE_SUFFIX}.tar.bz2" \
