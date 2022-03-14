@@ -4,6 +4,7 @@ LAIRD_FIRMWARE_SITE_METHOD = local
 LAIRD_ADD_SOM_SYMLINK = y
 
 BRCM_DIR = $(TARGET_DIR)/lib/firmware/brcm
+CYPRESS_DIR = $(TARGET_DIR)/lib/firmware/cypress
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_AR6003),y)
 define LAIRD_FW_6003_INSTALL_TARGET_CMDS
@@ -202,6 +203,62 @@ define LAIRD_FW_BCM4373_MFG_INSTALL_TARGET_CMDS
 endef
 endif
 
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_CYW55571_PCIE),y)
+define LAIRD_FW_CYW55571_PCIE_INSTALL_TARGET_CMDS
+	mkdir -p -m 0755 $(CYPRESS_DIR)
+	cp -rad $(@D)/cypress/cyfmac55560-pcie-prod_*.trxse $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-pcie-prod_*.trxse cyfmac55560-pcie.trxse
+	cp -rad $(@D)/cypress/cyfmac55560-lwb6-pcie.txt $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6-pcie.txt cyfmac55560-pcie.txt
+	cp -rad $(@D)/cypress/CYW55560A1_*.hcd $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf CYW55560A1_*.hcd CYW55560A1.hcd
+endef
+endif
+
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_CYW55571_SDIO),y)
+define LAIRD_FW_CYW55571_SDIO_INSTALL_TARGET_CMDS
+	mkdir -p -m 0755 $(CYPRESS_DIR)
+	cp -rad $(@D)/cypress/cyfmac55560-sdio-prod_*.trxse $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-sdio-prod_*.trxse cyfmac55560-sdio.trxse
+	cp -rad $(@D)/cypress/cyfmac55560-lwb6-sdio.txt $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6-sdio.txt cyfmac55560-sdio.txt
+	cp -rad $(@D)/cypress/CYW55560A1_*.hcd $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf CYW55560A1_*.hcd CYW55560A1.hcd
+endef
+endif
+
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_CYW55573_PCIE),y)
+define LAIRD_FW_CYW55573_PCIE_INSTALL_TARGET_CMDS
+	mkdir -p -m 0755 $(CYPRESS_DIR)
+	cp -rad $(@D)/cypress/cyfmac55560-pcie-prod_*.trxse $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-pcie-prod_*.trxse cyfmac55560-pcie.trxse
+	cp -rad $(@D)/cypress/cyfmac55560-lwb6plus-pcie.txt $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6plus-pcie.txt cyfmac55560-pcie.txt
+	cp -rad $(@D)/cypress/CYW55560A1_*.hcd $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf CYW55560A1_*.hcd CYW55560A1.hcd
+endef
+endif
+
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_CYW55573_SDIO),y)
+define LAIRD_FW_CYW55573_SDIO_INSTALL_TARGET_CMDS
+	mkdir -p -m 0755 $(CYPRESS_DIR)
+	cp -rad $(@D)/cypress/cyfmac55560-sdio-prod_*.trxse $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-sdio-prod_*.trxse cyfmac55560-sdio.trxse
+	cp -rad $(@D)/cypress/cyfmac55560-lwb6plus-sdio.txt $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6plus-sdio.txt cyfmac55560-sdio.txt
+	cp -rad $(@D)/cypress/CYW55560A1_*.hcd $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf CYW55560A1_*.hcd CYW55560A1.hcd
+endef
+endif
+
+ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_CYW5557X_MFG),y)
+define LAIRD_FW_CYW5557X_MFG_INSTALL_TARGET_CMDS
+	mkdir -p -m 0755 $(CYPRESS_DIR)
+	cp -rad $(@D)/cypress/cyfmac55560-pcie-mfg_*.trxse $(CYPRESS_DIR)
+	cp -rad $(@D)/cypress/cyfmac55560-sdio-mfg_*.trxse $(CYPRESS_DIR)
+endef
+endif
+
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_SDIO_UART),y)
 define LAIRD_FW_LRDMWL_ST60_SDIO_UART_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(TARGET_DIR)/lib/firmware/lrdmwl
@@ -393,6 +450,11 @@ define LAIRD_FIRMWARE_INSTALL_TARGET_CMDS
 	$(LAIRD_FW_BCM4373_USB_SA_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4373_USB_SA_M2_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_BCM4373_MFG_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_CYW55571_SDIO_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_CYW55571_PCIE_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_CYW55573_SDIO_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_CYW55573_PCIE_INSTALL_TARGET_CMDS)
+	$(LAIRD_FW_CYW5557X_MFG_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_UART_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_SDIO_SDIO_INSTALL_TARGET_CMDS)
 	$(LAIRD_FW_LRDMWL_ST60_PCIE_UART_INSTALL_TARGET_CMDS)

@@ -101,6 +101,20 @@ ls "${TARGET_DIR}/lib/firmware/brcm/brcmfmac43439-sdio-mfg_"*".bin" | sed "s,^${
 
 cp "${TARGET_DIR}/usr/lib/${LIBEDIT}" "${TARGET_DIR}/usr/lib/${LIBEDITLRD}"
 
+elif [[ "${BR2_LRD_PRODUCT}" == regLWB6* ]]; then
+LIBEDIT=$(readlink $TARGET_DIR/usr/lib/libedit.so)
+LIBEDITLRD=${LIBEDIT/libedit./libedit.lrd.}
+
+echo "/usr/bin/lru
+/usr/bin/btlru
+/usr/lib/${LIBEDITLRD}" \
+> "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
+
+ls "${TARGET_DIR}/lib/firmware/cypress/cyfmac55560-"*"-mfg_"*".trxse" | sed "s,^${TARGET_DIR},," \
+	>> "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
+
+cp "${TARGET_DIR}/usr/lib/${LIBEDIT}" "${TARGET_DIR}/usr/lib/${LIBEDITLRD}"
+
 else
 exit 1
 fi
