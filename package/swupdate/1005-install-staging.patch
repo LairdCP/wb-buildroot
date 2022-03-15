@@ -1,0 +1,45 @@
+--- a/Makefile	2021-12-08 08:17:17.000000000 
++++ b/Makefile	2022-03-18 12:43:15.000000000 
+@@ -211,6 +211,7 @@
+ BINDIR ?= /usr/bin
+ LIBDIR ?= /usr/lib
+ INCLUDEDIR ?= /usr/include
++DESTSRCDIR ?= $(DESTDIR)
+ 
+ # Use LINUXINCLUDE when you must reference the include/ directory.
+ # Needed to be compatible with the O= option
+@@ -468,23 +469,17 @@
+ 	$(call cmd,strip)
+ 
+ install: all
+-	install -d ${DESTDIR}/${BINDIR}
+-	install -d ${DESTDIR}/${INCLUDEDIR}
+-	install -d ${DESTDIR}/${LIBDIR}
+-	install -m 755 swupdate ${DESTDIR}/${BINDIR}
+-	for i in ${tools-bins};do \
+-		install -m 755 $$i ${DESTDIR}/${BINDIR}; \
+-	done
+-	install -m 0644 $(srctree)/include/network_ipc.h ${DESTDIR}/${INCLUDEDIR}
+-	install -m 0644 $(srctree)/include/swupdate_status.h ${DESTDIR}/${INCLUDEDIR}
+-	install -m 0644 $(srctree)/include/progress_ipc.h ${DESTDIR}/${INCLUDEDIR}
+-	install -m 0755 $(objtree)/${swupdate-ipc-lib} ${DESTDIR}/${LIBDIR}
+-	ln -sfr ${DESTDIR}/${LIBDIR}/${swupdate-ipc-lib} ${DESTDIR}/${LIBDIR}/libswupdate.so
+-	if [ $(HAVE_LUA) = y ]; then \
+-		install -d ${DESTDIR}/${LIBDIR}/lua/$(LUAVER); \
+-		install -m 0755 ${lua_swupdate} $(DESTDIR)/${LIBDIR}/lua/$(LUAVER); \
+-		ln -sf ${lua_swupdate} $(DESTDIR)/${LIBDIR}/lua/$(LUAVER)/lua_swupdate.so; \
+-	fi
++	install -D -m 0755 -t ${DESTDIR}/${BINDIR} swupdate ${tools-bins}
++	install -D -m 0644 -t ${DESTSRCDIR}/${INCLUDEDIR} \
++		$(srctree)/include/network_ipc.h \
++		$(srctree)/include/swupdate_status.h \
++		$(srctree)/include/progress_ipc.h
++	install -D -m 0644 -t ${DESTDIR}/${LIBDIR} $(objtree)/${swupdate-ipc-lib} 
++	ln -sfr ${DESTDIR}/${LIBDIR}/${swupdate-ipc-lib} ${DESTSRCDIR}/${LIBDIR}/libswupdate.so
++ifeq ($(HAVE_LUA),y)
++	install -D -m 0644 -t $(DESTDIR)/${LIBDIR}/lua/$(LUAVER) ${lua_swupdate}
++	ln -sfr $(DESTDIR)/${LIBDIR}/lua/$(LUAVER)/${lua_swupdate} $(DESTSRCDIR)/${LIBDIR}/lua/$(LUAVER)/lua_swupdate.so
++endif
+ 
+ PHONY += tests
+ tests: acceptance-tests test

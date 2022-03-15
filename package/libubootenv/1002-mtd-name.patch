@@ -1,0 +1,116 @@
+--- a/src/uboot_env.c	2021-11-02 11:11:40.000000000 
++++ b/src/uboot_env.c	2022-03-28 13:43:56.000000000 
+@@ -41,6 +41,7 @@
+ #define UBI_MAX_VOLUME			128
+ 
+ #define DEVICE_MTD_NAME 		"/dev/mtd"
++#define SYS_MTD_VOLUME_NAME		"/sys/class/mtd/mtd%d/name"
+ #define DEVICE_UBI_NAME 		"/dev/ubi"
+ #define SYS_UBI_VOLUME_COUNT		"/sys/class/ubi/ubi%d/volumes_count"
+ #define SYS_UBI_VOLUME_NAME		"/sys/class/ubi/ubi%d/ubi%d_%d/name"
+@@ -299,6 +300,81 @@
+ 	return ret;
+ }
+ 
++static int mtd_get_volume_name(int vol_id, char vol_name[DEVNAME_MAX_LENGTH])
++{
++	char filename[80];
++	char data[DEVNAME_MAX_LENGTH];
++	int fd, n, ret = -1;
++
++	snprintf(filename, sizeof(filename), SYS_MTD_VOLUME_NAME, vol_id);
++	fd = open(filename, O_RDONLY);
++	if (fd < 0)
++		return -1;
++
++	memset(data, 0, DEVNAME_MAX_LENGTH);
++	n = read(fd, data, DEVNAME_MAX_LENGTH);
++	if (n < 0)
++		goto out;
++
++	memset(vol_name, 0, DEVNAME_MAX_LENGTH);
++	if (sscanf(data, "%s", vol_name) != 1)
++		goto out;
++
++	ret = 0;
++
++out:
++	close(fd);
++	return ret;
++}
++
++static int mtd_get_vol_id(char *volname)
++{
++	int i, ret;
++
++	i = 0;
++	for (;;) {
++		char name[DEVNAME_MAX_LENGTH];
++
++		ret = mtd_get_volume_name(i, name);
++		if (ret)
++			break;
++
++		if (!strcmp(name, volname)) {
++			ret  = i;
++			break;
++		}
++
++		i++;
++	}
++
++	return ret;
++}
++
++static int mtd_update_name(struct uboot_flash_env *dev)
++{
++	char volume[DEVNAME_MAX_LENGTH];
++	int vol_id, ret = -EBADF;
++	char *sep;
++
++	sep = index(dev->devname, DEVNAME_SEPARATOR);
++	if (sep)
++	{
++		memset(volume, 0, DEVNAME_MAX_LENGTH);
++		sscanf(sep + 1, "%s", &volume[0]);
++
++		vol_id = mtd_get_vol_id(volume);
++		if (vol_id < 0)
++			goto out;
++
++		sprintf(dev->devname, DEVICE_MTD_NAME "%d", vol_id);
++	}
++
++	ret = 0;
++
++out:
++	return ret;
++}
++
+ static int normalize_device_path(char *path, struct uboot_flash_env *dev)
+ {
+ 	char *sep = NULL, *normalized = NULL;
+@@ -315,7 +391,9 @@
+ 		*sep = '\0';
+ 	}
+ 
+-	if ((normalized = realpath(path, NULL)) == NULL)
++	if (sep && !strcmp(path, DEVICE_MTD_NAME))
++		normalized = strdup(path);
++	else if ((normalized = realpath(path, NULL)) == NULL)
+ 	{
+ 		/* device file didn't exist */
+ 		return -EINVAL;
+@@ -361,6 +439,12 @@
+ 		if (ret)
+ 			return ret;
+ 	}
++
++	if (dev->device_type == DEVICE_MTD) {
++		ret = mtd_update_name(dev);
++		if (ret)
++			return ret;
++	}
+ 
+ 	ret = stat(dev->devname, &st);
+ 	if (ret < 0)

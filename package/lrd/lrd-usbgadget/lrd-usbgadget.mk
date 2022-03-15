@@ -31,10 +31,6 @@ define LRD_USBGADGET_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -D -m 644 package/lrd/lrd-usbgadget/usb-gadget.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/usb-gadget.service
 
-	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/usb-gadget.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/usb-gadget.service
-
 	$(LRD_USBGADGET_INSTALL_INIT_CONFIG)
 endef
 

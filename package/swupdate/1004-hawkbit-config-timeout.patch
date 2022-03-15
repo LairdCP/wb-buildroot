@@ -1,0 +1,12 @@
+diff -Naur a/suricatta/common.c b/suricatta/common.c
+--- a/suricatta/common.c	2019-11-29 13:47:39.000000000 +0000
++++ b/suricatta/common.c	2020-04-06 15:52:01.880000000 +0000
+@@ -23,6 +23,8 @@
+ 	get_field(LIBCFG_PARSER, elem, "retry",
+ 		&chan->retries);
+ 
++	get_field(LIBCFG_PARSER, elem, "timeout", &chan->low_speed_timeout);
++
+ 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "max-download-speed", tmp);
+ 	if (strlen(tmp))
+ 		chan->max_download_speed = (unsigned int)ustrtoull(tmp, 10);

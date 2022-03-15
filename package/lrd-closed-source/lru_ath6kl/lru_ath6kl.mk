@@ -14,14 +14,12 @@ else
 LRU_ATH6KL_SUFFIX = 45
 endif
 
-MY_MAKE_OPTS = CXX="$(TARGET_CXX)" CC="$(TARGET_CC)" AR=$(TARGET_AR) LD="$(TARGET_LD)" PKG_CONFIG="$(HOST_DIR)/usr/bin/pkg-config"
-
 #
 # BUILD
 #
 define LRU_ATH6KL_BUILD_CMDS
-	$(TARGET_MAKE_ENV) $(MY_MAKE_OPTS) $(MAKE)  -C $(@D)/Proprietary_tools/libtcmd
-	$(TARGET_MAKE_ENV) $(MY_MAKE_OPTS) $(MAKE)  -C $(@D)/Proprietary_tools/lru  wb$(LRU_ATH6KL_SUFFIX)
+	$(TARGET_MAKE_ENV) $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)/Proprietary_tools/libtcmd
+	$(TARGET_MAKE_ENV) $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)/Proprietary_tools/lru wb$(LRU_ATH6KL_SUFFIX)
 endef
 
 #

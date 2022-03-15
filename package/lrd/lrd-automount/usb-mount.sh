@@ -2,11 +2,16 @@
 
 # This script is called from our systemd unit file to mount or unmount
 # a USB drive.
-
+set  -x
 usage()
 {
     echo "Usage: $0 {add|remove} device_name (e.g. /dev/sdb1) [mount_user]"
     exit 1
+}
+
+parse_blkid()
+{
+    echo ${1} | sed "s/.*${2}=\"\([^\"]*\).*/\1/"
 }
 
 if [ $# -lt 2 ]; then
@@ -28,7 +33,15 @@ case ${DEVBASE} in
 esac
 
 # See if this drive is already mounted, and if so where
-MOUNT_POINT="$(/bin/awk -v DEV=${DEVICE} '($1 == DEV) { print $2 }' /proc/mounts)"
+MOUNT_POINT="$(awk -v DEV=${DEVICE} '($1 == DEV) { print $2 }' /proc/mounts)"
+
+if [ -x /usr/bin/systemd-mount ]; then 
+    MOUNT="/usr/bin/systemd-mount --fsck=no --no-block"
+    UMOUNT="/usr/bin/systemd-umount"
+else
+    MOUNT="/usr/bin/mount"
+    UMOUNT="/usr/bin/umount"
+fi
 
 do_mount()
 {
@@ -39,43 +52,49 @@ do_mount()
 
     # Get info for this drive: ID_FS_LABEL and ID_FS_TYPE
     if [ -z "${ID_FS_TYPE}" ]; then
-        eval $(/sbin/blkid -o export ${DEVICE})
+        BLKID=$(/sbin/blkid ${DEVICE})
+
+        ID_FS_TYPE=$(parse_blkid "${BLKID}" TYPE)
         [ -n "${TYPE}" ] || \
 			{ echo "${DEVICE} is not a fileystem"; exit 1; }
-    else
-        LABEL="${ID_FS_LABEL}"
-        TYPE="${ID_FS_TYPE}"
+
+        ID_FS_LABEL=$(parse_blkid "${BLKID}" LABEL)
     fi
 
     # Figure out a mount point to use
-    if [ -z "${LABEL}" ]; then
-        LABEL=${DEVBASE}
-    elif /bin/grep -q " ${MOUNT_ROOT}/${LABEL} " /proc/mounts; then
+    if [ -z "${ID_FS_LABEL}" ]; then
+        ID_FS_LABEL=${DEVBASE}
+    elif grep -q " ${MOUNT_ROOT}/${ID_FS_LABEL} " /proc/mounts; then
         # Already in use, make a unique one
-        LABEL="${LABEL}-${DEVBASE}"
+        ID_FS_LABEL="${ID_FS_LABEL}-${DEVBASE}"
     fi
-    MOUNT_POINT="${MOUNT_ROOT}/${LABEL}"
+    MOUNT_POINT="${MOUNT_ROOT}/${ID_FS_LABEL}"
 
     echo "Mount point: ${MOUNT_POINT}"
 
-    /bin/mkdir -p "${MOUNT_POINT}"
+    mkdir -p "${MOUNT_POINT}"
 
     # Global mount options
-    OPTS="rw,noatime,noexec,nosuid,nodev"
+    OPTS="rw,noatime,noexec,nosuid,nodev,flush"
 
     # File system type specific mount options
-    if [ "${TYPE}" = "vfat" ]; then
-        OPTS="${OPTS},users,umask=000,shortname=mixed,utf8=1,flush"
+    case "${ID_FS_TYPE}" in
+    vfat)
+        OPTS="${OPTS},users,utf8=1"
         if [ -n "${MOUNT_USER}" ]; then
             OPTS="${OPTS},uid=$(id -u ${MOUNT_USER}),gid=$(id -g ${MOUNT_USER})"
         else
-            OPTS="${OPTS},gid=100"
+            OPTS="${OPTS},gid=$(awk -F':' '/^disk/{print $3}' /etc/group)"
         fi
-    fi
+        ;;
+    swap)
+        return
+        ;;
+    esac
 
-    if ! /bin/mount -o ${OPTS} ${DEVICE} ${MOUNT_POINT}; then
+    if ! ${MOUNT} -o ${OPTS} ${DEVICE} ${MOUNT_POINT}; then
         echo "Error mounting ${DEVICE} (status = $?)"
-        /bin/rmdir ${MOUNT_POINT}
+        rmdir ${MOUNT_POINT}
         exit 1
     fi
 
@@ -90,7 +109,7 @@ do_unmount()
     for f in ${MOUNT_POINT} ; do
         case "${f}" in
 		"${MOUNT_ROOT}"*)
-            /bin/umount -l ${f} && echo "**** Unmounted ${f} ${DEVICE}" ;;
+            ${UMOUNT} -l ${f} && echo "**** Unmounted ${f} ${DEVICE}" ;;
         "") echo "Warning: ${DEVICE} is not mounted" ;;
         *) echo "Warning: ${DEVICE} is not managed by usb-mount" ;;
         esac
@@ -102,9 +121,9 @@ do_unmount()
     # want to leave it orphaned...
     for f in ${MOUNT_ROOT}/* ; do
         if [ -e "${f}" ] && [ -z "$(ls -A ${f})" ]; then
-            if ! /bin/grep -qF " ${f} " /proc/mounts; then
+            if ! grep -qF " ${f} " /proc/mounts; then
                 echo "**** Removing mount point ${f}"
-                /bin/rmdir "${f}"
+                rmdir "${f}"
             fi
         fi
     done

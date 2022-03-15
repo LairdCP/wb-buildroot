@@ -10,6 +10,7 @@ from checkpackagelib.lib import ConsecutiveEmptyLines  # noqa: F401
 from checkpackagelib.lib import EmptyLastLine          # noqa: F401
 from checkpackagelib.lib import NewlineAtEof           # noqa: F401
 from checkpackagelib.lib import TrailingSpace          # noqa: F401
+from checkpackagelib.tool import NotExecutable         # noqa: F401
 
 
 def _empty_or_comment(text):
@@ -152,8 +153,8 @@ class CommentsMenusPackagesOrder(_CheckFunction):
 
 
 class HelpText(_CheckFunction):
-    HELP_TEXT_FORMAT = re.compile("^\t  .{,62}$")
-    URL_ONLY = re.compile("^(http|https|git)://\S*$")
+    HELP_TEXT_FORMAT = re.compile(r"^\t  .{,62}$")
+    URL_ONLY = re.compile(r"^(http|https|git)://\S*$")
 
     def before(self):
         self.help_text = False

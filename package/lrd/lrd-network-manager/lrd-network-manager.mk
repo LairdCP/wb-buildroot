@@ -116,16 +116,8 @@ define LRD_NETWORK_MANAGER_INSTALL_INIT_SYSV
 endef
 
 define LRD_NETWORK_MANAGER_INSTALL_INIT_SYSTEMD
-	mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-
 	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/NetworkManager.service \
 		$(TARGET_DIR)/etc/systemd/system/dbus-org.freedesktop.NetworkManager.service
-
-	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/NetworkManager.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/NetworkManager.service
-
-	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/NetworkManager-dispatcher.service \
-		$(TARGET_DIR)/etc/systemd/system/dbus-org.freedesktop.nm-dispatcher.service
 
 	$(LRD_NETWORK_MANAGER_UPDATE_SERVICE)
 endef

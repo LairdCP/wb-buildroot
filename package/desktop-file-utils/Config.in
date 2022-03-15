@@ -1,7 +1,0 @@
-config BR2_PACKAGE_DESKTOP_FILE_UTILS
-	bool "desktop-file-utils"
-	depends on BR2_PACKAGE_LIBGLIB2
-	help
-	  desktop-file-utils contains a few command line utilities for working
-	  with desktop entries.
-	  https://freedesktop.org/wiki/Software/desktop-file-utils/

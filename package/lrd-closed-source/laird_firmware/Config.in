@@ -7,222 +7,188 @@ config BR2_PACKAGE_LAIRD_FIRMWARE
 if BR2_PACKAGE_LAIRD_FIRMWARE
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_AR6003
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird 45-series"
 	help
 	  Install Laird's AR6003 firmware and calibration data for the 45
 	  series radios.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_AR6003_MFG
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird 45-series Mfg"
 	help
 	  Install Laird's AR6003 manufacturing firmware for the 45
 	  series radios.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_AR6004
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird 50-series"
 	help
 	  Install Laird's AR6004 firmware and calibration data for the 50
 	  series radios.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_AR6004_MFG
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird 50-series Mfg"
 	help
 	  Install Laird's AR6004 manufacturing firmware for the 50
 	  series radios.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_AR6004_PUBLIC
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Upstream AR6004"
 	help
 	  Install public linux-firmware AR6004 firmware and calibration
 	  data for Laird 50 series radios and Silex radios.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB"
 	help
 	  Install Laird's firmware for the LWB Sterling radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4343_MFG
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB MFG"
 	help
 	  Install Laird's manufacturing test firmware
 	  for the LWB Sterling radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM43439
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB+"
 	help
 	  Install Laird's firmware for the LWB+ Sterling radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM43439_MFG
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB+ MFG"
 	help
 	  Install Laird's manufacturing test firmware
 	  for the LWB+ Sterling radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5"
 	help
 	  Install Laird's firmware for the LWB5 Sterling radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4339_MFG
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5 MFG"
 	help
 	  Install Laird's manufacturing test firmware
 	  for the LWB5 Sterling radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_DIV
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5+ SDIO/UART with antenna diversity"
 	help
 	  Install Laird's firmware for the LWB5+ Sterling radio with
 	  SDIO/UART interface and antenna diversity.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5+ SDIO/UART with single antenna"
 	help
 	  Install Laird's firmware for the LWB5+ Sterling radio with
 	  SDIO/UART interface using a single antenna.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_SDIO_SA_M2
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5+ SDIO/UART with single antenna (M.2)"
 	help
 	  Install Laird's firmware for the LWB5+ Sterling radio with
 	  SDIO/UART interface using a single antenna on the M.2 module.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_DIV
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5+ USB with antenna diversity"
 	help
 	  Install Laird's firmware for the LWB5+ Sterling radio with
 	  USB/USB interface and antenna diversity.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5+ USB with single antenna"
 	help
 	  Install Laird's firmware for the LWB5+ Sterling radio with
 	  USB/USB interface using a single antenna.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_USB_SA_M2
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5+ USB with single antenna (M.2)"
 	help
 	  Install Laird's firmware for the LWB5+ Sterling radio with
 	  USB/USB interface using a single antenna on the M.2 module.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BCM4373_MFG
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird LWB5+ MFG"
 	help
 	  Install Laird's manufacturing test firmware
 	  for the LWB5+ Sterling radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_MRVL_SD8997
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Upstream full-MAC SD8997"
 	help
 	  Install public linux-firmware SD8997 firmware for the full-MAC
 	  mwifiex driver.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_SDIO_UART
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird Sterling 60 SDIO-UART"
 	help
 	  Install firmware for Laird's Sterling 60 SDIO WiFi-UART BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_SDIO_SDIO
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird Sterling 60 SDIO-SDIO"
 	help
 	  Install firmware for Laird's Sterling 60 SDIO WiFi-SDIO BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_PCIE_UART
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird Sterling 60 PCIE-UART"
 	help
 	  Install firmware for Laird's Sterling 60 PCIE WiFi-UART BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_PCIE_USB
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird Sterling 60 PCIE-USB"
 	help
 	  Install firmware for Laird's Sterling 60 PCIE WiFi-USB BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_USB_UART
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird Sterling 60 USB-UART"
 	help
 	  Install firmware for Laird's Sterling 60 USB WiFi-UART BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_USB_USB
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird Sterling 60 USB-USB"
 	help
 	  Install firmware for Laird's Sterling 60 USB WiFi-USB BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_SDIO_UART
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird Summit 60 SDIO-UART"
 	help
 	  Install firmware for Laird's Summit 60 SDIO WiFi-UART BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_SDIO_SDIO
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird Summit 60 SDIO-SDIO"
 	help
 	  Install firmware for Laird's Summit 60 SDIO WiFi-SDIO BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_PCIE_UART
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird Summit 60 PCIE-UART"
 	help
 	  Install firmware for Laird's Summit 60 PCIE WiFi-UART BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_PCIE_USB
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird Summit 60 PCIE-USB"
 	help
 	  Install firmware for Laird's Summit 60 PCIE WiFi-USB BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_USB_UART
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird Summit 60 USB-UART"
 	help
 	  Install firmware for Laird's Summit 60 USB WiFi-UART BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_USB_USB
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird Summit 60 USB-USB"
 	help
 	  Install firmware for Laird's Summit 60 USB WiFi-USB BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM60
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird SOM60"
 	help
 	  Install firmware for the Laird SOM60's SDIO WiFi-UART BT combo radio.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997_MFG
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Laird 60-series MFG"
 	help
 	  Install Laird's SD8997 manufacturing test firmware for the
 	  thin-MAC lrdwifi driver.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_WL18XX
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "TI WL18XX"
 	help
 	  Install public linux-firmware for the TI WiLink8 wl1835 and
@@ -231,13 +197,11 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_WL18XX
 	  used in conjunction of our setup scripts.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_BT
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "Bluetopia"
 	help
 	  Install bluetopia patchram for the 50.
 
 config BR2_PACKAGE_LAIRD_FIRMWARE_AR9271
-	depends on BR2_PACKAGE_LAIRD_FIRMWARE
 	bool "AR9271"
 	help
 		Install Atheros AR9271 firmware.  Used by TP-Link TL-WN722N
