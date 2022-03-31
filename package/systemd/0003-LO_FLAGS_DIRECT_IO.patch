@@ -1,0 +1,14 @@
+--- a/src/shared/loop-util.c	2022-01-18 07:35:43.000000000 
++++ b/src/shared/loop-util.c	2022-03-25 00:26:44.000000000 
+@@ -31,6 +31,11 @@
+ #include "string-util.h"
+ #include "tmpfile-util.h"
+ 
++#ifndef LOOP_SET_DIRECT_IO
++#define LOOP_SET_DIRECT_IO	0x4C08
++#define LO_FLAGS_DIRECT_IO	16
++#endif
++
+ static void cleanup_clear_loop_close(int *fd) {
+         if (*fd < 0)
+                 return;

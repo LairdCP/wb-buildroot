@@ -12,7 +12,7 @@ SDCSUPP_BINDIR = /usr/sbin
 
 SDCSUPP_DEPENDENCIES = host-pkgconf libnl openssl
 SDCSUPP_TARGET_DIR = $(TARGET_DIR)
-SDCSUPP_MAKE_ENV = PKG_CONFIG="$(HOST_DIR)"/usr/bin/pkg-config
+SDCSUPP_MAKE_ENV = PKG_CONFIG="$(PKG_CONFIG_HOST_BINARY)"
 
 # old supplicant structure used $(@D)/wpa_supplicant/wpa_supplicant
 SDCSUPP_D = $(@D)/wpa_supplicant
@@ -32,6 +32,7 @@ endif
 endif
 
 ifeq ($(BR2_PACKAGE_SDCSUPP_LEGACY),y)
+	SDCSUPP_DEPENDENCIES += sdcsdk
 	SDCSUPP_CONFIG = $(SDCSUPP_D)/config_legacy
 else
 	SDCSUPP_DEPENDENCIES += dbus

@@ -51,25 +51,27 @@ $(addsuffix -menuconfig,$(TARGETS_ALL)): %-menuconfig: $(OUTPUT_DIR)/%/.config
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* menuconfig
 
 .PHONY: $(addsuffix -savedefconfig,$(TARGETS_ALL))
-$(addsuffix -savedefconfig,$(TARGETS_ALL)): %-savedefconfig:
+$(addsuffix -savedefconfig,$(TARGETS_ALL)): %-savedefconfig: $(OUTPUT_DIR)/%/.config
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* savedefconfig \
 		BR2_DEFCONFIG=$(CONFIG_DIR)/$*_defconfig
 
 .PHONY: $(addsuffix -linux-menuconfig,$(TARGETS))
-$(addsuffix -linux-menuconfig,$(TARGETS)): %-linux-menuconfig:
+$(addsuffix -linux-menuconfig,$(TARGETS)): %-linux-menuconfig: $(OUTPUT_DIR)/%/.config
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* linux-menuconfig
 
 .PHONY: $(addsuffix -linux-savedefconfig,$(TARGETS))
-$(addsuffix -linux-savedefconfig,$(TARGETS)): %-linux-savedefconfig:
-	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* linux-update-defconfig
+$(addsuffix -linux-savedefconfig,$(TARGETS)): %-linux-savedefconfig: $(OUTPUT_DIR)/%/.config
+	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* linux-update-defconfig || \
+	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* linux-savedefconfig
 
 .PHONY: $(addsuffix -uboot-menuconfig,$(TARGETS))
-$(addsuffix -uboot-menuconfig,$(TARGETS)): %-uboot-menuconfig:
+$(addsuffix -uboot-menuconfig,$(TARGETS)): %-uboot-menuconfig: $(OUTPUT_DIR)/%/.config
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* uboot-menuconfig
 
 .PHONY: $(addsuffix -uboot-savedefconfig,$(TARGETS))
-$(addsuffix -uboot-savedefconfig,$(TARGETS)): %-uboot-savedefconfig:
-	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* uboot-update-defconfig
+$(addsuffix -uboot-savedefconfig,$(TARGETS)): %-uboot-savedefconfig: $(OUTPUT_DIR)/%/.config
+	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* uboot-update-defconfig || \
+	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* uboot-savedefconfig
 
 .PHONY: $(addsuffix -clean,$(TARGETS_ALL))
 $(addsuffix -clean,$(TARGETS_ALL)): %-clean:

@@ -4,28 +4,22 @@
 #
 #############################################################
 
-FSWATCH_VERSION = v1.0
-FSWATCH_SITE = http://github.com/LairdCP/fs_watch/tarball/$(FSWATCH_VERSION)
+FSWATCH_VERSION = 1.0
+FSWATCH_SITE = $(call github,LairdCP,fs_watch,v$(FSWATCH_VERSION))
 FSWATCH_DEPENDENCIES = inotify-tools
 FSWATCH_LICENSE = GPL
 FSWATCH_LICENSE_FILES = COPYING
 
-FSWATCH_MAKE_ENV = CC="$(TARGET_CC)" \
-                    CXX="$(TARGET_CXX)" \
-                    ARCH="$(KERNEL_ARCH)" \
-                    CFLAGS="$(TARGET_CFLAGS) -I $(STAGING_DIR)/usr/include -L $(STAGING_DIR)/usr/lib"
-
 define FSWATCH_BUILD_CMDS
-    $(MAKE) -C $(@D) clean
-	$(FSWATCH_MAKE_ENV) $(MAKE) -C $(@D)
+	$(TARGET_MAKE_ENV) $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)
 endef
 
 define FSWATCH_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -t $(TARGET_DIR)/usr/bin -m 755 $(@D)/fs_watch
+	$(INSTALL) -D -m 755 -t $(TARGET_DIR)/usr/bin $(@D)/fs_watch
 endef
 
 define FSWATCH_INSTALL_INIT_SYSV
-	$(INSTALL) -D -t $(TARGET_DIR)/etc/init.d -m 755 package/lrd/fswatch/S03fs_watch
+	$(INSTALL) -D -m 755 -t $(TARGET_DIR)/etc/init.d $(FSWATCH_PKGDIR)/S03fs_watch
 endef
 
 define FSWATCH_UNINSTALL_TARGET_CMDS

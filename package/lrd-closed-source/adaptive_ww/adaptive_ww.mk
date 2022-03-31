@@ -8,20 +8,18 @@ ADAPTIVE_WW_SITE = package/lrd-closed-source/externals/adaptive_ww
 ADAPTIVE_WW_SITE_METHOD = local
 ADAPTIVE_WW_DEPENDENCIES = host-pkgconf libnl openssl libconfig
 
-MY_MAKE_OPTS = CXX="$(TARGET_CXX)" CC="$(TARGET_CC)" LD="$(TARGET_LD)" PKG_CONFIG="$(HOST_DIR)/usr/bin/pkg-config"
-
 #
 # BUILD
 #
 ifeq ($(BR2_PACKAGE_ADAPTIVE_WW_LPT),y)
 define LAIRD_AWM_LPT_BUILD_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) $(MY_MAKE_OPTS) -C $(@D)/lpt
+	$(TARGET_MAKE_ENV) $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)/lpt
 endef
 endif
 
 define ADAPTIVE_WW_BUILD_CMDS
 	$(LAIRD_AWM_LPT_BUILD_CMDS)
-	$(TARGET_MAKE_ENV) $(MAKE) $(MY_MAKE_OPTS) -C $(@D)/awm
+	$(TARGET_MAKE_ENV) $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)/awm
 endef
 
 #
@@ -68,9 +66,6 @@ endef
 define ADAPTIVE_WW_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -m 0644 -D $(@D)/awm/adaptive_ww.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/adaptive_ww.service
-	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/adaptive_ww.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/adaptive_ww.service
 endef
 
 define ADAPTIVE_WW_INSTALL_INIT_SYSV

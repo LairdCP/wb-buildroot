@@ -8,7 +8,7 @@ ifeq ($(BR2_PACKAGE_BLUEZ_UTILS),y)
 # this is the last version compatible with BlueZ 4 API
 BLUEZ_TOOLS_VERSION = 171181b6ef6c94aefc828dc7fd8de136b9f97532
 else
-BLUEZ_TOOLS_VERSION = 97efd293491ad7ec96a655665339908f2478b3d1
+BLUEZ_TOOLS_VERSION = f65321736475429316f07ee94ec0deac8e46ec4a
 endif
 BLUEZ_TOOLS_SITE = $(call github,khvzak,bluez-tools,$(BLUEZ_TOOLS_VERSION))
 

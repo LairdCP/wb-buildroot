@@ -8,10 +8,12 @@ EVENTMON_VERSION = local
 EVENTMON_SITE = package/lrd/externals/eventmon
 EVENTMON_SITE_METHOD = local
 
-ifeq ($(BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES),y)
-EVENTMON_DEPENDENCIES = summit-supplicant-binaries
+ifeq ($(BR2_LRD_DEVEL_BUILD),y)
+	EVENTMON_DEPENDENCIES = sdcsdk
+else ifeq ($(BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES),y)
+	EVENTMON_DEPENDENCIES = summit-supplicant-binaries
 else
-EVENTMON_DEPENDENCIES = sdcsdk
+	EVENTMON_DEPENDENCIES = sdcsdk
 endif
 
 EVENTMON_MAKE_ENV = CC="$(TARGET_CC)" \

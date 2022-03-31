@@ -3,13 +3,6 @@
 # 60 Series Adaptive Bluetooth Power Daemon
 #
 #############################################################
-ADAPTIVE_BT_DEPENDENCIES = host-pkgconf libnl
-
-ifeq ($(BR2_PACKAGE_BLUEZ_UTILS),y)
-ADAPTIVE_BT_DEPENDENCIES += bluez_utils
-else
-ADAPTIVE_BT_DEPENDENCIES += bluez5_utils
-endif
 
 ifneq ($(BR2_LRD_NO_RADIO)$(BR2_LRD_DEVEL_BUILD),)
 ADAPTIVE_BT_VERSION = local
@@ -26,13 +19,19 @@ else
 endif
 endif
 
-MY_MAKE_OPTS = CXX="$(TARGET_CXX)" CC="$(TARGET_CC)" LD="$(TARGET_LD)" PKG_CONFIG="$(HOST_DIR)/usr/bin/pkg-config"
+ADAPTIVE_BT_DEPENDENCIES = host-pkgconf libnl
+
+ifeq ($(BR2_PACKAGE_BLUEZ_UTILS),y)
+ADAPTIVE_BT_DEPENDENCIES += bluez_utils
+else
+ADAPTIVE_BT_DEPENDENCIES += bluez5_utils
+endif
 
 #
 # BUILD
 #
 define ADAPTIVE_BT_BUILD_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) $(MY_MAKE_OPTS) -C $(@D)
+	$(TARGET_MAKE_ENV) $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)
 endef
 
 #
@@ -53,9 +52,6 @@ endef
 define ADAPTIVE_BT_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -m 0644 -D $(@D)/support/adaptive_bt.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/adaptive_bt.service
-	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/adaptive_bt.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/adaptive_bt.service
 endef
 
 define ADAPTIVE_BT_INSTALL_INIT_SYSV

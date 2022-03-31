@@ -7,7 +7,12 @@
 LIBIBERTY_VERSION = 2.32
 LIBIBERTY_SOURCE = binutils-$(LIBIBERTY_VERSION).tar.xz
 LIBIBERTY_SITE = $(BR2_GNU_MIRROR)/binutils
-LIBIBERTY_DL_SUBDIR = binutils
+HOST_LIBIBERTY_DL_SUBDIR = binutils
+
+# We're only building libiberty here, not the full binutils suite
+LIBIBERTY_LICENSE = LGPL-2.1+
+LIBIBERTY_LICENSE_FILES = COPYING.LIB
+
 LIBIBERTY_SUBDIR = libiberty
 
 # We explicitly disable multilib, as we do in binutils.

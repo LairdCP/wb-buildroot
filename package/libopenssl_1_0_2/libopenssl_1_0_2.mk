@@ -42,9 +42,11 @@ LIBOPENSSL_1_0_2_LICENSE_FILES = LICENSE
 LIBOPENSSL_1_0_2_INSTALL_STAGING = YES
 LIBOPENSSL_1_0_2_DEPENDENCIES = zlib
 HOST_LIBOPENSSL_1_0_2_DEPENDENCIES = host-zlib
-LIBOPENSSL_1_0_2_TARGET_ARCH = generic32
+LIBOPENSSL_1_0_2_TARGET_ARCH = $(call qstrip,$(BR2_PACKAGE_LIBOPENSSL_1_0_2_TARGET_ARCH))
 LIBOPENSSL_1_0_2_CFLAGS = $(TARGET_CFLAGS)
 LIBOPENSSL_1_0_2_PROVIDES = openssl
+LIBOPENSSL_1_0_2_CPE_ID_VENDOR = $(LIBOPENSSL_PROVIDES)
+LIBOPENSSL_1_0_2_CPE_ID_PRODUCT = $(LIBOPENSSL_PROVIDES)
 
 # require openssl-fips built firstly
 ifneq ($(BR2_PACKAGE_OPENSSL_FIPS),)
@@ -61,9 +63,11 @@ LIBOPENSSL_1_0_2_PATCH = \
 	https://gitweb.gentoo.org/repo/gentoo.git/plain/dev-libs/openssl/files/openssl-1.0.2a-parallel-install-dirs.patch?id=c8abcbe8de5d3b6cdd68c162f398c011ff6e2d9d \
 	https://gitweb.gentoo.org/repo/gentoo.git/plain/dev-libs/openssl/files/openssl-1.0.2a-parallel-symlinking.patch?id=c8abcbe8de5d3b6cdd68c162f398c011ff6e2d9d
 
-# relocation truncated to fit: R_68K_GOT16O
 ifeq ($(BR2_m68k_cf),y)
+# relocation truncated to fit: R_68K_GOT16O
 LIBOPENSSL_1_0_2_CFLAGS += -mxgot
+# resolves an assembler "out of range error" with blake2 and sha512 algorithms
+LIBOPENSSL_CFLAGS += -DOPENSSL_SMALL_FOOTPRINT
 endif
 
 ifeq ($(BR2_USE_MMU),)
@@ -73,30 +77,6 @@ endif
 ifeq ($(BR2_PACKAGE_HAS_CRYPTODEV),y)
 LIBOPENSSL_1_0_2_CFLAGS += -DHAVE_CRYPTODEV -DUSE_CRYPTODEV_DIGESTS
 LIBOPENSSL_1_0_2_DEPENDENCIES += cryptodev
-endif
-
-# Some architectures are optimized in OpenSSL
-# Doesn't work for thumb-only (Cortex-M?)
-ifeq ($(BR2_ARM_CPU_HAS_ARM),y)
-LIBOPENSSL_1_0_2_TARGET_ARCH = armv4
-endif
-ifeq ($(ARCH),aarch64)
-LIBOPENSSL_1_0_2_TARGET_ARCH = aarch64
-endif
-ifeq ($(ARCH),powerpc)
-# 4xx cores seem to have trouble with openssl's ASM optimizations
-ifeq ($(BR2_powerpc_401)$(BR2_powerpc_403)$(BR2_powerpc_405)$(BR2_powerpc_405fp)$(BR2_powerpc_440)$(BR2_powerpc_440fp),)
-LIBOPENSSL_1_0_2_TARGET_ARCH = ppc
-endif
-endif
-ifeq ($(ARCH),powerpc64)
-LIBOPENSSL_1_0_2_TARGET_ARCH = ppc64
-endif
-ifeq ($(ARCH),powerpc64le)
-LIBOPENSSL_1_0_2_TARGET_ARCH = ppc64le
-endif
-ifeq ($(ARCH),x86_64)
-LIBOPENSSL_1_0_2_TARGET_ARCH = x86_64
 endif
 
 define HOST_LIBOPENSSL_1_0_2_CONFIGURE_CMDS
@@ -128,23 +108,37 @@ define LIBOPENSSL_1_0_2_CONFIGURE_CMDS
 		$(TARGET_CONFIGURE_OPTS) \
 		$(LIBOPENSSL_1_0_2_FIPS_OPT) \
 		./Configure \
-			$(LIBOPENSSL_1_0_2_DEBUG)linux-$(LIBOPENSSL_1_0_2_TARGET_ARCH) \
+			$(LIBOPENSSL_1_0_2_DEBUG)$(LIBOPENSSL_1_0_2_TARGET_ARCH) \
 			--prefix=/usr \
 			--openssldir=/etc/ssl \
 			--libdir=/lib \
 			$(if $(BR2_TOOLCHAIN_HAS_THREADS),threads,no-threads) \
 			$(if $(BR2_STATIC_LIBS),no-shared,shared) \
-			no-rc5 \
 			enable-camellia \
-			enable-mdc2 \
 			enable-tlsext \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_RC5),,no-rc5) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_RC2),,no-rc2) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_RC4),,no-rc4) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_MD2),,no-md2) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_MD4),,no-md4) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_MDC2),,no-mdc2) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_IDEA),,no-idea) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_SEED),,no-seed) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_DES),,no-des) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_WHIRLPOOL),,no-whirlpool) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_BLOWFISH),,no-bf) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_SSL2),,no-ssl2) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_SSL3),,no-ssl3) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_WEAK_SSL),,no-weak-ssl-ciphers) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_PSK),,no-psk) \
+			$(if $(BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_COMP),,no-comp) \
 			$(if $(BR2_STATIC_LIBS),zlib,zlib-dynamic) \
 			$(if $(BR2_STATIC_LIBS),no-dso) \
 			$(LIBOPENSSL_1_0_2_FIPS_CFG) \
 			-DDEVRANDOM=$(LIBOPENSSL_1_0_2_DEVRANDOM) \
 	)
 	$(SED) "s#-march=[-a-z0-9] ##" -e "s#-mcpu=[-a-z0-9] ##g" $(@D)/Makefile
-	$(SED) "s#-O[0-9]#$(LIBOPENSSL_1_0_2_CFLAGS)#" $(@D)/Makefile
+	$(SED) "s#-O[0-9sg]#$(LIBOPENSSL_1_0_2_CFLAGS)#" $(@D)/Makefile
 	$(SED) "s# build_tests##" $(@D)/Makefile
 endef
 

@@ -41,7 +41,7 @@ rsync -rlptDWK --no-perms --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${T
 
 if [ ${SD} -ne 0 ]; then
 	echo '/dev/root / auto rw,noatime 0 1' > ${TARGET_DIR}/etc/fstab
-	echo '/dev/mmcblk0p2 swap swap defaults,noatime 0 0' >> ${TARGET_DIR}/etc/fstab
+	echo '/dev/mmcblk0p2 none swap defaults 0 0' >> ${TARGET_DIR}/etc/fstab
 	echo '/dev/mmcblk0p1 /boot vfat rw,noexec,nosuid,nodev,noatime 0 0' >> ${TARGET_DIR}/etc/fstab
 
 	sed -i 's,^/dev/mtd,# /dev/mtd,' ${TARGET_DIR}/etc/fw_env.config
@@ -105,11 +105,9 @@ if [ ! -e "${TARGET_DIR}/usr/lib/libts.so.0" ]; then
 fi
 
 # Clean up Python, Node cruft we don't need
-rm -f "${TARGET_DIR}/usr/lib/python2.7/ensurepip/_bundled/*.whl"
-rm -f "${TARGET_DIR}/usr/lib/python3.7/ensurepip/_bundled/*.whl"
-rm -f "${TARGET_DIR}/usr/lib/python2.7/distutils/command/*.exe"
-rm -f "${TARGET_DIR}/usr/lib/python3.7/distutils/command/*.exe"
-rm -f "${TARGET_DIR}/usr/lib/python3.7/site-packages/setuptools/*.exe"
+rm -f "${TARGET_DIR}/usr/lib/python3.10/ensurepip/_bundled/*.whl"
+rm -f "${TARGET_DIR}/usr/lib/python3.10/distutils/command/*.exe"
+rm -f "${TARGET_DIR}/usr/lib/python3.10/site-packages/setuptools/*.exe"
 [ -d "${TARGET_DIR}/usr/lib/node_modules" ] && \
 	find "${TARGET_DIR}/usr/lib/node_modules" -name '*.md' -exec rm -f {} \;
 rm -rf "${TARGET_DIR}/var/www/swupdate"
@@ -123,6 +121,9 @@ CSCRIPT_DIR="$(realpath board/laird/scripts-common)"
 
 # Configure keys, boot script, and SWU tools when using encrypted toolkit
 if [ ${ENCRYPTED_TOOLKIT} -ne 0 ]; then
+	# Move timezone setting into writable partition
+	ln -rsf ${TARGET_DIR}/data/misc/zoneinfo/localtime ${TARGET_DIR}/etc/localtime
+
 	# Copy keys if present
 	if [ -f ${ENCRYPTED_TOOLKIT_DIR}/dev.key ]; then
 		mkdir -p ${BINARIES_DIR}/keys

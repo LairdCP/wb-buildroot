@@ -8,13 +8,6 @@ MFG60N_SITE = package/lrd-closed-source/externals/mfg60n
 MFG60N_SITE_METHOD = local
 MFG60N_DEPENDENCIES = host-pkgconf
 
-MFG60N_MAKE_OPTS = CXX="$(TARGET_CXX)" CC="$(TARGET_CC)" LD="$(TARGET_LD)" LDFLAGS="$(TARGET_LDFLAGS)"
-
-MFG60N_MAKE_ENV += $(TARGET_MAKE_ENV) \
-	PKG_CONFIG="$(HOST_DIR)/usr/bin/pkg-config" \
-	CFLAGS="$(TARGET_CFLAGS)" \
-	AR="$(TARGET_AR)"
-
 #
 # BUILD
 #
@@ -23,37 +16,37 @@ ifeq ($(BR2_PACKAGE_MFG60N_LIBEDIT),y)
 	MFG60N_MAKE_OPTS += LIBEDIT="y"
 endif
 
-ifeq ($(BR2_PACKAGE_MFG60N_LRT),y)
+#ifeq ($(BR2_PACKAGE_MFG60N_LRT),y)
 	MFG60N_DEPENDENCIES += libnl
 define LAIRD_MFG60N_LRT_BUILD_CMD
-	$(MFG60N_MAKE_ENV) $(MAKE) $(MFG60N_MAKE_OPTS) -C $(@D)/lrt
+	$(TARGET_MAKE_ENV) $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)/lrt
 endef
-endif
+#endif
 
-ifeq ($(BR2_PACKAGE_MFG60N_LMU),y)
+#ifeq ($(BR2_PACKAGE_MFG60N_LMU),y)
 	MFG60N_DEPENDENCIES += libnl
 define LAIRD_MFG60N_VENDOR_BUILD_LMU_CMD
-	$(MFG60N_MAKE_ENV) $(MAKE) $(MFG60N_MAKE_OPTS) -C $(@D)/lmu
+	$(TARGET_MAKE_ENV) $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)/lmu
 endef
-endif
+#endif
 
-ifeq ($(BR2_PACKAGE_MFG60N_LRU),y)
+#ifeq ($(BR2_PACKAGE_MFG60N_LRU),y)
 	MFG60N_DEPENDENCIES += libnl
 define LAIRD_MFG60N_VENDOR_BUILD_LRU_CMD
-	$(MFG60N_MAKE_ENV) $(MAKE) $(MFG60N_MAKE_OPTS) -C $(@D)/lru
+	$(TARGET_MAKE_ENV) $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)/lru
 endef
-endif
+#endif
 
-ifeq ($(BR2_PACKAGE_MFG60N_BTLRU),y)
+#ifeq ($(BR2_PACKAGE_MFG60N_BTLRU),y)
 ifeq ($(BR2_PACKAGE_BLUEZ_UTILS),y)
 	MFG60N_DEPENDENCIES += bluez_utils
 else
 	MFG60N_DEPENDENCIES += bluez5_utils
 endif
 define LAIRD_MFG60N_VENDOR_BUILD_BTLRU_CMD
-	$(MFG60N_MAKE_ENV) $(MAKE) $(MFG60N_MAKE_OPTS) -C $(@D)/btlru
+	$(TARGET_MAKE_ENV) $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)/btlru
 endef
-endif
+#endif
 
 define MFG60N_BUILD_CMDS
 	rm -f $(TARGET_DIR)/usr/bin/lrt

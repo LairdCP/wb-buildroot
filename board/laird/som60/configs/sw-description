@@ -2,6 +2,7 @@ software =
 {
 	version = "0.1.0";
 	bootloader_transaction_marker = false;
+	bootloader_state_marker = false;
 
 	stable = {
 		main-a: {
@@ -9,13 +10,17 @@ software =
 				{
 					filename = "kernel.itb";
 					volume = "kernel_a";
+					type = "ubivol";
 					installed-directly = true;
+					name = "kernel";
 					sha256 = "@kernel.itb.sha256"
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_a";
+					type = "ubivol";
 					installed-directly = true;
+					name = "rootfs";
 					sha256 = "@rootfs.bin.sha256"
 				}
 			);
@@ -41,13 +46,17 @@ software =
 				{
 					filename = "kernel.itb";
 					volume = "kernel_b";
+					type = "ubivol";
 					installed-directly = true;
+					name = "kernel";
 					sha256 = "@kernel.itb.sha256"
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
+					type = "ubivol";
 					installed-directly = true;
+					name = "rootfs";
 					sha256 = "@rootfs.bin.sha256"
 				},
 			);
@@ -75,24 +84,30 @@ software =
 					filename = "boot.bin";
 					mtdname = "u-boot-spl";
 					type = "flash";
+					name = "boot";
 					sha256 = "@boot.bin.sha256"
 				},
 				{
 					filename = "u-boot.itb";
 					mtdname = "u-boot";
 					type = "flash";
+					name = "u-boot";
 					sha256 = "@u-boot.itb.sha256"
 				},
 				{
 					filename = "kernel.itb";
 					volume = "kernel_a";
+					type = "ubivol";
 					installed-directly = true;
+					name = "kernel";
 					sha256 = "@kernel.itb.sha256"
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_a";
+					type = "ubivol";
 					installed-directly = true;
+					name = "rootfs";
 					sha256 = "@rootfs.bin.sha256"
 				},
 			);
@@ -120,24 +135,30 @@ software =
 					filename = "boot.bin";
 					mtdname = "u-boot-spl";
 					type = "flash";
+					name = "boot";
 					sha256 = "@boot.bin.sha256"
 				},
 				{
 					filename = "u-boot.itb";
 					mtdname = "u-boot";
 					type = "flash";
+					name = "u-boot";
 					sha256 = "@u-boot.itb.sha256"
 				},
 				{
 					filename = "kernel.itb";
 					volume = "kernel_b";
+					type = "ubivol";
 					installed-directly = true;
+					name = "kernel";
 					sha256 = "@kernel.itb.sha256"
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
+					type = "ubivol";
 					installed-directly = true;
+					name = "rootfs";
 					sha256 = "@rootfs.bin.sha256"
 				},
 			);
@@ -164,37 +185,44 @@ software =
 			partitions: (
 				{
 					name = "kernel_a";
-					mtdname = "ubi";
+					device = "ubi";
+					type = "ubipartition";
 					size = 12582912; /* in bytes */
 				},
 				{
 					name = "rootfs_a";
-					mtdname = "ubi";
+					device = "ubi";
+					type = "ubipartition";
 					size = 92274688; /* in bytes */
 				},
 				{
 					name = "rootfs_data_a";
-					mtdname = "ubi";
+					device = "ubi";
+					type = "ubipartition";
 					size = 10485760; /* in bytes */
 				},
 				{
 					name = "kernel_b";
-					mtdname = "ubi";
+					device = "ubi";
+					type = "ubipartition";
 					size = 12582912; /* in bytes */
 				},
 				{
 					name = "rootfs_b";
-					mtdname = "ubi";
+					device = "ubi";
+					type = "ubipartition";
 					size = 92274688; /* in bytes */
 				},
 				{
 					name = "rootfs_data_b";
-					mtdname = "ubi";
+					device = "ubi";
+					type = "ubipartition";
 					size = 10485760; /* in bytes */
 				},
 				{
 					name = "perm";
-					mtdname = "ubi";
+					device = "ubi";
+					type = "ubipartition";
 					size = 21204992; /* in bytes */
 				}
 			);
@@ -203,31 +231,43 @@ software =
 					filename = "boot.bin";
 					mtdname = "u-boot-spl";
 					type = "flash";
+					name = "boot";
+					sha256 = "@boot.bin.sha256"
 				},
 				{
 					filename = "u-boot.itb";
 					mtdname = "u-boot";
 					type = "flash";
+					name = "u-boot";
+					sha256 = "@u-boot.itb.sha256"
 				},
 				{
 					filename = "kernel.itb";
 					volume = "kernel_a";
-					installed-directly = true;
+					type = "ubivol";
+					name = "kernel";
+					sha256 = "@kernel.itb.sha256"
 				},
 				{
 					filename = "kernel.itb";
 					volume = "kernel_b";
-					installed-directly = true;
+					type = "ubivol";
+					name = "kernel";
+					sha256 = "@kernel.itb.sha256"
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_a";
-					installed-directly = true;
+					type = "ubivol";
+					name = "rootfs";
+					sha256 = "@rootfs.bin.sha256"
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
-					installed-directly = true;
+					type = "ubivol";
+					name = "rootfs";
+					sha256 = "@rootfs.bin.sha256"
 				},
 				{
 					filename = "u-boot-env.tgz";

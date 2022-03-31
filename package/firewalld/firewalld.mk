@@ -64,8 +64,6 @@ else
 FIREWALLD_CONF_OPTS += --disable-systemd
 endif
 
-
-
 define FIREWALLD_FIX_CONFIG
 	$(SED) "s/ &&.*//g" $(TARGET_DIR)/etc/modprobe.d/firewalld-sysctls.conf
 	$(SED) "s/IPv6_rpfilter=yes/IPv6_rpfilter=no/g" $(TARGET_DIR)/etc/firewalld/firewalld.conf
@@ -82,11 +80,7 @@ endef
 endif
 
 define FIREWALLD_INSTALL_INIT_SYSTEMD
-	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/firewalld.service \
-			$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-			$(FIREWALLD_UPDATE_SERVICE)
-
+	$(FIREWALLD_UPDATE_SERVICE)
 endef
 
 define FIREWALLD_INSTALL_INIT_SYSV

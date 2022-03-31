@@ -4,7 +4,6 @@
 #
 ################################################################################
 
-
 ifneq ($(BR2_PACKAGE_LINUX_BACKPORTS_VERSION),)
 LINUX_BACKPORTS_VERSION = $(call qstrip,$(BR2_PACKAGE_LINUX_BACKPORTS_VERSION))
 else ifneq ($(BR2_LRD_DEVEL_BUILD),)
@@ -16,7 +15,10 @@ endif
 LINUX_BACKPORTS_SOURCE = backports-laird-$(LINUX_BACKPORTS_VERSION).tar.bz2
 BR_NO_CHECK_HASH_FOR += $(LINUX_BACKPORTS_SOURCE)
 LINUX_BACKPORTS_LICENSE = GPL-2.0
-LINUX_BACKPORTS_LICENSE_FILES = COPYING
+LINUX_BACKPORTS_LICENSE_FILES = \
+	COPYING \
+	LICENSES/exceptions/Linux-syscall-note \
+	LICENSES/preferred/GPL-2.0
 
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
 LINUX_BACKPORTS_SITE = https://files.devops.rfpros.com/builds/linux/backports/laird/$(LINUX_BACKPORTS_VERSION)
@@ -24,7 +26,11 @@ else
 LINUX_BACKPORTS_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(LINUX_BACKPORTS_VERSION)
 endif
 
-LINUX_BACKPORTS_KCONFIG_DEPENDENCIES = \
+# flex and bison are needed to generate kconfig parser. We use the
+# same logic as the linux kernel (we add host dependencies only if
+# host does not have them). See linux/linux.mk and
+# support/dependencies/check-host-bison-flex.mk.
+LINUX_BACKPORTS_DEPENDENCIES = \
 	$(BR2_BISON_HOST_DEPENDENCY) \
 	$(BR2_FLEX_HOST_DEPENDENCY)
 
@@ -50,6 +56,8 @@ LINUX_BACKPORTS_KCONFIG_OPTS = $(LINUX_BACKPORTS_MAKE_OPTS)
 # LINUX_BACKPORTS_MODULE_MAKE_OPTS is used by the kernel-module infra.
 #
 LINUX_BACKPORTS_MAKE_OPTS = \
+	LEX=flex \
+	YACC=bison \
 	BACKPORT_DIR=$(@D) \
 	KLIB_BUILD=$(LINUX_DIR) \
 	KLIB=$(TARGET_DIR)/lib/modules/$(LINUX_VERSION_PROBED) \
@@ -92,25 +100,30 @@ $(eval $(kconfig-package))
 # not have been parsed yet, so the Linux build dir LINUX_DIR is not yet
 # known. Thus, we use a "secondary expansion" so the rule is re-evaluated
 # after all Makefiles are parsed, and thus at that time we will have the
-# LINUX_DIR variable set to the proper value.
+# LINUX_DIR variable set to the proper value. Moreover, since linux-4.19,
+# the kernel's build system internally touches its .config file, so we
+# can't use it as a stamp file. We use the LINUX_KCONFIG_STAMP_DOTCONFIG
+# instead.
 #
 # Furthermore, we want to check the kernel version, since linux-backports
-# only supports kernels >= 3.0. To avoid overriding linux-backports'
-# .config rule defined in the kconfig-package infra, we use an
-# intermediate stamp-file.
+# only supports kernels >= 3.10. To avoid overriding linux-backports'
+# KCONFIG_STAMP_DOTCONFIG rule defined in the kconfig-package infra, we
+# use an intermediate stamp-file.
 #
 # Finally, it must also come after the call to kconfig-package, so we get
 # LINUX_BACKPORTS_DIR properly defined (because the target part of the
 # rule is not re-evaluated).
 #
-$(LINUX_BACKPORTS_DIR)/.config: $(LINUX_BACKPORTS_DIR)/.stamp_check_kernel_version
+$(LINUX_BACKPORTS_DIR)/$(LINUX_BACKPORTS_KCONFIG_STAMP_DOTCONFIG): $(LINUX_BACKPORTS_DIR)/.stamp_check_kernel_version
 
 .SECONDEXPANSION:
-$(LINUX_BACKPORTS_DIR)/.stamp_check_kernel_version: $$(LINUX_DIR)/.config
-	$(Q)LINUX_VERSION_PROBED=$(LINUX_VERSION_PROBED); \
-	if [ $${LINUX_VERSION_PROBED%%.*} -lt 3 ]; then \
+$(LINUX_BACKPORTS_DIR)/.stamp_check_kernel_version: $$(LINUX_DIR)/$$(LINUX_KCONFIG_STAMP_DOTCONFIG)
+	$(Q)KVER=$(LINUX_VERSION_PROBED); \
+	KVER_MAJOR=`echo $${KVER} | sed 's/^\([0-9]*\)\..*/\1/'`; \
+	KVER_MINOR=`echo $${KVER} | sed 's/^[0-9]*\.\([0-9]*\).*/\1/'`; \
+	if [ $${KVER_MAJOR} -lt 3 -o \( $${KVER_MAJOR} -eq 3 -a $${KVER_MINOR} -lt 0 \) ]; then \
 		printf "Linux version '%s' is too old for linux-backports (needs 3.0 or later)\n" \
-			"$${LINUX_VERSION_PROBED}"; \
+			"$${KVER}"; \
 		exit 1; \
 	fi
 	$(Q)touch $(@)

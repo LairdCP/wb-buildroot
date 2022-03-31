@@ -1,0 +1,42 @@
+--- a/meson.build	2022-03-24 09:43:06.000000000 
++++ b/meson.build	2022-03-24 09:29:57.000000000 
+@@ -1302,7 +1302,7 @@
+ want_openssl = get_option('openssl')
+ if want_openssl != 'false' and not skip_deps
+         libopenssl = dependency('openssl',
+-                                version : '>= 1.1.0',
++                                version : '>= 1.0.0',
+                                 required : want_openssl == 'true')
+         have = libopenssl.found()
+ else
+--- b/src/shared/openssl-util.h	2022-01-18 07:35:43.000000000 
++++ b/src/shared/openssl-util.h	2022-03-24 09:50:07.000000000 
+@@ -12,6 +12,27 @@
+ #  include <openssl/ssl.h>
+ #  include <openssl/x509v3.h>
+ 
++#if OPENSSL_VERSION_NUMBER < 0x10100000L
++static inline void *OPENSSL_zalloc(size_t num)
++{
++	void *ret = OPENSSL_malloc(num);
++	if (ret)
++		memset(ret, 0, num);
++	return ret;
++}
++
++static inline EVP_MD_CTX *EVP_MD_CTX_new(void)
++{
++	return OPENSSL_zalloc(sizeof(EVP_MD_CTX));
++}
++
++static inline void EVP_MD_CTX_free(EVP_MD_CTX *ctx)
++{
++	EVP_MD_CTX_cleanup(ctx);
++	OPENSSL_free(ctx);
++}
++#endif
++
+ DEFINE_TRIVIAL_CLEANUP_FUNC_FULL(X509*, X509_free, NULL);
+ DEFINE_TRIVIAL_CLEANUP_FUNC_FULL(X509_NAME*, X509_NAME_free, NULL);
+ DEFINE_TRIVIAL_CLEANUP_FUNC_FULL(EVP_PKEY_CTX*, EVP_PKEY_CTX_free, NULL);
+ 
