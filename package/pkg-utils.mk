@@ -11,20 +11,27 @@
 # package, and more.
 #
 
-define KCONFIG_ENABLE_OPT # (option, file)
-	$(SED) "/\\<$(1)\\>/d" $(2)
-	echo '$(1)=y' >> $(2)
+# KCONFIG_DOT_CONFIG ([file])
+# Returns the path to the .config file that should be used, which will
+# be $(1) if provided, or the current package .config file otherwise.
+KCONFIG_DOT_CONFIG = $(strip \
+	$(if $(strip $(1)), $(1), \
+		$($(PKG)_BUILDDIR)/$($(PKG)_KCONFIG_DOTCONFIG) \
+	) \
+)
+
+# KCONFIG_MUNGE_DOT_CONFIG (option, newline [, file])
+define KCONFIG_MUNGE_DOT_CONFIG
+	$(SED) "/\\<$(strip $(1))\\>/d" $(call KCONFIG_DOT_CONFIG,$(3))
+	echo '$(strip $(2))' >> $(call KCONFIG_DOT_CONFIG,$(3))
 endef
 
-define KCONFIG_SET_OPT # (option, value, file)
-	$(SED) "/\\<$(1)\\>/d" $(3)
-	echo '$(1)=$(2)' >> $(3)
-endef
-
-define KCONFIG_DISABLE_OPT # (option, file)
-	$(SED) "/\\<$(1)\\>/d" $(2)
-	echo '# $(1) is not set' >> $(2)
-endef
+# KCONFIG_ENABLE_OPT (option [, file])
+KCONFIG_ENABLE_OPT  = $(call KCONFIG_MUNGE_DOT_CONFIG, $(1), $(1)=y, $(2))
+# KCONFIG_SET_OPT (option, value [, file])
+KCONFIG_SET_OPT     = $(call KCONFIG_MUNGE_DOT_CONFIG, $(1), $(1)=$(2), $(3))
+# KCONFIG_DISABLE_OPT  (option [, file])
+KCONFIG_DISABLE_OPT = $(call KCONFIG_MUNGE_DOT_CONFIG, $(1), $(SHARP_SIGN) $(1) is not set, $(2))
 
 # Helper functions to determine the name of a package and its
 # directory from its makefile directory, using the $(MAKEFILE_LIST)
@@ -32,6 +39,11 @@ endef
 # automagically find where the package is located.
 pkgdir = $(dir $(lastword $(MAKEFILE_LIST)))
 pkgname = $(lastword $(subst /, ,$(pkgdir)))
+
+# Helper to build the extension for a package archive, based on various
+# conditions.
+# $(1): upper-case package name
+pkg_source_ext = $(BR_FMT_VERSION_$($(1)_SITE_METHOD)).tar.gz
 
 # Define extractors for different archive suffixes
 INFLATE.bz2  = $(BZCAT)
@@ -84,7 +96,7 @@ endef
 # $(1): upper-case package or filesystem name
 define json-info
 	"$($(1)_NAME)": {
-		"type": "$($(1)_TYPE)",
+		"type": $(call mk-json-str,$($(1)_TYPE)),
 		$(if $(filter rootfs,$($(1)_TYPE)), \
 			$(call _json-info-fs,$(1)), \
 			$(call _json-info-pkg,$(1)), \
@@ -95,35 +107,61 @@ endef
 # _json-info-pkg, _json-info-pkg-details, _json-info-fs: private helpers
 # for json-info, above
 define _json-info-pkg
+	"name": $(call mk-json-str,$($(1)_RAWNAME)),
 	$(if $($(1)_IS_VIRTUAL), \
 		"virtual": true$(comma),
 		"virtual": false$(comma)
 		$(call _json-info-pkg-details,$(1)) \
 	)
+	"stamp_dir": $(call mk-json-str,$(patsubst $(CONFIG_DIR)/%,%,$($(1)_DIR))),
+	"source_dir": $(call mk-json-str,$(patsubst $(CONFIG_DIR)/%,%,$($(1)_DIR))),
+	"build_dir": $(call mk-json-str,$(patsubst $(CONFIG_DIR)/%,%,$($(1)_BUILDDIR))),
+	$(if $(filter target,$($(1)_TYPE)), \
+		"install_target": $(call yesno-to-bool,$($(1)_INSTALL_TARGET))$(comma) \
+		"install_staging": $(call yesno-to-bool,$($(1)_INSTALL_STAGING))$(comma) \
+		"install_images": $(call yesno-to-bool,$($(1)_INSTALL_IMAGES))$(comma) \
+	)
 	"dependencies": [
-		$(call make-comma-list,$(sort $($(1)_FINAL_ALL_DEPENDENCIES)))
+		$(call make-comma-list, \
+			$(foreach dep,$(sort $($(1)_FINAL_ALL_DEPENDENCIES)), \
+				$(call mk-json-str,$(dep)) \
+			) \
+		)
 	],
 	"reverse_dependencies": [
-		$(call make-comma-list,$(sort $($(1)_RDEPENDENCIES)))
+		$(call make-comma-list, \
+			$(foreach dep,$(sort $($(1)_RDEPENDENCIES)), \
+				$(call mk-json-str,$(dep)) \
+			) \
+		)
 	]
+	$(if $($(1)_CPE_ID_VALID), \
+		$(comma) "cpe-id": $(call mk-json-str,$($(1)_CPE_ID)) \
+	)
+	$(if $($(1)_IGNORE_CVES),
+		$(comma) "ignore_cves": [
+			$(call make-comma-list, \
+				$(foreach cve,$(sort $($(1)_IGNORE_CVES)), \
+					$(call mk-json-str,$(cve)) \
+				) \
+			)
+		]
+	)
 endef
 
 define _json-info-pkg-details
-	"version": "$($(1)_DL_VERSION)",
-	"licenses": "$($(1)_LICENSE)",
-	"dl_dir": "$($(1)_DL_SUBDIR)",
-	"install_target": $(call yesno-to-bool,$($(1)_INSTALL_TARGET)),
-	"install_staging": $(call yesno-to-bool,$($(1)_INSTALL_STAGING)),
-	"install_images": $(call yesno-to-bool,$($(1)_INSTALL_IMAGES)),
+	"version": $(call mk-json-str,$($(1)_DL_VERSION)),
+	"licenses": $(call mk-json-str,$($(1)_LICENSE)),
+	"dl_dir": $(call mk-json-str,$($(1)_DL_SUBDIR)),
 	"downloads": [
 	$(foreach dl,$(sort $($(1)_ALL_DOWNLOADS)),
 		{
-			"source": "$(notdir $(dl))",
+			"source": $(call mk-json-str,$(notdir $(dl))),
 			"uris": [
-				$(call make-comma-list,
-					$(subst \|,|,
-						$(call DOWNLOAD_URIS,$(dl),$(1))
-					)
+				$(call make-comma-list, \
+					$(foreach uri,$(call DOWNLOAD_URIS,$(dl),$(1)), \
+						$(call mk-json-str,$(subst \|,|,$(uri))) \
+					) \
 				)
 			]
 		},
@@ -132,8 +170,16 @@ define _json-info-pkg-details
 endef
 
 define _json-info-fs
+	"image_name": $(if $($(1)_FINAL_IMAGE_NAME), \
+				$(call mk-json-str,$($(1)_FINAL_IMAGE_NAME)), \
+				null \
+			),
 	"dependencies": [
-		$(call make-comma-list,$(sort $($(1)_DEPENDENCIES)))
+		$(call make-comma-list, \
+			$(foreach dep,$(sort $($(1)_DEPENDENCIES)), \
+				$(call mk-json-str,$(dep)) \
+			) \
+		)
 	]
 endef
 
@@ -147,6 +193,17 @@ clean-json = $(strip \
 	)))) \
 )
 
+# mk-json-str -- escape and double-quote a string to make it a valid json string
+#  - escape \
+#  - escape "
+#  - escape \n
+#  - escape \t
+#  - escape ESC
+#  - escape SPACE (so that we can $(strip) a JSON blurb without squashing multiple spaces)
+# This unfortunately has to be on a single line...
+mk-json-str = "$(subst $(space),\u0020,$(subst $(escape),\u001b,$(subst $(tab),\t,$(subst $(sep),\n,$(subst ",\",$(subst \,\\,$(1)))))))"
+# )))))" # Syntax colouring
+
 ifeq ($(BR2_PER_PACKAGE_DIRECTORIES),y)
 # rsync the contents of per-package directories
 # $1: space-separated list of packages to rsync from
@@ -156,8 +213,8 @@ define per-package-rsync
 	mkdir -p $(3)
 	$(foreach pkg,$(1),\
 		rsync -a --link-dest=$(PER_PACKAGE_DIR)/$(pkg)/$(2)/ \
-		$(PER_PACKAGE_DIR)/$(pkg)/$(2)/ \
-		$(3)$(sep))
+			$(PER_PACKAGE_DIR)/$(pkg)/$(2)/ \
+			$(3)$(sep))
 endef
 
 # prepares the per-package HOST_DIR and TARGET_DIR of the current
@@ -202,6 +259,7 @@ define legal-license-file # pkgname, pkgname-pkgver, pkg-hashfile, filename, fil
 	} && \
 	cp $(5) $(LICENSE_FILES_DIR_$(6))/$(2)/$(4)
 endef
+
 non-virtual-deps = $(foreach p,$(1),$(if $($(call UPPERCASE,$(p))_IS_VIRTUAL),,$(p)))
 
 # Returns the list of recursive dependencies and their licensing terms
@@ -212,4 +270,3 @@ legal-deps = \
         $(filter-out $(if $(1:host-%=),host-%),\
             $(call non-virtual-deps,\
                 $($(call UPPERCASE,$(1))_FINAL_RECURSIVE_DEPENDENCIES))),$(p) [$($(call UPPERCASE,$(p))_LICENSE)])
-

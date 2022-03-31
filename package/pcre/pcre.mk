@@ -4,11 +4,12 @@
 #
 ################################################################################
 
-PCRE_VERSION = 8.43
-PCRE_SITE = https://ftp.pcre.org/pub/pcre
+PCRE_VERSION = 8.45
+PCRE_SITE = http://downloads.sourceforge.net/project/pcre/pcre/$(PCRE_VERSION)
 PCRE_SOURCE = pcre-$(PCRE_VERSION).tar.bz2
 PCRE_LICENSE = BSD-3-Clause
 PCRE_LICENSE_FILES = LICENCE
+PCRE_CPE_ID_VENDOR = pcre
 PCRE_INSTALL_STAGING = YES
 PCRE_CONFIG_SCRIPTS = pcre-config
 
@@ -17,7 +18,7 @@ HOST_PCRE_CONF_OPTS = --enable-unicode-properties
 
 ifneq ($(BR2_INSTALL_LIBSTDCPP),y)
 # pcre will use the host g++ if a cross version isn't available
-PCRE_CONF_OPTS = --disable-cpp
+PCRE_CONF_OPTS += --disable-cpp
 endif
 
 PCRE_CONF_OPTS += --enable-pcre8
@@ -25,10 +26,6 @@ PCRE_CONF_OPTS += $(if $(BR2_PACKAGE_PCRE_16),--enable-pcre16,--disable-pcre16)
 PCRE_CONF_OPTS += $(if $(BR2_PACKAGE_PCRE_32),--enable-pcre32,--disable-pcre32)
 PCRE_CONF_OPTS += $(if $(BR2_PACKAGE_PCRE_UTF),--enable-utf,--disable-utf)
 PCRE_CONF_OPTS += $(if $(BR2_PACKAGE_PCRE_UCP),--enable-unicode-properties,--disable-unicode-properties)
-
-# CVE-2017-11164
-PCRE_CONF_OPTS += --with-match-limit-recursion=8192
-PCRE_IGNORE_CVES += CVE-2017-11164
 
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))

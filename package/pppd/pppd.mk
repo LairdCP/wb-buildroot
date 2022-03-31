@@ -10,12 +10,22 @@ PPPD_LICENSE = LGPL-2.0+, LGPL, BSD-4-Clause, BSD-3-Clause, GPL-2.0+
 PPPD_LICENSE_FILES = \
 	pppd/tdb.c pppd/plugins/pppoatm/COPYING \
 	pppdump/bsd-comp.c pppd/ccp.c pppd/plugins/passprompt.c
+PPPD_CPE_ID_VENDOR = samba
+PPPD_CPE_ID_PRODUCT = ppp
+PPPD_SELINUX_MODULES = ppp
+
+# 0001-pppd-Fix-bounds-check.patch
+PPPD_IGNORE_CVES += CVE-2020-8597
 
 PPPD_MAKE_OPTS = HAVE_INET6=y
-ifeq ($(BR2_TOOLCHAIN_USES_GLIBC),y)
+
+ifeq ($(BR2_PACKAGE_OPENSSL),y)
 PPPD_DEPENDENCIES += openssl
+PPPD_MAKE_OPTS += USE_EAPTLS=y
 else
-PPPD_MAKE_OPTS += USE_CRYPT=y
+PPPD_MAKE_OPTS += \
+	USE_CRYPT=y \
+	USE_EAPTLS=
 endif
 
 PPPD_INSTALL_STAGING = YES
@@ -48,6 +58,13 @@ define PPPD_SET_RESOLV_CONF
 endef
 ifeq ($(BR2_PACKAGE_PPPD_OVERWRITE_RESOLV_CONF),y)
 PPPD_POST_EXTRACT_HOOKS += PPPD_SET_RESOLV_CONF
+endif
+
+ifeq ($(BR2_TOOLCHAIN_HEADERS_AT_LEAST_5_15),y)
+define PPPD_DROP_IPX
+	$(SED) 's/-DIPX_CHANGE//' $(PPPD_DIR)/pppd/Makefile.linux
+endef
+PPPD_POST_EXTRACT_HOOKS += PPPD_DROP_IPX
 endif
 
 define PPPD_CONFIGURE_CMDS

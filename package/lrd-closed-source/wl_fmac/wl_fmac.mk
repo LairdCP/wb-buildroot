@@ -15,14 +15,17 @@ else ifeq ($(BR2_arm),y)
 WL_FMAC_TARGETARCH = arm_le
 endif
 
-WL_FMAC_MAKE_ENV += CC="$(TARGET_CC)" \
-                  TARGETARCH="$(WL_FMAC_TARGETARCH)" \
-                  PKG_CONFIG="$(HOST_DIR)/usr/bin/pkg-config" \
-                  NL80211=1 \
-                  APPLY_PREFIX=false
+WL_FMAC_MAKE_ENV += \
+	CC="$(TARGET_CC)" \
+	PKG_CONFIG="$(PKG_CONFIG_HOST_BINARY)" \
+	TARGETARCH="$(WL_FMAC_TARGETARCH)" \
+	TARGETENV=linux \
+	TARGETOS=unix \
+	NL80211=1 \
+	APPLY_PREFIX=false
 
 define WL_FMAC_BUILD_CMDS
-	$(WL_FMAC_MAKE_ENV) $(MAKE) -C $(@D)/src/wl/exe clean
+	$(WL_FMAC_MAKE_ENV) $(MAKE) -d -C $(@D)/src/wl/exe clean
 	$(WL_FMAC_MAKE_ENV) $(MAKE) -C $(@D)/src/wl/exe
 endef
 

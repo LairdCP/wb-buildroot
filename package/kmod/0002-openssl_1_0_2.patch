@@ -1,0 +1,39 @@
+--- a/configure.ac	2021-05-20 18:37:39.000000000 -0400
++++ b/configure.ac	2022-03-24 08:09:51.475860356 -0400
+@@ -120,7 +120,7 @@
+ 	AS_HELP_STRING([--with-openssl], [handle PKCS7 signatures @<:@default=disabled@:>@]),
+ 	[], [with_openssl=no])
+ AS_IF([test "x$with_openssl" != "xno"], [
+-	PKG_CHECK_MODULES([libcrypto], [libcrypto >= 1.1.0])
++	PKG_CHECK_MODULES([libcrypto], [libcrypto >= 1.0.0])
+ 	AC_DEFINE([ENABLE_OPENSSL], [1], [Enable openssl for modinfo.])
+ ], [
+ 	AC_MSG_NOTICE([openssl support not requested])
+--- a/libkmod/libkmod-signature.c	2019-05-28 18:22:18.000000000 -0400
++++ b/libkmod/libkmod-signature.c	2022-03-24 08:30:44.000000000 -0400
+@@ -127,6 +127,13 @@
+ 	BIGNUM *sno;
+ };
+ 
++#if OPENSSL_VERSION_NUMBER < 0x10100000
++static inline const unsigned char *ASN1_STRING_get0_data(const ASN1_STRING *asn1)
++{
++	return M_ASN1_STRING_data(asn1);
++}
++#endif
++
+ static void pkcs7_free(void *s)
+ {
+ 	struct kmod_signature_info *si = s;
+@@ -207,7 +214,11 @@
+ 	BIGNUM *sno_bn;
+ 	X509_ALGOR *dig_alg;
+ 	X509_ALGOR *sig_alg;
++#if OPENSSL_VERSION_NUMBER < 0x10100000
++	ASN1_OBJECT *o;
++#else
+	const ASN1_OBJECT *o;
++#endif
+ 	BIO *in;
+ 	int len;
+ 	unsigned char *key_id_str;

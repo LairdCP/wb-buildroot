@@ -7,7 +7,9 @@ DCAS_VERSION = local
 DCAS_SITE = package/lrd/externals/dcas
 DCAS_SITE_METHOD = local
 
-ifeq ($(BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES),y)
+ifeq ($(BR2_LRD_DEVEL_BUILD),y)
+	DCAS_DEPENDENCIES = sdcsdk
+else ifeq ($(BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES),y)
 	DCAS_DEPENDENCIES = summit-supplicant-binaries
 else
 	DCAS_DEPENDENCIES = sdcsdk

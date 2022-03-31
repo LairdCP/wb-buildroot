@@ -1,6 +1,5 @@
 config BR2_PACKAGE_LRD_USERSPACE_EXAMPLES
 	bool "Laird Examples"
-	select BR2_PACKAGE_LRD_NETWORK_MANAGER
 	help
 	  Laird userspace examples for som products.
 
@@ -8,14 +7,14 @@ if BR2_PACKAGE_LRD_USERSPACE_EXAMPLES
 
 config BR2_PACKAGE_LRD_USERSPACE_NETWORKMANAGER_EXAMPLES
 	bool "Build networkmanager examples"
-	default n
+	select BR2_PACKAGE_LRD_NETWORK_MANAGER
 
 config BR2_PACKAGE_LRD_USERSPACE_NETLINK_EXAMPLES
 	bool "Build netlink examples"
-	default n
+	select BR2_PACKAGE_LIBNL
+
 
 config BR2_PACKAGE_LRD_USERSPACE_CMUX
 	bool "Build cmux"
-	default n
 
 endif

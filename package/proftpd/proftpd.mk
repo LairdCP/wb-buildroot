@@ -4,10 +4,12 @@
 #
 ################################################################################
 
-PROFTPD_VERSION = 1.3.6c
+PROFTPD_VERSION = 1.3.6e
 PROFTPD_SITE = $(call github,proftpd,proftpd,v$(PROFTPD_VERSION))
 PROFTPD_LICENSE = GPL-2.0+
 PROFTPD_LICENSE_FILES = COPYING
+PROFTPD_CPE_ID_VENDOR = proftpd
+PROFTPD_SELINUX_MODULES = ftp
 
 PROFTPD_CONF_ENV = \
 	ac_cv_func_setpgrp_void=yes \
@@ -58,6 +60,10 @@ endif
 ifeq ($(BR2_PACKAGE_PROFTPD_MOD_SQL_SQLITE),y)
 PROFTPD_MODULES += mod_sql_sqlite
 PROFTPD_DEPENDENCIES += sqlite
+endif
+
+ifeq ($(BR2_PACKAGE_PROFTPD_MOD_SFTP_SQL),y)
+PROFTPD_MODULES += mod_sftp_sql
 endif
 
 ifeq ($(BR2_PACKAGE_PROFTPD_MOD_QUOTATAB),y)
@@ -118,7 +124,7 @@ define PROFTPD_USERS
 endef
 
 define PROFTPD_INSTALL_INIT_SYSV
-	$(INSTALL) -D -m 0755 package/proftpd/S50proftpd $(TARGET_DIR)/etc/init.d/opt/S50proftpd
+	$(INSTALL) -D -m 0755 package/proftpd/S50proftpd $(TARGET_DIR)/etc/init.d/S50proftpd
 endef
 
 define PROFTPD_INSTALL_INIT_SYSTEMD

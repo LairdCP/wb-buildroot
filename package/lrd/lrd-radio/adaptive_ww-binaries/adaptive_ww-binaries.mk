@@ -42,9 +42,6 @@ endef
 define ADAPTIVE_WW_BINARIES_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -m 0644 -D $(@D)/usr/lib/systemd/system/adaptive_ww.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/adaptive_ww.service
-	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/adaptive_ww.service \
-		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/adaptive_ww.service
 endef
 
 define ADAPTIVE_WW_BINARIES_INSTALL_INIT_SYSV

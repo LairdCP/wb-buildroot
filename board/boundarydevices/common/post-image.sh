@@ -1,21 +1,10 @@
+#!/bin/bash
 
-BOARD_DIR="$(realpath $(dirname $0))"
-GENIMAGE_CFG="${BOARD_DIR}/genimage.cfg"
-GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
-
-# Tooling checks
-genimage="${HOST_DIR}/bin/genimage"
+BOARD_DIR="$(dirname $0)"
 
 set -x -e
 
-rm -rf "${GENIMAGE_TMP}"
-
-${genimage}                        \
-	--rootpath "${TARGET_DIR}"     \
-	--tmppath "${GENIMAGE_TMP}"    \
-	--inputpath "${BINARIES_DIR}"  \
-	--outputpath "${BINARIES_DIR}" \
-	--config "${GENIMAGE_CFG}"
+support/scripts/genimage.sh -c $(dirname $0)/genimage.cfg
 
 BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
 

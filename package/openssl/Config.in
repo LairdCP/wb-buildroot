@@ -37,15 +37,20 @@ config BR2_PACKAGE_LIBOPENSSL_1_0_2
 	help
 		This is libopenssl-1.0.2, which support FIPS.
 
+source "package/libopenssl_1_0_2/Config.in"
+
 config BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES
 	bool "Laird openssl fips binaries"
 	select BR2_PACKAGE_ZLIB
 	help
 		This is Laird openssl FIPS binaries (1.0.2).
 
+source "package/lrd/laird_openssl_fips-binaries/Config.in"
+
 config BR2_PACKAGE_LIBRESSL
 	bool "libressl"
 	depends on !BR2_PACKAGE_OPENSSL_FORCE_LIBOPENSSL
+	depends on BR2_TOOLCHAIN_HAS_THREADS
 	# uClibc on noMMU doesn't provide __register_atfork()
 	depends on !(BR2_TOOLCHAIN_USES_UCLIBC && !BR2_USE_MMU)
 	help
@@ -56,46 +61,21 @@ config BR2_PACKAGE_LIBRESSL
 
 	  http://www.libressl.org/
 
-endchoice
-
-if BR2_PACKAGE_LIBOPENSSL || BR2_PACKAGE_LIBOPENSSL_1_0_2 || BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES
-
-config BR2_PACKAGE_LIBOPENSSL_BIN
-	bool "openssl binary"
-	help
-	  Install the openssl binary and the associated helper scripts
-	  to the target file system. This is a command line tool for
-	  doing various cryptographic stuff.
-endif
-
-if BR2_PACKAGE_LIBOPENSSL || BR2_PACKAGE_LIBOPENSSL_1_0_2
-config BR2_PACKAGE_LIBOPENSSL_ENGINES
-	bool "openssl additional engines"
-	help
-	  Install additional encryption engine libraries.
-
-endif
-
-if BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES
-config BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES_VERSION_VALUE
-	string "Laird Openssl FIPS binaries version"
-	default "7.0.0.643"
-
-endif
-
 source "package/libressl/Config.in"
 
 # openssl from br2-external trees, if any
 source "$BR2_BASE_DIR/.br2-external.in.openssl"
+
+endchoice
 
 config BR2_PACKAGE_HAS_OPENSSL
 	bool
 
 config BR2_PACKAGE_PROVIDES_OPENSSL
 	string
-	default "libopenssl"  if BR2_PACKAGE_LIBOPENSSL
+	default "libopenssl" if BR2_PACKAGE_LIBOPENSSL
 	default "libopenssl_1_0_2"  if BR2_PACKAGE_LIBOPENSSL_1_0_2
-	default "libressl"  if BR2_PACKAGE_LIBRESSL
+	default "libressl" if BR2_PACKAGE_LIBRESSL
 	default "laird_openssl_fips-binaries"  if BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES
 
 endif

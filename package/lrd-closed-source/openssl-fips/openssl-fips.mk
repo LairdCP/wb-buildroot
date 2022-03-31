@@ -71,10 +71,8 @@ else
 OPENSSL_FIPS_CONFIG_CMD_EXEC=./config $(OPENSSL_FIPS_DEBUG)
 endif
 
-# BZ10856: set BR2_PASSTHRU_WRAPPER=1 to use base toolchain cross-compiler
 define OPENSSL_FIPS_BUILD_CMDS
 	( cd $(@D); \
-	  export BR2_PASSTHRU_WRAPPER=1; \
 	  export MACHINE=$(OPENSSL_FIPS_TARGET_ARCH); \
 	  export RELEASE=7.x; \
 	  export SYSTEM=Linux; \

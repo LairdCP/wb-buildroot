@@ -129,6 +129,8 @@ static const struct str_len_s unsafe_paths[] = {
 	STR_LEN(/usr/lib),
 	STR_LEN(/usr/local/include),
 	STR_LEN(/usr/local/lib),
+	STR_LEN(/usr/X11R6/include),
+	STR_LEN(/usr/X11R6/lib),
 	{ NULL, 0 },
 };
 
@@ -177,6 +179,7 @@ static void check_unsafe_path(const char *arg,
 	}
 }
 
+#ifdef BR_NEED_SOURCE_DATE_EPOCH
 /* Returns false if SOURCE_DATE_EPOCH was not defined in the environment.
  *
  * Returns true if SOURCE_DATE_EPOCH is in the environment and represent
@@ -230,6 +233,15 @@ bool parse_source_date_epoch_from_env(void)
 	}
 	return true;
 }
+#else
+bool parse_source_date_epoch_from_env(void)
+{
+	/* The compiler is recent enough to handle SOURCE_DATE_EPOCH itself
+	 * so we do not need to do anything here.
+	 */
+	return false;
+}
+#endif
 
 int main(int argc, char **argv)
 {
@@ -324,20 +336,6 @@ int main(int argc, char **argv)
 		perror(__FILE__ ": malloc");
 		return 2;
 	}
-
-
-#ifndef CONFIG_REMOVE_LAIRD
-	/* Laird: pass through command line args unmodified to base toolchain */
-	/* copy only the path variable and continue below to copy input args */
-	/* see BZ10856 for details */
-	if ((env_debug = getenv("BR2_PASSTHRU_WRAPPER"))) {
-		debug = atoi(env_debug);
-		if (debug > 0) {
-			*cur++ = path;
-			goto PASSTHRU_CONTINUE;
-		}
-	}
-#endif /* CONFIG_REMOVE_LAIRD */
 
 	/* start with predefined args */
 	memcpy(cur, predef_args, sizeof(predef_args));
@@ -499,10 +497,6 @@ int main(int argc, char **argv)
 				check_unsafe_path(argv[i], argv[i] + opt->len, paranoid, 1);
 		}
 	}
-
-#ifndef CONFIG_REMOVE_LAIRD
-PASSTHRU_CONTINUE:
-#endif /* CONFIG_REMOVE_LAIRD */
 
 	/* append forward args */
 	memcpy(cur, &argv[1], sizeof(char *) * (argc - 1));
