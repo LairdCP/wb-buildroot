@@ -14,17 +14,18 @@ endif
 
 LINUX_BACKPORTS_SOURCE = backports-laird-$(LINUX_BACKPORTS_VERSION).tar.bz2
 BR_NO_CHECK_HASH_FOR += $(LINUX_BACKPORTS_SOURCE)
-LINUX_BACKPORTS_LICENSE = GPL-2.0
-LINUX_BACKPORTS_LICENSE_FILES = \
-	COPYING \
-	LICENSES/exceptions/Linux-syscall-note \
-	LICENSES/preferred/GPL-2.0
 
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
 LINUX_BACKPORTS_SITE = https://files.devops.rfpros.com/builds/linux/backports/laird/$(LINUX_BACKPORTS_VERSION)
 else
 LINUX_BACKPORTS_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(LINUX_BACKPORTS_VERSION)
 endif
+
+LINUX_BACKPORTS_LICENSE = GPL-2.0
+LINUX_BACKPORTS_LICENSE_FILES = \
+	COPYING \
+	LICENSES/exceptions/Linux-syscall-note \
+	LICENSES/preferred/GPL-2.0
 
 # flex and bison are needed to generate kconfig parser. We use the
 # same logic as the linux kernel (we add host dependencies only if
@@ -42,6 +43,8 @@ endif
 
 LINUX_BACKPORTS_KCONFIG_FRAGMENT_FILES = $(call qstrip,$(BR2_PACKAGE_LINUX_BACKPORTS_CONFIG_FRAGMENT_FILES))
 LINUX_BACKPORTS_KCONFIG_OPTS = $(LINUX_BACKPORTS_MAKE_OPTS)
+
+LINUX_BACKPORTS_MAKE_ENV = $(TARGET_MAKE_ENV)
 
 # linux-backports' build system expects the config options to be present
 # in the environment, and it is so when using their custom buildsystem,
