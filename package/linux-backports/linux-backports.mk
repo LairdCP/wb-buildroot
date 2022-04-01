@@ -31,7 +31,7 @@ LINUX_BACKPORTS_LICENSE_FILES = \
 # same logic as the linux kernel (we add host dependencies only if
 # host does not have them). See linux/linux.mk and
 # support/dependencies/check-host-bison-flex.mk.
-LINUX_BACKPORTS_DEPENDENCIES = \
+LINUX_BACKPORTS_KCONFIG_DEPENDENCIES = \
 	$(BR2_BISON_HOST_DEPENDENCY) \
 	$(BR2_FLEX_HOST_DEPENDENCY)
 
@@ -44,7 +44,7 @@ endif
 LINUX_BACKPORTS_KCONFIG_FRAGMENT_FILES = $(call qstrip,$(BR2_PACKAGE_LINUX_BACKPORTS_CONFIG_FRAGMENT_FILES))
 LINUX_BACKPORTS_KCONFIG_OPTS = $(LINUX_BACKPORTS_MAKE_OPTS)
 
-LINUX_BACKPORTS_MAKE_ENV = $(TARGET_MAKE_ENV)
+LINUX_BACKPORTS_MAKE_ENV = $(HOST_MAKE_ENV)
 
 # linux-backports' build system expects the config options to be present
 # in the environment, and it is so when using their custom buildsystem,
