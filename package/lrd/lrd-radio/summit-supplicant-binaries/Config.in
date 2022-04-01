@@ -12,8 +12,11 @@ config BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES
 	help
 	  Extracts sdcsupp, wpa_cli binaries from summit supplicant release and install them on the target.
 
-config BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES_OPENSSL
+config BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES_SUFFIX
 	string
 	depends on BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES
+	default "_legacy_openssl_1_0_2" if BR2_PACKAGE_LRD_LEGACY && BR2_PACKAGE_LIBOPENSSL_1_0_2
+	default "_legacy_fips" if BR2_PACKAGE_LRD_LEGACY && BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES
+	default "_legacy" if BR2_PACKAGE_LRD_LEGACY
 	default "_openssl_1_0_2" if BR2_PACKAGE_LIBOPENSSL_1_0_2
 	default "_fips" if BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES
