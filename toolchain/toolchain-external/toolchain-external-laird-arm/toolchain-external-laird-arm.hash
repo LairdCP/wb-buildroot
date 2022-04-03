@@ -1,3 +1,5 @@
 # Locally calculated
 sha256 e2eeac297b2a31e5c3b73c23435353d5d42c059135cc799d4d02badf04d04106 som60_toolchain-laird-7.0.0.518.tar.gz
 sha256 8247755039f7a6f27c4bb05c631098a89ab8cf849625c5934852621776cef7fb wb4x_toolchain-laird-7.0.0.518.tar.gz
+sha256 d86c6a764d045863c044f0ab2af69ad8690bf89a45115739f0a5832bb8ebc000 som60_toolchain-laird-10.0.0.6.tar.gz
+sha256 60789d8c7ea9b967450baa60325c4c1efa0ce9bdb616d894faac9a03ac8842e6 wb4x_toolchain-laird-10.0.0.6.tar.gz
