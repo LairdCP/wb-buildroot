@@ -8,6 +8,7 @@
 
 LAIRD_OPENSSL_FIPS_BINARIES_CVE_PRODUCT = libopenssl
 LAIRD_OPENSSL_FIPS_BINARIES_CVE_VERSION = 1.0.2u
+LAIRD_OPENSSL_FIPS_BINARIES_INSTALL_STAGING = YES
 
 LAIRD_OPENSSL_FIPS_BINARIES_IGNORE_CVES += CVE-2020-1968
 LAIRD_OPENSSL_FIPS_BINARIES_IGNORE_CVES += CVE-2020-1971
@@ -39,9 +40,12 @@ define LAIRD_OPENSSL_FIPS_BINARIES_REMOVE_BIN
 endef
 endif
 
+define LAIRD_OPENSSL_FIPS_BINARIES_INSTALL_STAGING_CMDS
+	tar -xjvf $($(PKG)_DL_DIR)/$(LAIRD_OPENSSL_FIPS_BINARIES_EXTRA_DOWNLOADS) -C $(STAGING_DIR) --keep-directory-symlink --no-overwrite-dir --touch --strip-components=1 staging
+endef
+
 define LAIRD_OPENSSL_FIPS_BINARIES_INSTALL_TARGET_CMDS
 	tar -xjvf $($(PKG)_DL_DIR)/$(LAIRD_OPENSSL_FIPS_BINARIES_EXTRA_DOWNLOADS) -C $(TARGET_DIR) --keep-directory-symlink --no-overwrite-dir --touch --strip-components=1 target
-	tar -xjvf $($(PKG)_DL_DIR)/$(LAIRD_OPENSSL_FIPS_BINARIES_EXTRA_DOWNLOADS) -C $(STAGING_DIR) --keep-directory-symlink --no-overwrite-dir --touch --strip-components=1 staging
 	$(LAIRD_OPENSSL_FIPS_BINARIES_REMOVE_BIN)
 endef
 
