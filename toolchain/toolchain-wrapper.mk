@@ -27,7 +27,8 @@ ifeq ($(BR2_TOOLCHAIN_GCC_AT_LEAST_8),y)
 TOOLCHAIN_WRAPPER_OPTS += -ffile-prefix-map=$(BASE_DIR)=buildroot
 else
 TOOLCHAIN_WRAPPER_OPTS += -fdebug-prefix-map=$(BASE_DIR)=buildroot
-TOOLCHAIN_WRAPPER_OPTS += -D__FILE__=\"\" -D__BASE_FILE__=\"\" -Wno-builtin-macro-redefined
+# -D__FILE__ override killing systemd build, buildroot generates relative path anyway
+#TOOLCHAIN_WRAPPER_OPTS += -D__FILE__=\"\" -D__BASE_FILE__=\"\" -Wno-builtin-macro-redefined
 endif
 ifeq ($(BR2_TOOLCHAIN_GCC_AT_LEAST_7),)
 TOOLCHAIN_WRAPPER_OPTS += -DBR_NEED_SOURCE_DATE_EPOCH
