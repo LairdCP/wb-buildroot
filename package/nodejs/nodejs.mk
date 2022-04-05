@@ -17,6 +17,12 @@ NODEJS_LICENSE_FILES = LICENSE
 NODEJS_CPE_ID_VENDOR = nodejs
 NODEJS_CPE_ID_PRODUCT = node.js
 
+# 0010-console-fix-prototype-pollution-via-console.table.patch
+NODEJS_IGNORE_CVES += CVE-2022-21824
+
+# 0011-tls-drop-support-for-URI-alternative-names.patch
+NODEJS_IGNORE_CVES += CVE-2021-44531
+
 NODEJS_CONF_OPTS = \
 	--without-snapshot \
 	--shared-zlib \

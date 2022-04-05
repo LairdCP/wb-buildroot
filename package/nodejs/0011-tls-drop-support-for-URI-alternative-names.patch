@@ -1,0 +1,180 @@
+From e0fe6a635e5929a364986a6c39dc3585b9ddcd85 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Tobias=20Nie=C3=9Fen?= <tniessen@tnie.de>
+Date: Wed, 29 Dec 2021 20:23:11 -0500
+Subject: [PATCH] tls: drop support for URI alternative names
+
+Previously, Node.js incorrectly accepted uniformResourceIdentifier (URI)
+subject alternative names in checkServerIdentity regardless of the
+application protocol. This was incorrect even in the most common cases.
+For example, RFC 2818 specifies (and RFC 6125 confirms) that HTTP over
+TLS only uses dNSName and iPAddress subject alternative names, but not
+uniformResourceIdentifier subject alternative names.
+
+Additionally, name constrained certificate authorities might not be
+constrained to specific URIs, allowing them to issue certificates for
+URIs that specify hosts that they would not be allowed to issue dNSName
+certificates for.
+
+Even for application protocols that make use of URI subject alternative
+names (such as SIP, see RFC 5922), Node.js did not implement the
+required checks correctly, for example, because checkServerIdentity
+ignores the URI scheme.
+
+As a side effect, this also fixes an edge case. When a hostname is not
+an IP address and no dNSName subject alternative name exists, the
+subject's Common Name should be considered even when an iPAddress
+subject alternative name exists.
+
+It remains possible for users to pass a custom checkServerIdentity
+function to the TLS implementation in order to implement custom identity
+verification logic.
+
+This addresses CVE-2021-44531.
+
+Co-authored-by: Akshay K <iit.akshay@gmail.com>
+CVE-ID: CVE-2021-44531
+Backport-PR-URL: https://github.com/nodejs-private/node-private/pull/306
+PR-URL: https://github.com/nodejs-private/node-private/pull/300
+Reviewed-By: Michael Dawson <midawson@redhat.com>
+Reviewed-By: Rich Trott <rtrott@gmail.com>
+---
+ doc/api/tls.md                                | 12 +++++++
+ lib/tls.js                                    | 33 +++--------------
+ test/fixtures/keys/Makefile                   | 14 ++++++++
+ .../irrelevant_san_correct_subject-cert.pem   | 11 ++++++
+ .../irrelevant_san_correct_subject-key.pem    |  5 +++
+ .../test-tls-check-server-identity.js         | 28 ++++-----------
+ test/parallel/test-x509-escaping.js           | 36 ++++++++++++++++---
+ 7 files changed, 85 insertions(+), 54 deletions(-)
+ create mode 100644 test/fixtures/keys/irrelevant_san_correct_subject-cert.pem
+ create mode 100644 test/fixtures/keys/irrelevant_san_correct_subject-key.pem
+
+diff --git a/doc/api/tls.md b/doc/api/tls.md
+index c9fabbc5b5..e2c4af9df2 100644
+--- a/doc/api/tls.md
++++ b/doc/api/tls.md
+@@ -1323,6 +1323,11 @@ decrease overall server throughput.
+ ## `tls.checkServerIdentity(hostname, cert)`
+ <!-- YAML
+ added: v0.8.4
++changes:
++  - version: REPLACEME
++    pr-url: https://github.com/nodejs-private/node-private/pull/300
++    description: Support for `uniformResourceIdentifier` subject alternative
++                 names has been disabled in response to CVE-2021-44531.
+ -->
+ 
+ * `hostname` {string} The host name or IP address to verify the certificate
+@@ -1343,6 +1348,12 @@ the checks done with additional verification.
+ This function is only called if the certificate passed all other checks, such as
+ being issued by trusted CA (`options.ca`).
+ 
++Earlier versions of Node.js incorrectly accepted certificates for a given
++`hostname` if a matching `uniformResourceIdentifier` subject alternative name
++was present (see [CVE-2021-44531][]). Applications that wish to accept
++`uniformResourceIdentifier` subject alternative names can use a custom
++`options.checkServerIdentity` function that implements the desired behavior.
++
+ ## `tls.connect(options[, callback])`
+ <!-- YAML
+ added: v0.11.3
+@@ -2003,6 +2014,7 @@ added: v11.4.0
+ [`tls.createServer()`]: #tls_tls_createserver_options_secureconnectionlistener
+ [`tls.getCiphers()`]: #tls_tls_getciphers
+ [`tls.rootCertificates`]: #tls_tls_rootcertificates
++[CVE-2021-44531]: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44531
+ [Chrome's 'modern cryptography' setting]: https://www.chromium.org/Home/chromium-security/education/tls#TOC-Cipher-Suites
+ [DHE]: https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange
+ [ECDHE]: https://en.wikipedia.org/wiki/Elliptic_curve_Diffie%E2%80%93Hellman
+diff --git a/lib/tls.js b/lib/tls.js
+index cefb47d10f..f909b0f3fa 100644
+--- a/lib/tls.js
++++ b/lib/tls.js
+@@ -47,11 +47,9 @@ const { isArrayBufferView } = require('internal/util/types');
+ 
+ const net = require('net');
+ const { getOptionValue } = require('internal/options');
+-const url = require('url');
+ const { getRootCertificates, getSSLCiphers } = internalBinding('crypto');
+ const { Buffer } = require('buffer');
+ const EventEmitter = require('events');
+-const { URL } = require('internal/url');
+ const DuplexPair = require('internal/streams/duplexpair');
+ const { canonicalizeIP } = internalBinding('cares_wrap');
+ const _tls_common = require('_tls_common');
+@@ -254,12 +252,10 @@ function splitEscapedAltNames(altNames) {
+   return result;
+ }
+ 
+-let urlWarningEmitted = false;
+ exports.checkServerIdentity = function checkServerIdentity(hostname, cert) {
+   const subject = cert.subject;
+   const altNames = cert.subjectaltname;
+   const dnsNames = [];
+-  const uriNames = [];
+   const ips = [];
+ 
+   hostname = '' + hostname;
+@@ -271,23 +267,6 @@ exports.checkServerIdentity = function checkServerIdentity(hostname, cert) {
+     for (const name of splitAltNames) {
+       if (name.startsWith('DNS:')) {
+         dnsNames.push(name.slice(4));
+-      } else if (name.startsWith('URI:')) {
+-        let uri;
+-        try {
+-          uri = new URL(name.slice(4));
+-        } catch {
+-          uri = url.parse(name.slice(4));
+-          if (!urlWarningEmitted && !process.noDeprecation) {
+-            urlWarningEmitted = true;
+-            process.emitWarning(
+-              `The URI ${name.slice(4)} found in cert.subjectaltname ` +
+-              'is not a valid URI, and is supported in the tls module ' +
+-              'solely for compatibility.',
+-              'DeprecationWarning', 'DEP0109');
+-          }
+-        }
+-
+-        uriNames.push(uri.hostname);  // TODO(bnoordhuis) Also use scheme.
+       } else if (name.startsWith('IP Address:')) {
+         ips.push(canonicalizeIP(name.slice(11)));
+       }
+@@ -297,9 +276,6 @@ exports.checkServerIdentity = function checkServerIdentity(hostname, cert) {
+   let valid = false;
+   let reason = 'Unknown reason';
+ 
+-  const hasAltNames =
+-    dnsNames.length > 0 || ips.length > 0 || uriNames.length > 0;
+-
+   hostname = unfqdn(hostname);  // Remove trailing dot for error messages.
+ 
+   if (net.isIP(hostname)) {
+@@ -307,13 +283,12 @@ exports.checkServerIdentity = function checkServerIdentity(hostname, cert) {
+     if (!valid)
+       reason = `IP: ${hostname} is not in the cert's list: ${ips.join(', ')}`;
+     // TODO(bnoordhuis) Also check URI SANs that are IP addresses.
+-  } else if (hasAltNames || subject) {
++  } else if (dnsNames.length > 0 || (subject && subject.CN)) {
+     const hostParts = splitHost(hostname);
+     const wildcard = (pattern) => check(hostParts, pattern, true);
+ 
+-    if (hasAltNames) {
+-      const noWildcard = (pattern) => check(hostParts, pattern, false);
+-      valid = dnsNames.some(wildcard) || uriNames.some(noWildcard);
++    if (dnsNames.length > 0) {
++      valid = dnsNames.some(wildcard);
+       if (!valid)
+         reason =
+           `Host: ${hostname}. is not in the cert's altnames: ${altNames}`;
+@@ -330,7 +305,7 @@ exports.checkServerIdentity = function checkServerIdentity(hostname, cert) {
+         reason = `Host: ${hostname}. is not cert's CN: ${cn}`;
+     }
+   } else {
+-    reason = 'Cert is empty';
++    reason = 'Cert does not contain a DNS name';
+   }
+ 
+   if (!valid) {
+-- 
+2.17.1
+
