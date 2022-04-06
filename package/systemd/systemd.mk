@@ -230,13 +230,6 @@ else
 SYSTEMD_CONF_OPTS += -Dlibcurl=false
 endif
 
-ifeq ($(BR2_PACKAGE_LIBGCRYPT),y)
-SYSTEMD_DEPENDENCIES += libgcrypt
-SYSTEMD_CONF_OPTS += -Ddefault-dnssec=allow-downgrade -Dgcrypt=true
-else
-SYSTEMD_CONF_OPTS += -Ddefault-dnssec=no -Dgcrypt=false
-endif
-
 ifeq ($(BR2_PACKAGE_P11_KIT),y)
 SYSTEMD_DEPENDENCIES += p11-kit
 SYSTEMD_CONF_OPTS += -Dp11kit=true
@@ -504,8 +497,20 @@ SYSTEMD_CONF_OPTS += \
 	-Dopenssl=true \
 	-Ddns-over-tls=openssl \
 	-Ddefault-dns-over-tls=opportunistic
+	-Dcryptolib=openssl \
+	-Dgcrypt=false \
+	-Ddefault-dnssec=allow-downgrade
 SYSTEMD_DEPENDENCIES += openssl
-else ifeq ($(BR2_PACKAGE_GNUTLS),y)
+else
+
+ifeq ($(BR2_PACKAGE_LIBGCRYPT),y)
+SYSTEMD_DEPENDENCIES += libgcrypt
+SYSTEMD_CONF_OPTS += -Ddefault-dnssec=allow-downgrade -Dgcrypt=true
+else
+SYSTEMD_CONF_OPTS += -Ddefault-dnssec=no -Dgcrypt=false
+endif
+
+ifeq ($(BR2_PACKAGE_GNUTLS),y)
 SYSTEMD_CONF_OPTS += \
 	-Dgnutls=true \
 	-Dopenssl=false \
@@ -518,6 +523,8 @@ SYSTEMD_CONF_OPTS += \
 	-Dopenssl=false \
 	-Ddns-over-tls=false \
 	-Ddefault-dns-over-tls=no
+endif
+
 endif
 
 ifeq ($(BR2_PACKAGE_SYSTEMD_TIMESYNCD),y)
