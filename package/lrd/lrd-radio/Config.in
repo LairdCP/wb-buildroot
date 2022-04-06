@@ -91,7 +91,8 @@ config BR2_PACKAGE_LRD_RADIO_STACK_ARCH
 	default "-arm-eabihf" if BR2_arm && BR2_ARM_EABIHF
 	default "-arm-eabi" if BR2_arm && BR2_ARM_EABI
 	default "-aarch64" if BR2_aarch64
-	default "-powerpc-e5500" if BR2_powerpc
+	default "-powerpc64-e5500" if BR2_powerpc64
+	default "-powerpc" if BR2_powerpc
 	default "-x86" if BR2_i386
 	default "-x86_64" if BR2_x86_64
 
