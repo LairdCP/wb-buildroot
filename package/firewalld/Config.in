@@ -2,23 +2,20 @@ config BR2_PACKAGE_FIREWALLD
 	bool "firewalld"
 	depends on BR2_USE_MMU # ebtables, gobject-introspection
 	depends on BR2_USE_WCHAR # dbus-python, gettext
-	depends on BR2_TOOLCHAIN_HEADERS_AT_LEAST_3_12 # nftables
-	depends on BR2_PACKAGE_HOST_QEMU_ARCH_SUPPORTS # gobject-introspection
+	depends on BR2_PACKAGE_GOBJECT_INTROSPECTION_ARCH_SUPPORTS # gobject-introspection
 	depends on BR2_TOOLCHAIN_GCC_AT_LEAST_4_9 # gobject-introspection
+	depends on BR2_HOST_GCC_AT_LEAST_7 # gobject-introspection -> host-qemu
 	depends on BR2_TOOLCHAIN_HAS_THREADS # dbus-python
 	depends on BR2_TOOLCHAIN_USES_GLIBC # gobject-introspection
+	depends on BR2_TOOLCHAIN_HEADERS_AT_LEAST_3_12 # nftables
+	select BR2_PACKAGE_NFTABLES
+	select BR2_PACKAGE_JANSSON # nftables
 	select BR2_PACKAGE_DBUS # dbus-python
 	select BR2_PACKAGE_PYTHON3
 	select BR2_PACKAGE_DBUS_PYTHON
 	select BR2_PACKAGE_GETTEXT
 	select BR2_PACKAGE_GOBJECT_INTROSPECTION
-	select BR2_PACKAGE_IPTABLES
-	select BR2_PACKAGE_JANSSON # Runtime
-	select BR2_PACKAGE_NFTABLES
-	select BR2_PACKAGE_PYTHON_DECORATOR
 	select BR2_PACKAGE_PYTHON_GOBJECT
-	select BR2_PACKAGE_PYTHON_SIX
-	select BR2_PACKAGE_PYTHON_SLIP_DBUS
 	help
 	  Firewalld provides a dynamically managed firewall with
 	  support for network or firewall zones to define the trust
@@ -36,9 +33,28 @@ config BR2_PACKAGE_FIREWALLD_DEFAULT_ZONE_VALUE
 	string "Default zone name"
 	default "trusted"
 
+choice
+	prompt "Firewall type"
+	default BR2_PACKAGE_FIREWALLD_IPTABLES
+	help
+	  Select which firewall type is used.
+
+config BR2_PACKAGE_FIREWALLD_IPTABLES
+	bool "iptables"
+	select BR2_PACKAGE_IPTABLES
+	help
+	  Use iptables as firewall.
+
+config BR2_PACKAGE_FIREWALLD_NFTABLES
+	bool "nftables"
+	help
+	  Use nftables as firewall.
+endchoice
+
 config BR2_PACKAGE_FIREWALLD_DEFAULT_BACKEND_VALUE
-	string "Default backend name"
-	default "iptables"
+	string
+	default "iptables" if BR2_PACKAGE_FIREWALLD_IPTABLES
+	default "nftables" if BR2_PACKAGE_FIREWALLD_NFTABLES
 
 endif # BR2_PACKAGE_FIREWALLD
 

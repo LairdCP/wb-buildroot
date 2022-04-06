@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-FIREWALLD_VERSION = v0.9.3
+FIREWALLD_VERSION = v1.1.0
 FIREWALLD_SITE = $(call github,firewalld,firewalld,$(FIREWALLD_VERSION))
 FIREWALLD_LICENSE = GPL-2.0
 FIREWALLD_LICENSE_FILES = COPYING
@@ -17,14 +17,9 @@ FIREWALLD_DEPENDENCIES = \
 	dbus-python \
 	gettext \
 	gobject-introspection \
-	iptables \
-	jansson \
 	nftables \
 	python3 \
-	python-decorator \
-	python-gobject \
-	python-six \
-	python-slip-dbus
+	python-gobject
 
 FIREWALLD_DEFAULT_ZONE = $(call qstrip,$(BR2_PACKAGE_FIREWALLD_DEFAULT_ZONE_VALUE))
 FIREWALLD_DEFAULT_BACKEND = $(call qstrip,$(BR2_PACKAGE_FIREWALLD_DEFAULT_BACKEND_VALUE))
@@ -43,20 +38,53 @@ FIREWALLD_PRE_CONFIGURE_HOOKS += FIREWALLD_RUN_AUTOGEN
 # the Red Hat-specific init script which isn't used.
 FIREWALLD_CONF_OPTS += \
 	--disable-rpmmacros \
-	--disable-sysconfig \
-	--with-ip6tables=/usr/sbin/ip6tables \
-	--with-iptables=/usr/sbin/iptables \
-	--without-iptables-restore \
-	--without-ip6tables-restore \
-	--without-ebtables \
-	--without-ebtables-restore \
-	--without-ipset \
-	--without-xml-catalog
+	--disable-sysconfig
 
 # Firewalld hard codes the python shebangs to the full path of the
 # python-interpreter. IE: #!/home/buildroot/output/host/bin/python.
 # Force the proper python path.
 FIREWALLD_CONF_ENV += PYTHON="/usr/bin/env python3"
+
+ifeq ($(BR2_PACKAGE_IPTABLES),y)
+FIREWALLD_DEPENDENCIES += iptables
+FIREWALLD_CONF_OPTS += \
+       --with-ip6tables=/usr/sbin/ip6tables \
+       --with-iptables=/usr/sbin/iptables \
+       --with-iptables-restore=/usr/sbin/iptables-restore \
+       --with-ip6tables-restore=/usr/sbin/ip6tables-restore
+else
+FIREWALLD_CONF_OPTS += \
+       --without-ip6tables \
+       --without-iptables \
+       --without-iptables-restore \
+       --without-ip6tables-restore
+endif
+
+ifeq ($(BR2_PACKAGE_EBTABLES),y)
+FIREWALLD_DEPENDENCIES += ebtables
+FIREWALLD_CONF_OPTS += \
+       --with-ebtables=/usr/sbin/ebtables
+else
+FIREWALLD_CONF_OPTS += \
+       --without-ebtables
+endif
+
+ifeq ($(BR2_PACKAGE_EBTABLES_UTILS_RESTORE),y)
+FIREWALLD_CONF_OPTS += \
+       --with-ebtables-restore=/usr/sbin/ebtables-restore
+else
+FIREWALLD_CONF_OPTS += \
+       --without-ebtables-restore
+endif
+
+ifeq ($(BR2_PACKAGE_IPSET),y)
+FIREWALLD_DEPENDENCIES += ipset
+FIREWALLD_CONF_OPTS += \
+       --with-ipset=/usr/sbin/ipset
+else
+FIREWALLD_CONF_OPTS += \
+       --without-ipset
+endif
 
 ifeq ($(BR2_PACKAGE_SYSTEMD),y)
 FIREWALLD_CONF_OPTS += --with-systemd-unitdir=/usr/lib/systemd/system
