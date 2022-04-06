@@ -1,0 +1,10 @@
+--- a/src/bluetooth.service.in
++++ b/src/bluetooth.service.in
+@@ -16,6 +16,7 @@
+ # Filesystem lockdown
+ ProtectHome=true
+ ProtectSystem=full
++StateDirectory=bluetooth
+ PrivateTmp=true
+ ProtectKernelTunables=true
+ ProtectControlGroups=true
