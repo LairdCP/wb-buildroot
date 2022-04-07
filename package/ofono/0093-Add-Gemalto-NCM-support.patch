@@ -573,8 +573,8 @@ diff -Naur a/drivers/gemaltomodem/gprs-context-ncm.c b/drivers/gemaltomodem/gprs
 +
 +	ofono_gprs_context_set_data(gc, gcd);
 +
-+	/* Disable NW auto-attach */
-+	g_at_chat_send(chat, "AT^SCFG=\"GPRS/AutoAttach\",\"disabled\"", none_prefix,
++	/* Enable NW auto-attach, recommended by vendor for 3G sunset issue */
++	g_at_chat_send(chat, "AT^SCFG=\"GPRS/AutoAttach\",\"enabled\"", none_prefix,
 +			NULL, NULL, NULL);
 +	g_at_chat_send(chat, "AT+CGATT=0", none_prefix, NULL, NULL, NULL);
 +
