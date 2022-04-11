@@ -47,9 +47,10 @@ define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(WEBLCM_PYTHON_SITE)/ssl/server.crt
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(WEBLCM_PYTHON_SITE)/ssl/ca.crt
 
-	cat /dev/null > $(TARGET_DIR)/etc/weblcm-python/swcert.conf
-	 ! grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf \
-		|| echo 'SWCERT=-k $(WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE) --cert-purpose codeSigning' > $(TARGET_DIR)/etc/weblcm-python/swcert.conf
+	! grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf || \
+		echo 'SWUPDATE_ARGS="${SWUPDATE_ARGS} -k $(WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE) --cert-purpose codeSigning"' > \
+			$(TARGET_DIR)/etc/swupdate/conf.d/weblcm-swcert.conf
+	ln -sf /tmp/.swupdate.conf $(TARGET_DIR)/etc/swupdate/conf.d/weblcm-tmp.conf
 
 	sed -i -e '/^default_/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 	sed -i -e '/\[weblcm\]/a default_password: \"$(WEBLCM_PYTHON_DEFAULT_PASSWORD)\"' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
@@ -71,7 +72,8 @@ define WEBLCM_PYTHON_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -D -t $(TARGET_DIR)/usr/lib/systemd/system -m 644 $(WEBLCM_PYTHON_SITE)/weblcm-python.service
 	$(WEBLCM_PYTHON_FIX_TIME)
 
-	$(INSTALL) -D -t $(TARGET_DIR)/usr/lib/systemd/system -m 644 $(WEBLCM_PYTHON_SITE)/swupdate.service
+	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/swupdate.d
+	echo -e "[Service]\nKeyringMode=inherit" > $(TARGET_DIR)/etc/systemd/system/swupdate.d/weblcm-keyring.conf
 endef
 
 $(eval $(python-package))
