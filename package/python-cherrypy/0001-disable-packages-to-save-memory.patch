@@ -11,7 +11,7 @@ diff --git a/setup.py b/setup.py
 index ad211f5..96dc4fb 100755
 --- a/setup.py
 +++ b/setup.py
-@@ -51,9 +51,7 @@ params = dict(
+@@ -55,9 +55,7 @@ params = dict(
      },
      packages=[
          'cherrypy', 'cherrypy.lib',
