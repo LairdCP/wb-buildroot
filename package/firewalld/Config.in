@@ -12,9 +12,9 @@ config BR2_PACKAGE_FIREWALLD
 	select BR2_PACKAGE_JANSSON # nftables
 	select BR2_PACKAGE_DBUS # dbus-python
 	select BR2_PACKAGE_PYTHON3
+	select BR2_PACKAGE_PYTHON3_PYEXPAT # runtime
 	select BR2_PACKAGE_DBUS_PYTHON
 	select BR2_PACKAGE_GETTEXT
-	select BR2_PACKAGE_GOBJECT_INTROSPECTION
 	select BR2_PACKAGE_PYTHON_GOBJECT
 	help
 	  Firewalld provides a dynamically managed firewall with
