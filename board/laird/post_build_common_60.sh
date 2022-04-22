@@ -6,21 +6,24 @@ fipshmac=${HOST_DIR}/bin/fipshmac
 # enable tracing and exit on errors
 set -x -e
 
-[ -z "${BR2_LRD_PRODUCT}" ] && \
+[ -n "${BR2_LRD_PRODUCT}" ] || \
 	BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
 
 echo "${BR2_LRD_PRODUCT^^} POST BUILD script: starting..."
 
-[[ "${BUILD_TYPE}" == *sd ]] && SD=1 || SD=0
+case "${BUILD_TYPE}" in
+*sd) SD=true  ;;
+  *) SD=false ;;
+esac
 
 # Determine if encrypted image being built
 grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG} \
-	&& ENCRYPTED_TOOLKIT=1 || ENCRYPTED_TOOLKIT=0
+	&& ENCRYPTED_TOOLKIT=true || ENCRYPTED_TOOLKIT=false
 
 # Create default firmware description file.
 # This may be overwritten by a proper release file.
 LOCRELSTR="${LAIRD_RELEASE_STRING}"
-if [ -z "${LOCRELSTR}" ] || [ "${LOCRELSTR}" == "0.0.0.0" ]; then
+if [ -z "${LOCRELSTR}" ] || [ "${LOCRELSTR}" = "0.0.0.0" ]; then
 	LOCRELSTR="Summit Linux development build 0.${BR2_LRD_BRANCH}.0.0 $(date +%Y%m%d)"
 fi
 echo "${LOCRELSTR}" > "${TARGET_DIR}/etc/issue"
@@ -39,7 +42,7 @@ echo -ne \
 # Copy the product specific rootfs additions, strip host user access control
 rsync -rlptDWK --no-perms --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
 
-if [ ${SD} -ne 0 ]; then
+if ${SD}; then
 	echo '/dev/root / auto rw,noatime 0 1' > ${TARGET_DIR}/etc/fstab
 	echo '/dev/mmcblk0p2 none swap defaults 0 0' >> ${TARGET_DIR}/etc/fstab
 	echo '/dev/mmcblk0p1 /boot vfat rw,noexec,nosuid,nodev,noatime 0 0' >> ${TARGET_DIR}/etc/fstab
@@ -50,7 +53,7 @@ else
 	sed -i 's,^/boot/,# /boot/,' ${TARGET_DIR}/etc/fw_env.config
 fi
 
-if [ ${ENCRYPTED_TOOLKIT} -ne 0 ] || [ "${BUILD_TYPE}" == ig60 ]; then
+if ${ENCRYPTED_TOOLKIT} || [ "${BUILD_TYPE}" = ig60 ]; then
 	# Securely mount /var on tmpfs
 	echo "tmpfs /var tmpfs mode=1777,noexec,nosuid,nodev,noatime 0 0" >> ${TARGET_DIR}/etc/fstab
 fi
@@ -78,6 +81,9 @@ done
 if [ -x ${TARGET_DIR}/usr/sbin/firewalld ]; then
 	sed -i "s/firewall-backend=.*/firewall-backend=none/g" ${TARGET_DIR}/etc/NetworkManager/NetworkManager.conf
 fi
+
+# Remove not needed systemd generators
+rm -f ${TARGET_DIR}/usr/lib/systemd/system-generators/systemd-gpt-auto-generator
 
 # Remove bluetooth support when BlueZ 5 not present
 if [ ! -x ${TARGET_DIR}/usr/bin/btattach ]; then
@@ -120,7 +126,7 @@ CCONF_DIR="$(realpath board/laird/configs-common/image)"
 CSCRIPT_DIR="$(realpath board/laird/scripts-common)"
 
 # Configure keys, boot script, and SWU tools when using encrypted toolkit
-if [ ${ENCRYPTED_TOOLKIT} -ne 0 ]; then
+if ${ENCRYPTED_TOOLKIT} ; then
 	# Move timezone setting into writable partition
 	ln -rsf ${TARGET_DIR}/data/misc/zoneinfo/localtime ${TARGET_DIR}/etc/localtime
 
@@ -142,7 +148,7 @@ else
 	ln -rsf ${CCONF_DIR}/boot.scr ${BINARIES_DIR}/boot.scr
 fi
 
-if [ ${SD} -ne 0 ] ; then
+if ${SD} ; then
 	ln -rsf ${CCONF_DIR}/boot_mmc.scr ${BINARIES_DIR}/boot.scr
 	ln -rsf ${CCONF_DIR}/u-boot_mmc.scr ${BINARIES_DIR}/u-boot.scr
 
@@ -151,11 +157,14 @@ if [ ${SD} -ne 0 ] ; then
 	ln -rsf ${CSCRIPT_DIR}/mksdimg.sh ${BINARIES_DIR}/mksdimg.sh
 else
 	# Copy scripts for SWU generation
-	if [[ "${BUILD_TYPE}" == som60x2* ]]; then
+	case "${BUILD_TYPE}" in
+	som60x2*)
 		ln -rsf ${BOARD_DIR}/configs/sw-description-som60x2 ${BINARIES_DIR}/sw-description
-	else
+		;;
+	*)
 		ln -rsf ${BOARD_DIR}/configs/sw-description ${BINARIES_DIR}/sw-description
-	fi
+		;;
+	esac
 
 	ln -rsf ${CSCRIPT_DIR}/erase_data.sh ${BINARIES_DIR}/erase_data.sh
 	ln -rsf ${CCONF_DIR}/u-boot-env.tgz ${BINARIES_DIR}/u-boot-env.tgz
@@ -188,6 +197,9 @@ if grep -q 'BR2_DEFCONFIG=.*_fips_dev_.*' ${BR2_CONFIG}; then
 	elif grep -q '"Image.lzma"' ${BINARIES_DIR}/kernel.its; then
 		lzma -9kf ${BINARIES_DIR}/Image
 		IMAGE_NAME+=.lzma
+	elif grep -q '"Image.zstd"' ${BINARIES_DIR}/kernel.its; then
+		zstd -19 -kf ${BINARIES_DIR}/Image
+		IMAGE_NAME+=.zstd
 	fi
 
 	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${BINARIES_DIR}/${IMAGE_NAME}

@@ -4,17 +4,20 @@ BUILD_TYPE="${2}"
 # enable tracing and exit on errors
 set -x -e
 
-[ -z "${BR2_LRD_PRODUCT}" ] && \
+[ -n "${BR2_LRD_PRODUCT}" ] || \
 	export BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
 
 echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: starting..."
 
 # Determine if we are building SD card image
-[[ "${BUILD_TYPE}" == *sd ]] && SD=1 || SD=0
+case "${BUILD_TYPE}" in
+*sd) SD=true  ;;
+  *) SD=false ;;
+esac
 
 # Determine if encrypted image being built
 grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG} \
-	&& ENCRYPTED_TOOLKIT=1 || ENCRYPTED_TOOLKIT=0
+	&& ENCRYPTED_TOOLKIT=true || ENCRYPTED_TOOLKIT=false
 
 # Tooling checks
 mkimage=${HOST_DIR}/bin/mkimage
@@ -23,7 +26,7 @@ fipshmac=${HOST_DIR}/bin/fipshmac
 
 die() { echo "$@" >&2; exit 1; }
 
-test -x ${mkimage} || \
+[ -x ${mkimage} ] || \
 	die "No mkimage found (host-uboot-tools has not been built?)"
 
 (cd "${BINARIES_DIR}" && "${mkimage}" -f u-boot.scr.its u-boot.scr.itb) || exit 1
@@ -39,6 +42,9 @@ elif grep -q '"Image.lzo"' ${BINARIES_DIR}/kernel.its; then
 elif grep -q '"Image.lzma"' ${BINARIES_DIR}/kernel.its; then
 	lzma -9kf ${BINARIES_DIR}/Image
 	IMAGE_NAME+=.lzma
+elif grep -q '"Image.zstd"' ${BINARIES_DIR}/kernel.its; then
+	zstd -19 -kf ${BINARIES_DIR}/Image
+	IMAGE_NAME+=.zstd
 fi
 
 hash_check() {
@@ -69,13 +75,13 @@ fi
 
 ALL_SWU_FILES="sw-description boot.bin u-boot.itb kernel.itb rootfs.bin u-boot-env.tgz erase_data.sh"
 
-if [ ${ENCRYPTED_TOOLKIT} -eq 0 ]; then
+if ! ${ENCRYPTED_TOOLKIT} ; then
 	# Generate non-secured artifacts
 	echo "# entering ${BINARIES_DIR} for the next command"
 	(cd ${BINARIES_DIR} && ${mkimage} -f kernel.its kernel.itb && ${mkimage} -f u-boot.its u-boot.itb) || exit 1
 	cat "${BINARIES_DIR}/u-boot-spl-nodtb.bin" "${BINARIES_DIR}/u-boot-spl.dtb" > "${BINARIES_DIR}/u-boot-spl.bin"
-	if [ ${SD} -eq 0 ]; then
-		test -x ${atmel_pmecc_params} || \
+	if ! ${SD} ; then
+		[ -x ${atmel_pmecc_params} ] || \
 			die "no atmel_pmecc_params found (uboot has not been built?)"
 
 		# Generate Atmel PMECC boot.bin from SPL
@@ -105,11 +111,11 @@ else
 	RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird.tar"
 fi
 
-if [ ${SD} -eq 0 ]; then
+if ! ${SD} ; then
 	tar -C ${BINARIES_DIR} -chf ${RELEASE_FILE} \
 		boot.bin u-boot.itb kernel.itb rootfs.bin ${BR2_LRD_PRODUCT}.swu
 
-	if [ ${ENCRYPTED_TOOLKIT} -ne 0 ]; then
+	if ${ENCRYPTED_TOOLKIT} ; then
 		tar -C ${BINARIES_DIR} -rhf ${RELEASE_FILE} \
 			--owner=0 --group=0 --numeric-owner \
 			pmecc.bin u-boot-spl.dtb u-boot-spl-nodtb.bin u-boot.dtb \
