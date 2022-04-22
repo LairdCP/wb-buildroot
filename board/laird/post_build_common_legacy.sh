@@ -188,6 +188,9 @@ if grep -q 'BR2_DEFCONFIG=.*_fips_dev_.*' ${BR2_CONFIG}; then
 	elif grep -q '"Image.lzma"' ${BINARIES_DIR}/kernel.its; then
 		lzma -9kf ${BINARIES_DIR}/Image
 		IMAGE_NAME+=.lzma
+	elif grep -q '"Image.zstd"' ${BINARIES_DIR}/kernel.its; then
+		zstd -19 -kf ${BINARIES_DIR}/Image
+		IMAGE_NAME+=.zstd
 	fi
 
 	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${BINARIES_DIR}/${IMAGE_NAME}

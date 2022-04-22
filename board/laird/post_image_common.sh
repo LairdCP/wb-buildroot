@@ -5,7 +5,7 @@ echo "COMMON POST IMAGE script: starting..."
 # enable tracing and exit on errors
 set -x -e
 
-[ -z "${BR2_LRD_PRODUCT}" ] && \
+[ -n "${BR2_LRD_PRODUCT}" ] || \
 	BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
 
 if grep -qF "BR2_LINUX_KERNEL_IMAGE_TARGET_CUSTOM=y" ${BR2_CONFIG}; then
@@ -14,7 +14,7 @@ if grep -qF "BR2_LINUX_KERNEL_IMAGE_TARGET_CUSTOM=y" ${BR2_CONFIG}; then
 mkimage=${HOST_DIR}/bin/mkimage
 fipshmac=${HOST_DIR}/bin/fipshmac
 
-test -x ${mkimage} || \
+[ -x ${mkimage} ] || \
 	die "No mkimage found (host-uboot-tools has not been built?)"
 
 IMAGE_NAME=Image
@@ -28,6 +28,9 @@ elif grep -q '"Image.lzo"' ${BINARIES_DIR}/kernel.its; then
 elif grep -q '"Image.lzma"' ${BINARIES_DIR}/kernel.its; then
 	lzma -9kf ${BINARIES_DIR}/Image
 	IMAGE_NAME+=.lzma
+elif grep -q '"Image.zstd"' ${BINARIES_DIR}/kernel.its; then
+	zstd -19 -kf ${BINARIES_DIR}/Image
+	IMAGE_NAME+=.zstd
 fi
 
 hash_check() {
@@ -65,7 +68,7 @@ ln -rsf board/laird/rootfs-additions-common/usr/sbin/fw_update "${BINARIES_DIR}/
 ln -rsf "${BINARIES_DIR}/boot.bin" "${BINARIES_DIR}/at91bs.bin"
 ln -rsf "${BINARIES_DIR}/rootfs.ubi" "${BINARIES_DIR}/rootfs.bin"
 
-[ -z "${LAIRD_FW_TXT_URL}" ] && \
+[ -n "${LAIRD_FW_TXT_URL}" ] || \
 	LAIRD_FW_TXT_URL="http://$(hostname)/${BR2_LRD_PRODUCT}"
 
 board/laird/mkfwtxt.sh "${LAIRD_FW_TXT_URL}" "${BINARIES_DIR}"
@@ -86,7 +89,7 @@ esac
 size_check 'kernel.bin' ${limit}
 size_check 'u-boot.bin' 3
 
-[ -n "${VERSION}" ] && RELEASE_SUFFIX="-${VERSION}"
+[ -z "${VERSION}" ] || RELEASE_SUFFIX="-${VERSION}"
 
 tar -cjhf "${BINARIES_DIR}/${BR2_LRD_PRODUCT}-laird${RELEASE_SUFFIX}.tar.bz2" \
 	--owner=root --group=root -C "${BINARIES_DIR}" \
