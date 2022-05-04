@@ -23,25 +23,25 @@ diff --git a/src/pyudev/_ctypeslib/utils.py b/src/pyudev/_ctypeslib/utils.py
 index 9dffb3c..aa9942f 100644
 --- a/src/pyudev/_ctypeslib/utils.py
 +++ b/src/pyudev/_ctypeslib/utils.py
-@@ -28,7 +28,7 @@
- from __future__ import print_function
- from __future__ import unicode_literals
+@@ -27,7 +27,7 @@
+ from __future__ import absolute_import, division, print_function, unicode_literals
  
+ # isort: STDLIB
 -from ctypes import CDLL
 +from ctypes import cdll, CDLL
  from ctypes.util import find_library
  
  
-@@ -50,10 +50,10 @@ def load_ctypes_library(name, signatures, error_checkers):
+@@ -49,10 +49,10 @@ def load_ctypes_library(name, signatures, error_checkers):
      :rtype: ctypes.CDLL
      :raises ImportError: if the library is not found
      """
 -    library_name = find_library(name)
 -    if not library_name:
 +    try:
-+        lib = cdll.LoadLibrary('lib%s.so' % name)
++        lib = cdll.LoadLibrary("lib%s.so" % name)
 +    except OSError:
-         raise ImportError('No library named %s' % name)
+         raise ImportError("No library named %s" % name)
 -    lib = CDLL(library_name, use_errno=True)
      # Add function signatures
      for funcname, signature in signatures.items():
