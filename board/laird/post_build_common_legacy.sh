@@ -17,6 +17,7 @@ rm -f ${TARGET_DIR}/etc/init.d/S50lighttpd
 rm -f ${TARGET_DIR}/etc/init.d/S20urandom
 rm -f ${TARGET_DIR}/etc/init.d/S40network
 rm -f ${TARGET_DIR}/etc/init.d/S41dhcpcd
+rm -f ${TARGET_DIR}/etc/init.d/S40bluetooth
 
 # remove perl cruft
 rm -f ${TARGET_DIR}/etc/ssl/misc/tsget
@@ -54,7 +55,7 @@ ln -rsf ${TARGET_DIR}/etc/network/wireless.sh ${TARGET_DIR}/sbin/wireless
 	chmod a-x ${TARGET_DIR}/etc/init.d/S??lighttpd
 
 # Remove the custom bluetooth init-script if bluez utility is not included
-if [ -x ${TARGET_DIR}/usr/sbin/hciconfig ]; then
+if [ -x ${TARGET_DIR}/usr/bin/hciconfig ]; then
 	# background the bluetooth init-script
 	mv ${TARGET_DIR}/etc/init.d/S95bluetooth ${TARGET_DIR}/etc/init.d/S95bluetooth.bg
 
