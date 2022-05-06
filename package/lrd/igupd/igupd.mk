@@ -8,7 +8,7 @@ IGUPD_SITE_METHOD = local
 IGUPD_SETUP_TYPE = setuptools
 
 define IGUPD_POST_INSTALL_TARGET_HOOK_CMDS
-	$(INSTALL) -D -m 644 -t $(TARGET_DIR)/etc -m 644 package/lrd/igupd/secupdate.cfg
+	$(INSTALL) -D -m 644 -t $(TARGET_DIR)/etc -m 644 package/lrd/igupd/swupdate.cfg
 endef
 
 IGUPD_POST_INSTALL_TARGET_HOOKS += IGUPD_POST_INSTALL_TARGET_HOOK_CMDS
