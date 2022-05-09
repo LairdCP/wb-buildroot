@@ -18,6 +18,8 @@ FACTORY_SETTING_ZONES_TARGET=/data/misc/zoneinfo
 FACTORY_SETTING_DEFAULT_ZONE=/usr/share/zoneinfo/Etc/UTC
 FACTORY_SETTING_USER_ZONE=/data/misc/zoneinfo/localtime
 
+BLUETOOTH_STATE_DIR=/data/secret/lib/bluetooth
+
 exit_on_error() {
 	echo "${1}"
 	exit 1
@@ -43,6 +45,10 @@ do_check_and_reset() {
 	if [ ! -f "${FACTORY_SETTING_USER_ZONE}" ]; then
 		mkdir -p ${FACTORY_SETTING_ZONES_TARGET}
 		ln -sf ${FACTORY_SETTING_DEFAULT_ZONE} ${FACTORY_SETTING_USER_ZONE}
+	fi
+
+	if [ ! -d "${BLUETOOTH_STATE_DIR}" ]; then
+		mkdir -p ${BLUETOOTH_STATE_DIR}
 	fi
 }
 
