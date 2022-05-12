@@ -38,7 +38,7 @@ SWU_FILES="${2}"
 set -x -e
 
 # Secure tooling checks
-mkimage=${HOST_DIR}/bin/mkimage
+mkimage=${BUILD_DIR}/uboot-custom/tools/mkimage
 atmel_pmecc_params=${BUILD_DIR}/uboot-custom/tools/atmel_pmecc_params
 openssl=${HOST_DIR}/usr/bin/openssl
 veritysetup=${HOST_DIR}/sbin/veritysetup
@@ -46,13 +46,13 @@ veritysetup=${HOST_DIR}/sbin/veritysetup
 die() { echo "$@" >&2; exit 1; }
 
 test -x ${mkimage} || \
-	die "No mkimage found (host-uboot-tools has not been built?)"
+	die "No mkimage found (uboot has not been built?)"
 test -x ${atmel_pmecc_params} || \
-		die "no atmel_pmecc_params found (uboot has not been built?)"
+	die "no atmel_pmecc_params found (uboot has not been built?)"
 test -x ${openssl} || \
-		die "no openssl found (host-openssl has not been built?)"
+	die "no openssl found (host-openssl has not been built?)"
 test -x ${veritysetup} || \
-		die "No veritysetup found (host-cryptsetup has not been built?)"
+	die "No veritysetup found (host-cryptsetup has not been built?)"
 
 echo "# entering ${BINARIES_DIR} for this script"
 cd ${BINARIES_DIR}
@@ -61,13 +61,15 @@ cd ${BINARIES_DIR}
 if [ ! -f keys/dev.key ]; then
 	${openssl} genrsa -out keys/dev.key 2048
 	${openssl} req -batch -new -x509 -key keys/dev.key -out keys/dev.crt
-	dd if=/dev/random of=keys/key.bin bs=64 count=1
+	# Create random key, for AES128, key is 16 bytes long
+	dd if=/dev/random of=keys/key.bin bs=16 count=1
+	# Create random IV, AES block is 16 bytes, regardless of key size
+	dd if=/dev/random of=keys/key-iv.bin bs=16 count=1
 fi
 
 # Create unsecured_images dir and copy off unsigned images
 mkdir -p unsecured_images
-cp -ft unsecured_images \
-	u-boot.dtb u-boot-spl.dtb u-boot-spl-nodtb.bin u-boot-nodtb.bin
+cp -ft unsecured_images u-boot.dtb u-boot-spl.dtb
 
 # Generate the hash table for squashfs
 rm -f $rootfs.verity
@@ -85,34 +87,15 @@ cat rootfs.squashfs rootfs.verity > rootfs.bin
 # Generate the kernel boot script
 sed -i -e "s/SALT/${SALT}/g" -e "s/HASH/${HASH}/g" -e "s/BLOCKS/${BLOCKS}/g" -e "s/SIZE/${SIZE}/g" -e "s/OFFSET/${OFFSET}/g" boot.scr
 
-${mkimage} -f kernel.its kernel.itb
-cp -f kernel.itb kernel-nosig.itb
-${mkimage} -F -K u-boot.dtb -k keys -r kernel.itb
-rm -f kernel.its
+# Create Kernel FIT image, and store signature in u-boot
+${mkimage} -f kernel.its kernel-nosig.itb
+${mkimage} -f kernel.its -F -K u-boot.dtb -k keys -r kernel.itb
 
-rm -f u-boot.itb
-cp u-boot-spl.dtb u-boot-spl-key.dtb
-
-# Update uboot dtb with keys & sign kernel
-# Then build uboot FIT
-# Create AES key and IV from binary keyfile
-AES_KEY=$(xxd -p -l 16 keys/key.bin)
-AES_IV=$(xxd -p -s 16 -l 16 keys/key.bin)
-
-# Encrypt U-Boot and U-Boot DTB
-${openssl} aes-128-cbc -e -K ${AES_KEY} -iv ${AES_IV} -in u-boot.dtb -out u-boot.dtb.enc -v
-${openssl} aes-128-cbc -e -K ${AES_KEY} -iv ${AES_IV} -in u-boot-nodtb.bin -out u-boot-nodtb.bin.enc -v
-
-[ ! -f u-boot.scr.itb ] || \
-${openssl} aes-128-cbc -e -K ${AES_KEY} -iv ${AES_IV} -in u-boot.scr.itb -out u-boot.scr.itb.enc -v
-
-# Create U-Boot FIT image (encrypted), and store key and IV in SPL
-${mkimage} -f u-boot.its u-boot.itb
-${mkimage} -F -K u-boot-spl-key.dtb -k keys -r -Z ${AES_KEY} -z ${AES_IV} u-boot.itb
+# Create U-Boot FIT image (encrypted), and store key, IV and signature in SPL
+${mkimage} -f u-boot.its -F -K u-boot-spl.dtb -k keys -r u-boot.itb
 
 # Create final SPL FIT with appended keyed DTB
-cat u-boot-spl-nodtb.bin u-boot-spl-key.dtb > u-boot-spl.bin
-rm -f u-boot-spl-key.dtb
+cat u-boot-spl-nodtb.bin u-boot-spl.dtb > u-boot-spl.bin
 
 # Generate Atmel PMECC boot.bin from SPL
 ${mkimage} -T atmelimage -n $(${atmel_pmecc_params}) -d u-boot-spl.bin boot.bin

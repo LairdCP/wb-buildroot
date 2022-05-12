@@ -37,7 +37,7 @@ if [ "${FIPS_ENABLED}" = "1" ] && [ -n "${KERNEL}" ]; then
 
 	[ -f /lib/fipscheck/Image.lzma.hmac ] && IMGTYP=lzma || IMGTYP=gz
 
-	/usr/sbin/dumpimage -i ${KERNEL} -p 0 -T flat_dt /tmp/Image.${IMGTYP} > /dev/null ||\
+	/usr/sbin/dumpimage -T flat_dt -p 0 -o /tmp/Image.${IMGTYP} ${KERNEL} > /dev/null ||\
 		fail "Cannot extract kernel image error: $?"
 
 	FIPSCHECK_DEBUG=stderr /usr/bin/fipscheck /tmp/Image.${IMGTYP} /usr/lib/libcrypto.so.1.0.0 ||\

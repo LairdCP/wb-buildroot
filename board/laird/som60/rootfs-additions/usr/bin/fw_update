@@ -39,10 +39,8 @@ shift $((OPTIND - 1))
 
 url="${1}"
 
-if ${run_on_sd} && [ -z "${o_method}" ]; then
-    o_method=complete
-else
-    o_method=main
+if [ -z "${o_method}" ]; then
+    ${run_on_sd} && o_method=complete || o_method=main
 fi
 
 [ "${o_method}" = complete ] && o_complete=true || o_complete=false
