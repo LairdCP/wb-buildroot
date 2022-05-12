@@ -10,14 +10,13 @@
 
 / {
 	description = "Summit U-Boot FIT Image";
-	#address-cells = <1>;
 
 	images {
 		uboot {
 			description = "Summit U-Boot";
 			data = /incbin/("u-boot-nodtb.bin");
 			type = "standalone";
-			os = "U-Boot";
+			os = "u-boot";
 			arch = "arm";
 			compression = "none";
 			load = <0x21000000>;

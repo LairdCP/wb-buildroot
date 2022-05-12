@@ -10,7 +10,6 @@
 
 / {
 	description = "Summit Linux FIT Image";
-	#address-cells = <1>;
 
 	images {
 		kernel {

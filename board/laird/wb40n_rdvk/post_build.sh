@@ -20,11 +20,15 @@ echo -ne \
 >  "${TARGET_DIR}/usr/lib/os-release"
 
 # Copy the product specific rootfs additions
-rsync -rlptDWK --no-perms --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
+rsync -rlptDWK --no-perms --exclude=.empty "board/laird/wb40n_rdvk/rootfs-additions/" "${TARGET_DIR}"
 cp "board/laird/rootfs-additions-common/usr/sbin/fw_"* "${TARGET_DIR}/usr/sbin"
 cp "board/laird/rootfs-additions-common/etc/init.d/S25platform" "${TARGET_DIR}/etc/init.d"
 cp "board/laird/rootfs-additions-common/usr/sbin/fipsInit.sh"* "${TARGET_DIR}/usr/sbin"
-rm -f ${TARGET_DIR}/etc/init.d/S20urandom
+rm -f \
+	${TARGET_DIR}/etc/init.d/S20urandom \
+	${TARGET_DIR}/etc/init.d/S40bluetooth \
+	${TARGET_DIR}/etc/init.d/S80dnsmasq \
+	${TARGET_DIR}/etc/init.d/S30adaptive_ww
 
 if grep -q 'BR2_LINUX_KERNEL_VERSION="3.2.102"' ${BR2_CONFIG}; then
 	# On pre pinctrl kernels GPIO number is +32

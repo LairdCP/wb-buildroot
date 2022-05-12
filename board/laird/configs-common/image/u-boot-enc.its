@@ -10,7 +10,6 @@
 
 / {
 	description = "Summit U-Boot FIT Image";
-	#address-cells = <1>;
 
 	images {
 		encryption = "aes128";
@@ -18,7 +17,7 @@
 			description = "Summit U-Boot";
 			data = /incbin/("u-boot-nodtb.bin.enc");
 			type = "standalone";
-			os = "U-Boot";
+			os = "u-boot";
 			arch = "arm";
 			compression = "none";
 			load = <0x21000000>;

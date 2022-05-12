@@ -10,7 +10,6 @@
 
 / {
 	description = "U-Boot Script";
-	#address-cells = <1>;
 
 	images {
 		script {

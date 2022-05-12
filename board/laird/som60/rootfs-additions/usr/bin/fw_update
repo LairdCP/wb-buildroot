@@ -6,40 +6,44 @@ die() {
 }
 
 usage() {
-    echo "Usage: $0: [-m <method>] [-s <side>] [-x value] [-q] [-v] <url>"
+    echo "Usage: $0: [-m <method>] [-s <side>] [-x value] [-v] <url>"
     exit 1
 }
 
 [ $# -ge 1 ] || usage
 
-o_method=main
-o_quiet=false
+unset o_method
+o_quiet=true
 o_restart=true
 
 update_ok=false
 
 # determine update side
-side=$(fw_printenv -n bootside)
-[ "${side}" = b ] && o_side=a || o_side=b
+grep -q "ubi.block=0,1" /proc/cmdline && o_side=b || o_side=a
 
 grep -q "root=/dev/mmcblk" /proc/cmdline && \
     run_on_sd=true || run_on_sd=false
 
-while getopts m:s:x:qv name; do
+while getopts m:s:x:v name; do
     case ${name} in
     m)  o_method=${OPTARG} ;;
     s)  o_side=${OPTARG} ;;
     x)  case "${OPTARG}" in
             *r*) o_restart=false ;;
         esac ;;
-    q)  o_quiet=true ;;
-    v)  o_verbose="-v" ;;
+    v)  o_verbose="-v"; o_quiet=false ;;
     ?)  usage ;;
     esac
 done
 shift $((OPTIND - 1))
 
 url="${1}"
+
+if ${run_on_sd} && [ -z "${o_method}" ]; then
+    o_method=complete
+else
+    o_method=main
+fi
 
 [ "${o_method}" = complete ] && o_complete=true || o_complete=false
 
@@ -56,26 +60,18 @@ ${o_quiet} && exec >/dev/null
 case "${url}" in
 *://*)
     if  ${o_complete}; then
-        fname=${url##*/}
-        if [ -e /usr/bin/wget ]; then
-           /usr/bin/wget ${url} || exit 5
-        elif [ -e /usr/bin/curl ]; then
-           /usr/bin/curl ${url} -o ${fname} || exit 5
-        else
-            die "Cannot download ${url}, wget or curl not present"
-        fi
         . erase_som_nand
-        swupdate -e stable,${p_method} ${o_verbose} -i ${fname} && update_ok=true
-        rm -f ${fname}
-    else
-        swupdate -e stable,${p_method} ${o_verbose} -d "-u ${url}" && update_ok=true
     fi
+    swupdate -l info -e stable,${p_method} ${o_verbose} -d "-u ${url}" | tee /tmp/swup
     ;;
 
 *)
-    swupdate -e stable,${p_method} ${o_verbose} -i "${url}" && update_ok=true
+    swupdate -l info -e stable,${p_method} ${o_verbose} -i "${url}" | tee /tmp/swup
     ;;
 esac
+
+grep -q "SWUPDATE successful" /tmp/swup && update_ok=true || update_ok=false
+rm -f /tmp/swup
 
 if ${update_ok} && ${o_restart} && ! ${run_on_sd}; then
    reboot

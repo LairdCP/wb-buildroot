@@ -212,22 +212,18 @@ software =
 				{
 					filename = "kernel.itb";
 					volume = "kernel_a";
-					installed-directly = true;
 				},
 				{
 					filename = "kernel.itb";
 					volume = "kernel_b";
-					installed-directly = true;
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_a";
-					installed-directly = true;
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
-					installed-directly = true;
 				},
 				{
 					filename = "u-boot-env.tgz";
