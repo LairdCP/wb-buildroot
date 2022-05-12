@@ -190,7 +190,7 @@ if grep -q 'BR2_DEFCONFIG=.*_fips_dev_.*' ${BR2_CONFIG}; then
 		lzma -9kf ${BINARIES_DIR}/Image
 		IMAGE_NAME+=.lzma
 	elif grep -q '"Image.zstd"' ${BINARIES_DIR}/kernel.its; then
-		zstd -19 -kf ${BINARIES_DIR}/Image
+		zstd -19 -kf ${BINARIES_DIR}/Image -o ${BINARIES_DIR}/Image.zstd
 		IMAGE_NAME+=.zstd
 	fi
 

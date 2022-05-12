@@ -917,17 +917,13 @@ fi
 
 echo -e Sync\\\047ing
 $fw_setenv updated_% \
-     ${at91bs:+at91bs=$at91bs} \
-     ${u_boot:+u_boot=$u_boot} \
-     ${kernel:+kernel=$kernel} \
-     ${rootfs:+rootfs=$rootfs} \
-     ${host:+host=$host}
+    "${at91bs:+at91bs=$at91bs} ${u_boot:+u_boot=$u_boot} ${kernel:+kernel=$kernel} ${rootfs:+rootfs=$rootfs} ${host:+host=$host}"
 
 test -n "$rootfs" -a -n "$bootargs" \
-  && $fw_setenv bootargs $bootargs
+  && $fw_setenv bootargs "$bootargs"
 
 test -n "$kernel" -a -n "$bootcmd" \
-  && $fw_setenv bootcmd $bootcmd
+  && $fw_setenv bootcmd "$bootcmd"
 
 sync
 

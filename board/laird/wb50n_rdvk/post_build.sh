@@ -29,7 +29,12 @@ rsync -rlptDWK --no-perms --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${T
 cp "${BOARD_DIR}/../rootfs-additions-common/usr/sbin/fw_"* "${TARGET_DIR}/usr/sbin"
 cp "${BOARD_DIR}/../rootfs-additions-common/etc/init.d/S25platform" "${TARGET_DIR}/etc/init.d"
 cp "${BOARD_DIR}/../rootfs-additions-common/usr/sbin/fipsInit.sh"* "${TARGET_DIR}/usr/sbin"
-rm -f ${TARGET_DIR}/etc/init.d/S20urandom
+
+rm -f \
+	${TARGET_DIR}/etc/init.d/S20urandom \
+	${TARGET_DIR}/etc/init.d/S40bluetooth \
+	${TARGET_DIR}/etc/init.d/S80dnsmasq \
+	${TARGET_DIR}/etc/init.d/S30adaptive_ww
 
 mkdir -p ${TARGET_DIR}/etc/NetworkManager/system-connections
 
