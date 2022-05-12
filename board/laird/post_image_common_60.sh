@@ -20,14 +20,14 @@ grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG} \
 	&& ENCRYPTED_TOOLKIT=true || ENCRYPTED_TOOLKIT=false
 
 # Tooling checks
-mkimage=${HOST_DIR}/bin/mkimage
+mkimage=${BUILD_DIR}/uboot-custom/tools/mkimage
 atmel_pmecc_params=${BUILD_DIR}/uboot-custom/tools/atmel_pmecc_params
 fipshmac=${HOST_DIR}/bin/fipshmac
 
 die() { echo "$@" >&2; exit 1; }
 
 [ -x ${mkimage} ] || \
-	die "No mkimage found (host-uboot-tools has not been built?)"
+	die "No mkimage found (uboot has not been built?)"
 
 (cd "${BINARIES_DIR}" && "${mkimage}" -f u-boot.scr.its u-boot.scr.itb) || exit 1
 
@@ -43,7 +43,7 @@ elif grep -q '"Image.lzma"' ${BINARIES_DIR}/kernel.its; then
 	lzma -9kf ${BINARIES_DIR}/Image
 	IMAGE_NAME+=.lzma
 elif grep -q '"Image.zstd"' ${BINARIES_DIR}/kernel.its; then
-	zstd -19 -kf ${BINARIES_DIR}/Image
+	zstd -19 -kf ${BINARIES_DIR}/Image -o ${BINARIES_DIR}/Image.zstd
 	IMAGE_NAME+=.zstd
 fi
 
@@ -124,7 +124,11 @@ if ! ${SD} ; then
 
 		tar -C ${HOST_DIR}/usr/bin -rhf ${RELEASE_FILE} \
 			--owner=0 --group=0 --numeric-owner \
-			fdtget fdtput mkimage
+			fdtget fdtput
+
+		tar -C ${BUILD_DIR}/uboot-custom/tools -rhf ${RELEASE_FILE} \
+			--owner=0 --group=0 --numeric-owner \
+			mkimage
 	fi
 
 	bzip2 -f ${RELEASE_FILE}

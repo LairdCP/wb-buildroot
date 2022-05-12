@@ -47,7 +47,7 @@ if [ "${FIPS_ENABLED}" = "1" ] && [ -n "${KERNEL}" ]; then
 			fail "Cannot mount /boot: $?"
 	fi
 
-	/usr/sbin/dumpimage -i ${KERNEL} -p 0 -T flat_dt /tmp/Image.gz > /dev/null ||\
+	/usr/sbin/dumpimage -T flat_dt -p 0 -o /tmp/Image.gz ${KERNEL} > /dev/null ||\
 		fail "Cannot extract kernel image error: $1"
 
 	FIPSCHECK_DEBUG=stderr /usr/bin/fipscheck /tmp/Image.gz /usr/lib/libcrypto.so.1.0.0 ||\

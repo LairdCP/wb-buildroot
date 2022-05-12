@@ -61,6 +61,12 @@
 			kernel = "kernel";
 			fdt = "fdt";
 			loadables = "script";
+
+			signature {
+				algo = "sha256,rsa2048";
+				key-name-hint = "dev";
+				sign-images = "loadables", "fdt", "kernel";
+			};
 		};
 	};
 };

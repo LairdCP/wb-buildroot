@@ -132,20 +132,21 @@ if ${ENCRYPTED_TOOLKIT} ; then
 
 	# Copy keys if present
 	if [ -f ${ENCRYPTED_TOOLKIT_DIR}/dev.key ]; then
-		mkdir -p ${BINARIES_DIR}/keys
-		ln -rsf ${ENCRYPTED_TOOLKIT_DIR}/dev.key ${BINARIES_DIR}/keys/dev.key
-		ln -rsf ${ENCRYPTED_TOOLKIT_DIR}/dev.crt ${BINARIES_DIR}/keys/dev.crt
-		ln -rsf ${ENCRYPTED_TOOLKIT_DIR}/key.bin ${BINARIES_DIR}/keys/key.bin
+		ln -rsf ${ENCRYPTED_TOOLKIT_DIR} ${BINARIES_DIR}
 	fi
 	# Copy the u-boot.its
 	ln -rsf ${CCONF_DIR}/u-boot-enc.its ${BINARIES_DIR}/u-boot.its
 	# Use verity boot script
 	ln -rsf ${CCONF_DIR}/boot_verity.scr ${BINARIES_DIR}/boot.scr
+
+	cp -f ${CCONF_DIR}/kernel-enc.its ${BINARIES_DIR}/kernel.its
 else
 	# Copy the u-boot.its
 	ln -rsf ${CCONF_DIR}/u-boot.its ${BINARIES_DIR}/u-boot.its
 	# Use standard boot script
 	ln -rsf ${CCONF_DIR}/boot.scr ${BINARIES_DIR}/boot.scr
+
+	cp -f ${CCONF_DIR}/kernel.its ${BINARIES_DIR}/kernel.its
 fi
 
 if ${SD} ; then
@@ -181,7 +182,7 @@ DTB="$(sed -n 's/^BR2_LINUX_KERNEL_INTREE_DTS_NAME="\(.*\)"$/\1/p' ${BR2_CONFIG}
 [ -n "${DTB}" ] || \
 	DTB="$(sed 's,BR2_LINUX_KERNEL_CUSTOM_DTS_PATH="\(.*\)",\1,; s,\s,\n,g' ${BR2_CONFIG} | sed -n 's,.*/\(.*\).dts$,\1,p')"
 
-sed "s/at91-dvk_som60/${DTB}/g" ${CCONF_DIR}/kernel.its > ${BINARIES_DIR}/kernel.its
+sed -i "s/at91-dvk_som60/${DTB}/g" ${BINARIES_DIR}/kernel.its
 
 fi
 
