@@ -9,6 +9,7 @@ NODEJS_SOURCE = node-v$(NODEJS_VERSION).tar.xz
 NODEJS_SITE = http://nodejs.org/dist/v$(NODEJS_VERSION)
 NODEJS_DEPENDENCIES = \
 	host-nodejs \
+	host-ninja \
 	host-pkgconf \
 	host-python3 \
 	host-qemu \
@@ -20,6 +21,7 @@ NODEJS_DEPENDENCIES = \
 HOST_NODEJS_DEPENDENCIES = \
 	host-icu \
 	host-libopenssl \
+	host-ninja \
 	host-pkgconf \
 	host-python3 \
 	host-zlib
@@ -37,7 +39,8 @@ NODEJS_CONF_OPTS = \
 	--without-dtrace \
 	--without-etw \
 	--cross-compiling \
-	--dest-os=linux
+	--dest-os=linux \
+	--ninja
 
 HOST_NODEJS_MAKE_OPTS = \
 	$(HOST_CONFIGURE_OPTS) \
@@ -92,7 +95,7 @@ ifneq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES)$(BR2_PACKAGE_LIBOPENSSL_1_0_2)
 endif
 
 define HOST_NODEJS_CONFIGURE_CMDS
-	(cd $(@D); \
+	cd $(@D); \
 		$(HOST_CONFIGURE_OPTS) \
 		PATH=$(@D)/bin:$(BR_PATH) \
 		PYTHON=$(HOST_DIR)/bin/python3 \
@@ -106,7 +109,7 @@ define HOST_NODEJS_CONFIGURE_CMDS
 		--shared-zlib \
 		--no-cross-compiling \
 		--with-intl=system-icu \
-	)
+		--ninja
 endef
 
 NODEJS_HOST_TOOLS_V8 = \
