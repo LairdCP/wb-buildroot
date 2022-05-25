@@ -92,8 +92,8 @@ create_gadgets () {
 		mkdir -p ${GADGET_DIR}/g0
 		cd ${GADGET_DIR}/g0
 
-		echo 0x0525 > idVendor
-		echo 0xa4a1 > idProduct
+		echo ${USB_GADGET_VENDOR_ID}  > idVendor
+		echo ${USB_GADGET_PRODUCT_ID} > idProduct
 
 		mkdir -p strings/0x409
 		if [ -e /sys/devices/soc0/soc_uid ]; then
