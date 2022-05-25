@@ -111,9 +111,9 @@ if [ ! -e "${TARGET_DIR}/usr/lib/libts.so.0" ]; then
 fi
 
 # Clean up Python, Node cruft we don't need
-rm -f "${TARGET_DIR}/usr/lib/python3.10/ensurepip/_bundled/*.whl"
-rm -f "${TARGET_DIR}/usr/lib/python3.10/distutils/command/*.exe"
-rm -f "${TARGET_DIR}/usr/lib/python3.10/site-packages/setuptools/*.exe"
+rm -f "${TARGET_DIR}/usr/lib/python3.10/ensurepip/_bundled/"*.whl
+rm -f "${TARGET_DIR}/usr/lib/python3.10/distutils/command/"*.exe
+rm -f "${TARGET_DIR}/usr/lib/python3.10/site-packages/setuptools/"*.exe
 [ -d "${TARGET_DIR}/usr/lib/node_modules" ] && \
 	find "${TARGET_DIR}/usr/lib/node_modules" -name '*.md' -exec rm -f {} \;
 rm -rf "${TARGET_DIR}/var/www/swupdate"
