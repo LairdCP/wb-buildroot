@@ -17,15 +17,12 @@ endif
 
 DCAS_DEPENDENCIES += host-flatcc flatcc libssh
 
-DCAS_MAKE_ENV = CC="$(TARGET_CC)" \
-                    CXX="$(TARGET_CXX)" \
-                    ARCH="$(KERNEL_ARCH)" \
-                    CFLAGS="$(TARGET_CFLAGS)" \
-                    FLATCC="$(HOST_DIR)/usr/bin/flatcc"
+DCAS_MAKE_ENV = $(TARGET_MAKE_ENV) $(TARGET_CONFIGURE_OPTS) \
+	FLATCC="$(HOST_DIR)/usr/bin/flatcc"
 
 define DCAS_BUILD_CMDS
     $(MAKE) -C $(@D) clean
-    $(DCAS_MAKE_ENV) $(MAKE) -C $(@D) dcas
+    $(DCAS_MAKE_ENV) $(MAKE) -C $(@D) dcas RELEASE=1
 endef
 
 define DCAS_INSTALL_TARGET_CMDS
