@@ -13,6 +13,7 @@ usage() {
 [ $# -ge 1 ] || usage
 
 unset o_method
+unset o_side
 o_quiet=true
 o_restart=true
 
@@ -60,11 +61,11 @@ case "${url}" in
     if  ${o_complete}; then
         . erase_som_nand
     fi
-    swupdate -l info -e stable,${p_method} ${o_verbose} -d "-u ${url}" | tee /tmp/swup
+    swupdate -e stable,${p_method} ${o_verbose} -d "-u ${url}" | tee /tmp/swup
     ;;
 
 *)
-    swupdate -l info -e stable,${p_method} ${o_verbose} -i "${url}" | tee /tmp/swup
+    swupdate -e stable,${p_method} ${o_verbose} -i "${url}" | tee /tmp/swup
     ;;
 esac
 
