@@ -5,5 +5,6 @@ config BR2_PACKAGE_IGUPD
 	select BR2_PACKAGE_PYTHON_GOBJECT
 	select BR2_PACKAGE_PYTHON_PSUTIL
 	select BR2_PACKAGE_PYTHON_PYUDEV
+	select BR2_PACKAGE_LRD_SWUPDATE_CLIENT
 	help
 	  Laird Industrial Gateway Update Service
