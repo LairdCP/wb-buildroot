@@ -215,7 +215,7 @@ create_cyw5557x_firmware_archive()
 	(
 	cd ${TARGET_DIR}
 	tar -cjf "${BINARIES_DIR}/laird-${FW_PROD}-${2}-firmware${RELEASE_SUFFIX}.tar.bz2" \
-		lib/firmware/cypress/CYW55560A1.hcd \
+		lib/firmware/brcm/CYW55560A1.hcd \
 		lib/firmware/cypress/CYW55560A1_*.hcd \
 		lib/firmware/cypress/cyfmac55560-${2}.trxse \
 		lib/firmware/cypress/cyfmac55560-${2}-prod*.trxse \
