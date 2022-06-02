@@ -357,6 +357,7 @@ define LAIRD_FW_LRDMWL_SD8997_MFG_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 0644 -t $(LRDMWL_DIR) \
 		$(@D)/lrdmwl/regpwr_60.db \
 		$(@D)/lrdmwl/mfg/*
+	ln -rsf ${LRDMWL_DIR}/regpwr_60.db ${LRDMWL_DIR}/regpwr.db
 endef
 endif
 
