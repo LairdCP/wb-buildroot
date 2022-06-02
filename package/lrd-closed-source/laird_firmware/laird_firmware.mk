@@ -1,7 +1,6 @@
 LAIRD_FIRMWARE_VERSION = local
 LAIRD_FIRMWARE_SITE = package/lrd-closed-source/externals/firmware
 LAIRD_FIRMWARE_SITE_METHOD = local
-LAIRD_ADD_SOM_SYMLINK = y
 
 BRCM_DIR = $(TARGET_DIR)/lib/firmware/brcm
 CYPRESS_DIR = $(TARGET_DIR)/lib/firmware/cypress
@@ -102,7 +101,6 @@ define LAIRD_FW_BCM4339_MFG_INSTALL_TARGET_CMDS
 	cp -rad $(@D)/brcm/brcmfmac4339-sdio-mfg_*.bin $(BRCM_DIR)
 endef
 endif
-
 
 define make_bcm4373sdio_fw
 	mkdir -p -m 0755 $(BRCM_DIR)
@@ -321,24 +319,7 @@ LAIRD_FW_LRDMWL_SU60_USB_USB_INSTALL_TARGET_CMDS = $(call LAIRD_FW_LRDMWL_INSTAL
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM60),y)
-#if building MFG SOM and ST or SU fw included, don't set symlink to point to SOM
-ifeq ($(findstring som60sd_mfg, $(BR2_DEFCONFIG)),som60sd_mfg)
-ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SU60_SDIO_UART),y)
-	LAIRD_ADD_SOM_SYMLINK = n
-else ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_ST60_SDIO_UART),y)
-	LAIRD_ADD_SOM_SYMLINK = n
-endif
-endif
-
-ifeq ($(LAIRD_ADD_SOM_SYMLINK),y)
 LAIRD_FW_LRDMWL_SOM60_INSTALL_TARGET_CMDS = $(call LAIRD_FW_LRDMWL_INSTALL_CMDS,SOM,sdio,uart)
-else
-define LAIRD_FW_LRDMWL_SOM60_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0644 -t $(LRDMWL_DIR) \
-		$(@D)/lrdmwl/regpwr_60.db \
-		$(@D)/lrdmwl/SOM/88W8997_SOM_sdio_uart_*.bin
-endef
-endif
 endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM8MP),y)
@@ -354,10 +335,7 @@ endif
 
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997_MFG),y)
 define LAIRD_FW_LRDMWL_SD8997_MFG_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0644 -t $(LRDMWL_DIR) \
-		$(@D)/lrdmwl/regpwr_60.db \
-		$(@D)/lrdmwl/mfg/*
-	ln -rsf ${LRDMWL_DIR}/regpwr_60.db ${LRDMWL_DIR}/regpwr.db
+	$(INSTALL) -D -m 0644 -t $(LRDMWL_DIR) $(@D)/lrdmwl/mfg/*
 endef
 endif
 
