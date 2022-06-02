@@ -217,6 +217,11 @@ config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM60
 	help
 	  Install firmware for the Laird SOM60's SDIO WiFi-UART BT combo radio.
 
+config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SOM8MP
+	bool "Laird SOM8M+"
+	help
+	  Install firmware for the Laird SOM8M+ radio.
+
 config BR2_PACKAGE_LAIRD_FIRMWARE_LRDMWL_SD8997_MFG
 	bool "Laird 60-series MFG"
 	help
