@@ -92,9 +92,9 @@ all:
 .PHONY: all
 
 # Set and export the version string
-export BR2_VERSION := 2022.02.1
+export BR2_VERSION := 2022.02.2
 # Actual time the release is cut (for reproducible builds)
-BR2_VERSION_EPOCH = 1649713000
+BR2_VERSION_EPOCH = 1653852000
 # Laird branch number
 export BR2_LRD_BRANCH := 10
 
