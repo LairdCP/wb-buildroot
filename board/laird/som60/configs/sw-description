@@ -10,21 +10,22 @@ software =
 					filename = "kernel.itb";
 					volume = "kernel_a";
 					installed-directly = true;
-					sha256 = "@kernel.itb.sha256"
+					sha256 = "@kernel.itb.sha256";
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_a";
 					installed-directly = true;
-					sha256 = "@rootfs.bin.sha256"
+					sha256 = "@rootfs.bin.sha256";
 				}
 			);
+
 			scripts: (
 				{
 					filename = "erase_data.sh";
 					type = "postinstall";
 					data = "rootfs_data_a";
-					sha256 = "@erase_data.sh.sha256"
+					sha256 = "@erase_data.sh.sha256";
 				}
 			);
 
@@ -34,7 +35,7 @@ software =
 					value = "a";
 				}
 			);
-		}
+		};
 
 		main-b: {
 			images: (
@@ -42,13 +43,13 @@ software =
 					filename = "kernel.itb";
 					volume = "kernel_b";
 					installed-directly = true;
-					sha256 = "@kernel.itb.sha256"
+					sha256 = "@kernel.itb.sha256";
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
 					installed-directly = true;
-					sha256 = "@rootfs.bin.sha256"
+					sha256 = "@rootfs.bin.sha256";
 				},
 			);
 
@@ -57,7 +58,7 @@ software =
 					filename = "erase_data.sh";
 					type = "postinstall";
 					data = "rootfs_data_b";
-					sha256 = "@erase_data.sh.sha256"
+					sha256 = "@erase_data.sh.sha256";
 				}
 			);
 
@@ -67,7 +68,7 @@ software =
 					value = "b";
 				}
 			);
-		}
+		};
 
 		full-a: {
 			images: (
@@ -75,25 +76,25 @@ software =
 					filename = "boot.bin";
 					mtdname = "u-boot-spl";
 					type = "flash";
-					sha256 = "@boot.bin.sha256"
+					sha256 = "@boot.bin.sha256";
 				},
 				{
 					filename = "u-boot.itb";
 					mtdname = "u-boot";
 					type = "flash";
-					sha256 = "@u-boot.itb.sha256"
+					sha256 = "@u-boot.itb.sha256";
 				},
 				{
 					filename = "kernel.itb";
 					volume = "kernel_a";
 					installed-directly = true;
-					sha256 = "@kernel.itb.sha256"
+					sha256 = "@kernel.itb.sha256";
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_a";
 					installed-directly = true;
-					sha256 = "@rootfs.bin.sha256"
+					sha256 = "@rootfs.bin.sha256";
 				},
 			);
 
@@ -102,7 +103,7 @@ software =
 					filename = "erase_data.sh";
 					type = "postinstall";
 					data = "rootfs_data_a";
-					sha256 = "@erase_data.sh.sha256"
+					sha256 = "@erase_data.sh.sha256";
 				}
 			);
 
@@ -112,7 +113,7 @@ software =
 					value = "a";
 				}
 			);
-		}
+		};
 
 		full-b: {
 			images: (
@@ -120,25 +121,25 @@ software =
 					filename = "boot.bin";
 					mtdname = "u-boot-spl";
 					type = "flash";
-					sha256 = "@boot.bin.sha256"
+					sha256 = "@boot.bin.sha256";
 				},
 				{
 					filename = "u-boot.itb";
 					mtdname = "u-boot";
 					type = "flash";
-					sha256 = "@u-boot.itb.sha256"
+					sha256 = "@u-boot.itb.sha256";
 				},
 				{
 					filename = "kernel.itb";
 					volume = "kernel_b";
 					installed-directly = true;
-					sha256 = "@kernel.itb.sha256"
+					sha256 = "@kernel.itb.sha256";
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
 					installed-directly = true;
-					sha256 = "@rootfs.bin.sha256"
+					sha256 = "@rootfs.bin.sha256";
 				},
 			);
 
@@ -147,7 +148,7 @@ software =
 					filename = "erase_data.sh";
 					type = "postinstall";
 					data = "rootfs_data_b";
-					sha256 = "@erase_data.sh.sha256"
+					sha256 = "@erase_data.sh.sha256";
 				}
 			);
 
@@ -157,7 +158,7 @@ software =
 					value = "b";
 				}
 			);
-		}
+		};
 
 		complete: {
 			/* partitions tag is used to resize UBI partitions */
@@ -198,32 +199,39 @@ software =
 					size = 21204992; /* in bytes */
 				}
 			);
+
 			images: (
 				{
 					filename = "boot.bin";
 					mtdname = "u-boot-spl";
 					type = "flash";
+					sha256 = "@boot.bin.sha256";
 				},
 				{
 					filename = "u-boot.itb";
 					mtdname = "u-boot";
 					type = "flash";
+					sha256 = "@u-boot.itb.sha256";
 				},
 				{
 					filename = "kernel.itb";
 					volume = "kernel_a";
+					sha256 = "@kernel.itb.sha256";
 				},
 				{
 					filename = "kernel.itb";
 					volume = "kernel_b";
+					sha256 = "@kernel.itb.sha256";
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_a";
+					sha256 = "@rootfs.bin.sha256";
 				},
 				{
 					filename = "rootfs.bin";
 					volume = "rootfs_b";
+					sha256 = "@rootfs.bin.sha256";
 				},
 				{
 					filename = "u-boot-env.tgz";
@@ -236,6 +244,7 @@ software =
 					type="flash";
 				}
 			);
+
 			scripts: (
 				{
 					filename = "erase_data.sh";
