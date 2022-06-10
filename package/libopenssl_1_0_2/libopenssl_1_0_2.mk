@@ -29,6 +29,12 @@ LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2021-23839
 # 0013-Fix-a-read-buffer-overrun-in-X509_CERT_AUX_print.patch
 LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2021-3712
 
+# 0014-Fix-possible-infinite-loop-in-BN_mod_sqrt.patch
+LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2022-0778
+
+# 0015-c_rehash-Do-not-use-shell-to-invoke-openssl.patch
+LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2022-1292
+
 ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS),y)
 # building from closed source git repository
 LIBOPENSSL_1_0_2_VERSION = local
