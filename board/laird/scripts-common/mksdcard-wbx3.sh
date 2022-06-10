@@ -43,7 +43,7 @@ esac
 which udisksctl > /dev/null && udisk=1 || udisk=0
 
 unmount_all() {
-	local drives="$(grep -o '^${1}p\?[0-9]\+' /proc/mounts)"
+	local drives="$(grep -o "^${1}p\?[0-9]\+" /proc/mounts)"
 
 	for f in ${drives} ; do
 		if [ ${udisk} -ne 0 ]; then
