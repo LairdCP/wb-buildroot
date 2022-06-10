@@ -1,4 +1,4 @@
-does#!/bin/sh
+#!/bin/sh
 
 set -e
 
