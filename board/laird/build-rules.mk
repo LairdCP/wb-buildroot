@@ -83,7 +83,7 @@ $(addsuffix -sdk,$(TARGETS)): %-sdk: $(OUTPUT_DIR)/%/.config
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* BR2_SDK_PREFIX=$@ sdk
 
 .PHONY: $(addsuffix -legal-info,$(TARGETS_ALL))
-$(addsuffix -legal-info,$(TARGETS_ALL)): %-legal-info:
+$(addsuffix -legal-info,$(TARGETS_ALL)): %-legal-info: $(OUTPUT_DIR)/%/.config
 	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$* legal-info
 	tar --exclude=*sources -C $(OUTPUT_DIR)/$*/legal-info/ \
 		--owner=0 --group=0 --numeric-owner \
