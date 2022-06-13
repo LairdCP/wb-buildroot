@@ -13,6 +13,12 @@ WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON
 WEBLCM_PYTHON_DEFAULT_USERNAME = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_USERNAME))
 WEBLCM_PYTHON_DEFAULT_PASSWORD = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_PASSWORD))
 
+ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_AWM),y)
+	WEBLCM_PYTHON_EXTRA_PACKAGES += weblcm/awm
+endif
+ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_MODEM),y)
+	WEBLCM_PYTHON_EXTRA_PACKAGES += weblcm/modem
+endif
 ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_BLUETOOTH),y)
 	WEBLCM_PYTHON_EXTRA_PACKAGES += weblcm/bluetooth
 endif
@@ -43,7 +49,6 @@ define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/scripts -m 755 $(WEBLCM_PYTHON_SITE)/*.sh
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python -m 644 $(WEBLCM_PYTHON_SITE)/*.ini
-	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python -m 644 $(WEBLCM_PYTHON_SITE)/zonelist.db
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(WEBLCM_PYTHON_SITE)/ssl/server.key
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(WEBLCM_PYTHON_SITE)/ssl/server.crt
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(WEBLCM_PYTHON_SITE)/ssl/ca.crt
