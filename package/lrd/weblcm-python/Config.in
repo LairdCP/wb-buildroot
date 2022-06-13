@@ -10,7 +10,6 @@ config BR2_PACKAGE_WEBLCM_PYTHON
 	select BR2_PACKAGE_PYTHON_NETWORKMANAGER
 	select BR2_PACKAGE_PYTHON3_SSL
 	select BR2_PACKAGE_PYTHON_CHERRYPY
-	select BR2_PACKAGE_PYTHON_LIBCONF
 	select BR2_PACKAGE_ZIP
 	select BR2_PACKAGE_UNZIP
 	select BR2_PACKAGE_LIBOPENSSL_BIN
@@ -48,10 +47,22 @@ config BR2_PACKAGE_WEBLCM_PYTHON_UNMANAGED_HARDWARE_DEVICES
 		Space separated hardware devices like eth0, wlan0 etc which are managed by networkManager,
 		but don't want to be managed by weblcm-python.
 
+config BR2_PACKAGE_WEBLCM_PYTHON_AWM
+	bool "AWM configuration support for weblcm"
+	depends on BR2_LRD_SOM60_RADIO
+	select BR2_PACKAGE_PYTHON_LIBCONF
+	default y
+	help
+		Add AWM (Adaptive Worldwide Mode) configuration support to weblcm.
+
+config BR2_PACKAGE_WEBLCM_PYTHON_MODEM
+	bool "Modem / positioning support for weblcm"
+	help
+		Add modem, positioning, positioning switch support to weblcm.
+
 config BR2_PACKAGE_WEBLCM_PYTHON_BLUETOOTH
 	bool "Bluetooth support for weblcm"
 	depends on BR2_PACKAGE_BLUEZ5_UTILS
-	select BR2_PACKAGE_PYTHON_WS4PY
 	default y
 	help
 		Add basic Bluetooth REST API support to weblcm (scanning/pairing/connecting), and BLE REST API (GATT central role).
@@ -68,5 +79,12 @@ config BR2_PACKAGE_WEBLCM_PYTHON_HID
 	select BR2_PACKAGE_PYTHON_PYUDEV
 	help
 		Add Bluetooth HID barcode scanner support to weblcm.
+
+config BR2_PACKAGE_WEBLCM_PYTHON_WEBSOCKETS
+	bool "Websockets support for BLE on weblcm"
+	depends on BR2_PACKAGE_WEBLCM_PYTHON_BLUETOOTH
+	select BR2_PACKAGE_PYTHON_WS4PY
+	help
+		Add Websockets streaming support for BLE REST API.
 
 endif
