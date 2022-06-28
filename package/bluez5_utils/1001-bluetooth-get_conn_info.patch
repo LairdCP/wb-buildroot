@@ -1,0 +1,161 @@
+diff --git a/src/device.c b/src/device.c
+index 3992f9a0cb..675cb0a30d 100644
+--- a/src/device.c
++++ b/src/device.c
+@@ -35,6 +35,7 @@
+ #include "gdbus/gdbus.h"
+ 
+ #include "log.h"
++#include "src/shared/mgmt.h"
+ #include "src/shared/util.h"
+ #include "src/shared/att.h"
+ #include "src/shared/queue.h"
+@@ -229,6 +230,8 @@ struct btd_device {
+ 	GSList		*disconnects;		/* disconnects message */
+ 	DBusMessage	*connect;		/* connect message */
+ 	DBusMessage	*disconnect;		/* disconnect message */
++	DBusMessage	*conn_info;		/* conn_info dbus message */
++	struct mgmt	*mgmt;
+ 	GAttrib		*attrib;
+ 
+ 	struct bt_att *att;			/* The new ATT transport */
+@@ -283,6 +286,8 @@ static const uint16_t uuid_list[] = {
+ 	0
+ };
+ 
++static struct mgmt *mgmt_primary = NULL;
++
+ static int device_browse_gatt(struct btd_device *device, DBusMessage *msg);
+ static int device_browse_sdp(struct btd_device *device, DBusMessage *msg);
+ 
+@@ -795,6 +800,7 @@ static void device_free(gpointer user_data)
+ 	if (device->eir_uuids)
+ 		g_slist_free_full(device->eir_uuids, g_free);
+ 
++	mgmt_unref(device->mgmt);
+ 	g_free(device->local_csrk);
+ 	g_free(device->remote_csrk);
+ 	g_free(device->path);
+@@ -1819,6 +1825,68 @@ static DBusMessage *dev_disconnect(DBusConnection *conn, DBusMessage *msg,
+ 	return NULL;
+ }
+ 
++static void conn_info_rsp(uint8_t status, uint16_t len, const void *param,
++							void *user_data)
++{
++	const struct mgmt_rp_get_conn_info *rp = param;
++	struct btd_device *device = user_data;
++	DBusMessage *msg = device->conn_info;
++	DBusMessage *reply;
++
++	if (status) {
++		reply = btd_error_failed(msg, mgmt_errstr(status));
++	} else if (len < sizeof(*rp)) {
++		reply = btd_error_failed(msg, "Unexpected Get Conn Info len");
++	} else {
++		device_set_rssi(device, rp->rssi);
++
++		reply = dbus_message_new_method_return(msg);
++
++		int16_t rssi = rp->rssi;
++		int16_t tx_power = rp->tx_power;
++		int16_t max_tx_power = rp->max_tx_power;
++		dbus_message_append_args(reply, DBUS_TYPE_INT16, &rssi,
++						DBUS_TYPE_INT16, &tx_power,
++						DBUS_TYPE_INT16, &max_tx_power,
++						DBUS_TYPE_INVALID);
++	}
++
++	g_dbus_send_message(dbus_conn, reply);
++	dbus_message_unref(msg);
++	device->conn_info = NULL;
++}
++
++static bool get_conn_info(struct btd_device *device, uint8_t type)
++{
++	struct mgmt_cp_get_conn_info cp;
++
++	memset(&cp, 0, sizeof(cp));
++	memcpy(&cp.addr.bdaddr, &device->bdaddr, sizeof(cp.addr.bdaddr));
++	cp.addr.type = type;
++
++	return (mgmt_send(device->mgmt, MGMT_OP_GET_CONN_INFO, btd_adapter_get_index(device->adapter), sizeof(cp), &cp,
++					conn_info_rsp, device, NULL) != 0);
++}
++
++static DBusMessage *dev_get_conn_info(DBusConnection *conn, DBusMessage *msg,
++							void *user_data)
++{
++	struct btd_device *device = user_data;
++	uint8_t type;
++
++	if (device->le)
++		type = BDADDR_LE_PUBLIC;
++	else
++		type = BDADDR_BREDR;
++
++	if (!get_conn_info(device, type))
++		return btd_error_failed(msg, "Unable to send get_conn_info cmd");
++
++	device->conn_info = dbus_message_ref(msg);
++
++	return NULL;
++}
++
+ static int connect_next(struct btd_device *dev)
+ {
+ 	struct btd_service *service;
+@@ -3097,6 +3165,7 @@ static DBusMessage *cancel_pairing(DBusConnection *conn, DBusMessage *msg,
+ }
+ 
+ static const GDBusMethodTable device_methods[] = {
++	{ GDBUS_ASYNC_METHOD("GetConnInfo", NULL, NULL, dev_get_conn_info) },
+ 	{ GDBUS_ASYNC_METHOD("Disconnect", NULL, NULL, dev_disconnect) },
+ 	{ GDBUS_ASYNC_METHOD("Connect", NULL, NULL, dev_connect) },
+ 	{ GDBUS_ASYNC_METHOD("ConnectProfile", GDBUS_ARGS({ "UUID", "s" }),
+@@ -4383,6 +4452,7 @@ static struct btd_device *device_new(struct btd_adapter *adapter,
+ 					gatt_service_removed, device, NULL);
+ 
+ 	device->refresh_discovery = btd_opts.refresh_discovery;
++	device->mgmt = mgmt_ref(mgmt_primary);
+ 
+ 	return btd_device_ref(device);
+ }
+@@ -7296,9 +7366,37 @@ void btd_device_init(void)
+ 	dbus_conn = btd_get_dbus_connection();
+ 	service_state_cb_id = btd_service_add_state_cb(
+ 						service_state_changed, NULL);
++
++	mgmt_primary = mgmt_new_default();
++	if (!mgmt_primary) {
++		error("Failed to access management interface");
++		return -EIO;
++	}
+ }
+ 
+ void btd_device_cleanup(void)
+ {
+ 	btd_service_remove_state_cb(service_state_cb_id);
++
++	/*
++	 * In case there is another reference active, clear out
++	 * registered handlers for index added and index removed.
++	 *
++	 * This is just an extra precaution to be safe, and in
++	 * reality should not make a difference.
++	 */
++	mgmt_unregister_index(mgmt_primary, MGMT_INDEX_NONE);
++
++	/*
++	 * In case there is another reference active, cancel
++	 * all pending global commands.
++	 *
++	 * This is just an extra precaution to avoid callbacks
++	 * that potentially then could leak memory or access
++	 * an invalid structure.
++	 */
++	mgmt_cancel_index(mgmt_primary, MGMT_INDEX_NONE);
++
++	mgmt_unref(mgmt_primary);
++	mgmt_primary = NULL;
+ }
