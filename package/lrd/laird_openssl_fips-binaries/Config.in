@@ -1,7 +1,13 @@
 if BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES
 
+config BR2_PACKAGE_LAIRD_OPENSSL_3_0_FIPS_BINARIES
+	bool "Use Laird openssl-3.0 fips binaries"
+	help
+		This is Laird openssl FIPS binaries (3.0.x).
+
 config BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES_VERSION_VALUE
-	string "Laird Openssl FIPS binaries version"
+	string
+	default "0.10.0.0" if BR2_PACKAGE_LAIRD_OPENSSL_3_0_FIPS_BINARIES
 	default "7.0.0.643"
 
 config BR2_PACKAGE_LIBOPENSSL_BIN

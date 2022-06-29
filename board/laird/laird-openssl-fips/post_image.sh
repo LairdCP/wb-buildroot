@@ -7,7 +7,10 @@ set -x -e
 
 mkdir -p ${BINARIES_DIR}
 
-PKGNAME=libopenssl_1_0_2
+case ${BR2_LRD_PRODUCT^^} in
+	*OPENSSL_3_0*) PKGNAME=libopenssl_3_0;;
+	*) PKGNAME=libopenssl_1_0_2;;
+esac
 
 [ -n "${VERSION}" ] && RELEASE_SUFFIX="-${VERSION}"
 RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}${RELEASE_SUFFIX}.tar"
@@ -15,6 +18,13 @@ RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}${RELEASE_SUFFIX}.tar"
 sed -n "s|^${PKGNAME},\(.*\.so\..*\)|\1|p" "${BUILD_DIR}/packages-file-list.txt" |\
 	tar --transform 's|^./|target/|' -cf "${RELEASE_FILE}" -C "${TARGET_DIR}" \
 		--owner=0 --group=0 --numeric-owner -T -
+
+if [ -e ${TARGET_DIR}/usr/lib/ossl-modules ]
+then
+	sed -n "s|^${PKGNAME},\(.*/usr/lib/ossl-modules/.*\)|\1|p" "${BUILD_DIR}/packages-file-list.txt" |\
+		tar --transform 's|^./|target/|' -rf "${RELEASE_FILE}" -C "${TARGET_DIR}" \
+			--owner=0 --group=0 --numeric-owner -T -
+fi
 
 sed -n "s|^${PKGNAME},\(.*bin/openssl\)|\1|p" "${BUILD_DIR}/packages-file-list.txt" |\
 	tar --transform 's|^./|target/|' -rf "${RELEASE_FILE}" -C "${TARGET_DIR}" \
