@@ -46,7 +46,6 @@ LRD_NETWORK_MANAGER_CONF_ENV = \
 	ac_cv_file__etc_SuSE_release=no
 
 LRD_NETWORK_MANAGER_CONF_OPTS = \
-	--disable-introspection \
 	--disable-tests \
 	--disable-qt \
 	--disable-more-warnings \
@@ -103,6 +102,13 @@ LRD_NETWORK_MANAGER_CONF_OPTS += --enable-ovs
 LRD_NETWORK_MANAGER_DEPENDENCIES += jansson
 else
 LRD_NETWORK_MANAGER_CONF_OPTS += --disable-ovs
+endif
+
+ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
+LRD_NETWORK_MANAGER_DEPENDENCIES += gobject-introspection
+LRD_NETWORK_MANAGER_CONF_OPTS += --enable-introspection
+else
+LRD_NETWORK_MANAGER_CONF_OPTS += --disable-introspection
 endif
 
 ifeq ($(BR2_PACKAGE_LRD_FACTORY_RESET_TOOLKIT),y)
