@@ -46,7 +46,7 @@ LRD_NETWORK_MANAGER_CONF_ENV = \
 	ac_cv_file__etc_SuSE_release=no
 
 LRD_NETWORK_MANAGER_CONF_OPTS = \
-	--without-tests \
+	--disable-tests \
 	--disable-qt \
 	--disable-more-warnings \
 	--with-crypto=gnutls \
