@@ -47,7 +47,7 @@ LRD_NETWORK_MANAGER_CONF_ENV = \
 
 LRD_NETWORK_MANAGER_CONF_OPTS = \
 	--disable-introspection \
-	--without-tests \
+	--disable-tests \
 	--disable-qt \
 	--disable-more-warnings \
 	--with-crypto=gnutls \
