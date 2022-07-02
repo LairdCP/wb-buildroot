@@ -8,12 +8,24 @@ GOBJECT_INTROSPECTION_VERSION_MAJOR = 1.56
 GOBJECT_INTROSPECTION_VERSION = $(GOBJECT_INTROSPECTION_VERSION_MAJOR).1
 GOBJECT_INTROSPECTION_SITE = http://ftp.gnome.org/pub/GNOME/sources/gobject-introspection/$(GOBJECT_INTROSPECTION_VERSION_MAJOR)
 GOBJECT_INTROSPECTION_SOURCE = gobject-introspection-$(GOBJECT_INTROSPECTION_VERSION).tar.xz
-GOBJECT_INTROSPECTION_DEPENDENCIES = libffi zlib libglib2 host-qemu host-gobject-introspection host-prelink-cross
 GOBJECT_INTROSPECTION_INSTALL_STAGING = YES
 GOBJECT_INTROSPECTION_AUTORECONF = YES
-GOBJECT_INTROSPECTION_LICENSE = Dual LGPLv2+/GPLv2+
-GOBJECT_INTROSPECTION_LICENSE_FILES = COPYING.LGPL COPYING.GPL
-HOST_GOBJECT_INTROSPECTION_DEPENDENCIES = host-libglib2 host-flex host-bison
+GOBJECT_INTROSPECTION_LICENSE = LGPL-2.0+, GPL-2.0+, BSD-2-Clause
+GOBJECT_INTROSPECTION_LICENSE_FILES = COPYING.LGPL COPYING.GPL giscanner/scannerlexer.l
+
+GOBJECT_INTROSPECTION_DEPENDENCIES = \
+	host-autoconf-archive \
+	host-gobject-introspection \
+	host-prelink-cross \
+	host-qemu \
+	libffi \
+	libglib2 \
+	zlib
+
+HOST_GOBJECT_INTROSPECTION_DEPENDENCIES = \
+	host-bison \
+	host-flex \
+	host-libglib2
 
 GOBJECT_INTROSPECTION_CONF_OPTS = \
 	--enable-host-gi \
@@ -22,81 +34,119 @@ GOBJECT_INTROSPECTION_CONF_OPTS = \
 	--enable-gi-ldd-wrapper=$(STAGING_DIR)/usr/bin/g-ir-scanner-lddwrapper \
 	--enable-introspection-data
 
-ifeq ($(BR2_PACKAGE_LIBFFI),y)
-GOBJECT_INTROSPECTION_DEPENDENCIES += libffi
-endif
-
 ifeq ($(BR2_PACKAGE_PYTHON),y)
 GOBJECT_INTROSPECTION_DEPENDENCIES += python
 HOST_GOBJECT_INTROSPECTION_DEPENDENCIES += host-python
-GOBJECT_INTROSPECTION_PYTHON_PATH="$(STAGING_DIR)/usr/bin/python2"
+GOBJECT_INTROSPECTION_PYTHON_PATH="$(STAGING_DIR)/usr/bin/python"
 else
 GOBJECT_INTROSPECTION_DEPENDENCIES += python3
 HOST_GOBJECT_INTROSPECTION_DEPENDENCIES += host-python3
 GOBJECT_INTROSPECTION_PYTHON_PATH="$(STAGING_DIR)/usr/bin/python3"
 endif
 
-# GI_SCANNER_DISABLE_CACHE=1 prevents g-ir-scanner from writing cache data to $HOME
-HOST_GOBJECT_INTROSPECTION_CONF_ENV = \
-	GI_SCANNER_DISABLE_CACHE=1 \
-	HOST_GOBJECT_INTROSPECTION_GIR_EXTRA_LIBS_PATH=$(@D)/.libs
+ifeq ($(BR2_PACKAGE_CAIRO),y)
+GOBJECT_INTROSPECTION_DEPENDENCIES += cairo
+GOBJECT_INTROSPECTION_CONF_OPTS += --with-cairo
+else
+GOBJECT_INTROSPECTION_CONF_OPTS += --without-cairo
+endif
 
-# GI_SCANNER_DISABLE_CACHE=1 prevents g-ir-scanner from writing cache data to $HOME
+# GI_SCANNER_DISABLE_CACHE=1 prevents g-ir-scanner from writing cache data to ${HOME}
 GOBJECT_INTROSPECTION_CONF_ENV = \
 	GI_SCANNER_DISABLE_CACHE=1 \
 	GOBJECT_INTROSPECTION_GIR_EXTRA_LIBS_PATH=$(@D)/.libs \
 	PYTHON_INCLUDES="`$(GOBJECT_INTROSPECTION_PYTHON_PATH)-config --includes`"
 
+HOST_GOBJECT_INTROSPECTION_CONF_ENV = \
+	GI_SCANNER_DISABLE_CACHE=1 \
+	HOST_GOBJECT_INTROSPECTION_GIR_EXTRA_LIBS_PATH=$(@D)/.libs
+
 # Make sure g-ir-tool-template uses the host python.
-define GOBJECT_INTROSPECTION_FIX_TOOLTEMPLATE_PYTHON_PATH
-	sed -i -e '1s,#!.*,#!$(HOST_DIR)/bin/python,' $(@D)/tools/g-ir-tool-template.in
+define GOBJECT_INTROSPECTION_FIX_TOOLS_PYTHON_PATH
+	$(SED) '1s%#!.*%#!$(HOST_DIR)/bin/python%' $(@D)/tools/g-ir-tool-template.in
 endef
-GOBJECT_INTROSPECTION_PRE_CONFIGURE_HOOKS = GOBJECT_INTROSPECTION_FIX_TOOLTEMPLATE_PYTHON_PATH
-HOST_GOBJECT_INTROSPECTION_PRE_CONFIGURE_HOOKS = GOBJECT_INTROSPECTION_FIX_TOOLTEMPLATE_PYTHON_PATH
+HOST_GOBJECT_INTROSPECTION_PRE_CONFIGURE_HOOKS += GOBJECT_INTROSPECTION_FIX_TOOLS_PYTHON_PATH
 
-GOBJECT_INTROSPECTION_WRAPPERS = \
-	g-ir-compiler \
-	g-ir-scanner
-
-# These wrappers allow gobject-introspection to build the internal introspection
-# libraries during the build process.
+# Perform the following:
+# - Just as above, Ensure that g-ir-tool-template.in uses the host python.
+# - Install all of the wrappers needed to build gobject-introspection.
+# - Create a safe modules directory which does not exist so we don't load random things
+#   which may then get deleted (or their dependencies) and potentially segfault
 define GOBJECT_INTROSPECTION_INSTALL_PRE_WRAPPERS
-	$(INSTALL) -D -m 755 package/gobject-introspection/g-ir-scanner-lddwrapper.in $(STAGING_DIR)/usr/bin/g-ir-scanner-lddwrapper
-	$(INSTALL) -D -m 755 package/gobject-introspection/g-ir-scanner-qemuwrapper.in $(STAGING_DIR)/usr/bin/g-ir-scanner-qemuwrapper
-	$(SED) "s|@QEMU_USER@|$(QEMU_USER)|g" $(STAGING_DIR)/usr/bin/g-ir-scanner-qemuwrapper
-	$(SED) "s|@TOOLCHAIN_HEADERS_VERSION@|$(BR2_TOOLCHAIN_HEADERS_AT_LEAST)|g" $(STAGING_DIR)/usr/bin/g-ir-scanner-qemuwrapper
+	$(SED) '1s%#!.*%#!$(HOST_DIR)/bin/python%' $(@D)/tools/g-ir-tool-template.in
+
+	$(INSTALL) -D -m 755 $(GOBJECT_INTROSPECTION_PKGDIR)/g-ir-scanner-lddwrapper.in \
+		$(STAGING_DIR)/usr/bin/g-ir-scanner-lddwrapper
+
+	$(INSTALL) -D -m 755 $(GOBJECT_INTROSPECTION_PKGDIR)/g-ir-scanner-qemuwrapper.in \
+		$(STAGING_DIR)/usr/bin/g-ir-scanner-qemuwrapper
+	$(SED) "s%@QEMU_USER@%$(QEMU_USER)%g" \
+		$(STAGING_DIR)/usr/bin/g-ir-scanner-qemuwrapper
+	$(SED) "s%@QEMU_USERMODE_ARGS@%$(call qstrip,$(BR2_PACKAGE_HOST_QEMU_USER_MODE_ARGS))%g" \
+		$(STAGING_DIR)/usr/bin/g-ir-scanner-qemuwrapper
+	$(SED) "s%@TOOLCHAIN_HEADERS_VERSION@%$(BR2_TOOLCHAIN_HEADERS_AT_LEAST)%g" \
+		$(STAGING_DIR)/usr/bin/g-ir-scanner-qemuwrapper
+
 	# Use a modules directory which does not exist so we don't load random things
 	# which may then get deleted (or their dependencies) and potentially segfault
 	mkdir -p $(STAGING_DIR)/usr/lib/gio/modules-dummy
 endef
-GOBJECT_INTROSPECTION_POST_PATCH_HOOKS = GOBJECT_INTROSPECTION_INSTALL_PRE_WRAPPERS
+GOBJECT_INTROSPECTION_PRE_CONFIGURE_HOOKS += GOBJECT_INTROSPECTION_INSTALL_PRE_WRAPPERS
 
-# In order for gobject-introspection to work, qemu needs to run temporarily
-# to create binaries on the fly by g-ir-scanner. This involves creating
-# several wrapper scripts to accomplish the task:
-# g-ir-scanner-qemuwrapper, g-ir-compiler-wrapper,
-# g-ir-scanner-lddwrapper, g-ir-scanner-wrapper, g-ir-compiler-wrapper.
+# Move the real compiler and scanner to .real, and replace them with the wrappers.
+# Using .real has the following advantages:
+# - There is no need to change the logic for other packages.
+# - The wrappers call the .real files using qemu.
 define GOBJECT_INTROSPECTION_INSTALL_WRAPPERS
 	# Move the real binaries to their names.real, then replace them with
 	# the wrappers.
-	$(foreach w,$(GOBJECT_INTROSPECTION_WRAPPERS),
+	$(foreach w,g-ir-compiler g-ir-scanner,
 		mv $(STAGING_DIR)/usr/bin/$(w) $(STAGING_DIR)/usr/bin/$(w).real
 		$(INSTALL) -D -m 755 \
-		package/gobject-introspection/$(w).in $(STAGING_DIR)/usr/bin/$(w)
+			$(GOBJECT_INTROSPECTION_PKGDIR)/$(w).in $(STAGING_DIR)/usr/bin/$(w)
 	)
-	$(SED) "s@g_ir_scanner=.*@g_ir_scanner=/usr/bin/g-ir-scanner@g" \
-	$(STAGING_DIR)/usr/lib/pkgconfig/gobject-introspection-1.0.pc
+	$(SED) "s%@BASENAME_TARGET_CPP@%$(notdir $(TARGET_CPP))%g" \
+		-e "s%@BASENAME_TARGET_CC@%$(notdir $(TARGET_CC))%g" \
+		-e "s%@BASENAME_TARGET_CXX@%$(notdir $(TARGET_CXX))%g" \
+		-e "s%@TARGET_CPPFLAGS@%$(TARGET_CPPFLAGS)%g" \
+		-e "s%@TARGET_CFLAGS@%$(TARGET_CFLAGS)%g" \
+		-e "s%@TARGET_CXXFLAGS@%$(TARGET_CXXFLAGS)%g" \
+		-e "s%@TARGET_LDFLAGS@%$(TARGET_LDFLAGS)%g" \
+		$(STAGING_DIR)/usr/bin/g-ir-scanner
 
-	# The pkgconfig file needs to point towards the wrappers instead of the native
-	# binaries.
-	$(SED) "s@g_ir_compiler=.*@g_ir_compiler=/usr/bin/g-ir-compiler@g" \
-	$(STAGING_DIR)/usr/lib/pkgconfig/gobject-introspection-1.0.pc
+	# Gobject-introspection installs Makefile.introspection in
+	# $(STAGING_DIR)/usr/share which is needed for autotools-based programs to
+	# build .gir and .typelib files. Unfortunately, gobject-introspection-1.0.pc
+	# uses $(prefix)/share as the directory, which
+	# causes the host /usr/share being used instead of $(STAGING_DIR)/usr/share.
+	# Change datadir to $(libdir)/../share which will prefix $(STAGING_DIR)
+	# to the correct location.
+	$(SED) "s%^datadir=.*%datadir=\$${libdir}/../share%g" \
+		$(STAGING_DIR)/usr/lib/pkgconfig/gobject-introspection-1.0.pc
 
-	# python-gobject depends on the right gidatadir to find the gi data
-	$(SED) "12 s@^.*@gidatadir=$(STAGING_DIR)/usr/share/gobject-introspection-1.0@g" \
-	$(STAGING_DIR)/usr/lib/pkgconfig/gobject-introspection-1.0.pc
+	# By default, girdir and typelibdir use datadir and libdir as their prefix,
+	# of which pkg-config appends the sysroot directory. This results in files
+	# being installed in $(STAGING_DIR)/$(STAGING_DIR)/path/to/files.
+	# Changing the prefix to prefix prevents this error.
+	$(SED) "s%girdir=.*%girdir=\$${prefix}/share/gir-1.0%g" \
+		$(STAGING_DIR)/usr/lib/pkgconfig/gobject-introspection-1.0.pc
+
+	$(SED) "s%typelibdir=.*%typelibdir=\$${prefix}/lib/girepository-1.0%g" \
+		$(STAGING_DIR)/usr/lib/pkgconfig/gobject-introspection-1.0.pc
+
+	# Set includedir to $(STAGING_DIR)/usr/share/gir-1.0 instead of . or
+	# g-ir-compiler won't find .gir files resulting in a build failure for
+	# autotools-based based programs
+	$(SED) "s%includedir=.%includedir=$(STAGING_DIR)/usr/share/gir-1.0%g" \
+		$(STAGING_DIR)/usr/share/gobject-introspection-1.0/Makefile.introspection
 endef
-GOBJECT_INTROSPECTION_POST_INSTALL_STAGING_HOOKS = GOBJECT_INTROSPECTION_INSTALL_WRAPPERS
+GOBJECT_INTROSPECTION_POST_INSTALL_STAGING_HOOKS += GOBJECT_INTROSPECTION_INSTALL_WRAPPERS
+
+# Only .typelib files are needed to run.
+define GOBJECT_INTROSPECTION_REMOVE_DEVELOPMENT_FILES
+	find $(TARGET_DIR)/usr/share \( -iname "*.gir" -o -iname \*.rnc \) -delete
+endef
+GOBJECT_INTROSPECTION_TARGET_FINALIZE_HOOKS += GOBJECT_INTROSPECTION_REMOVE_DEVELOPMENT_FILES
 
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))
