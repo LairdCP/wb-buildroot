@@ -14,10 +14,9 @@ define LIBLORAGW_BUILD_CMDS
 endef
 
 define LIBLORAGW_INSTALL_STAGING_CMDS
-	$(INSTALL) -d $(STAGING_DIR)/usr/lib/libloragw/inc/
-	$(INSTALL) -D -m 755 $(@D)/libloragw/libloragw.a $(STAGING_DIR)/usr/lib/libloragw
-	$(INSTALL) -D -m 755 $(@D)/libloragw/library.cfg $(STAGING_DIR)/usr/lib/libloragw
-	$(INSTALL) -D -m 755 $(@D)/libloragw/inc/* $(STAGING_DIR)/usr/lib/libloragw/inc
+	$(INSTALL) -D -m 644 -t $(STAGING_DIR)/usr/lib/libloragw \
+		$(@D)/libloragw/libloragw.a $(@D)/libloragw/library.cfg
+	$(INSTALL) -D -m 644 -t $(STAGING_DIR)/usr/lib/libloragw/inc $(@D)/libloragw/inc/*
 endef
 
 define LIBLORAGW_INSTALL_TARGET_CMDS

@@ -13,7 +13,7 @@ endif
 
 define LRD_USBGADGET_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 0755 -t $(TARGET_DIR)/usr/bin/ \
-		package/lrd/lrd-usbgadget/usb-gadget.sh
+		$(LRD_USBGADGET_PKGDIR)/usb-gadget.sh
 
 	$(LRD_USBGADGET_INSTALL_NM)
 endef
@@ -30,7 +30,7 @@ define LRD_USBGADGET_INSTALL_INIT_CONFIG
 endef
 
 define LRD_USBGADGET_INSTALL_INIT_SYSTEMD
-	$(INSTALL) -D -m 644 package/lrd/lrd-usbgadget/usb-gadget.service \
+	$(INSTALL) -D -m 644 $(LRD_USBGADGET_PKGDIR)/usb-gadget.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/usb-gadget.service
 
 	$(LRD_USBGADGET_INSTALL_INIT_CONFIG)
@@ -38,7 +38,7 @@ endef
 
 ifeq ($(BR2_PACKAGE_LRD_LEGACY),y)
 define LRD_USBGADGET_INSTALL_INIT_SYSV
-	$(INSTALL) -D -m 0755 package/lrd/lrd-usbgadget/S43usb-gadget \
+	$(INSTALL) -D -m 0755 $(LRD_USBGADGET_PKGDIR)/S43usb-gadget \
 		$(TARGET_DIR)/etc/init.d/opt/S91g_ether
 
 	$(LRD_USBGADGET_INSTALL_INIT_CONFIG)
@@ -46,7 +46,7 @@ endef
 else
 define LRD_USBGADGET_INSTALL_INIT_SYSV
 	$(INSTALL) -D -m 0755 -t $(TARGET_DIR)/etc/init.d/ \
-		package/lrd/lrd-usbgadget/S43usb-gadget
+		$(LRD_USBGADGET_PKGDIR)/S43usb-gadget
 
 	$(LRD_USBGADGET_INSTALL_INIT_CONFIG)
 endef
