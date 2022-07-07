@@ -7,7 +7,7 @@ die() {
 
 usage() {
     echo "Usage: $0: [-m <method>] [-s <side>] [-x value] [-v] <url>"
-    exit 1
+    exit 3
 }
 
 [ $# -ge 1 ] || usage
@@ -58,10 +58,13 @@ ${o_quiet} && exec >/dev/null
 
 case "${url}" in
 *://*)
-    download_cmd="curl -s ${url} --output -"
-
-    # If curl is not available, use wget instead
-    command -v curl &> /dev/null || download_cmd="wget -qO - ${url}"
+    if [ -x /usr/bin/curl ]; then
+        download_cmd="/usr/bin/curl -s ${url} --output -"
+    elif [ -x /usr/bin/wget ]; then
+        download_cmd="/usr/bin/wget -qO - ${url}"
+    else
+        die "Download utility not found (need curl or wget)"
+    fi
 
     if  ${o_complete}; then
         . erase_som_nand
@@ -80,3 +83,5 @@ rm -f /tmp/swup
 if ${update_ok} && ${o_restart} && ! ${run_on_sd}; then
    reboot
 fi
+
+${update_ok}
