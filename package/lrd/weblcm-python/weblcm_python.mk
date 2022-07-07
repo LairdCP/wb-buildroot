@@ -32,48 +32,50 @@ WEBLCM_PYTHON_ENV = WEBLCM_PYTHON_EXTRA_PACKAGES='$(WEBLCM_PYTHON_EXTRA_PACKAGES
 
 ifeq ($(BR2_REPRODUCIBLE),y)
 define WEBLCM_PYTHON_FIX_TIME
-	sed -i -e 's/ExecStart=python/ExecStart=python --check-hash-based-pycs never/g' $(TARGET_DIR)/usr/lib/systemd/system/weblcm-python.service
+	$(SED) 's/ExecStart=python/ExecStart=python --check-hash-based-pycs never/g' $(TARGET_DIR)/usr/lib/systemd/system/weblcm-python.service
 endef
 endif
 
 define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
-	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/fonts -m 644 $(WEBLCM_PYTHON_SITE)/assets/fonts/*
-	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/css -m 644 $(WEBLCM_PYTHON_SITE)/assets/css/*.css
-	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/img -m 644 $(WEBLCM_PYTHON_SITE)/assets/img/*.png
-	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/js -m 644 $(WEBLCM_PYTHON_SITE)/assets/js/*.js
-	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/i18n -m 644 $(WEBLCM_PYTHON_SITE)/assets/i18n/*.json
-	$(INSTALL) -D -t $(TARGET_DIR)/var/www -m 644 $(WEBLCM_PYTHON_SITE)/LICENSE
+	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/fonts -m 644 $(@D)/assets/fonts/*
+	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/css -m 644 $(@D)/assets/css/*.css
+	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/img -m 644 $(@D)/assets/img/*.png
+	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/js -m 644 $(@D)/assets/js/*.js
+	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/i18n -m 644 $(@D)/assets/i18n/*.json
+	$(INSTALL) -D -t $(TARGET_DIR)/var/www -m 644 $(@D)/LICENSE
 
-	cp -fr $(WEBLCM_PYTHON_SITE)/plugins $(TARGET_DIR)/var/www/
+	cp -fr $(@D)/plugins $(TARGET_DIR)/var/www/
 
-	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/scripts -m 755 $(WEBLCM_PYTHON_SITE)/*.sh
-	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python -m 644 $(WEBLCM_PYTHON_SITE)/*.ini
-	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(WEBLCM_PYTHON_SITE)/ssl/server.key
-	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(WEBLCM_PYTHON_SITE)/ssl/server.crt
-	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(WEBLCM_PYTHON_SITE)/ssl/ca.crt
+	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/scripts -m 755 $(@D)/*.sh
+	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python -m 644 $(@D)/*.ini
+	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/server.key
+	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/server.crt
+	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/ca.crt
 
 	cat /dev/null > $(TARGET_DIR)/etc/weblcm-python/swcert.conf
-	 ! grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf \
-		|| echo 'SWUPDATE_ARGS=${SWUPDATE_ARGS} -k $(WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE) --cert-purpose codeSigning' > $(TARGET_DIR)/etc/swupdate/conf.d/99-weblcm-python.conf
+	if grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf; then \
+	   $(INSTALL) -d $(TARGET_DIR)/etc/swupdate/conf.d; \
+	   echo 'SWUPDATE_ARGS=${SWUPDATE_ARGS} -k $(WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE) --cert-purpose codeSigning' > $(TARGET_DIR)/etc/swupdate/conf.d/99-weblcm-python.conf; \
+	fi
 
-	sed -i -e '/^default_/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
-	sed -i -e '/\[weblcm\]/a default_password: \"$(WEBLCM_PYTHON_DEFAULT_PASSWORD)\"' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
-	sed -i -e '/\[weblcm\]/a default_username: \"$(WEBLCM_PYTHON_DEFAULT_USERNAME)\"' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	$(SED) '/^default_/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	$(SED) '/\[weblcm\]/a default_password: \"$(WEBLCM_PYTHON_DEFAULT_PASSWORD)\"' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	$(SED) '/\[weblcm\]/a default_username: \"$(WEBLCM_PYTHON_DEFAULT_USERNAME)\"' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 
-	sed -i -e '/^managed_software_devices/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
-	sed -i -e '/\[weblcm\]/a managed_software_devices: $(BR2_PACKAGE_WEBLCM_PYTHON_MANAGED_SOFTWARE_DEVICES)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	$(SED) '/^managed_software_devices/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	$(SED) '/\[weblcm\]/a managed_software_devices: $(BR2_PACKAGE_WEBLCM_PYTHON_MANAGED_SOFTWARE_DEVICES)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 
-	sed -i -e '/^unmanaged_hardware_devices/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
-	sed -i -e '/\[weblcm\]/a unmanaged_hardware_devices: $(BR2_PACKAGE_WEBLCM_PYTHON_UNMANAGED_HARDWARE_DEVICES)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	$(SED) '/^unmanaged_hardware_devices/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	$(SED) '/\[weblcm\]/a unmanaged_hardware_devices: $(BR2_PACKAGE_WEBLCM_PYTHON_UNMANAGED_HARDWARE_DEVICES)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 
-	sed -i -e '/^awm_cfg/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
-	sed -i -e '/\[weblcm\]/a awm_cfg:$(BR2_PACKAGE_ADAPTIVE_WW_BINARIES_CFG_FILE)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	$(SED) '/^awm_cfg/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	$(SED) '/\[weblcm\]/a awm_cfg:$(BR2_PACKAGE_ADAPTIVE_WW_BINARIES_CFG_FILE)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 endef
 
 WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 
 define WEBLCM_PYTHON_INSTALL_INIT_SYSTEMD
-	$(INSTALL) -D -t $(TARGET_DIR)/usr/lib/systemd/system -m 644 $(WEBLCM_PYTHON_SITE)/weblcm-python.service
+	$(INSTALL) -D -t $(TARGET_DIR)/usr/lib/systemd/system -m 644 $(@D)/weblcm-python.service
 	$(WEBLCM_PYTHON_FIX_TIME)
 endef
 

@@ -20,27 +20,24 @@ else
 endif
 
 PHP_SDK_MAKE_ENV = \
-	CC="$(TARGET_CC)" \
-	CXX="$(TARGET_CXX)" \
-	ARCH="$(KERNEL_ARCH)" \
-	CFLAGS="$(TARGET_CFLAGS)" \
 	INCLUDES="-I$(STAGING_DIR)/usr/include/php \
 		-I$(STAGING_DIR)/usr/include/php/Zend \
 		-I$(STAGING_DIR)/usr/include/php/main \
 		-I$(STAGING_DIR)/usr/include/php/TSRM"
 
 define PHP_SDK_BUILD_CMDS
-	$(PHP_SDK_MAKE_ENV) $(MAKE) -j 1 -C $(@D)
+	$(TARGET_MAKE_ENV) $(TARGET_CONFIGURE_OPTS) $(PHP_SDK_MAKE_ENV) $(MAKE) -C $(@D)
 endef
 
 ifeq ($(BR2_PACKAGE_PHP_SDK_TEST),y)
-define PHP_SDK_INSTALL_TEST 
-	$(INSTALL) -D -m 755 $(@D)/examples/lrd_sdk_GetVersion.php $(TARGET_DIR)/var/www/docs/examples/lrd_sdk_GetVersion.php
+define PHP_SDK_INSTALL_TEST
+	$(INSTALL) -D -m 644 $(@D)/examples/lrd_sdk_GetVersion.php \
+		$(TARGET_DIR)/var/www/docs/examples/lrd_sdk_GetVersion.php
 endef
 endif
 
 define PHP_SDK_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 644 -t $(TARGET_DIR)/usr/lib/ $(@D)/lrd_php_sdk.so* 
+	$(INSTALL) -D -m 644 -t $(TARGET_DIR)/usr/lib/ $(@D)/lrd_php_sdk.so*
 	ln -rsf $(TARGET_DIR)/usr/lib/lrd_php_sdk.so.* $(TARGET_DIR)/usr/lib/lrd_php_sdk.so
 	$(PHP_SDK_INSTALL_TEST)
 endef

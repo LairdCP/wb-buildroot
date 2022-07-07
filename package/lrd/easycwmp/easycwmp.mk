@@ -25,30 +25,25 @@ EASYCWMP_CONF_OPTS += \
 	--enable-jsonc=1
 
 define EASYCWMP_INSTALL_TARGET_CMDS
-	mkdir -p $(TARGET_DIR)/etc/config
-	mkdir -p $(TARGET_DIR)/etc/easycwmp
-	mkdir -p $(TARGET_DIR)/usr/share/easycwmp/functions
-	mkdir -p $(TARGET_DIR)/lib/config
-	mkdir -p $(TARGET_DIR)/lib/functions
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/scripts/easycwmp.sh $(TARGET_DIR)/usr/sbin/easycwmp
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/scripts/defaults $(TARGET_DIR)/usr/share/easycwmp
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/scripts/functions/common/common $(TARGET_DIR)/usr/share/easycwmp/functions
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/scripts/functions/common/device_info $(TARGET_DIR)/usr/share/easycwmp/functions
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/scripts/functions/common/management_server $(TARGET_DIR)/usr/share/easycwmp/functions
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/scripts/functions/common/ipping_launch $(TARGET_DIR)/usr/share/easycwmp/functions
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/scripts/functions/tr098/root $(TARGET_DIR)/usr/share/easycwmp/functions
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/scripts/functions/tr098/wan_device $(TARGET_DIR)/usr/share/easycwmp/functions
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/scripts/functions/tr098/lan_device $(TARGET_DIR)/usr/share/easycwmp/functions
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/scripts/functions/tr098/ipping_diagnostic $(TARGET_DIR)/usr/share/easycwmp/functions
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/scripts/functions/laird/laird_device $(TARGET_DIR)/usr/share/easycwmp/functions
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/config/easycwmp $(TARGET_DIR)/etc/config/easycwmp
-	$(INSTALL) -m 0755 $(@D)/bin/easycwmpd $(TARGET_DIR)/usr/sbin
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/scripts/functions/laird/functions.sh $(TARGET_DIR)/lib/
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/scripts/functions/laird/uci.sh $(TARGET_DIR)/lib/config
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/scripts/functions/laird/network.sh $(TARGET_DIR)/lib/functions
-	$(INSTALL) -m 0755 $(@D)/ext/openwrt/init.d/easycwmpd $(TARGET_DIR)/etc/easycwmp
-	$(INSTALL) -m 0755 package/lrd/easycwmp/S97easycwmp $(TARGET_DIR)/etc/init.d/S97easycwmp
+	$(INSTALL) -m 0755 -D -t $(TARGET_DIR)/usr/sbin/easycwmp $(@D)/ext/openwrt/scripts/easycwmp.sh
+	$(INSTALL) -m 0755 -D -t $(TARGET_DIR)/usr/share/easycwmp $(@D)/ext/openwrt/scripts/defaults
+	$(INSTALL) -m 0755 -D -t $(TARGET_DIR)/usr/share/easycwmp/functions \
+		$(@D)/ext/openwrt/scripts/functions/common/common \
+		$(@D)/ext/openwrt/scripts/functions/common/device_info \
+		$(@D)/ext/openwrt/scripts/functions/common/management_server \
+		$(@D)/ext/openwrt/scripts/functions/common/ipping_launch \
+		$(@D)/ext/openwrt/scripts/functions/tr098/root \
+		$(@D)/ext/openwrt/scripts/functions/tr098/wan_device \
+		$(@D)/ext/openwrt/scripts/functions/tr098/lan_device \
+		$(@D)/ext/openwrt/scripts/functions/tr098/ipping_diagnostic \
+		$(@D)/ext/openwrt/scripts/functions/laird/laird_device
+	$(INSTALL) -m 0755 -D -t $(TARGET_DIR)/etc/config/easycwmp $(@D)/ext/openwrt/config/easycwmp
+	$(INSTALL) -m 0755 -D -t $(TARGET_DIR)/usr/sbin $(@D)/bin/easycwmpd
+	$(INSTALL) -m 0755 -D -t $(TARGET_DIR)/lib $(@D)/ext/openwrt/scripts/functions/laird/functions.sh
+	$(INSTALL) -m 0755 -D -t $(TARGET_DIR)/lib/config $(@D)/ext/openwrt/scripts/functions/laird/uci.sh
+	$(INSTALL) -m 0755 -D -t $(TARGET_DIR)/lib/functions $(@D)/ext/openwrt/scripts/functions/laird/network.sh
+	$(INSTALL) -m 0755 -D -t $(TARGET_DIR)/etc/easycwmp $(@D)/ext/openwrt/init.d/easycwmpd
+	$(INSTALL) -m 0755 -D -t $(TARGET_DIR)/etc/init.d $(EASYCWMP_PKGDIR)/S97easycwmp
 endef
 
 $(eval $(autotools-package))
-

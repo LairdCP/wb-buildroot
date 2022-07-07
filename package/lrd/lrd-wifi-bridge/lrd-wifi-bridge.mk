@@ -21,7 +21,7 @@ define LRD_WIFI_BRIDGE_INSTALL_TARGET_CMDS
 	$(INSTALL) -D -m 0600 $(LRD_WIFI_BRIDGE_PKGDIR)rootfs/etc/NetworkManager/dispatcher.d/pre-up.d/bridge.dispatcher \
 		$(TARGET_DIR)/etc/NetworkManager/dispatcher.d/pre-up.d/bridge.dispatcher
 
-	sed -i 's/eth0/$(LRD_WIFI_BRIDGE_INTERFACE)/' \
+	$(SED) 's/eth0/$(LRD_WIFI_BRIDGE_INTERFACE)/' \
 		$(TARGET_DIR)/etc/NetworkManager/system-connections/bridge-slave-$(LRD_WIFI_BRIDGE_INTERFACE).nmconnection;
 endef
 

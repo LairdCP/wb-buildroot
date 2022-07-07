@@ -9,9 +9,9 @@ IGCONFD_SETUP_TYPE = setuptools
 
 define IGCONFD_INSTALL_INIT_SYSTEMD
         $(INSTALL) -D -m 644 -t $(TARGET_DIR)/etc/systemd/system \
-		    package/lrd/igconfd/igconfd.service
+		$(IGCONFD_PKGDIR)/igconfd.service
         $(INSTALL) -D -m 644 -t $(TARGET_DIR)/etc/dbus-1/system.d \
-		    package/lrd/igconfd/com.lairdtech.security.ConfigService.conf
+		$(IGCONFD_PKGDIR)/com.lairdtech.security.ConfigService.conf
 endef
 
 $(eval $(python-package))

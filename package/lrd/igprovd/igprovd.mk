@@ -9,11 +9,9 @@ IGPROVD_SETUP_TYPE = setuptools
 
 define IGPROVD_INSTALL_INIT_SYSTEMD
         $(INSTALL) -D -m 644 -t $(TARGET_DIR)/etc/systemd/system \
-		    package/lrd/igprovd/igprovd.service
-        $(INSTALL) -D -m 644 -t $(TARGET_DIR)/etc/systemd/system \
-		    package/lrd/igprovd/edge.service
+		$(IGPROVD_PKGDIR)/igprovd.service $(IGPROVD_PKGDIR)/edge.service
         $(INSTALL) -D -m 644 -t $(TARGET_DIR)/etc/dbus-1/system.d \
-		    package/lrd/igprovd/com.lairdtech.IG.ProvService.conf
+		$(IGPROVD_PKGDIR)/com.lairdtech.IG.ProvService.conf
 endef
 
 $(eval $(python-package))
