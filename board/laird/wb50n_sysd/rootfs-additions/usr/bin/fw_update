@@ -13,8 +13,6 @@ usage() {
 
 [ $# -ge 1 ] || usage
 
-unset o_method
-unset o_side
 o_quiet=true
 o_restart=true
 
@@ -25,6 +23,8 @@ grep -q "ubi.block=0,1" /proc/cmdline && o_side=b || o_side=a
 
 grep -q "root=/dev/mmcblk" /proc/cmdline && \
     run_on_sd=true || run_on_sd=false
+
+${run_on_sd} && o_method=complete || o_method=full
 
 while getopts m:s:x:v name; do
     case ${name} in
@@ -40,10 +40,6 @@ done
 shift $((OPTIND - 1))
 
 url="${1}"
-
-if [ -z "${o_method}" ]; then
-    ${run_on_sd} && o_method=complete || o_method=full
-fi
 
 if [ "${o_method}" = complete ]; then
     ${run_on_sd} || die "only 'full' or 'main' update methods supported when booting from flash"
