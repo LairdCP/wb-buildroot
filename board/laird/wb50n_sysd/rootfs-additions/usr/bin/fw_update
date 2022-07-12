@@ -2,6 +2,7 @@
 
 die() {
     echo "${1}" >&2
+    echo "Firmware update failed" >&2
     exit 2
 }
 
@@ -13,6 +14,7 @@ usage() {
 [ $# -ge 1 ] || usage
 
 unset o_method
+unset o_side
 o_quiet=true
 o_restart=true
 
@@ -40,49 +42,51 @@ shift $((OPTIND - 1))
 url="${1}"
 
 if [ -z "${o_method}" ]; then
-    ${run_on_sd} && o_method=complete || o_method=main
+    ${run_on_sd} && o_method=complete || o_method=full
 fi
 
-[ "${o_method}" = complete ] && o_complete=true || o_complete=false
-
-${o_complete} && p_method=${o_method} || p_method=${o_method}-${o_side}
-
-${o_complete} && ! ${run_on_sd} && \
-    die "complete method not supported when booting from flash"
-
-${run_on_sd} && ! ${o_complete} && [ "${o_side}" != "${side}" ] && \
-    die "Cannot switch sides when booting from SD card"
+if [ "${o_method}" = complete ]; then
+    ${run_on_sd} || die "only 'full' or 'main' update methods supported when booting from flash"
+    p_method=${o_method}
+else
+    ${run_on_sd} && die "only 'complete' update method supported when booting from sd card"
+    p_method=${o_method}-${o_side}
+fi
 
 ${o_quiet} && exec >/dev/null
 
 case "${url}" in
 *://*)
     if [ -x /usr/bin/curl ]; then
-        download_cmd="/usr/bin/curl -s ${url} --output -"
+        ${o_quiet} && o_dlsilent="-s"
+        download_cmd="/usr/bin/curl ${o_dlsilent} ${url}"
     elif [ -x /usr/bin/wget ]; then
-        download_cmd="/usr/bin/wget -qO - ${url}"
+        ${o_quiet} && o_dlsilent="-q"
+        download_cmd="/usr/bin/wget ${o_dlsilent} -O - ${url}"
     else
         die "Download utility not found (need curl or wget)"
     fi
 
-    if  ${o_complete}; then
+    if [ "${o_method}" = complete ]; then
         . erase_som_nand
-        ${download_cmd} | TMPDIR=/var/tmp swupdate-client -e stable,${p_method} ${o_verbose} - | tee /tmp/swup
-    else
-        ${download_cmd} | swupdate-client -e stable,${p_method} ${o_verbose} - | tee /tmp/swup
     fi
+    ${download_cmd} | swupdate-client -e stable,${p_method} ${o_verbose} -
     ;;
 
 *)
-    swupdate-client -e stable,${p_method} ${o_verbose} "${url}" | tee /tmp/swup
+    if [ "${o_method}" = complete ]; then
+        . erase_som_nand
+    fi
+    swupdate-client -e stable,${p_method} ${o_verbose} "${url}"
     ;;
 esac
 
-grep -q "SWUPDATE successful" /tmp/swup && update_ok=true || update_ok=false
-rm -f /tmp/swup
-
-if ${update_ok} && ${o_restart} && ! ${run_on_sd}; then
-   reboot
+if [ $? -eq 0 ]; then
+    echo "Firmware update succeeded" >&2
+    if ${o_restart} && ! ${run_on_sd}; then
+        reboot
+    fi
+else
+    echo "Firmware update failed" >&2
+    exit 1
 fi
-
-${update_ok}
