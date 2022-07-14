@@ -1,21 +1,22 @@
 --- a/handlers/flash_handler.c	2022-07-12 15:37:32.000000000 
 +++ b/handlers/flash_handler.c	2022-07-12 15:50:59.000000000 
-@@ -338,6 +338,7 @@
+@@ -326,6 +326,7 @@
  	void __attribute__ ((__unused__)) *data)
  {
  	int mtdnum;
 +	char sbuf[128];
  
- 	if (strlen(img->mtdname))
- 		mtdnum = get_mtd_from_name(img->mtdname);
-@@ -348,6 +349,10 @@
- 			strlen(img->mtdname) ? img->mtdname : img->device);
- 		return -1;
- 	}
+ 	if (strlen(img->path))
+ 		mtdnum = get_mtd_from_name(img->path);
+@@ -342,6 +343,11 @@
+			img->device);
+		return -1;
+	}
 +
 +	snprintf(sbuf, sizeof(sbuf), "Installing image %s into /dev/mtd%d(%s)",
-+		img->fname, mtdnum, img->mtdname ? img->mtdname : "");
++		img->fname, mtdnum, img->path ? img->path : "");
 +	notify(RUN, RECOVERY_NO_ERROR, INFOLEVEL, sbuf);
- 
++ 
  	TRACE("Copying %s into /dev/mtd%d", img->fname, mtdnum);
  	if (flash_write_image(mtdnum, img)) {
+ 		ERROR("I cannot copy %s into %s partition",

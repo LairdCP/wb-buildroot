@@ -2,7 +2,7 @@ diff --git a/parser/parser.c b/parser/parser.c
 index acac406..9ae9448 100644
 --- a/parser/parser.c
 +++ b/parser/parser.c
-@@ -324,6 +324,9 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
+@@ -351,6 +351,9 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
  		partition->provided = 1;
 

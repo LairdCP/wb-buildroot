@@ -26,7 +26,7 @@ index 7e59885..51b7be8 100644
  #include <swupdate_dict.h>
  #include <channel.h>
  #include <util.h>
-@@ -66,3 +68,26 @@ server_op_res_t map_channel_retcode(channel_op_res_t response)
+@@ -69,3 +71,26 @@ server_op_res_t map_channel_retcode(channel_op_res_t response)
  	}
  	return SERVER_EERR;
  }
