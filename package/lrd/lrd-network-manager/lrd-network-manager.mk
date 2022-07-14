@@ -105,7 +105,7 @@ LRD_NETWORK_MANAGER_CONF_OPTS += --disable-ovs
 endif
 
 ifeq ($(BR2_PACKAGE_GOBJECT_INTROSPECTION),y)
-LRD_NETWORK_MANAGER_DEPENDENCIES += gobject-introspection host-libxslt
+LRD_NETWORK_MANAGER_DEPENDENCIES += gobject-introspection
 LRD_NETWORK_MANAGER_CONF_OPTS += --enable-introspection
 else
 LRD_NETWORK_MANAGER_CONF_OPTS += --disable-introspection
