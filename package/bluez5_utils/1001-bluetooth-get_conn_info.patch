@@ -129,7 +129,7 @@ index 3992f9a0cb..675cb0a30d 100644
 +	mgmt_primary = mgmt_new_default();
 +	if (!mgmt_primary) {
 +		error("Failed to access management interface");
-+		return -EIO;
++		return;
 +	}
  }
  
