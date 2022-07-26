@@ -11,7 +11,7 @@ PARSER_ACVP_DEPENDENCIES = libgcrypt libgpg-error openssl keyutils
 
 PARSER_ACVP_MAKE_ENV = \
 	$(TARGET_MAKE_ENV) \
-	CFLAGS="$(TARGET_CFLAGS) -I$(STAGING_DIR)/usr/include" \
+	CFLAGS="$(filter-out -D_FORTIFY_SOURCE%,$(TARGET_CFLAGS)) -I$(STAGING_DIR)/usr/include" \
 
 PARSER_ACVP_MAKE_ENV2 = \
 	CC="$(TARGET_CC)" \
