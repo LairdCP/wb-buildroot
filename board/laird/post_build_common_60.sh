@@ -130,6 +130,7 @@ if [ ${ENCRYPTED_TOOLKIT} -ne 0 ]; then
 		ln -rsf ${ENCRYPTED_TOOLKIT_DIR}/dev.crt ${BINARIES_DIR}/keys/dev.crt
 		ln -rsf ${ENCRYPTED_TOOLKIT_DIR}/key.bin ${BINARIES_DIR}/keys/key.bin
 	fi
+
 	# Copy the u-boot.its
 	ln -rsf ${CCONF_DIR}/u-boot-enc.its ${BINARIES_DIR}/u-boot.its
 	# Use verity boot script
@@ -139,6 +140,14 @@ else
 	ln -rsf ${CCONF_DIR}/u-boot.its ${BINARIES_DIR}/u-boot.its
 	# Use standard boot script
 	ln -rsf ${CCONF_DIR}/boot.scr ${BINARIES_DIR}/boot.scr
+fi
+
+# Copy public key if swupdate signature check is enabled
+if grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf; then
+	if [ -f ${ENCRYPTED_TOOLKIT_DIR}/dev.pem ]; then
+		mkdir -p ${TARGET_DIR}/etc/ssl/misc
+		cp -f ${ENCRYPTED_TOOLKIT_DIR}/dev.pem ${TARGET_DIR}/etc/ssl/misc/dev.pem
+	fi
 fi
 
 if [ ${SD} -ne 0 ] ; then
