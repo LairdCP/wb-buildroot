@@ -27,6 +27,11 @@ endif
 ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_VSP),y)
 	WEBLCM_PYTHON_EXTRA_PACKAGES += weblcm/vsp
 endif
+ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_UNAUTHENTICATED),y)
+	WEBLCM_PYTHON_ENABLE_UNAUTHENTICATED = True
+else
+	WEBLCM_PYTHON_ENABLE_UNAUTHENTICATED = False
+endif
 
 WEBLCM_PYTHON_ENV = WEBLCM_PYTHON_EXTRA_PACKAGES='$(WEBLCM_PYTHON_EXTRA_PACKAGES)'
 
@@ -70,6 +75,8 @@ define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 
 	$(SED) '/^awm_cfg/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 	$(SED) '/\[weblcm\]/a awm_cfg:$(BR2_PACKAGE_ADAPTIVE_WW_BINARIES_CFG_FILE)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	$(SED) '/^enable_allow_unauthenticated_reboot_reset/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	$(SED) '/\[weblcm\]/a enable_allow_unauthenticated_reboot_reset:$(WEBLCM_PYTHON_ENABLE_UNAUTHENTICATED)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 endef
 
 WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
