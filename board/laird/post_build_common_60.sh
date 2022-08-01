@@ -158,6 +158,7 @@ if ${ENCRYPTED_TOOLKIT} ; then
 	if [ -f ${ENCRYPTED_TOOLKIT_DIR}/dev.key ]; then
 		ln -rsf ${ENCRYPTED_TOOLKIT_DIR} ${BINARIES_DIR}
 	fi
+
 	# Copy the u-boot.its
 	ln -rsf ${CCONF_DIR}/u-boot-enc.its ${BINARIES_DIR}/u-boot.its
 	# Use verity boot script
@@ -171,6 +172,14 @@ else
 	ln -rsf ${CCONF_DIR}/boot.scr ${BINARIES_DIR}/boot.scr
 
 	cp -f ${CCONF_DIR}/kernel.its ${BINARIES_DIR}/kernel.its
+fi
+
+# Copy public key if swupdate signature check is enabled
+if grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf; then
+	if [ -f ${ENCRYPTED_TOOLKIT_DIR}/dev.pem ]; then
+		mkdir -p ${TARGET_DIR}/etc/ssl/misc
+		cp -f ${ENCRYPTED_TOOLKIT_DIR}/dev.pem ${TARGET_DIR}/etc/ssl/misc/dev.pem
+	fi
 fi
 
 rm -f ${TARGET_DIR}/usr/lib/systemd/system/swupdate-progress.service

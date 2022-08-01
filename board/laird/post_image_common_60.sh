@@ -76,11 +76,18 @@ else
 ${mkenvimage} -r -s 131072 -o ${BINARIES_DIR}/uboot.env ${BINARIES_DIR}/u-boot-initial-env
 fi
 
-# Check if hashing is enabled in generated swupdate config file in build directory
+# swupdate will reject an SWU file with sw-description containing hashes unless
+# CONFIG_HASH_VERIFY is enabled.  Hashes are required in SWU files if CONFIG_SIGNED_IMAGES
+# is set.  Older images did not enable either CONFIG_HASH_VERIFY or CONFIG_SIGNED_IMAGES,
+# so remove hashes unless they are required for signed image support.
 if ! grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf; then
 	# Remove sha lines in SWU scripts
 	[ ! -f ${BINARIES_DIR}/sw-description ] || \
 		sed -i -e "/sha256/d" ${BINARIES_DIR}/sw-description
+else
+	# Ensure public key is present if swupdate signature check is enabled
+	[ ! -f ${TARGET_DIR}/etc/ssl/misc/dev.pem ] && \
+		die "swupdate signature check enabled but public key not found!"
 fi
 
 ALL_SWU_FILES="sw-description boot.bin u-boot.itb uboot.env kernel.itb rootfs.bin erase_data.sh"
@@ -105,7 +112,7 @@ if ! ${ENCRYPTED_TOOLKIT} ; then
 	fi
 else
 	# Generate all secured artifacts (NAND, SWU packages)
-	"${BOARD_DIR}/../post_image_secure.sh" "${BOARD_DIR}" "${ALL_SWU_FILES}"
+	"${BOARD_DIR}/../post_image_secure.sh" "${BOARD_DIR}" "${ALL_SWU_FILES}" "rawrsa"
 fi
 
 size_check () {

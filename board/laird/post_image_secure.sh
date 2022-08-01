@@ -33,6 +33,7 @@ echo "${BR2_LRD_PRODUCT^^} POST IMAGE SECURE script: starting..."
 
 BOARD_DIR="${1}"
 SWU_FILES="${2}"
+SWUPDATE_SIG="${3}"
 
 # enable tracing and exit on errors
 set -x -e
@@ -146,8 +147,16 @@ SWU_FILE_STR="${ALL_SWU_FILES// /\\n}"
 
 # Generate partial SWU (no bootloaders)
 if [ ${have_swdesc} -ne 0 ]; then
-	${openssl} cms -sign -in sw-description -out sw-description.sig \
+	case "${SWUPDATE_SIG}" in
+	cms)
+		${openssl} cms -sign -in sw-description -out sw-description.sig \
 		-signer keys/dev.crt -inkey keys/dev.key -outform DER -nosmimecap -binary
+		;;
+	rawrsa)
+		${openssl} dgst -sha256 -sign keys/dev.key sw-description > sw-description.sig
+		;;
+	esac
+
 	echo -e "${SWU_FILE_STR}" | cpio -ovL -H crc > ${BR2_LRD_PRODUCT}.swu
 	rm -f sw-description.sig
 fi
@@ -156,8 +165,16 @@ fi
 if [ ${have_swdescf} -ne 0 ]; then
 	mv -f sw-description-full sw-description
 
-	${openssl} cms -sign -in sw-description -out sw-description.sig \
+	case "${SWUPDATE_SIG}" in
+	cms)
+		${openssl} cms -sign -in sw-description -out sw-description.sig \
 		-signer keys/dev.crt -inkey keys/dev.key -outform DER -nosmimecap -binary
+		;;
+	rawrsa)
+		${openssl} dgst -sha256 -sign keys/dev.key sw-description > sw-description.sig
+		;;
+	esac
+
 	echo -e "${SWU_FILE_STR}" | cpio -ovL -H crc > ${BR2_LRD_PRODUCT}-full.swu
 	rm -f sw-description.sig
 fi

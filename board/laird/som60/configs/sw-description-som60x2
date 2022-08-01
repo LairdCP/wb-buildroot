@@ -293,6 +293,7 @@ software =
 					filename = "erase_data.sh";
 					type = "postinstall";
 					data = "rootfs_data_a rootfs_data_b perm";
+					sha256 = "@erase_data.sh.sha256";
 				}
 			);
 		}
