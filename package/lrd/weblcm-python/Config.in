@@ -86,4 +86,9 @@ config BR2_PACKAGE_WEBLCM_PYTHON_WEBSOCKETS
 	help
 		Add Websockets streaming support for BLE REST API.
 
+config BR2_PACKAGE_WEBLCM_PYTHON_UNAUTHENTICATED
+	bool "Unauthenticated access support for weblcm"
+	help
+		Add unauthenticated access support, for example, for factory reset and reboot endpoints.  Due to security concerns, this should never be enabled unless requested by a customer, and preferably never enabled if WebLCM is exposed on a public/external zone interface.
+
 endif
