@@ -275,11 +275,13 @@ software =
 					filename = "u-boot-env.tgz";
 					mtdname = "u-boot-env-a";
 					type="flash";
+					sha256 = "@u-boot-env.tgz.sha256";
 				},
 				{
 					filename = "u-boot-env.tgz";
 					mtdname = "u-boot-env-b";
 					type="flash";
+					sha256 = "@u-boot-env.tgz.sha256";
 				}
 			);
 
@@ -288,6 +290,7 @@ software =
 					filename = "erase_data.sh";
 					type = "postinstall";
 					data = "rootfs_data_a rootfs_data_b perm";
+					sha256 = "@erase_data.sh.sha256";
 				}
 			);
 		}
