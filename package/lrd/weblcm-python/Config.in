@@ -92,4 +92,10 @@ config BR2_PACKAGE_WEBLCM_PYTHON_UNAUTHENTICATED
 	help
 		Add unauthenticated access support, for example, for factory reset and reboot endpoints.  Due to security concerns, this should never be enabled unless requested by a customer, and preferably never enabled if WebLCM is exposed on a public/external zone interface.
 
+config BR2_PACKAGE_WEBLCM_PYTHON_BIND_IP
+	string "IP address to which the weblcm HTTP server binds"
+	default "::"
+	help
+		IP address to bind to for the WebLCM HTTP server. Leave blank to bind to all IP addresses.
+
 endif
