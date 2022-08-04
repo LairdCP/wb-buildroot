@@ -77,6 +77,9 @@ define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 
 	sed -i -e '/^enable_allow_unauthenticated_reboot_reset/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 	sed -i -e '/\[weblcm\]/a enable_allow_unauthenticated_reboot_reset:$(WEBLCM_PYTHON_ENABLE_UNAUTHENTICATED)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+
+	sed -i -e '/^server.socket_host/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	sed -i -e '/\[global\]/a server.socket_host: $(BR2_PACKAGE_WEBLCM_PYTHON_BIND_IP)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 endef
 
 WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
