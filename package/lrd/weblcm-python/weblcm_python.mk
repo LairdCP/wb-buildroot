@@ -33,6 +33,11 @@ ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_UNAUTHENTICATED),y)
 else
 	WEBLCM_PYTHON_ENABLE_UNAUTHENTICATED = False
 endif
+ifeq ($(BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT),y)
+	ROOT_DATA_DIR_IS_AVAILABLE = True
+else
+	ROOT_DATA_DIR_IS_AVAILABLE = False
+endif
 
 WEBLCM_PYTHON_ENV = WEBLCM_PYTHON_EXTRA_PACKAGES='$(WEBLCM_PYTHON_EXTRA_PACKAGES)'
 
@@ -77,6 +82,9 @@ define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 
 	sed -i -e '/^enable_allow_unauthenticated_reboot_reset/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 	sed -i -e '/\[weblcm\]/a enable_allow_unauthenticated_reboot_reset:$(WEBLCM_PYTHON_ENABLE_UNAUTHENTICATED)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+
+	sed -i -e '/^root_data_is_available/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	sed -i -e '/\[weblcm\]/a root_data_is_available: $(ROOT_DATA_DIR_IS_AVAILABLE)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 
 	sed -i -e '/^server.socket_host/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 	sed -i -e '/\[global\]/a server.socket_host: $(BR2_PACKAGE_WEBLCM_PYTHON_BIND_IP)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
