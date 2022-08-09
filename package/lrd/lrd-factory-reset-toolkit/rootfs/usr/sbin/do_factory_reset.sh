@@ -14,9 +14,10 @@ NM_CONF_FILE_TARGET=${FACTORY_SETTING_TARGET}/NetworkManager/NetworkManager.conf
 WEBLCM_CONF_FILE_TARGET=${FACTORY_SETTING_TARGET}/weblcm-python/weblcm-settings.ini
 FIREWALLD_CONF_FILE_TARGET=${FACTORY_SETTING_TARGET}/firewalld/firewalld.conf
 
-FACTORY_SETTING_ZONES_TARGET=/data/misc/zoneinfo
 FACTORY_SETTING_DEFAULT_ZONE=/usr/share/zoneinfo/Etc/UTC
-FACTORY_SETTING_USER_ZONE=/data/misc/zoneinfo/localtime
+FACTORY_SETTING_LOCALTIME=/data/secret/localtime
+FACTORY_SETTING_TIMEZONE=/data/secret/timezone
+FACTORY_SETTING_ADJTIME_FILE=/data/secret/adjtime
 
 BLUETOOTH_STATE_DIR=/data/secret/lib/bluetooth
 
@@ -42,9 +43,10 @@ do_check_and_reset() {
 		cp -fa ${FIREWALLD_CONF_DIR} ${FACTORY_SETTING_TARGET}/ || exit_on_error "Copying firewalld data.. Failed"
 	fi
 
-	if [ ! -f "${FACTORY_SETTING_USER_ZONE}" ]; then
-		mkdir -p ${FACTORY_SETTING_ZONES_TARGET}
-		ln -sf ${FACTORY_SETTING_DEFAULT_ZONE} ${FACTORY_SETTING_USER_ZONE}
+	if [ ! -f "${FACTORY_SETTING_LOCALTIME}" ]; then
+		ln -sf ${FACTORY_SETTING_DEFAULT_ZONE} ${FACTORY_SETTING_LOCALTIME}
+		echo "Etc/UTC" > "${FACTORY_SETTING_TIMEZONE}"
+		touch "${FACTORY_SETTING_ADJTIME_FILE}"
 	fi
 
 	if [ ! -d "${BLUETOOTH_STATE_DIR}" ]; then
