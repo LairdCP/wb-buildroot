@@ -34,9 +34,22 @@ define TZDATA_SET_LOCALTIME
 		exit 1; \
 	fi
 	ln -sf ../usr/share/zoneinfo/$(TZDATA_LOCALTIME) $(TARGET_DIR)/etc/localtime
+	rm $(TARGET_DIR)/etc/timezone > /dev/null
 	echo "$(TZDATA_LOCALTIME)" >$(TARGET_DIR)/etc/timezone
 endef
 endif
+
+# Only use /data if Encrypted-toolkit is in use
+ifeq ($(BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT),y)
+define TZDATA_FIX_LOCALTIME
+	ln -sf /data/secret/localtime $(TARGET_DIR)/etc/localtime
+	ln -sf /data/secret/timezone $(TARGET_DIR)/etc/timezone
+	ln -sf /data/secret/adjfile $(TARGET_DIR)/etc/adjtime
+endef
+endif
+
+# No need to extract for target, we're using the host-installed files
+TZDATA_EXTRACT_CMDS =
 
 define TZDATA_INSTALL_TARGET_CMDS
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/share/zoneinfo
