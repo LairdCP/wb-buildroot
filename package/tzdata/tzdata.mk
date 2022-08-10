@@ -59,6 +59,7 @@ define TZDATA_INSTALL_TARGET_CMDS
 	    ln -sfn "$${zone}" "$${zone##*/}"; \
 	done
 	$(TZDATA_SET_LOCALTIME)
+	$(TZDATA_FIX_LOCALTIME)
 endef
 
 define HOST_TZDATA_BUILD_CMDS
