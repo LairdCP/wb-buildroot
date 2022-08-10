@@ -110,6 +110,11 @@ rm -rf unsecured_images/
 [ -f sw-description ] && have_swdesc=1 || have_swdesc=0
 [ -f sw-description-full ] && have_swdescf=1 || have_swdescf=0
 
+# Backup incoming sw-description* and restore prior to exit
+# Caller needs unprocessed versions for further use
+[ ${have_swdesc} -eq 1 ] && cp sw-description sw-description-saved
+[ ${have_swdescf} -eq 1 ] && cp sw-description-full sw-description-full-saved
+
 # Embed component hashes in SWU scripts
 for i in ${SWU_FILES/sw-description /}
 do
@@ -149,16 +154,16 @@ fi
 
 # Generate full SWU (with bootloaders)
 if [ ${have_swdescf} -ne 0 ]; then
-	[ ${have_swdesc} -eq 0 ] || cp -f sw-description sw-description.backup
-	ln -rsf sw-description-full sw-description
+	mv -f sw-description-full sw-description
 
 	${openssl} cms -sign -in sw-description -out sw-description.sig \
 		-signer keys/dev.crt -inkey keys/dev.key -outform DER -nosmimecap -binary
 	echo -e "${SWU_FILE_STR}" | cpio -ovL -H crc > ${BR2_LRD_PRODUCT}-full.swu
 	rm -f sw-description.sig
-
-	[ ${have_swdesc} -eq 0 ] || mv -f sw-description.backup sw-description
 fi
+
+[ ${have_swdesc} -eq 1 ] && mv -f sw-description-saved sw-description
+[ ${have_swdescf} -eq 1 ] && mv -f sw-description-full-saved sw-description-full
 
 cd -
 
