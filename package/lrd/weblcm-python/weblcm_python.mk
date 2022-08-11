@@ -32,11 +32,6 @@ ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_UNAUTHENTICATED),y)
 else
 	WEBLCM_PYTHON_ENABLE_UNAUTHENTICATED = False
 endif
-ifeq ($(BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT),y)
-	ROOT_DATA_DIR_IS_AVAILABLE = True
-else
-	ROOT_DATA_DIR_IS_AVAILABLE = False
-endif
 ifeq ($(BR2_PACKAGE_FIREWALLD),y)
 	WEBLCM_PYTHON_EXTRA_PACKAGES += weblcm/firewalld
 endif
@@ -59,7 +54,7 @@ define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 
 	cp -fr $(@D)/plugins $(TARGET_DIR)/var/www/
 
-	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/scripts -m 755 $(@D)/*.sh
+	$(INSTALL) -D -t $(TARGET_DIR)/usr/bin/weblcm-python/scripts -m 755 $(@D)/*.sh
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python -m 644 $(@D)/*.ini
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/server.key
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/server.crt
@@ -85,9 +80,6 @@ define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 	$(SED) '/\[weblcm\]/a awm_cfg:$(BR2_PACKAGE_ADAPTIVE_WW_BINARIES_CFG_FILE)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 	$(SED) '/^enable_allow_unauthenticated_reboot_reset/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 	$(SED) '/\[weblcm\]/a enable_allow_unauthenticated_reboot_reset:$(WEBLCM_PYTHON_ENABLE_UNAUTHENTICATED)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
-
-	$(SED) '/^root_data_is_available/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
-	$(SED) '/\[weblcm\]/a root_data_is_available: $(ROOT_DATA_DIR_IS_AVAILABLE)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 
 	$(SED) '/^server.socket_host/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 	$(SED) '/\[global\]/a server.socket_host: $(BR2_PACKAGE_WEBLCM_PYTHON_BIND_IP)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini

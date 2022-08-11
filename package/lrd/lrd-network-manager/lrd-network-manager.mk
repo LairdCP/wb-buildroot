@@ -111,11 +111,9 @@ else
 LRD_NETWORK_MANAGER_CONF_OPTS += --disable-introspection
 endif
 
-ifeq ($(BR2_PACKAGE_LRD_FACTORY_RESET_TOOLKIT),y)
 define LRD_NETWORK_MANAGER_UPDATE_SERVICE
-	$(SED) '/^ExecStart=/ s#.*#ExecStart=/usr/sbin/NetworkManager --no-daemon --config-dir=/data/secret/NetworkManager/conf.d --config=/data/secret/NetworkManager/NetworkManager.conf --state-file=/data/secret/NetworkManager/NetworkManager.state#g' $(TARGET_DIR)/usr/lib/systemd/system/NetworkManager.service
+	$(SED) '/^ExecStart=/ s#.*#ExecStart=/usr/sbin/NetworkManager --no-daemon --state-file=/etc/NetworkManager/NetworkManager.state#g' $(TARGET_DIR)/usr/lib/systemd/system/NetworkManager.service
 endef
-endif
 
 define LRD_NETWORK_MANAGER_INSTALL_INIT_SYSV
 	$(INSTALL) -m 0755 -D $(LRD_NETWORK_MANAGER_PKGDIR)/S45network-manager $(TARGET_DIR)/etc/init.d/S45network-manager
