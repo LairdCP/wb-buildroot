@@ -1,23 +1,13 @@
 #!/bin/sh
 
-NM_CONF_DIR=/etc/NetworkManager
-NM_CONF_FILE=${NM_CONF_DIR}/NetworkManager.conf
+FACTORY_SETTING_SOURCE=/usr/share/factory/etc
+FACTORY_SETTING_DEFAULT_ZONE=/usr/share/zoneinfo
 
-WEBLCM_CONF_DIR=/etc/weblcm-python
-WEBLCM_CONF_FILE=${WEBLCM_CONF_DIR}/weblcm-python.ini
+USER_SETTINGS_TARGET=/data/secret
 
-FIREWALLD_CONF_DIR=/etc/firewalld
-FIREWALLD_CONF_FILE=${FIREWALLD_CONF_DIR}/firewalld.conf
-
-FACTORY_SETTING_TARGET=/data/secret
-NM_CONF_FILE_TARGET=${FACTORY_SETTING_TARGET}/NetworkManager/NetworkManager.conf
-WEBLCM_CONF_FILE_TARGET=${FACTORY_SETTING_TARGET}/weblcm-python/weblcm-settings.ini
-FIREWALLD_CONF_FILE_TARGET=${FACTORY_SETTING_TARGET}/firewalld/firewalld.conf
-
-FACTORY_SETTING_DEFAULT_ZONE=/usr/share/zoneinfo/Etc/UTC
-FACTORY_SETTING_LOCALTIME=/data/secret/localtime
-FACTORY_SETTING_TIMEZONE=/data/secret/timezone
-FACTORY_SETTING_ADJTIME_FILE=/data/secret/adjtime
+FACTORY_SETTING_LOCALTIME=/etc/localtime
+FACTORY_SETTING_TIMEZONE=/etc/timezone
+FACTORY_SETTING_ADJTIME_FILE=/etc/adjtime
 
 BLUETOOTH_STATE_DIR=/data/secret/lib/bluetooth
 
@@ -28,26 +18,19 @@ exit_on_error() {
 
 do_check_and_reset() {
 
-	mkdir -p ${FACTORY_SETTING_TARGET} || exit_on_error "Creating target dir.. Failed"
+    mkdir -p ${USER_SETTINGS_TARGET} || exit_on_error "Creating target dir.. Failed"
 
-	if [ ! -f "${NM_CONF_FILE_TARGET}" ] && [ -f "${NM_CONF_FILE}" ]; then
-		cp -fa ${NM_CONF_DIR} ${FACTORY_SETTING_TARGET}/ || exit_on_error "Copying NetworkManager data.. Failed"
-		mkdir -p ${FACTORY_SETTING_TARGET}/NetworkManager/certs #Save certificates and pac files
-	fi
+    cp -r ${FACTORY_SETTING_SOURCE}/* ${USER_SETTINGS_TARGET} || exit_on_error "Copying factory default files failed"
 
-	if [ ! -f "${WEBLCM_CONF_FILE_TARGET}" ] && [ -f "${WEBLCM_CONF_FILE}" ]; then
-		cp -fa ${WEBLCM_CONF_DIR} ${FACTORY_SETTING_TARGET}/ || exit_on_error "Copying weblcm-python data.. Failed"
-	fi
-
-	if [ ! -f "${FIREWALLD_CONF_FILE_TARGET}" ] && [ -f "${FIREWALLD_CONF_FILE}" ]; then
-		cp -fa ${FIREWALLD_CONF_DIR} ${FACTORY_SETTING_TARGET}/ || exit_on_error "Copying firewalld data.. Failed"
-	fi
-
-	if [ ! -f "${FACTORY_SETTING_LOCALTIME}" ]; then
-		ln -sf ${FACTORY_SETTING_DEFAULT_ZONE} ${FACTORY_SETTING_LOCALTIME}
+    # timezone file should be included in backup but we create a default if it
+    # is not present. Localtime requires a valid timezone.
+    if [ ! -f "${USER_SETTINGS_TARGET}/timezone" ]; then
 		echo "Etc/UTC" > "${FACTORY_SETTING_TIMEZONE}"
-		touch "${FACTORY_SETTING_ADJTIME_FILE}"
-	fi
+    fi
+
+    ln -sf   ${FACTORY_SETTING_DEFAULT_ZONE}/$(cat ${FACTORY_SETTING_TIMEZONE}) $(readlink ${FACTORY_SETTING_LOCALTIME}) || exit_on_error "Unable to create localtime link"
+
+	touch "${FACTORY_SETTING_ADJTIME_FILE}" || exit_on_error "unable to create adjtime file"
 
 	if [ ! -d "${BLUETOOTH_STATE_DIR}" ]; then
 		mkdir -p ${BLUETOOTH_STATE_DIR}
@@ -55,9 +38,9 @@ do_check_and_reset() {
 }
 
 do_delete() {
-	#Delete all user data, but not the /data/secret dir as it is encrypted.
+	# Delete all user data, but not the /data/secret dir as it is encrypted.
 	find /data -maxdepth 1 -mindepth 1 ! -name secret -exec rm -fr {} \;
-	rm -fr ${FACTORY_SETTING_TARGET}/*
+	rm -fr ${USER_SETTINGS_TARGET}/*
 }
 
 case $1 in
