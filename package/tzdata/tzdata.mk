@@ -34,7 +34,7 @@ define TZDATA_SET_LOCALTIME
 		exit 1; \
 	fi
 	ln -sf ../usr/share/zoneinfo/$(TZDATA_LOCALTIME) $(TARGET_DIR)/etc/localtime
-	rm $(TARGET_DIR)/etc/timezone > /dev/null
+	rm -f $(TARGET_DIR)/etc/timezone
 	echo "$(TZDATA_LOCALTIME)" >$(TARGET_DIR)/etc/timezone
 endef
 endif
