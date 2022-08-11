@@ -38,15 +38,6 @@ define TZDATA_SET_LOCALTIME
 endef
 endif
 
-# Only use /data if Encrypted-toolkit is in use
-ifeq ($(BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT),y)
-define TZDATA_FIX_LOCALTIME
-	ln -sf /data/secret/localtime $(TARGET_DIR)/etc/localtime
-	ln -sf /data/secret/timezone $(TARGET_DIR)/etc/timezone
-	ln -sf /data/secret/adjfile $(TARGET_DIR)/etc/adjtime
-endef
-endif
-
 # No need to extract for target, we're using the host-installed files
 TZDATA_EXTRACT_CMDS =
 
@@ -58,7 +49,6 @@ define TZDATA_INSTALL_TARGET_CMDS
 	    ln -sfn "$${zone}" "$${zone##*/}"; \
 	done
 	$(TZDATA_SET_LOCALTIME)
-	$(TZDATA_FIX_LOCALTIME)
 endef
 
 define HOST_TZDATA_BUILD_CMDS
