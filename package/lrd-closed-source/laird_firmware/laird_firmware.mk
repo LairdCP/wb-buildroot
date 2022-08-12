@@ -206,6 +206,8 @@ ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_CYW55571_PCIE),y)
 define LAIRD_FW_CYW55571_PCIE_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(CYPRESS_DIR)
 	mkdir -p -m 0755 $(BRCM_DIR)
+	cp -rad $(@D)/cypress/cyfmac55560-lwb6x_*.clm_blob $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6x_*.clm_blob cyfmac55560-pcie.clm_blob
 	cp -rad $(@D)/cypress/cyfmac55560-pcie-prod_*.trxse $(CYPRESS_DIR)
 	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-pcie-prod_*.trxse cyfmac55560-pcie.trxse
 	cp -rad $(@D)/cypress/cyfmac55560-lwb6-pcie.txt $(CYPRESS_DIR)
@@ -219,6 +221,8 @@ ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_CYW55571_SDIO),y)
 define LAIRD_FW_CYW55571_SDIO_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(CYPRESS_DIR)
 	mkdir -p -m 0755 $(BRCM_DIR)
+	cp -rad $(@D)/cypress/cyfmac55560-lwb6x_*.clm_blob $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6x_*.clm_blob cyfmac55560-sdio.clm_blob
 	cp -rad $(@D)/cypress/cyfmac55560-sdio-prod_*.trxse $(CYPRESS_DIR)
 	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-sdio-prod_*.trxse cyfmac55560-sdio.trxse
 	cp -rad $(@D)/cypress/cyfmac55560-lwb6-sdio.txt $(CYPRESS_DIR)
@@ -232,6 +236,8 @@ ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_CYW55573_PCIE),y)
 define LAIRD_FW_CYW55573_PCIE_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(CYPRESS_DIR)
 	mkdir -p -m 0755 $(BRCM_DIR)
+	cp -rad $(@D)/cypress/cyfmac55560-lwb6x_*.clm_blob $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6x_*.clm_blob cyfmac55560-pcie.clm_blob
 	cp -rad $(@D)/cypress/cyfmac55560-pcie-prod_*.trxse $(CYPRESS_DIR)
 	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-pcie-prod_*.trxse cyfmac55560-pcie.trxse
 	cp -rad $(@D)/cypress/cyfmac55560-lwb6plus-pcie.txt $(CYPRESS_DIR)
@@ -245,6 +251,8 @@ ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_CYW55573_SDIO),y)
 define LAIRD_FW_CYW55573_SDIO_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(CYPRESS_DIR)
 	mkdir -p -m 0755 $(BRCM_DIR)
+	cp -rad $(@D)/cypress/cyfmac55560-lwb6x_*.clm_blob $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6x_*.clm_blob cyfmac55560-sdio.clm_blob
 	cp -rad $(@D)/cypress/cyfmac55560-sdio-prod_*.trxse $(CYPRESS_DIR)
 	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-sdio-prod_*.trxse cyfmac55560-sdio.trxse
 	cp -rad $(@D)/cypress/cyfmac55560-lwb6plus-sdio.txt $(CYPRESS_DIR)
