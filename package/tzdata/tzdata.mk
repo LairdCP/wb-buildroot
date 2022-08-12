@@ -48,9 +48,6 @@ define TZDATA_FIX_LOCALTIME
 endef
 endif
 
-# No need to extract for target, we're using the host-installed files
-TZDATA_EXTRACT_CMDS =
-
 define TZDATA_INSTALL_TARGET_CMDS
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/share/zoneinfo
 	cp -a $(HOST_DIR)/share/zoneinfo/* $(TARGET_DIR)/usr/share/zoneinfo
