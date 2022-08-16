@@ -1,4 +1,0 @@
-config BR2_PACKAGE_LRD_FACTORY_RESET_TOOLKIT
-	bool "lrd factory reset toolkit"
-	help
-	Toolkit to check and do factory reset
