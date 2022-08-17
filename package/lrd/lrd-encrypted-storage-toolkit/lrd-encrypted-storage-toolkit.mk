@@ -11,9 +11,6 @@ endef
 BACKUP_DIR = $(TARGET_DIR)/usr/share/factory/etc
 # setup files for factory reset and /data usage
 define LRD_ENCRYPTED_STORAGE_TOOLKIT_ROOTFS_PRE_CMD_HOOK
-	rm -rf $(BACKUP_DIR)
-	mkdir -p $(BACKUP_DIR)
-
 	for BACKUP_TARGET in "NetworkManager" "firewalld" "weblcm-python" "modem"; do \
 		if [ -d $(TARGET_DIR)/etc/"$${BACKUP_TARGET}" ];then \
 			cp -r $(TARGET_DIR)/etc/$${BACKUP_TARGET}/ $(BACKUP_DIR)/$${BACKUP_TARGET}/; \
