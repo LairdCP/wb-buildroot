@@ -9,9 +9,14 @@ define LRD_ENCRYPTED_STORAGE_TOOLKIT_INSTALL_TARGET_CMDS
 endef
 
 BACKUP_DIR = $(TARGET_DIR)/usr/share/factory/etc
+NM_SYS_CONS = NetworkManager/system-connections
 # setup files for factory reset and /data usage
 define LRD_ENCRYPTED_STORAGE_TOOLKIT_ROOTFS_PRE_CMD_HOOK
-	for BACKUP_TARGET in "NetworkManager" "firewalld" "weblcm-python" "modem"; do \
+	mkdir -p $(BACKUP_DIR)/$(NM_SYS_CONS)
+	cp -r  $(TARGET_DIR)/etc/$(NM_SYS_CONS)/* $(BACKUP_DIR)/$(NM_SYS_CONS)/.;
+	rm -rf $(TARGET_DIR)/etc/$(NM_SYS_CONS);
+	ln -sf /data/secret/$(NM_SYS_CONS) $(TARGET_DIR)/etc/$(NM_SYS_CONS)
+	for BACKUP_TARGET in "firewalld" "weblcm-python" "modem"; do \
 		if [ -d $(TARGET_DIR)/etc/"$${BACKUP_TARGET}" ];then \
 			cp -r $(TARGET_DIR)/etc/$${BACKUP_TARGET}/ $(BACKUP_DIR)/$${BACKUP_TARGET}/; \
 			rm -rf $(TARGET_DIR)/etc/$${BACKUP_TARGET}; \
