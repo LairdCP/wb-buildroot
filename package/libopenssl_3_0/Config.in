@@ -2,7 +2,7 @@ if BR2_PACKAGE_LIBOPENSSL_3_0
 
 # 4xx PowerPC cores seem to have trouble with openssl's ASM
 # optimizations
-config BR2_PACKAGE_LIBOPENSSL_3_0_TARGET_ARCH_LINUX_PPC
+config BR2_PACKAGE_LIBOPENSSL_TARGET_ARCH_LINUX_PPC
 	bool
 	default y if BR2_powerpc
 	depends on !BR2_powerpc_401
@@ -12,12 +12,12 @@ config BR2_PACKAGE_LIBOPENSSL_3_0_TARGET_ARCH_LINUX_PPC
 	depends on !BR2_powerpc_440
 	depends on !BR2_powerpc_440fp
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_TARGET_ARCH
+config BR2_PACKAGE_LIBOPENSSL_TARGET_ARCH
 	string
 	# Doesn't work for thumb-only (Cortex-M?)
 	default "linux-armv4"			if BR2_ARM_CPU_HAS_ARM
 	default "linux-aarch64"			if BR2_aarch64
-	default "linux-ppc"			if BR2_PACKAGE_LIBOPENSSL_3_0_TARGET_ARCH_LINUX_PPC
+	default "linux-ppc"			if BR2_PACKAGE_LIBOPENSSL_TARGET_ARCH_LINUX_PPC
 	default "linux-ppc64"			if BR2_powerpc64
 	default "linux-ppc64le"			if BR2_powerpc64le
 	default "linux-x86"			if BR2_i386
@@ -35,103 +35,103 @@ config BR2_PACKAGE_LIBOPENSSL_BIN
 	  to the target file system. This is a command line tool for
 	  doing various cryptographic stuff.
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENGINES
+config BR2_PACKAGE_LIBOPENSSL_ENGINES
 	bool "openssl additional engines"
 	help
 	  Install additional encryption engine libraries.
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_CHACHA
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_CHACHA
 	bool "enable CHACHA"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_RC5
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_RC5
 	bool "enable RC5"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_RC2
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_RC2
 	bool "enable RC2"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_RC4
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_RC4
 	bool "enable RC4"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_MD2
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_MD2
 	bool "enable MD2"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_MD4
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_MD4
 	bool "enable MD4"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_MDC2
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_MDC2
 	bool "enable MDC2"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_BLAKE2
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_BLAKE2
 	bool "enable BLAKE2"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_IDEA
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_IDEA
 	bool "enable IDEA"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_SEED
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_SEED
 	bool "enable SEED"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_DES
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_DES
 	bool "enable DES"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_RMD160
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_RMD160
 	bool "enable RMD160"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_WHIRLPOOL
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_WHIRLPOOL
 	bool "enable WHIRLPOOL"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_BLOWFISH
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_BLOWFISH
 	bool "enable BLOWFISH"
 	default n
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_SSL
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_SSL
 	bool "enable SSL"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_SSL2
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_SSL2
 	bool "enable SSL2"
 	default n
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_SSL3
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_SSL3
 	bool "enable SSL3"
 	default n
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_WEAK_SSL
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_WEAK_SSL
 	bool "enable WEAK_SSL"
 	default n
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_PSK
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_PSK
 	bool "enable mode PSK"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_CAST
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_CAST
 	bool "enable mode CAST"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_UNSECURE
+config BR2_PACKAGE_LIBOPENSSL_UNSECURE
 	bool "enable unit test, debug, backtrace"
 	default n
 	help
 	  Enable unit-test crypto-mdebug-backtrace
 	  crypto-mdebug autoerrinit mode.
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_DYNAMIC_ENGINE
+config BR2_PACKAGE_LIBOPENSSL_DYNAMIC_ENGINE
 	bool "enable dynamic engine"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_3_0_ENABLE_COMP
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_COMP
 	bool "enable compression"
 	default n
 
