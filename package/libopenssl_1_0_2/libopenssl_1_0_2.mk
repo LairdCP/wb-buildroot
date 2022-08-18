@@ -118,7 +118,7 @@ define LIBOPENSSL_1_0_2_CONFIGURE_CMDS
 		$(TARGET_CONFIGURE_OPTS) \
 		$(LIBOPENSSL_1_0_2_FIPS_OPT) \
 		./Configure \
-			$(LIBOPENSSL_1_0_2_DEBUG)$(LIBOPENSSL_1_0_2_TARGET_ARCH) \
+			$(LIBOPENSSL_1_0_2_DEBUG)$(LIBOPENSSL_TARGET_ARCH) \
 			--prefix=/usr \
 			--openssldir=/etc/ssl \
 			--libdir=/lib \

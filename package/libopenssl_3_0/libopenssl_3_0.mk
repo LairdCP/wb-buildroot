@@ -82,7 +82,7 @@ define LIBOPENSSL_3_0_CONFIGURE_CMDS
 		$(TARGET_CONFIGURE_ARGS) \
 		$(TARGET_CONFIGURE_OPTS) \
 		./Configure \
-			$(LIBOPENSSL_3_0_TARGET_ARCH) \
+			$(LIBOPENSSL_TARGET_ARCH) \
 			--prefix=/usr \
 			--openssldir=/etc/ssl \
 			$(if $(BR2_TOOLCHAIN_HAS_LIBATOMIC),-latomic) \
