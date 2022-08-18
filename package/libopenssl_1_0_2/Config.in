@@ -2,7 +2,7 @@ if BR2_PACKAGE_LIBOPENSSL_1_0_2
 
 # 4xx PowerPC cores seem to have trouble with openssl's ASM
 # optimizations
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_TARGET_ARCH_LINUX_PPC
+config BR2_PACKAGE_LIBOPENSSL_TARGET_ARCH_LINUX_PPC
 	bool
 	default y if BR2_powerpc
 	depends on !BR2_powerpc_401
@@ -12,7 +12,7 @@ config BR2_PACKAGE_LIBOPENSSL_1_0_2_TARGET_ARCH_LINUX_PPC
 	depends on !BR2_powerpc_440
 	depends on !BR2_powerpc_440fp
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_TARGET_ARCH
+config BR2_PACKAGE_LIBOPENSSL_TARGET_ARCH
 	string
 	# Doesn't work for thumb-only (Cortex-M?)
 	default "linux-armv4"			if BR2_ARM_CPU_HAS_ARM
@@ -35,71 +35,79 @@ config BR2_PACKAGE_LIBOPENSSL_BIN
 	  to the target file system. This is a command line tool for
 	  doing various cryptographic stuff.
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENGINES
+config BR2_PACKAGE_LIBOPENSSL_ENGINES
 	bool "openssl additional engines"
 	help
 	  Install additional encryption engine libraries.
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_RC5
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_RC5
 	bool "enable RC5"
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_RC2
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_RC2
 	bool "enable RC2"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_RC4
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_RC4
 	bool "enable RC4"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_MD2
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_MD2
 	bool "enable MD2"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_MD4
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_MD4
 	bool "enable MD4"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_MDC2
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_MDC2
 	bool "enable MDC2"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_IDEA
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_IDEA
 	bool "enable IDEA"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_SEED
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_SEED
 	bool "enable SEED"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_DES
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_DES
 	bool "enable DES"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_WHIRLPOOL
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_RMD160
+	bool "enable RMD160"
+	default y
+
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_WHIRLPOOL
 	bool "enable WHIRLPOOL"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_BLOWFISH
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_BLOWFISH
 	bool "enable BLOWFISH"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_SSL2
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_SSL
+	bool "enable SSL"
+	default y
+
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_SSL2
 	bool "enable SSL2"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_SSL3
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_SSL3
 	bool "enable SSL3"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_WEAK_SSL
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_WEAK_SSL
 	bool "enable WEAK_SSL"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_PSK
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_PSK
 	bool "enable mode PSK"
 	default y
 
-config BR2_PACKAGE_LIBOPENSSL_1_0_2_ENABLE_COMP
+config BR2_PACKAGE_LIBOPENSSL_ENABLE_COMP
 	bool "enable compression"
 	default y
 
