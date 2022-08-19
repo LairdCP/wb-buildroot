@@ -134,4 +134,12 @@ define LRD_NETWORK_MANAGER_INSTALL_INIT_SYSTEMD
 	$(LRD_NETWORK_MANAGER_UPDATE_SERVICE)
 endef
 
+# create directories that may not be populated on certain builds
+define LRD_NETWORK_MANAGER_CREATE_EMPTY_DIRS
+	mkdir -p $(TARGET_DIR)/etc/NetworkManager/certs
+	mkdir -p $(TARGET_DIR)/etc/NetworkManager/system-connections
+endef
+
+LRD_NETWORK_MANAGER_TARGET_FINALIZE_HOOKS += LRD_NETWORK_MANAGER_CREATE_EMPTY_DIRS
+
 $(eval $(autotools-package))
