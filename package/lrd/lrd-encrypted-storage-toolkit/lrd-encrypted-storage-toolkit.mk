@@ -10,21 +10,23 @@ endef
 
 # setup files for factory reset and /data usage
 BACKUP_DIR = $(TARGET_DIR)/usr/share/factory/etc
-NM_SYS_CONS = NetworkManager/system-connections
 
 define LRD_ENCRYPTED_STORAGE_TOOLKIT_ROOTFS_PRE_CMD_HOOK
-	mkdir -p $(BACKUP_DIR)/$(NM_SYS_CONS)
-	if [ -d $(TARGET_DIR)/etc/$(NM_SYS_CONS) ]; then \
-		cp -r  $(TARGET_DIR)/etc/$(NM_SYS_CONS) $(BACKUP_DIR)/NetworkManager/; \
-	fi
-	rm -rf $(TARGET_DIR)/etc/$(NM_SYS_CONS);
-	ln -sf /data/secret/$(NM_SYS_CONS) $(TARGET_DIR)/etc/$(NM_SYS_CONS)
 	for BACKUP_TARGET in "firewalld" "weblcm-python" "modem"; do \
 		if [ -d $(TARGET_DIR)/etc/"$${BACKUP_TARGET}" ];then \
-			cp -r $(TARGET_DIR)/etc/$${BACKUP_TARGET}/ $(BACKUP_DIR)/$${BACKUP_TARGET}/; \
+			cp -r $(TARGET_DIR)/etc/$${BACKUP_TARGET}/ $(BACKUP_DIR); \
 			rm -rf $(TARGET_DIR)/etc/$${BACKUP_TARGET}; \
 			ln -sf /data/secret/$${BACKUP_TARGET} $(TARGET_DIR)/etc/$${BACKUP_TARGET}; \
 		fi; \
+	done
+	set -x
+	for SM_SUB_DIR in "certs" "system-connections"; do \
+		mkdir -p $(BACKUP_DIR)/NetworkManager/$${SM_SUB_DIR}; \
+		if [ -d $(TARGET_DIR)/etc/NetworkManager/$${SM_SUB_DIR} ]; then \
+			cp -r  $(TARGET_DIR)/etc/NetworkManager/$${SM_SUB_DIR} $(BACKUP_DIR)/NetworkManager/; \
+		fi; \
+		rm -rf $(TARGET_DIR)/etc/NetworkManager/$${SM_SUB_DIR}; \
+		ln -sf /data/secret/NetworkManager/$${SM_SUB_DIR} $(TARGET_DIR)/etc/NetworkManager; \
 	done
 	cp $(TARGET_DIR)/etc/timezone $(BACKUP_DIR)/timezone
 	ln -sf /data/secret/timezone $(TARGET_DIR)/etc/timezone
