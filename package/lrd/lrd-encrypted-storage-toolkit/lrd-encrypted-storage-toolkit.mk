@@ -8,12 +8,15 @@ define LRD_ENCRYPTED_STORAGE_TOOLKIT_INSTALL_TARGET_CMDS
 	rsync -rlpDWK package/lrd/lrd-encrypted-storage-toolkit/rootfs/ $(TARGET_DIR)/
 endef
 
+# setup files for factory reset and /data usage
 BACKUP_DIR = $(TARGET_DIR)/usr/share/factory/etc
 NM_SYS_CONS = NetworkManager/system-connections
-# setup files for factory reset and /data usage
+
 define LRD_ENCRYPTED_STORAGE_TOOLKIT_ROOTFS_PRE_CMD_HOOK
 	mkdir -p $(BACKUP_DIR)/$(NM_SYS_CONS)
-	cp -r  $(TARGET_DIR)/etc/$(NM_SYS_CONS)/* $(BACKUP_DIR)/$(NM_SYS_CONS)/.;
+	if [ -d $(TARGET_DIR)/etc/$(NM_SYS_CONS) ]; then \
+		cp -r  $(TARGET_DIR)/etc/$(NM_SYS_CONS) $(BACKUP_DIR)/NetworkManager/; \
+	fi
 	rm -rf $(TARGET_DIR)/etc/$(NM_SYS_CONS);
 	ln -sf /data/secret/$(NM_SYS_CONS) $(TARGET_DIR)/etc/$(NM_SYS_CONS)
 	for BACKUP_TARGET in "firewalld" "weblcm-python" "modem"; do \
