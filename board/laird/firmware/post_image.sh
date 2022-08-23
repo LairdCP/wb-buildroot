@@ -238,7 +238,7 @@ create_cyw5557x_firmware_archive()
 		lib/firmware/cypress/cyfmac55560-${2}.trxse \
 		lib/firmware/cypress/cyfmac55560-${2}-prod*.trxse \
 		lib/firmware/cypress/cyfmac55560-${2}.txt \
-		lib/firmware/cypress/cyfmac55560-${FW_PROD}-${2}.txt \
+		lib/firmware/cypress/cyfmac55560-${FW_PROD}.txt \
 		lib/firmware/cypress/cyfmac55560-lwb6x*.clm_blob \
 		lib/firmware/cypress/cyfmac55560-${2}.clm_blob \
 		-C ${BOARD_DIR} \
