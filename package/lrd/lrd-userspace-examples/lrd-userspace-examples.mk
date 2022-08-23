@@ -26,12 +26,7 @@ LRD_USERSPACE_EXAMPLES_DEPENDENCIES += libnl
 endif
 
 ifeq ($(BR2_PACKAGE_LRD_USERSPACE_CMUX),y)
-LRD_USERSPACE_EXAMPLES_CONF_OPTS += --enable-cmux
-
-define LRD_USERSPACE_EXAMPLES_INSTALL_INIT_SYSTEMD
-	$(INSTALL) -D -m 644 $(LRD_USERSPACE_EXAMPLES_PKGDIR)/cmux.service \
-		$(TARGET_DIR)/usr/lib/systemd/system/cmux.service
-endef
+	LRD_USERSPACE_EXAMPLES_CONF_OPTS += --enable-cmux
 endif
 
 $(eval $(autotools-package))
