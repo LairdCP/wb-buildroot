@@ -38,6 +38,7 @@
 +target_link_libraries(ubootenv)
  target_link_libraries(fw_printenv ubootenv)
  target_link_libraries(fw_setenv ubootenv)
+ 
 --- a/src/libubootenv.pc.in	2021-11-02 11:11:40.000000000 
 +++ b/src/libubootenv.pc.in	2022-08-26 12:36:07.000000000 
 @@ -10,5 +10,5 @@
