@@ -1,0 +1,11 @@
+--- a/Makefile	2022-08-26 10:43:23.000000000 
++++ b/Makefile	2022-08-26 10:43:40.000000000 
+@@ -601,7 +601,7 @@
+ export PYTHON_LDFLAGS
+ export PYGTK_CFLAGS
+ 
+-ctracecmd.so: force $(LIBTRACECMD_STATIC)
++ctracecmd.so: force $(LIBTRACEEVENT_STATIC_BUILD) $(LIBTRACECMD_STATIC) $(LIBTRACEFS_STATIC_BUILD)
+ 	$(Q)$(MAKE) -C $(src)/python $@
+ 
+ PHONY += python
