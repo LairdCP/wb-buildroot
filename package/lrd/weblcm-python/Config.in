@@ -24,12 +24,6 @@ config BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_PASSWORD
 	string "default root user password"
 	default "summit"
 
-config BR2_PACKAGE_WEBLCM_PYTHON_SWUPDATE_KEY_LOCATION
-	string "swupdate key location"
-	default "/data/secret/swupdate/dev.crt"
-	help
-	  Location to key used to verify signed swupdate images.
-
 config BR2_PACKAGE_WEBLCM_PYTHON_MANAGED_SOFTWARE_DEVICES
 	string "List of supported software devices"
 	default ""

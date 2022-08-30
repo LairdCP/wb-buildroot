@@ -156,6 +156,9 @@ if grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.c
 		mkdir -p ${TARGET_DIR}/etc/ssl/misc
 		cp -f ${ENCRYPTED_TOOLKIT_DIR}/dev.pem ${TARGET_DIR}/etc/ssl/misc/dev.pem
 	fi
+
+	mkdir -p ${TARGET_DIR}/etc/swupdate/conf.d
+	echo 'SWUPDATE_ARGS=${SWUPDATE_ARGS} -k /etc/ssl/misc/dev.pem' > ${TARGET_DIR}/etc/swupdate/conf.d/99-signing.conf
 fi
 
 if ${SD} ; then

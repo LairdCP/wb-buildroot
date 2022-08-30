@@ -8,7 +8,6 @@ WEBLCM_PYTHON_SITE_METHOD = local
 WEBLCM_PYTHON_SETUP_TYPE = setuptools
 WEBLCM_PYTHON_DEPENDENCIES = lrd-swupdate-client
 
-WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_SWUPDATE_KEY_LOCATION))
 WEBLCM_PYTHON_DEFAULT_USERNAME = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_USERNAME))
 WEBLCM_PYTHON_DEFAULT_PASSWORD = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_PASSWORD))
 
@@ -59,12 +58,6 @@ define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/server.key
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/server.crt
 	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/ca.crt
-
-	cat /dev/null > $(TARGET_DIR)/etc/weblcm-python/swcert.conf
-	if grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf; then \
-	   $(INSTALL) -d $(TARGET_DIR)/etc/swupdate/conf.d; \
-	   echo 'SWUPDATE_ARGS=${SWUPDATE_ARGS} -k $(WEBLCM_PYTHON_SET_KEY_LOCATION_VALUE) --cert-purpose codeSigning' > $(TARGET_DIR)/etc/swupdate/conf.d/99-weblcm-python.conf; \
-	fi
 
 	$(SED) '/^default_/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 	$(SED) '/\[weblcm\]/a default_password: \"$(WEBLCM_PYTHON_DEFAULT_PASSWORD)\"' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
