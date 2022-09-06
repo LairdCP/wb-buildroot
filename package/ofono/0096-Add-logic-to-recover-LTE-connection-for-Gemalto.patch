@@ -1,0 +1,111 @@
+From cb3045715807e67b322cdb872ef0ca9870402186 Mon Sep 17 00:00:00 2001
+From: Don Ferencz <Donald.Ferencz@lairdconnect.com>
+Date: Fri, 2 Sep 2022 15:10:26 +0000
+Subject: [PATCH] Add logic to recover LTE connection for Gemalto
+
+Gemalto modems fail to re-register on LTE once de-registered
+(e.g., due to signal loss) since they apparently revert to 3G
+and then the registration is denied.  Recovery logic detects
+the de-register and restarts the operator selection logic
+which returns to LTE.
+---
+ drivers/atmodem/network-registration.c | 55 +++++++++++++++++++++++++-
+ drivers/atmodem/network-registration.h |  2 +
+ 2 files changed, 55 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/atmodem/network-registration.c b/drivers/atmodem/network-registration.c
+index c1309f61..980796c7 100644
+--- a/drivers/atmodem/network-registration.c
++++ b/drivers/atmodem/network-registration.c
+@@ -1573,6 +1573,37 @@ static void option_query_tech_cb(gboolean ok, GAtResult *result,
+ 			tq->status, tq->lac, tq->ci, tech);
+ }
+ 
++static void gemalto_cops_on_cb(gboolean ok, GAtResult *result,
++					gpointer user_data)
++{
++	struct ofono_netreg *netreg = user_data;
++	struct at_netreg_data *nd = ofono_netreg_get_data(netreg);
++
++	/*
++	 * We ignore the result, since AT+COPS=0 can report fail failure
++	 * if the registration times out, but is successful since the
++	 * operator selection has been reset and the modem should register
++	 * once LTE becomes available.
++	 */
++	 nd->recovering = FALSE;
++	 ofono_warn("Gemalto recovery complete (%d)", (int)ok);
++}
++
++static void gemalto_cops_off_cb(gboolean ok, GAtResult *result,
++					gpointer user_data)
++{
++	struct ofono_netreg *netreg = user_data;
++	struct at_netreg_data *nd = ofono_netreg_get_data(netreg);
++
++	if (ok) {
++		g_at_chat_send(nd->chat, "AT+COPS=0", none_prefix,
++					gemalto_cops_on_cb, netreg, NULL);
++	} else {
++		ofono_warn("Gemalto LTE recovery (cops on) failed!");
++		nd->recovering = FALSE;
++	}
++}
++
+ static void creg_notify(GAtResult *result, gpointer user_data)
+ {
+ 	struct ofono_netreg *netreg = user_data;
+@@ -1584,8 +1615,26 @@ static void creg_notify(GAtResult *result, gpointer user_data)
+ 				&lac, &ci, &tech, nd->vendor) == FALSE)
+ 		return;
+ 
+-	if (status != 1 && status != 5)
+-		goto notify;
++	if (status != 1 && status != 5) {
++		if (!nd->recovering && nd->vendor == OFONO_VENDOR_GEMALTO &&
++				(nd->prev_status == 1 || nd->prev_status == 5)) {
++			/*
++			 * Gemalto modem fails to re-register on LTE due to 3G
++			 * sunset: start recovery by forcing restart of
++			 * operator selection
++			 */
++			if (g_at_chat_send(nd->chat, "AT+COPS=2", none_prefix,
++						gemalto_cops_off_cb, netreg, NULL) <= 0) {
++				ofono_warn("Gemalto LTE recovery (cops off) failed!");
++			} else {
++				nd->recovering = TRUE;
++				ofono_warn("Perfoming Gemalto LTE recovery!");
++			}
++			nd->prev_status = status;
++			goto notify;
++		}
++	}
++	nd->prev_status = status;
+ 
+ 	tq = g_try_new0(struct tech_query, 1);
+ 	if (tq == NULL)
+@@ -2213,6 +2262,8 @@ static int at_netreg_probe(struct ofono_netreg *netreg, unsigned int vendor,
+ 	nd->time.year = -1;
+ 	nd->time.dst = 0;
+ 	nd->time.utcoff = 0;
++	nd->prev_status = 0;
++	nd->recovering = FALSE;
+ 	ofono_netreg_set_data(netreg, nd);
+ 
+ 	g_at_chat_send(nd->chat, "AT+CREG=?", creg_prefix,
+diff --git a/drivers/atmodem/network-registration.h b/drivers/atmodem/network-registration.h
+index 1ec1b724..8fe0e646 100644
+--- a/drivers/atmodem/network-registration.h
++++ b/drivers/atmodem/network-registration.h
+@@ -11,6 +11,8 @@ struct at_netreg_data {
+ 	struct ofono_network_time time;
+ 	guint nitz_timeout;
+ 	unsigned int vendor;
++	int prev_status;
++	gboolean recovering;
+ };
+ 
+ void at_registration_status(struct ofono_netreg *netreg,
+-- 
+2.17.1
+
