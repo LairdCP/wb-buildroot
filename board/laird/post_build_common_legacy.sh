@@ -134,8 +134,9 @@ gzip -c ${TARGET_DIR}/etc/network/interfaces >${TARGET_DIR}/etc/network/interfac
 # This may be overwritten by a proper release file.
 LOCRELSTR="${LAIRD_RELEASE_STRING}"
 if [ -z "${LOCRELSTR}" ] || [ "${LOCRELSTR}" == "0.0.0.0" ]; then
-	LOCRELSTR="Summit Linux development build 0.${BR2_LRD_BRANCH}.0.0 $(date +%Y%m%d)"
+	LOCRELSTR="Summit Linux development build 0.${BR2_LRD_BRANCH}.0.0 $(/usr/bin/date +%Y%m%d)"
 fi
+echo "${LOCRELSTR}" > "${TARGET_DIR}/etc/issue"
 
 [ -z "${VERSION}" ] && LOCVER="0.${BR2_LRD_BRANCH}.0.0" || LOCVER="${VERSION}"
 
@@ -147,8 +148,6 @@ echo -ne \
 "BUILD_ID=${LOCRELSTR##* }\n"\
 "PRETTY_NAME=\"${LOCRELSTR}\"\n"\
 >  "${TARGET_DIR}/usr/lib/os-release"
-
-ln -rsf ${TARGET_DIR}/usr/lib/os-release ${TARGET_DIR}/etc/os-release
 
 if grep -qF "BR2_LINUX_KERNEL_IMAGE_TARGET_CUSTOM=y" ${BR2_CONFIG}; then
 
