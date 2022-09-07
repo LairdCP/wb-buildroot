@@ -24,7 +24,7 @@ grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG} \
 # This may be overwritten by a proper release file.
 LOCRELSTR="${LAIRD_RELEASE_STRING}"
 if [ -z "${LOCRELSTR}" ] || [ "${LOCRELSTR}" = "0.0.0.0" ]; then
-	LOCRELSTR="Summit Linux development build 0.${BR2_LRD_BRANCH}.0.0 $(date +%Y%m%d)"
+	LOCRELSTR="Summit Linux development build 0.${BR2_LRD_BRANCH}.0.0 $(/usr/bin/date +%Y%m%d)"
 fi
 echo "${LOCRELSTR}" > "${TARGET_DIR}/etc/issue"
 
