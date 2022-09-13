@@ -1,17 +1,27 @@
+From f57b24dacb6ca89d9168d5d0218633d28827ebfa Mon Sep 17 00:00:00 2001
+From: Don Ferencz <Donald.Ferencz@lairdconnect.com>
+Date: Wed, 10 Aug 2022 17:15:07 +0000
+Subject: [PATCH 2/2] Add A GPS and CellLocate support
+
+---
+ include/ModemManager-enums.h             |   1 +
+ plugins/ublox/mm-broadband-modem-ublox.c | 753 ++++++++++++++++++++++-
+ 2 files changed, 753 insertions(+), 1 deletion(-)
+
 diff --git a/include/ModemManager-enums.h b/include/ModemManager-enums.h
-index bf068bdc..30a232c7 100644
+index 7f1be95a..329f1b05 100644
 --- a/include/ModemManager-enums.h
 +++ b/include/ModemManager-enums.h
-@@ -998,6 +998,7 @@ typedef enum { /*< underscore_name=mm_modem_location_source >*/
+@@ -1005,6 +1005,7 @@ typedef enum { /*< underscore_name=mm_modem_location_source >*/
  typedef enum { /*< underscore_name=mm_modem_location_assistance_data_type >*/
      MM_MODEM_LOCATION_ASSISTANCE_DATA_TYPE_NONE = 0,
      MM_MODEM_LOCATION_ASSISTANCE_DATA_TYPE_XTRA = 1 << 0,
 +    MM_MODEM_LOCATION_ASSISTANCE_DATA_TYPE_TOKEN = 1 << 1,
  } MMModemLocationAssistanceDataType;
-
+ 
  /**
 diff --git a/plugins/ublox/mm-broadband-modem-ublox.c b/plugins/ublox/mm-broadband-modem-ublox.c
-index 2fbf57e7..9fcf34cf 100644
+index b036f183..d1568bc8 100644
 --- a/plugins/ublox/mm-broadband-modem-ublox.c
 +++ b/plugins/ublox/mm-broadband-modem-ublox.c
 @@ -27,6 +27,7 @@
@@ -22,132 +32,52 @@ index 2fbf57e7..9fcf34cf 100644
  #include "mm-base-modem-at.h"
  #include "mm-broadband-bearer.h"
  #include "mm-broadband-modem-ublox.h"
-@@ -39,15 +40,18 @@ static void iface_modem_init (MMIfaceModem *iface);
- static void iface_modem_3gpp_init (MMIfaceModem3gpp *iface);
+@@ -38,12 +39,15 @@
+ static void iface_modem_init (MMIfaceModem *iface);
  static void iface_modem_voice_init (MMIfaceModemVoice *iface);
  static void iface_modem_signal_init (MMIfaceModemSignal *iface);
 +static void iface_modem_location_init (MMIfaceModemLocation *iface);
-
+ 
  static MMIfaceModemVoice *iface_modem_voice_parent;
 +static MMIfaceModemLocation *iface_modem_location_parent;
-
+ 
  G_DEFINE_TYPE_EXTENDED (MMBroadbandModemUblox, mm_broadband_modem_ublox, MM_TYPE_BROADBAND_MODEM, 0,
                          G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM, iface_modem_init)
-                         G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM_3GPP, iface_modem_3gpp_init)
                          G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM_SIGNAL, iface_modem_signal_init)
 +                        G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM_LOCATION, iface_modem_location_init)
                          //G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM_VOICE, iface_modem_voice_init)
--						)
-+                       )
-
-
- struct _MMBroadbandModemUbloxPrivate {
-@@ -70,11 +74,22 @@ struct _MMBroadbandModemUbloxPrivate {
-     /* Operator ID for manual registration */
-     gchar *operator_id;
-
+                         )
+ 
+@@ -65,14 +69,25 @@ struct _MMBroadbandModemUbloxPrivate {
+     /* AT command configuration */
+     UbloxSupportConfig support_config;
+ 
 +    MMModemLocationSource enabled_sources;
 +
      /* Voice +UCALLSTAT support */
      GRegex *ucallstat_regex;
-
+ 
 +    /* AssistNow offline +UGIND support */
 +    GRegex *uugind_regex;
 +
 +    /* CellLocate support */
 +    GRegex *uuloc_regex;
 +    GRegex *uulocind_regex;
+     FeatureSupport udtmfd_support;
 +
+     GRegex *udtmfd_regex;
+ 
      /* Regex to ignore */
      GRegex *pbready_regex;
 +    GRegex *uupsdd_regex;
 +    guint internal_connection_open_count;
  };
-
+ 
  /*****************************************************************************/
-@@ -795,6 +810,38 @@ common_modem_power_operation (MMBroadbandModemUblox  *self,
-                               task);
+@@ -1768,6 +1783,91 @@ modem_create_sim (MMIfaceModem        *self,
+                       user_data);
  }
-
-+static void
-+modem_reset (MMIfaceModem        *self,
-+             GAsyncReadyCallback  callback,
-+             gpointer             user_data)
-+{
-+    common_modem_power_operation (MM_BROADBAND_MODEM_UBLOX (self), "+CFUN=16", callback, user_data);
-+}
-+
-+static void
-+modem_power_off (MMIfaceModem        *self,
-+                 GAsyncReadyCallback  callback,
-+                 gpointer             user_data)
-+{
-+    common_modem_power_operation (MM_BROADBAND_MODEM_UBLOX (self), "+CPWROFF", callback, user_data);
-+}
-+
-+static void
-+modem_power_down (MMIfaceModem        *self,
-+                  GAsyncReadyCallback  callback,
-+                  gpointer             user_data)
-+{
-+    common_modem_power_operation (MM_BROADBAND_MODEM_UBLOX (self), "+CFUN=4", callback, user_data);
-+}
-+
-+static void
-+modem_power_up (MMIfaceModem        *self,
-+                GAsyncReadyCallback  callback,
-+                gpointer             user_data)
-+{
-+    common_modem_power_operation (MM_BROADBAND_MODEM_UBLOX (self), "+CFUN=1", callback, user_data);
-+}
-+
- /*****************************************************************************/
- /* Register in network (3GPP interface) */
-
-@@ -855,38 +902,6 @@ register_in_network (MMIfaceModem3gpp    *self,
-     g_free (command);
- }
-
--static void
--modem_reset (MMIfaceModem        *self,
--             GAsyncReadyCallback  callback,
--             gpointer             user_data)
--{
--    common_modem_power_operation (MM_BROADBAND_MODEM_UBLOX (self), "+CFUN=16", callback, user_data);
--}
--
--static void
--modem_power_off (MMIfaceModem        *self,
--                 GAsyncReadyCallback  callback,
--                 gpointer             user_data)
--{
--    common_modem_power_operation (MM_BROADBAND_MODEM_UBLOX (self), "+CPWROFF", callback, user_data);
--}
--
--static void
--modem_power_down (MMIfaceModem        *self,
--                  GAsyncReadyCallback  callback,
--                  gpointer             user_data)
--{
--    common_modem_power_operation (MM_BROADBAND_MODEM_UBLOX (self), "+CFUN=4", callback, user_data);
--}
--
--static void
--modem_power_up (MMIfaceModem        *self,
--                GAsyncReadyCallback  callback,
--                gpointer             user_data)
--{
--    common_modem_power_operation (MM_BROADBAND_MODEM_UBLOX (self), "+CFUN=1", callback, user_data);
--}
--
- /*****************************************************************************/
- /* Load unlock retries (Modem interface) */
-
-@@ -1535,13 +1550,100 @@ modem_create_sim (MMIfaceModem        *self,
- }
-
- /*****************************************************************************/
-+
+ 
 +static void
 +uuloc_received (MMPortSerialAt        *port,
 +                GMatchInfo            *match_info,
@@ -192,16 +122,16 @@ index 2fbf57e7..9fcf34cf 100644
 +    guint      aux1, aux2;
 +
 +    if (!mm_get_uint_from_match_info (match_info, 1, &aux1)) {
-+        mm_warn ("couldn't parse aux 1 from +UULOCIND");
++        mm_obj_warn (_self, "couldn't parse aux 1 from +UULOCIND");
 +        return;
 +    }
 +
 +    if (!mm_get_uint_from_match_info (match_info, 2, &aux2)) {
-+        mm_warn ("couldn't parse aux 2 from +UULOCIND");
++        mm_obj_warn (_self, "couldn't parse aux 2 from +UULOCIND");
 +        return;
 +    }
 +
-+    mm_dbg ("+UULOCIND: %d %d", aux1, aux2);
++    mm_obj_dbg (_self, "+UULOCIND: %d %d", aux1, aux2);
 +}
 +
 +static void
@@ -212,16 +142,16 @@ index 2fbf57e7..9fcf34cf 100644
 +    guint      aux1, aux2;
 +
 +    if (!mm_get_uint_from_match_info (match_info, 1, &aux1)) {
-+        mm_warn ("couldn't parse aux 1 from +UUGIND");
++        mm_obj_warn (_self, "couldn't parse aux 1 from +UUGIND");
 +        return;
 +    }
 +
 +    if (!mm_get_uint_from_match_info (match_info, 2, &aux2)) {
-+        mm_warn ("couldn't parse aux 2 from +UUGIND");
++        mm_obj_warn (_self, "couldn't parse aux 2 from +UUGIND");
 +        return;
 +    }
 +
-+    mm_dbg ("+UUGIND: %d %d", aux1, aux2);
++    mm_obj_dbg (_self, "+UUGIND: %d %d", aux1, aux2);
 +
 +}
 +
@@ -233,9 +163,10 @@ index 2fbf57e7..9fcf34cf 100644
 +    mm_iface_modem_location_gps_update (self, trace);
 +}
 +
+ /*****************************************************************************/
  /* Setup ports (Broadband modem class) */
-
- static void
+ 
+@@ -1775,7 +1875,8 @@ static void
  setup_ports (MMBroadbandModem *_self)
  {
      MMBroadbandModemUblox *self = MM_BROADBAND_MODEM_UBLOX (_self);
@@ -243,17 +174,17 @@ index 2fbf57e7..9fcf34cf 100644
 +    MMPortSerialAt        *ports[3];
 +    MMPortSerialGps       *gps_data_port;
      guint                  i;
-
+ 
      /* Call parent's setup ports first always */
-@@ -1549,6 +1651,7 @@ setup_ports (MMBroadbandModem *_self)
-
+@@ -1783,6 +1884,7 @@ setup_ports (MMBroadbandModem *_self)
+ 
      ports[0] = mm_base_modem_peek_port_primary   (MM_BASE_MODEM (self));
      ports[1] = mm_base_modem_peek_port_secondary (MM_BASE_MODEM (self));
 +    ports[2] = mm_base_modem_peek_port_gps_control (MM_BASE_MODEM (self));
-
+ 
      /* Configure AT ports */
      for (i = 0; i < G_N_ELEMENTS (ports); i++) {
-@@ -1563,7 +1666,35 @@ setup_ports (MMBroadbandModem *_self)
+@@ -1797,7 +1899,32 @@ setup_ports (MMBroadbandModem *_self)
              ports[i],
              self->priv->pbready_regex,
              NULL, NULL, NULL);
@@ -262,10 +193,9 @@ index 2fbf57e7..9fcf34cf 100644
 +            ports[i],
 +            self->priv->uupsdd_regex,
 +            NULL, NULL, NULL);
-     }
++    }
 +
-+    if(ports[2]) {
-+
++    if (ports[2]) {
 +        mm_port_serial_at_add_unsolicited_msg_handler ( ports[2], self->priv->uuloc_regex,
 +                                                        (MMPortSerialAtUnsolicitedMsgFn)uuloc_received, self, NULL);
 +
@@ -274,26 +204,25 @@ index 2fbf57e7..9fcf34cf 100644
 +
 +        mm_port_serial_at_add_unsolicited_msg_handler ( ports[2], self->priv->uugind_regex,
 +                                                        (MMPortSerialAtUnsolicitedMsgFn)uugind_received, self, NULL);
-+    }
+     }
 +
 +    gps_data_port = mm_base_modem_peek_port_gps (MM_BASE_MODEM (self));
-+    if(gps_data_port) {
-+
++    if (gps_data_port) {
 +        /* Add handler for the NMEA traces */
 +        mm_port_serial_gps_add_trace_handler (gps_data_port,
 +                                              (MMPortSerialGpsTraceFn)trace_received,
 +                                              self,
 +                                              NULL);
 +	}
-+
  }
-
+ 
  /*****************************************************************************/
-@@ -1598,8 +1729,23 @@ mm_broadband_modem_ublox_init (MMBroadbandModemUblox *self)
+@@ -1832,9 +1959,24 @@ mm_broadband_modem_ublox_init (MMBroadbandModemUblox *self)
      self->priv->support_config.method   = SETTINGS_UPDATE_METHOD_UNKNOWN;
      self->priv->support_config.uact     = FEATURE_SUPPORT_UNKNOWN;
      self->priv->support_config.ubandsel = FEATURE_SUPPORT_UNKNOWN;
 +
+     self->priv->udtmfd_support = FEATURE_SUPPORT_UNKNOWN;
      self->priv->pbready_regex = g_regex_new ("\\r\\n\\+PBREADY\\r\\n",
                                               G_REGEX_RAW | G_REGEX_OPTIMIZE, 0, NULL);
 +
@@ -311,13 +240,12 @@ index 2fbf57e7..9fcf34cf 100644
 +
 +    self->priv->internal_connection_open_count = 0;
  }
-
+ 
  static void
-@@ -1967,15 +2113,626 @@ iface_modem_signal_init (MMIfaceModemSignal *iface)
+@@ -2143,15 +2285,624 @@ iface_modem_signal_init (MMIfaceModemSignal *iface)
      iface->load_values_finish   = modem_signal_load_values_finish;
  }
-
-+
+ 
 +/*****************************************************************************/
 +/* Location capabilities loading (Location interface) */
 +
@@ -723,7 +651,7 @@ index 2fbf57e7..9fcf34cf 100644
 +        for(file = files; *file; file += 1) {
 +            if(g_strrstr(*file, ".mga")) {
 +                if(g_strcmp0(valid_since_file, *file) > 0) {
-+                    mm_dbg("ublox: delete invalid mga files %s", *file);
++                    mm_obj_dbg(_self, "ublox: delete invalid mga files %s", *file);
 +                    g_snprintf(cmd, 256, "AT+UDELFILE=\"%s\",\"USER\"", g_strstrip(*file));
 +                    break;
 +                }
@@ -734,7 +662,7 @@ index 2fbf57e7..9fcf34cf 100644
 +        g_date_time_unref(now);
 +    }
 +    else if (error) {
-+        mm_err("ublox: delete invalid mga file failed due to error %s", error->message);
++        mm_obj_err(_self, "ublox: delete invalid mga file failed due to error %s", error->message);
 +        g_error_free (error);
 +    }
 +
@@ -771,7 +699,7 @@ index 2fbf57e7..9fcf34cf 100644
 +    if(res) {
 +        mm_base_modem_at_command_full_finish (MM_BASE_MODEM (_self), res, &error);
 +        if(error) {
-+            mm_err("ublox: delete invalid mga file failed due to error %s", error->message);
++            mm_obj_err(_self, "ublox: delete invalid mga file failed due to error %s", error->message);
 +            g_task_return_error (task, error);
 +            g_object_unref (task);
 +            return;
@@ -799,7 +727,6 @@ index 2fbf57e7..9fcf34cf 100644
 +{
 +    GTask *task;
 +    LocationGatheringContext *ctx;
-+    MMBroadbandModemUblox *self = MM_BROADBAND_MODEM_UBLOX (_self);
 +
 +    ctx = g_new (LocationGatheringContext, 1);
 +    ctx->source = source;
@@ -928,17 +855,18 @@ index 2fbf57e7..9fcf34cf 100644
  finalize (GObject *object)
  {
      MMBroadbandModemUblox *self = MM_BROADBAND_MODEM_UBLOX (object);
-
+ 
      g_regex_unref (self->priv->pbready_regex);
 +    g_regex_unref (self->priv->uugind_regex);
 +    g_regex_unref (self->priv->uuloc_regex);
 +    g_regex_unref (self->priv->uulocind_regex);
-
+ 
      if (self->priv->ucallstat_regex)
          g_regex_unref (self->priv->ucallstat_regex);
 +
-     g_free (self->priv->operator_id);
-
-     G_OBJECT_CLASS (mm_broadband_modem_ublox_parent_class)->finalize (object);
---
+     if (self->priv->udtmfd_regex)
+         g_regex_unref (self->priv->udtmfd_regex);
+ 
+-- 
 2.17.1
+
