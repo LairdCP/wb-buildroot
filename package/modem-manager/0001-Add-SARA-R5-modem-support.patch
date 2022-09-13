@@ -1,19 +1,19 @@
-From cad476cf34d529d28713828bb5356d4df99a3cdc Mon Sep 17 00:00:00 2001
-From: "sean.meng" <Sean.Meng@lairdconnect.com>
-Date: Wed, 3 Feb 2021 13:02:08 -0500
-Subject: [PATCH] add
+From ac03bcf7112c0d3c0affbf63d0cb32549aa0dbe5 Mon Sep 17 00:00:00 2001
+From: Don Ferencz <Donald.Ferencz@lairdconnect.com>
+Date: Tue, 9 Aug 2022 18:48:29 +0000
+Subject: [PATCH 1/2] Add SARA R5 modem support
 
 ---
- plugins/ublox/mm-broadband-modem-ublox.c | 314 ++++++++++++++++++++++-
+ plugins/ublox/mm-broadband-modem-ublox.c | 260 ++++++++++++++++++++++-
  plugins/ublox/mm-modem-helpers-ublox.c   |  15 +-
  plugins/ublox/mm-plugin-ublox.c          |  58 +++++
- src/kerneldevice/mm-kernel-device-udev.c |   8 +-
+ src/kerneldevice/mm-kernel-device-udev.c |  12 +-
  src/mm-modem-helpers.c                   |   5 +-
  src/mm-port-serial.c                     |   3 +
- 6 files changed, 397 insertions(+), 6 deletions(-)
+ 6 files changed, 348 insertions(+), 5 deletions(-)
 
 diff --git a/plugins/ublox/mm-broadband-modem-ublox.c b/plugins/ublox/mm-broadband-modem-ublox.c
-index d27599b..2fbf57e 100644
+index 0af2e93d..b036f183 100644
 --- a/plugins/ublox/mm-broadband-modem-ublox.c
 +++ b/plugins/ublox/mm-broadband-modem-ublox.c
 @@ -26,6 +26,7 @@
@@ -24,25 +24,24 @@ index d27599b..2fbf57e 100644
  #include "mm-base-modem-at.h"
  #include "mm-broadband-bearer.h"
  #include "mm-broadband-modem-ublox.h"
-@@ -37,13 +38,16 @@
+@@ -36,12 +37,15 @@
+ 
  static void iface_modem_init (MMIfaceModem *iface);
- static void iface_modem_3gpp_init (MMIfaceModem3gpp *iface);
  static void iface_modem_voice_init (MMIfaceModemVoice *iface);
 +static void iface_modem_signal_init (MMIfaceModemSignal *iface);
-
+ 
  static MMIfaceModemVoice *iface_modem_voice_parent;
-
+ 
  G_DEFINE_TYPE_EXTENDED (MMBroadbandModemUblox, mm_broadband_modem_ublox, MM_TYPE_BROADBAND_MODEM, 0,
                          G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM, iface_modem_init)
-                         G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM_3GPP, iface_modem_3gpp_init)
 -                        G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM_VOICE, iface_modem_voice_init))
 +                        G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM_SIGNAL, iface_modem_signal_init)
 +                        //G_IMPLEMENT_INTERFACE (MM_TYPE_IFACE_MODEM_VOICE, iface_modem_voice_init)
-+						)
-
-
++                        )
+ 
+ 
  struct _MMBroadbandModemUbloxPrivate {
-@@ -1629,13 +1633,71 @@ iface_modem_init (MMIfaceModem *iface)
+@@ -1864,6 +1868,10 @@ iface_modem_init (MMIfaceModem *iface)
      iface->load_current_bands_finish = load_current_bands_finish;
      iface->set_current_bands        = set_current_bands;
      iface->set_current_bands_finish = common_set_current_modes_bands_finish;
@@ -51,73 +50,12 @@ index d27599b..2fbf57e 100644
 +    iface->setup_charset = NULL;
 +    iface->setup_charset_finish = NULL;
  }
-
-+/*****************************************************************************/
-+/* Operator Name loading (3GPP interface) */
-+
-+static gchar *
-+load_operator_name_finish (MMIfaceModem3gpp *self,
-+                                      GAsyncResult *res,
-+                                      GError **error)
-+{
-+    const gchar *result;
-+    gchar *operator_name = NULL;
-+
-+    result = mm_base_modem_at_command_finish (MM_BASE_MODEM (self), res, error);
-+    if (!result){
-+        return NULL;
-+	}
-+    if (!mm_3gpp_parse_cops_read_response (result,
-+                                           NULL, /* mode */
-+                                           NULL, /* format */
-+                                           &operator_name,
-+                                           NULL, /* act */
-+                                           error))
-+        return NULL;
-+
-+    mm_3gpp_normalize_operator (&operator_name, MM_MODEM_CHARSET_UNKNOWN);
-+    if (operator_name)
-+        mm_dbg ("ublox: loaded Operator Name: %s", operator_name);
-+    return operator_name;
-+}
-+
-+static void
-+load_operator_name (MMIfaceModem3gpp *self,
-+                               GAsyncReadyCallback callback,
-+                               gpointer user_data)
-+{
-+    mm_dbg ("ublox: loading Operator Name...");
-+
-+    mm_base_modem_at_command (MM_BASE_MODEM (self),
-+                              "+COPS=3,0",
-+                              3,
-+                              FALSE,
-+                              NULL,
-+                              NULL);
-+
-+    mm_base_modem_at_command (MM_BASE_MODEM (self),
-+                              "+COPS?",
-+                              3,
-+                              FALSE,
-+                              callback,
-+                              user_data);
-+}
-+
-+
+ 
  static void
- iface_modem_3gpp_init (MMIfaceModem3gpp *iface)
- {
-     iface->register_in_network = register_in_network;
-     iface->register_in_network_finish = register_in_network_finish;
-+    iface->load_operator_name = load_operator_name;
-+    iface->load_operator_name_finish = load_operator_name_finish;
- }
-
- static void
-@@ -1655,6 +1717,256 @@ iface_modem_voice_init (MMIfaceModemVoice *iface)
+@@ -1885,6 +1893,256 @@ iface_modem_voice_init (MMIfaceModemVoice *iface)
      iface->create_call = create_call;
  }
-
+ 
 +
 +/*****************************************************************************/
 +/* Check support (Signal interface) */
@@ -264,7 +202,7 @@ index d27599b..2fbf57e 100644
 +        return FALSE;
 +
 +    /* GERAN RSSI */
-+    if (mm_3gpp_rxlev_to_rssi (rxlev, &rssi)) {
++    if (mm_3gpp_rxlev_to_rssi (rxlev, NULL, &rssi)) {
 +        gsm = mm_signal_new ();
 +        mm_signal_set_rssi (gsm, rssi);
 +    }
@@ -272,13 +210,13 @@ index d27599b..2fbf57e 100644
 +    /* ignore BER */
 +
 +    /* UMTS RSCP */
-+    if (mm_3gpp_rscp_level_to_rscp (rscp_level, &rscp)) {
++    if (mm_3gpp_rscp_level_to_rscp (rscp_level, NULL, &rscp)) {
 +        umts = mm_signal_new ();
 +        mm_signal_set_rscp (umts, rscp);
 +    }
 +
 +    /* UMTS EcIo (assumed EcN0) */
-+    if (mm_3gpp_ecn0_level_to_ecio (ecn0_level, &ecio)) {
++    if (mm_3gpp_ecn0_level_to_ecio (ecn0_level, NULL, &ecio)) {
 +        if (!umts)
 +            umts = mm_signal_new ();
 +        mm_signal_set_ecio (umts, ecio);
@@ -290,13 +228,13 @@ index d27599b..2fbf57e 100644
 +    }
 +
 +    /* LTE RSRQ */
-+    if (mm_3gpp_rsrq_level_to_rsrq (rsrq_level, &rsrq)) {
++    if (mm_3gpp_rsrq_level_to_rsrq (rsrq_level, NULL, &rsrq)) {
 +        lte = mm_signal_new ();
 +        mm_signal_set_rsrq (lte, rsrq);
 +    }
 +
 +    /* LTE RSRP */
-+    if (mm_3gpp_rsrp_level_to_rsrp (rsrp_level, &rsrp)) {
++    if (mm_3gpp_rsrp_level_to_rsrp (rsrp_level, NULL, &rsrp)) {
 +        if (!lte)
 +            lte = mm_signal_new ();
 +        mm_signal_set_rsrp (lte, rsrp);
@@ -372,7 +310,7 @@ index d27599b..2fbf57e 100644
  finalize (GObject *object)
  {
 diff --git a/plugins/ublox/mm-modem-helpers-ublox.c b/plugins/ublox/mm-modem-helpers-ublox.c
-index df6b6a2..da34c22 100644
+index ca3039a6..db50fe45 100644
 --- a/plugins/ublox/mm-modem-helpers-ublox.c
 +++ b/plugins/ublox/mm-modem-helpers-ublox.c
 @@ -361,6 +361,7 @@ static const MMModemMode ublox_combinations[] = {
@@ -381,7 +319,7 @@ index df6b6a2..da34c22 100644
      (                    MM_MODEM_MODE_3G | MM_MODEM_MODE_4G ),
 +    (                                       MM_MODEM_MODE_4G ),
  };
-
+ 
  GArray *
 @@ -481,7 +482,7 @@ typedef struct {
      MMModemMode           mode;
@@ -390,7 +328,7 @@ index df6b6a2..da34c22 100644
 -    MMModemBand           bands_4g[12];
 +    MMModemBand           bands_4g[14];
  } BandConfiguration;
-
+ 
  static const BandConfiguration band_configuration[] = {
 @@ -925,6 +926,18 @@ static const BandConfiguration band_configuration[] = {
                        MM_MODEM_BAND_EUTRAN_12, MM_MODEM_BAND_EUTRAN_13, MM_MODEM_BAND_EUTRAN_19,
@@ -409,16 +347,16 @@ index df6b6a2..da34c22 100644
 +                      MM_MODEM_BAND_EUTRAN_26, MM_MODEM_BAND_EUTRAN_28}
 +    },
  };
-
+ 
  gboolean
 diff --git a/plugins/ublox/mm-plugin-ublox.c b/plugins/ublox/mm-plugin-ublox.c
-index 6a0d140..db7b8be 100644
+index 569054b9..eba91002 100644
 --- a/plugins/ublox/mm-plugin-ublox.c
 +++ b/plugins/ublox/mm-plugin-ublox.c
 @@ -29,6 +29,61 @@ G_DEFINE_TYPE (MMPluginUblox, mm_plugin_ublox, MM_TYPE_PLUGIN)
  MM_PLUGIN_DEFINE_MAJOR_VERSION
  MM_PLUGIN_DEFINE_MINOR_VERSION
-
+ 
 +/*****************************************************************************/
 +gboolean
 +ublox_grab_port (MMPlugin *self,
@@ -439,29 +377,29 @@ index 6a0d140..db7b8be 100644
 +
 +    /* Just skip custom port identification for subsys different than tty */
 +    if (!g_str_equal (subsys, "tty")){
-+        mm_dbg ("ublox: AT port '%s/%s' not tty",
++        mm_obj_dbg (self, "ublox: AT port '%s/%s' not tty",
 +            mm_port_probe_get_port_subsys (probe),
 +            mm_port_probe_get_port_name (probe));
 +        goto out;
 +	}
 +
 +    if (g_strcmp0 ("gsmtty1", mm_port_probe_get_port_name (probe)) == 0) {
-+        mm_dbg ("ublox: AT port '%s/%s' flagged as primary",
++        mm_obj_dbg (self, "ublox: AT port '%s/%s' flagged as primary",
 +            mm_port_probe_get_port_subsys (probe),
 +            mm_port_probe_get_port_name (probe));
 +        pflags = MM_PORT_SERIAL_AT_FLAG_PRIMARY;
 +    } else if (g_strcmp0 ("gsmtty2", mm_port_probe_get_port_name (probe)) == 0) {
-+        mm_dbg ("ublox: AT port '%s/%s' flagged as secondary",
++        mm_obj_dbg (self, "ublox: AT port '%s/%s' flagged as secondary",
 +            mm_port_probe_get_port_subsys (probe),
 +            mm_port_probe_get_port_name (probe));
 +        pflags = MM_PORT_SERIAL_AT_FLAG_SECONDARY;
 +    } else if (g_strcmp0 ("gsmtty3", mm_port_probe_get_port_name (probe)) == 0) {
-+        mm_dbg ("ublox: AT port '%s/%s type %d' flagged as GPS control",
++        mm_obj_dbg (self, "ublox: AT port '%s/%s type %d' flagged as GPS control",
 +            mm_port_probe_get_port_subsys (probe),
 +            mm_port_probe_get_port_name (probe), ptype);
 +        pflags = MM_PORT_SERIAL_AT_FLAG_GPS_CONTROL;
 +    } else if (g_strcmp0 ("gsmtty4", mm_port_probe_get_port_name (probe)) == 0) {
-+        mm_dbg ("ublox: AT port '%s/%s type %d' flagged as NMEA",
++        mm_obj_dbg (self, "ublox: AT port '%s/%s type %d' flagged as NMEA",
 +            mm_port_probe_get_port_subsys (probe),
 +            mm_port_probe_get_port_name (probe), ptype);
 +        ptype = MM_PORT_TYPE_GPS;
@@ -475,7 +413,7 @@ index 6a0d140..db7b8be 100644
 +}
 +
  /*****************************************************************************/
-
+ 
  static MMBaseModem *
 @@ -234,6 +289,7 @@ mm_plugin_create (void)
      static const gchar *subsystems[] = { "tty", "net", NULL };
@@ -495,53 +433,43 @@ index 6a0d140..db7b8be 100644
                                      MM_PLUGIN_CUSTOM_INIT,            &custom_init,
 @@ -261,4 +318,5 @@ mm_plugin_ublox_class_init (MMPluginUbloxClass *klass)
      MMPluginClass *plugin_class = MM_PLUGIN_CLASS (klass);
-
+ 
      plugin_class->create_modem = create_modem;
-+	plugin_class->grab_port = ublox_grab_port;
++    plugin_class->grab_port = ublox_grab_port;
  }
 diff --git a/src/kerneldevice/mm-kernel-device-udev.c b/src/kerneldevice/mm-kernel-device-udev.c
-index 69542f9..978eb65 100644
+index a6bf1a71..6c304ff9 100644
 --- a/src/kerneldevice/mm-kernel-device-udev.c
 +++ b/src/kerneldevice/mm-kernel-device-udev.c
-@@ -195,12 +195,14 @@ find_physical_gudevdevice (GUdevDevice *child)
-
-     g_return_val_if_fail (child != NULL, NULL);
-
--    /* Bluetooth rfcomm devices are "virtual" and don't necessarily have
-+    /* Bluetooth rfcomm devices and n_gsm gsmtty devices are "virtual" and don't necessarily have
-      * parents at all.
-      */
-     name = g_udev_device_get_name (child);
-     if (name && strncmp (name, "rfcomm", 6) == 0)
-         return g_object_ref (child);
-+    else if (name && strncmp (name, "gsmtty", 6) == 0)
-+        return g_object_ref (child);
-
-     iter = g_object_ref (child);
-     while (iter && i++ < 8) {
-@@ -369,12 +371,14 @@ kernel_device_get_driver (MMKernelDevice *_self)
-             g_object_unref (parent);
-     }
-
--    /* Newer kernels don't set up the rfcomm port parent in sysfs,
-+    /* Newer kernels don't set up the rfcomm/gsmtty port parent in sysfs,
-      * so we must infer it from the device name.
-      */
-     name = g_udev_device_get_name (self->priv->device);
-     if (!driver && strncmp (name, "rfcomm", 6) == 0)
-         driver = "bluetooth";
-+    else if (name && strncmp (name, "gsmtty", 6) == 0)
-+        driver = "gsmtty";
-
-     /* Note: may return NULL! */
-     return driver;
+@@ -71,10 +71,20 @@ udev_device_get_sysfs_attr_as_hex (GUdevDevice *device,
+ static void
+ preload_contents_other (MMKernelDeviceUdev *self)
+ {
++    gchar *driver;
++
+     /* For any other kind of bus (or the absence of one, as in virtual devices),
+      * assume this is a single port device and don't try to match multiple ports
+      * together. Also, obviously, no vendor, product, revision or interface. */
+-    self->priv->driver = g_strdup (g_udev_device_get_driver (self->priv->device));
++    driver = g_udev_device_get_driver(self->priv->device);
++    if (!driver && strncmp(g_udev_device_get_name(self->priv->device), "gsmtty", 6) == 0) {
++	/*
++	 * Override driver for GSM tty devices so that the proper
++	 * plug-in can claim the port
++	 */
++	driver = "gsmtty";
++    }
++    self->priv->driver = g_strdup(driver);
+ }
+ 
+ static void
 diff --git a/src/mm-modem-helpers.c b/src/mm-modem-helpers.c
-index ec07aad..2cea819 100644
+index 26b55f71..67613397 100644
 --- a/src/mm-modem-helpers.c
 +++ b/src/mm-modem-helpers.c
 @@ -3504,8 +3504,9 @@ mm_3gpp_parse_cind_read_response (const gchar *reply,
          guint val = 0;
-
+ 
          str = g_match_info_fetch (match_info, 1);
 -        if (mm_get_uint_from_str (str, &val) && val < 255) {
 -            t = (guint8) val;
@@ -552,7 +480,7 @@ index ec07aad..2cea819 100644
          } else {
              inner_error = g_error_new (MM_CORE_ERROR, MM_CORE_ERROR_FAILED,
 diff --git a/src/mm-port-serial.c b/src/mm-port-serial.c
-index 6d5ee1b..f374405 100644
+index b4ba6533..40e08d0a 100644
 --- a/src/mm-port-serial.c
 +++ b/src/mm-port-serial.c
 @@ -278,6 +278,9 @@ parse_baudrate (guint  baudrate_num,
@@ -565,5 +493,6 @@ index 6d5ee1b..f374405 100644
      default:
          return FALSE;
      }
---
+-- 
 2.17.1
+
