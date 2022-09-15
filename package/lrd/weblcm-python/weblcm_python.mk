@@ -31,6 +31,11 @@ ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_UNAUTHENTICATED),y)
 else
 	WEBLCM_PYTHON_ENABLE_UNAUTHENTICATED = False
 endif
+ifeq ($(BR2_PACKAGE_WEBLCM_ALLOW_MUTLIPLE_USER_SESSIONS),y)
+	WEBLCM_PYTHON_ENABLE_MULTIPLE_USER_SESSIONS = True
+else
+	WEBLCM_PYTHON_ENABLE_MULTIPLE_USER_SESSIONS = False
+endif
 ifeq ($(BR2_PACKAGE_FIREWALLD),y)
 	WEBLCM_PYTHON_EXTRA_PACKAGES += weblcm/firewalld
 endif
@@ -76,6 +81,9 @@ define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 
 	$(SED) '/^server.socket_host/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 	$(SED) '/\[global\]/a server.socket_host: $(BR2_PACKAGE_WEBLCM_PYTHON_BIND_IP)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+
+	$(SED) '/^allow_multiple_user_sessions/d' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
+	$(SED) '/\[weblcm\]/a allow_multiple_user_sessions:$(WEBLCM_PYTHON_ENABLE_MULTIPLE_USER_SESSIONS)' $(TARGET_DIR)/etc/weblcm-python/weblcm-python.ini
 endef
 
 WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS

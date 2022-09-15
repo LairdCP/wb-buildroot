@@ -90,4 +90,9 @@ config BR2_PACKAGE_WEBLCM_PYTHON_BIND_IP
 	help
 		IP address to bind to for the WebLCM HTTP server. Leave blank to bind to all IP addresses.
 
+config BR2_PACKAGE_WEBLCM_ALLOW_MUTLIPLE_USER_SESSIONS
+	bool "Allow multiple sessions per user"
+	help
+		Enable multiple sessions for the same user (re-login)
+
 endif
