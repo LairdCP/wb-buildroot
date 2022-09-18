@@ -13,8 +13,4 @@ config BR2_PACKAGE_LRD_USERSPACE_NETLINK_EXAMPLES
 	bool "Build netlink examples"
 	select BR2_PACKAGE_LIBNL
 
-
-config BR2_PACKAGE_LRD_USERSPACE_CMUX
-	bool "Build cmux"
-
 endif
