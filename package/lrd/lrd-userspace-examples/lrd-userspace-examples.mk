@@ -25,8 +25,4 @@ LRD_USERSPACE_EXAMPLES_CONF_OPTS += --enable-nl-examples
 LRD_USERSPACE_EXAMPLES_DEPENDENCIES += libnl
 endif
 
-ifeq ($(BR2_PACKAGE_LRD_USERSPACE_CMUX),y)
-	LRD_USERSPACE_EXAMPLES_CONF_OPTS += --enable-cmux
-endif
-
 $(eval $(autotools-package))
