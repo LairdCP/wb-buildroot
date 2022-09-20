@@ -69,6 +69,7 @@ config BR2_PACKAGE_UBOOT_TOOLS_MKENVIMAGE
 config BR2_PACKAGE_UBOOT_TOOLS_FWPRINTENV
 	bool "fw_printenv"
 	default y
+	depends on !BR2_PACKAGE_LIBUBOOTENV
 	help
 	  Install the fw_printenv / fw_setenv tools on the target system
 

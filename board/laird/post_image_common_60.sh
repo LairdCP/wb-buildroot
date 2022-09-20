@@ -17,14 +17,14 @@ grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG} \
 	&& ENCRYPTED_TOOLKIT=1 || ENCRYPTED_TOOLKIT=0
 
 # Tooling checks
-mkimage=${HOST_DIR}/bin/mkimage
+mkimage=${BUILD_DIR}/uboot-custom/tools/mkimage
 atmel_pmecc_params=${BUILD_DIR}/uboot-custom/tools/atmel_pmecc_params
 fipshmac=${HOST_DIR}/bin/fipshmac
 
 die() { echo "$@" >&2; exit 1; }
 
 test -x ${mkimage} || \
-	die "No mkimage found (host-uboot-tools has not been built?)"
+	die "No mkimage found (uboot has not been built?)"
 
 (cd "${BINARIES_DIR}" && "${mkimage}" -f u-boot.scr.its u-boot.scr.itb) || exit 1
 
@@ -116,7 +116,11 @@ if [ ${SD} -eq 0 ]; then
 
 		tar -C ${HOST_DIR}/usr/bin -rhf ${RELEASE_FILE} \
 			--owner=0 --group=0 --numeric-owner \
-			fdtget fdtput mkimage
+			fdtget fdtput
+
+		tar -C ${BUILD_DIR}/uboot-custom/tools -rhf ${RELEASE_FILE} \
+			--owner=0 --group=0 --numeric-owner \
+			mkimage
 	fi
 
 	bzip2 -f ${RELEASE_FILE}

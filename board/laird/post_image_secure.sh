@@ -38,7 +38,7 @@ SWU_FILES="${2}"
 set -x -e
 
 # Secure tooling checks
-mkimage=${HOST_DIR}/bin/mkimage
+mkimage=${BUILD_DIR}/uboot-custom/tools/mkimage
 atmel_pmecc_params=${BUILD_DIR}/uboot-custom/tools/atmel_pmecc_params
 openssl=${HOST_DIR}/usr/bin/openssl
 veritysetup=${HOST_DIR}/sbin/veritysetup
@@ -46,7 +46,7 @@ veritysetup=${HOST_DIR}/sbin/veritysetup
 die() { echo "$@" >&2; exit 1; }
 
 test -x ${mkimage} || \
-	die "No mkimage found (host-uboot-tools has not been built?)"
+	die "No mkimage found (uboot has not been built?)"
 test -x ${atmel_pmecc_params} || \
 		die "no atmel_pmecc_params found (uboot has not been built?)"
 test -x ${openssl} || \

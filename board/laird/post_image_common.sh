@@ -11,11 +11,11 @@ set -x -e
 if grep -qF "BR2_LINUX_KERNEL_IMAGE_TARGET_CUSTOM=y" ${BR2_CONFIG}; then
 
 # Tooling checks
-mkimage=${HOST_DIR}/bin/mkimage
+mkimage=${BUILD_DIR}/uboot-custom/tools/mkimage
 fipshmac=${HOST_DIR}/bin/fipshmac
 
 test -x ${mkimage} || \
-	die "No mkimage found (host-uboot-tools has not been built?)"
+	die "No mkimage found (uboot has not been built?)"
 
 IMAGE_NAME=Image
 
