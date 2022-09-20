@@ -228,7 +228,7 @@ create_cyw5557x_firmware_archive()
 	local CYPRESS_DIR=${FW_DIR}/cypress
 	[ "${1}" == "cyw55571" ] && FW_PROD=lwb6 || FW_PROD=lwb6plus
 
-	ln -rsf ${CYPRESS_DIR}/cyfmac55560-${FW_PROD}-${2}.txt ${CYPRESS_DIR}/cyfmac55560-${2}.txt
+	ln -rsf ${CYPRESS_DIR}/cyfmac55560-${FW_PROD}.txt ${CYPRESS_DIR}/cyfmac55560-${2}.txt
 
 	(
 	cd ${TARGET_DIR}
