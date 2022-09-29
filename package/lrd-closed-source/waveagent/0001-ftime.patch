@@ -1,0 +1,23 @@
+--- a/src/linux/wa_linux_os_if.c	2022-09-22 18:23:08.000000000 
++++ b/src/linux/wa_linux_os_if.c	2022-09-30 15:46:37.000000000 
+@@ -361,15 +361,15 @@
+ int wa_OS_log_error(char *format, ...)
+ {
+     va_list ap;
+-    struct timeb now;
++    struct timeval now;
+     struct tm *curr;
+ 
+     va_start(ap, format);
+ 
+-    ftime(&now);
+-    curr = localtime(&now.time);
+-    fprintf(log_out, "%02u:%02u:%02u.%03u: ",
+-            curr->tm_hour, curr->tm_min, curr->tm_sec, now.millitm);
++    gettimeofday(&now, NULL);
++    curr = localtime(&now.tv_sec);
++    fprintf(log_out, "%02u:%02u:%02u.%03lu: ",
++            curr->tm_hour, curr->tm_min, curr->tm_sec, now.tv_usec / 1000);
+     vfprintf(log_out, format, ap);
+     if (log_out != stderr)
+         fflush(log_out);
