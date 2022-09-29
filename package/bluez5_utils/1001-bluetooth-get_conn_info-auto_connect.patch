@@ -1,5 +1,5 @@
 diff --git a/src/device.c b/src/device.c
-index 3992f9a0cb..675cb0a30d 100644
+index 3992f9a0cb..781200b691 100644
 --- a/src/device.c
 +++ b/src/device.c
 @@ -35,6 +35,7 @@
@@ -36,7 +36,7 @@ index 3992f9a0cb..675cb0a30d 100644
  	g_free(device->local_csrk);
  	g_free(device->remote_csrk);
  	g_free(device->path);
-@@ -1819,6 +1825,68 @@ static DBusMessage *dev_disconnect(DBusConnection *conn, DBusMessage *msg,
+@@ -1819,6 +1825,106 @@ static DBusMessage *dev_disconnect(DBusConnection *conn, DBusMessage *msg,
  	return NULL;
  }
  
@@ -102,10 +102,48 @@ index 3992f9a0cb..675cb0a30d 100644
 +	return NULL;
 +}
 +
++static gboolean dev_property_get_autoconnect(const GDBusPropertyTable *property,
++					DBusMessageIter *iter, void *data)
++{
++	struct btd_device *device = data;
++	gboolean val = device->auto_connect;
++
++	dbus_message_iter_append_basic(iter, DBUS_TYPE_BOOLEAN, &val);
++
++	return TRUE;
++}
++
++static void set_autoconnect(GDBusPendingPropertySet id, gboolean value, void *data)
++{
++	struct btd_device *device = data;
++
++	device_set_auto_connect(device, value);
++
++	g_dbus_pending_property_success(id);
++}
++
++static void dev_property_set_autoconnect(const GDBusPropertyTable *property,
++					DBusMessageIter *value,
++					GDBusPendingPropertySet id, void *data)
++{
++	dbus_bool_t b;
++
++	if (dbus_message_iter_get_arg_type(value) != DBUS_TYPE_BOOLEAN) {
++		g_dbus_pending_property_error(id,
++					ERROR_INTERFACE ".InvalidArguments",
++					"Invalid arguments in method call");
++		return;
++	}
++
++	dbus_message_iter_get_basic(value, &b);
++
++	set_autoconnect(id, b, data);
++}
++
  static int connect_next(struct btd_device *dev)
  {
  	struct btd_service *service;
-@@ -3097,6 +3165,7 @@ static DBusMessage *cancel_pairing(DBusConnection *conn, DBusMessage *msg,
+@@ -3097,6 +3203,7 @@ static DBusMessage *cancel_pairing(DBusConnection *conn, DBusMessage *msg,
  }
  
  static const GDBusMethodTable device_methods[] = {
@@ -113,7 +151,15 @@ index 3992f9a0cb..675cb0a30d 100644
  	{ GDBUS_ASYNC_METHOD("Disconnect", NULL, NULL, dev_disconnect) },
  	{ GDBUS_ASYNC_METHOD("Connect", NULL, NULL, dev_connect) },
  	{ GDBUS_ASYNC_METHOD("ConnectProfile", GDBUS_ARGS({ "UUID", "s" }),
-@@ -4383,6 +4452,7 @@ static struct btd_device *device_new(struct btd_adapter *adapter,
+@@ -3109,6 +3216,7 @@ static const GDBusMethodTable device_methods[] = {
+ };
+ 
+ static const GDBusPropertyTable device_properties[] = {
++	{ "AutoConnect", "b", dev_property_get_autoconnect, dev_property_set_autoconnect },
+ 	{ "Address", "s", dev_property_get_address },
+ 	{ "AddressType", "s", property_get_address_type },
+ 	{ "Name", "s", dev_property_get_name, NULL, dev_property_exists_name },
+@@ -4383,6 +4491,7 @@ static struct btd_device *device_new(struct btd_adapter *adapter,
  					gatt_service_removed, device, NULL);
  
  	device->refresh_discovery = btd_opts.refresh_discovery;
@@ -121,7 +167,7 @@ index 3992f9a0cb..675cb0a30d 100644
  
  	return btd_device_ref(device);
  }
-@@ -7296,9 +7366,37 @@ void btd_device_init(void)
+@@ -7296,9 +7405,37 @@ void btd_device_init(void)
  	dbus_conn = btd_get_dbus_connection();
  	service_state_cb_id = btd_service_add_state_cb(
  						service_state_changed, NULL);
