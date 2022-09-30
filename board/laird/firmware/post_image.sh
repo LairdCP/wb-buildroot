@@ -228,19 +228,19 @@ create_cyw5557x_firmware_archive()
 	local CYPRESS_DIR=${FW_DIR}/cypress
 	[ "${1}" == "cyw55571" ] && FW_PROD=lwb6 || FW_PROD=lwb6plus
 
-	ln -rsf ${CYPRESS_DIR}/cyfmac55560-${FW_PROD}.txt ${CYPRESS_DIR}/cyfmac55560-${2}.txt
+	ln -rsf ${CYPRESS_DIR}/cyfmac55572-${FW_PROD}.txt ${CYPRESS_DIR}/cyfmac55572-${2}.txt
 
 	(
 	cd ${TARGET_DIR}
 	tar -cjf "${BINARIES_DIR}/laird-${FW_PROD}-${2}-firmware${RELEASE_SUFFIX}.tar.bz2" \
 		lib/firmware/brcm/CYW55560A1.hcd \
 		lib/firmware/cypress/CYW55560A1_*.hcd \
-		lib/firmware/cypress/cyfmac55560-${2}.trxse \
-		lib/firmware/cypress/cyfmac55560-${2}-prod*.trxse \
-		lib/firmware/cypress/cyfmac55560-${2}.txt \
-		lib/firmware/cypress/cyfmac55560-${FW_PROD}.txt \
-		lib/firmware/cypress/cyfmac55560-lwb6x*.clm_blob \
-		lib/firmware/cypress/cyfmac55560-${2}.clm_blob \
+		lib/firmware/cypress/cyfmac55572-${2}.trxse \
+		lib/firmware/cypress/cyfmac55572-${2}-prod*.trxse \
+		lib/firmware/cypress/cyfmac55572-${2}.txt \
+		lib/firmware/cypress/cyfmac55572-${FW_PROD}.txt \
+		lib/firmware/cypress/cyfmac55572-lwb6x*.clm_blob \
+		lib/firmware/cypress/cyfmac55572-${2}.clm_blob \
 		-C ${BOARD_DIR} \
 		LICENSE
 	)

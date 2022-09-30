@@ -206,12 +206,12 @@ ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_CYW55571_PCIE),y)
 define LAIRD_FW_CYW55571_PCIE_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(CYPRESS_DIR)
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/cypress/cyfmac55560-lwb6x_*.clm_blob $(CYPRESS_DIR)
-	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6x_*.clm_blob cyfmac55560-pcie.clm_blob
-	cp -rad $(@D)/cypress/cyfmac55560-pcie-prod_*.trxse $(CYPRESS_DIR)
-	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-pcie-prod_*.trxse cyfmac55560-pcie.trxse
-	cp -rad $(@D)/cypress/cyfmac55560-lwb6.txt $(CYPRESS_DIR)
-	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6.txt cyfmac55560-pcie.txt
+	cp -rad $(@D)/cypress/cyfmac55572-lwb6x_*.clm_blob $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55572-lwb6x_*.clm_blob cyfmac55572-pcie.clm_blob
+	cp -rad $(@D)/cypress/cyfmac55572-pcie-prod_*.trxse $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55572-pcie-prod_*.trxse cyfmac55572-pcie.trxse
+	cp -rad $(@D)/cypress/cyfmac55572-lwb6.txt $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55572-lwb6.txt cyfmac55572-pcie.txt
 	cp -rad $(@D)/cypress/CYW55560A1_*.hcd $(CYPRESS_DIR)
 	cd $(CYPRESS_DIR) && ln -srf CYW55560A1_*.hcd $(BRCM_DIR)/CYW55560A1.hcd
 endef
@@ -221,12 +221,12 @@ ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_CYW55571_SDIO),y)
 define LAIRD_FW_CYW55571_SDIO_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(CYPRESS_DIR)
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/cypress/cyfmac55560-lwb6x_*.clm_blob $(CYPRESS_DIR)
-	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6x_*.clm_blob cyfmac55560-sdio.clm_blob
-	cp -rad $(@D)/cypress/cyfmac55560-sdio-prod_*.trxse $(CYPRESS_DIR)
-	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-sdio-prod_*.trxse cyfmac55560-sdio.trxse
-	cp -rad $(@D)/cypress/cyfmac55560-lwb6.txt $(CYPRESS_DIR)
-	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6.txt cyfmac55560-sdio.txt
+	cp -rad $(@D)/cypress/cyfmac55572-lwb6x_*.clm_blob $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55572-lwb6x_*.clm_blob cyfmac55572-sdio.clm_blob
+	cp -rad $(@D)/cypress/cyfmac55572-sdio-prod_*.trxse $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55572-sdio-prod_*.trxse cyfmac55572-sdio.trxse
+	cp -rad $(@D)/cypress/cyfmac55572-lwb6.txt $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55572-lwb6.txt cyfmac55572-sdio.txt
 	cp -rad $(@D)/cypress/CYW55560A1_*.hcd $(CYPRESS_DIR)
 	cd $(CYPRESS_DIR) && ln -srf CYW55560A1_*.hcd $(BRCM_DIR)/CYW55560A1.hcd
 endef
@@ -236,12 +236,12 @@ ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_CYW55573_PCIE),y)
 define LAIRD_FW_CYW55573_PCIE_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(CYPRESS_DIR)
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/cypress/cyfmac55560-lwb6x_*.clm_blob $(CYPRESS_DIR)
-	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6x_*.clm_blob cyfmac55560-pcie.clm_blob
-	cp -rad $(@D)/cypress/cyfmac55560-pcie-prod_*.trxse $(CYPRESS_DIR)
-	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-pcie-prod_*.trxse cyfmac55560-pcie.trxse
-	cp -rad $(@D)/cypress/cyfmac55560-lwb6plus.txt $(CYPRESS_DIR)
-	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6plus.txt cyfmac55560-pcie.txt
+	cp -rad $(@D)/cypress/cyfmac55572-lwb6x_*.clm_blob $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55572-lwb6x_*.clm_blob cyfmac55572-pcie.clm_blob
+	cp -rad $(@D)/cypress/cyfmac55572-pcie-prod_*.trxse $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55572-pcie-prod_*.trxse cyfmac55572-pcie.trxse
+	cp -rad $(@D)/cypress/cyfmac55572-lwb6plus.txt $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55572-lwb6plus.txt cyfmac55572-pcie.txt
 	cp -rad $(@D)/cypress/CYW55560A1_*.hcd $(CYPRESS_DIR)
 	cd $(CYPRESS_DIR) && ln -srf CYW55560A1_*.hcd $(BRCM_DIR)/CYW55560A1.hcd
 endef
@@ -251,12 +251,12 @@ ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_CYW55573_SDIO),y)
 define LAIRD_FW_CYW55573_SDIO_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(CYPRESS_DIR)
 	mkdir -p -m 0755 $(BRCM_DIR)
-	cp -rad $(@D)/cypress/cyfmac55560-lwb6x_*.clm_blob $(CYPRESS_DIR)
-	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6x_*.clm_blob cyfmac55560-sdio.clm_blob
-	cp -rad $(@D)/cypress/cyfmac55560-sdio-prod_*.trxse $(CYPRESS_DIR)
-	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-sdio-prod_*.trxse cyfmac55560-sdio.trxse
-	cp -rad $(@D)/cypress/cyfmac55560-lwb6plus.txt $(CYPRESS_DIR)
-	cd $(CYPRESS_DIR) && ln -srf cyfmac55560-lwb6plus.txt cyfmac55560-sdio.txt
+	cp -rad $(@D)/cypress/cyfmac55572-lwb6x_*.clm_blob $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55572-lwb6x_*.clm_blob cyfmac55572-sdio.clm_blob
+	cp -rad $(@D)/cypress/cyfmac55572-sdio-prod_*.trxse $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55572-sdio-prod_*.trxse cyfmac55572-sdio.trxse
+	cp -rad $(@D)/cypress/cyfmac55572-lwb6plus.txt $(CYPRESS_DIR)
+	cd $(CYPRESS_DIR) && ln -srf cyfmac55572-lwb6plus.txt cyfmac55572-sdio.txt
 	cp -rad $(@D)/cypress/CYW55560A1_*.hcd $(CYPRESS_DIR)
 	cd $(CYPRESS_DIR) && ln -srf CYW55560A1_*.hcd $(BRCM_DIR)/CYW55560A1.hcd
 endef
@@ -265,8 +265,8 @@ endif
 ifeq ($(BR2_PACKAGE_LAIRD_FIRMWARE_CYW5557X_MFG),y)
 define LAIRD_FW_CYW5557X_MFG_INSTALL_TARGET_CMDS
 	mkdir -p -m 0755 $(CYPRESS_DIR)
-	cp -rad $(@D)/cypress/cyfmac55560-pcie-mfg_*.trxse $(CYPRESS_DIR)
-	cp -rad $(@D)/cypress/cyfmac55560-sdio-mfg_*.trxse $(CYPRESS_DIR)
+	cp -rad $(@D)/cypress/cyfmac55572-pcie-mfg_*.trxse $(CYPRESS_DIR)
+	cp -rad $(@D)/cypress/cyfmac55572-sdio-mfg_*.trxse $(CYPRESS_DIR)
 endef
 endif
 
