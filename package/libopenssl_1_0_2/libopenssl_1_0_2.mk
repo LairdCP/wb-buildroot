@@ -39,6 +39,9 @@ LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2022-0778
 # 0015-c_rehash-Do-not-use-shell-to-invoke-openssl.patch
 LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2022-1292
 
+# 0016-Fix-file-operations-in-c_rehash.patch
+LIBOPENSSL_1_0_2_IGNORE_CVES += CVE-2022-2068
+
 ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS),y)
 # building from closed source git repository
 LIBOPENSSL_1_0_2_VERSION = local
