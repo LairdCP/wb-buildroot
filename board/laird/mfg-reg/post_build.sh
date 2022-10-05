@@ -110,7 +110,7 @@ echo "/usr/bin/lru
 /usr/lib/${LIBEDITLRD}" \
 > "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
 
-ls "${TARGET_DIR}/lib/firmware/cypress/cyfmac55560-"*"-mfg_"*".trxse" | sed "s,^${TARGET_DIR},," \
+ls "${TARGET_DIR}/lib/firmware/cypress/cyfmac55572-"*"-mfg_"*".trxse" | sed "s,^${TARGET_DIR},," \
 	>> "${TARGET_DIR}/${BR2_LRD_PRODUCT}.manifest"
 
 cp "${TARGET_DIR}/usr/lib/${LIBEDIT}" "${TARGET_DIR}/usr/lib/${LIBEDITLRD}"
