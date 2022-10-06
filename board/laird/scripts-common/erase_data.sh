@@ -5,7 +5,6 @@ DATA_SECRET_SRC=/data/secret
 DATA_SECRET_TARGET=${MOUNT_POINT}/secret
 DATA_SRC=/data
 DATA_TARGET=${MOUNT_POINT}
-do_data_migration=1
 
 exit_on_error() {
 	[ "${1}" = 1 ] && /bin/umount "${MOUNT_POINT}"
@@ -28,50 +27,50 @@ find_ubi_device() {
 }
 
 migrate_data() {
+	# Create mount point and mount the data device
+	/bin/mount -o noatime,noexec,nosuid,nodev -t ubifs "${1}" "${MOUNT_POINT}" || \
+		exit_on_error 0 "Mounting ${DATA_DEVICE} to ${MOUNT_POINT} Failed"
 
-	#Create mount point and mount the data device
-	/bin/mount -o noatime -t ubifs "${1}" "${MOUNT_POINT}" || exit_on_error 0 "Mounting ${DATA_DEVICE} to ${MOUNT_POINT} Failed"
-
-	#Wipe data patition
+	# Wipe data patition
 	rm -rf "${MOUNT_POINT}"/*
 
 	if [ "${do_data_migration}" -ne 0 ]; then
 
-		#Prepare /data/secret
+		# Prepare /data/secret
 		if [ -d "${DATA_SECRET_SRC}"  ]; then
 			mkdir -p "${DATA_SECRET_TARGET}"
-			#mount_data.service should be active when securefs is enabled.
-			/bin/systemctl -q is-active mount_data
-			if [ "$?" -eq 0 ]; then
-				#Needs keyring to access secret data.
-				/bin/keyctl link @us @s
-				#Target dir is not encrypted anymore after nand erase. Encrypt it before migrating data.
-				FSCRYPT_KEY=ffffffffffffffff
-				/bin/fscryptctl set_policy ${FSCRYPT_KEY} ${DATA_SECRET_TARGET}
-			fi
+
+			# Needs keyring to access secret data.
+			/bin/keyctl link @us @s
+			# Target dir is not encrypted anymore after nand erase. Encrypt it before migrating data.
+			FSCRYPT_KEY=ffffffffffffffff
+			/bin/fscryptctl set_policy ${FSCRYPT_KEY} ${DATA_SECRET_TARGET} || \
+				exit_on_error 1 "Directory Encryption.. Failed"
 		fi
 
-		cp -fa "${DATA_SRC}"/* "${DATA_TARGET}"/ || exit_on_error 1 "Data Copying.. Failed"
+		cp -fa "${DATA_SRC}"/* "${DATA_TARGET}"/ || \
+			exit_on_error 1 "Data Copying.. Failed"
 	fi
 
-	#Unmount the data device
+	# Unmount the data device
 	/bin/umount "${MOUNT_POINT}" || exit_on_error 0 "Unmounting ${MOUNT_POINT} Failed"
 }
 
 mkdir -p "${MOUNT_POINT}" || exit_on_error 0 "Directory Creation for ${MOUNT_POINT} Failed"
 
-#Don't migrate data from SD
+# Don't migrate data from SD
 read -r cmdline </proc/cmdline
-rootsd="/dev/mmc" #SD builds boot from /dev/mmc*
-case ${cmdline} in
-	*${rootsd}*) do_data_migration=0 ;;
+case "${cmdline}" in
+	*/dev/mmc*) do_data_migration=0 ;;
+	*) #Don't migrate if /data not mounted
+		if ! grep -qs "${DATA_SRC} " /proc/mounts; then
+			echo "Data from ${DATA_SRC} not migrated, because it was not mounted." | systemd-cat -t "${0}" -p warning
+			do_data_migration=0
+		else
+			do_data_migration=1
+		fi
+		;;
 esac
-
-#Don't migrate if /data not mounted
-if ! grep -qs "${DATA_SRC} " /proc/mounts; then
-	echo "Data from ${DATA_SRC} not migrated, because it was not mounted." | systemd-cat -t "${0}" -p warning
-	do_data_migration=0
-fi
 
 for name in ${1}; do
 	find_ubi_device "${name}"
