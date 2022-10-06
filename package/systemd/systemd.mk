@@ -491,12 +491,12 @@ else
 SYSTEMD_CONF_OPTS += -Dnss-resolve=false -Dresolve=false
 endif
 
-ifeq ($(BR2_PACKAGE_LIBOPENSSL),y)
+ifeq ($(BR2_PACKAGE_OPENSSL),y)
 SYSTEMD_CONF_OPTS += \
 	-Dgnutls=false \
 	-Dopenssl=true \
 	-Ddns-over-tls=openssl \
-	-Ddefault-dns-over-tls=opportunistic
+	-Ddefault-dns-over-tls=opportunistic \
 	-Dcryptolib=openssl \
 	-Dgcrypt=false \
 	-Ddefault-dnssec=allow-downgrade
