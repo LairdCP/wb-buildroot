@@ -1,9 +1,0 @@
-[Unit]
-Description=Filesystem Encryption Key
-DefaultDependencies=false
-
-[Service]
-Type=oneshot
-RemainAfterExit=yes
-ExecStart=keyctl search %:_builtin_fs_keys logon fscrypt:ffffffffffffffff @us
-KeyringMode=inherit

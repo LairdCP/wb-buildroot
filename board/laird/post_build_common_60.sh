@@ -84,6 +84,11 @@ fi
 
 # Remove not needed systemd generators
 rm -f ${TARGET_DIR}/usr/lib/systemd/system-generators/systemd-gpt-auto-generator
+rm -f ${TARGET_DIR}/usr/lib/systemd/system/sys-fs-fuse-connections.mount
+
+if ! grep -qF "BR2_PACKAGE_LIBDRM=y" ${BR2_CONFIG}; then
+	sed -i 's/modprobe@drm.service//g' ${TARGET_DIR}/usr/lib/systemd/system/systemd-logind.service
+fi
 
 # Remove bluetooth support when BlueZ 5 not present
 if [ ! -x ${TARGET_DIR}/usr/bin/btattach ]; then
@@ -95,7 +100,7 @@ if [ ! -x ${TARGET_DIR}/usr/bin/btattach ]; then
 else
 	# Customize BlueZ Bluetooth advertised name
 	if [ -e ${TARGET_DIR}/etc/bluetooth/main.conf ]; then
-		sed -i "s/.*Name *=.*/Name = Laird-${BR2_LRD_PRODUCT^^}/" ${TARGET_DIR}/etc/bluetooth/main.conf
+		sed -i "s/.*Name *=.*/Name = Summit-${BR2_LRD_PRODUCT^^}/" ${TARGET_DIR}/etc/bluetooth/main.conf
 	fi
 fi
 
@@ -127,9 +132,6 @@ CSCRIPT_DIR="$(realpath board/laird/scripts-common)"
 
 # Configure keys, boot script, and SWU tools when using encrypted toolkit
 if ${ENCRYPTED_TOOLKIT} ; then
-	# Move timezone setting into writable partition
-	ln -rsf ${TARGET_DIR}/data/misc/zoneinfo/localtime ${TARGET_DIR}/etc/localtime
-
 	# Copy keys if present
 	if [ -f ${ENCRYPTED_TOOLKIT_DIR}/dev.key ]; then
 		ln -rsf ${ENCRYPTED_TOOLKIT_DIR} ${BINARIES_DIR}

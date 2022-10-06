@@ -1,8 +1,8 @@
 [Unit]
 Description=Mount Data Partition
 DefaultDependencies=false
-Wants=fskey.service
-After=fskey.service
+Wants=local-fs.target
+Before=multi-user.target
 
 [Service]
 Type=oneshot
