@@ -1,5 +1,7 @@
 #!/bin/sh
 
+trap 'rm -rf ${TMPDIR}' EXIT
+
 IMGFILE=$1
 ROOTFS_EXTRA_SIZE=${2:-0}
 ROOTFSDIR=$3
@@ -10,24 +12,26 @@ MiBCONVERTER=$(( 1024 * 1024 ))
 
 if [ -z "${IMGFILE}" ]; then
 	echo "mksdimg.sh <output filename> [rootfs free space size in MiB] [rootfs source directory]" >&2
-	exit
+	exit 2
 fi
 
 if [ -z "${ROOTFSDIR}" ]; then
 	if [ ! -f "${SRCDIR}/rootfs.tar" ]; then
 		echo "Could not find required rootfs.tar file." >&2
-		exit
+		exit 2
 	fi
 elif [ ! -d "${ROOTFSDIR}" ]; then
 	echo "Could not find requested rootfs directory: ${ROOTFSDIR}." >&2
-	exit
+	exit 2
 fi
 
 [ "${ROOTFS_EXTRA_SIZE}" -eq "${ROOTFS_EXTRA_SIZE}" ] 2>/dev/null
 if [ $? -ne 0 ]; then
 	echo "rootfs free space size is not a number" >&2
-	exit
+	exit 2
 fi
+
+set -e
 
 echo "[Creating card image...]"
 
@@ -65,7 +69,6 @@ IMGTMPFILE=${TMPDIR}/${IMGFILE}
 
 # Create disk image placeholder
 fallocate -l ${BOOT_START_MiB}MiB ${IMGTMPFILE}
-[ $? -ne 0 ] && exit
 
 echo "[Creating boot partition...]"
 
@@ -121,13 +124,11 @@ parted -s ${IMGTMPFILE} mklabel msdos unit MiB \
 	mkpart primary linux-swap ${SWAP_START_MiB} ${SWAP_END_MiB} \
 	mkpart primary ext4 ${ROOTFS_START_MiB} 100%
 
-if [ $? -eq 0 ]; then
-	echo "[Compressing card image...]"
-	xz -9cT 0 ${IMGTMPFILE} > ${IMGFILE}.xz
+echo "[Compressing card image...]"
+xz -9cT 0 ${IMGTMPFILE} > ${IMGFILE}.xz
 
-	echo "[Image file: ${IMGFILE}.xz]"
-	echo "SD Card Programming: umount /dev/sdX? ; xz -dc ${IMGFILE}.xz | sudo dd of=/dev/sdX bs=4M conv=fsync"
-fi
+echo "[Image file: ${IMGFILE}.xz]"
+echo "SD Card Programming: umount /dev/sdX? ; xz -dc ${IMGFILE}.xz | sudo dd of=/dev/sdX bs=4M conv=fsync"
 
 rm -rf ${TMPDIR}
 sync
