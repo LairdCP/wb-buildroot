@@ -5,7 +5,7 @@
 ################################################################################
 
 LRD_NETWORK_MANAGER_CVE_PRODUCT = network-manager
-LRD_NETWORK_MANAGER_CVE_VERSION = 1.32.0
+LRD_NETWORK_MANAGER_CVE_VERSION = 1.36.8
 
 ifeq ($(BR2_LRD_DEVEL_BUILD),)
 ifneq ($(BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE),)
@@ -31,14 +31,13 @@ endif
 
 LRD_NETWORK_MANAGER_INSTALL_STAGING = YES
 LRD_NETWORK_MANAGER_DEPENDENCIES = host-pkgconf udev gnutls libglib2 \
-	libgcrypt util-linux host-intltool readline libndp
+	util-linux host-intltool readline libndp
 LRD_NETWORK_MANAGER_LICENSE = GPL-2.0+ (app), LGPL-2.1+ (libnm)
 LRD_NETWORK_MANAGER_LICENSE_FILES = COPYING COPYING.LGPL CONTRIBUTING.md
 
 LRD_NETWORK_MANAGER_AUTORECONF = YES
 
 LRD_NETWORK_MANAGER_CONF_ENV = \
-	ac_cv_path_LIBGCRYPT_CONFIG=$(STAGING_DIR)/usr/bin/libgcrypt-config \
 	ac_cv_file__etc_fedora_release=no \
 	ac_cv_file__etc_mandriva_release=no \
 	ac_cv_file__etc_debian_version=no \
