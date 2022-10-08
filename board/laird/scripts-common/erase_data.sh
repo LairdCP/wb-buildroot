@@ -32,7 +32,7 @@ migrate_data() {
 		exit_on_error 0 "Mounting ${DATA_DEVICE} to ${MOUNT_POINT} Failed"
 
 	# Wipe data patition
-	rm -rf "${MOUNT_POINT}"/*
+	rm -rf ${MOUNT_POINT}/*
 
 	if [ "${do_data_migration}" -ne 0 ]; then
 
@@ -48,8 +48,9 @@ migrate_data() {
 				exit_on_error 1 "Directory Encryption.. Failed"
 		fi
 
-		cp -fa "${DATA_SRC}"/* "${DATA_TARGET}"/ || \
+		cp -fa -t ${DATA_TARGET}/ ${DATA_SRC}/* || \
 			exit_on_error 1 "Data Copying.. Failed"
+		sync
 	fi
 
 	# Unmount the data device

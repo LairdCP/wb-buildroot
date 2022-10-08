@@ -32,7 +32,7 @@ case $1 in
 		;;
 
 	stop)
-		umount ${DATA_MOUNT}
+		systemd-umount ${DATA_MOUNT}
 		echo 3 > /proc/sys/vm/drop_caches
 		;;
 esac
