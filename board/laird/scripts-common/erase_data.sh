@@ -50,8 +50,9 @@ migrate_data() {
 
 		cp -fa -t ${DATA_TARGET}/ ${DATA_SRC}/* || \
 			exit_on_error 1 "Data Copying.. Failed"
-		sync
 	fi
+
+	sync
 
 	# Unmount the data device
 	/bin/umount "${MOUNT_POINT}" || exit_on_error 0 "Unmounting ${MOUNT_POINT} Failed"
