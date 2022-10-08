@@ -51,6 +51,8 @@ do_check_and_reset() {
 		exit_on_error "Unable to create localtime link"
 
 	touch "${FACTORY_SETTING_ADJTIME_FILE}" || exit_on_error "unable to create adjtime file"
+
+	sync
 }
 
 case "${1}" in

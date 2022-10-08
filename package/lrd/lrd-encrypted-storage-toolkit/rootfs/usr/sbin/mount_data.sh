@@ -10,7 +10,7 @@ case $1 in
 		BLOCK=$(sed -n 's/.*ubi\.block=[0-9]*,\([0-9]*\).*/\1/p' /proc/cmdline)
 		OVERLAY=$((BLOCK + 1))
 		DATA_DEVICE=/dev/ubi0_${OVERLAY}
-		systemd-mount -o noatime,noexec,nosuid,nodev --fsck=no -t ubifs ${DATA_DEVICE} ${DATA_MOUNT}
+		/bin/systemd-mount -o noatime,noexec,nosuid,nodev --fsck=no -t ubifs ${DATA_DEVICE} ${DATA_MOUNT}
 
 		# Create encrypted data directory
 		DATA_SECRET=${DATA_MOUNT}/secret
@@ -32,7 +32,7 @@ case $1 in
 		;;
 
 	stop)
-		systemd-umount ${DATA_MOUNT}
+		/bin/systemd-umount ${DATA_MOUNT}
 		echo 3 > /proc/sys/vm/drop_caches
 		;;
 esac
