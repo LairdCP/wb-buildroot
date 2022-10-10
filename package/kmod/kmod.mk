@@ -56,12 +56,12 @@ else
 KMOD_CONF_OPTS += --without-xz
 endif
 
-ifeq ($(BR2_PACKAGE_OPENSSL),y)
-KMOD_DEPENDENCIES += openssl
-KMOD_CONF_OPTS += --with-openssl
-else
+#ifeq ($(BR2_PACKAGE_OPENSSL),y)
+#KMOD_DEPENDENCIES += openssl
+#KMOD_CONF_OPTS += --with-openssl
+#else
 KMOD_CONF_OPTS += --without-openssl
-endif
+#endif
 
 ifeq ($(BR2_PACKAGE_PYTHON3),y)
 KMOD_DEPENDENCIES += python3

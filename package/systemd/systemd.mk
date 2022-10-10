@@ -491,6 +491,8 @@ else
 SYSTEMD_CONF_OPTS += -Dnss-resolve=false -Dresolve=false
 endif
 
+ifneq ($(BR2_PACKAGE_SYSTEMD_HOMED)$(BR2_PACKAGE_SYSTEMD_RESOLVED)$(BR2_PACKAGE_SYSTEMD_REPART),)
+
 ifeq ($(BR2_PACKAGE_OPENSSL),y)
 SYSTEMD_CONF_OPTS += \
 	-Dgnutls=false \
@@ -525,6 +527,13 @@ SYSTEMD_CONF_OPTS += \
 	-Ddefault-dns-over-tls=no
 endif
 
+endif
+
+else
+SYSTEMD_CONF_OPTS += \
+	-Dgnutls=false \
+	-Dopenssl=false \
+	-Dgcrypt=false
 endif
 
 ifeq ($(BR2_PACKAGE_SYSTEMD_TIMESYNCD),y)
