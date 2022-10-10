@@ -86,7 +86,8 @@ fi
 rm -f ${TARGET_DIR}/usr/lib/systemd/system-generators/systemd-gpt-auto-generator
 rm -f ${TARGET_DIR}/usr/lib/systemd/system/sys-fs-fuse-connections.mount
 
-if ! grep -qF "BR2_PACKAGE_LIBDRM=y" ${BR2_CONFIG}; then
+if [ -f ${TARGET_DIR}/usr/lib/systemd/system/systemd-logind.service ] && \
+   [ ! grep -qF "BR2_PACKAGE_LIBDRM=y" ${BR2_CONFIG} ]; then
 	sed -i 's/modprobe@drm.service//g' ${TARGET_DIR}/usr/lib/systemd/system/systemd-logind.service
 fi
 
