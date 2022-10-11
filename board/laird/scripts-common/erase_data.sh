@@ -15,10 +15,9 @@ exit_on_error() {
 find_ubi_device() {
 	ubi_dev=""
 	for f in /sys/class/ubi/*; do
-		if [ -f "${f}/name" ] && \
-		   read -r ubi_name < ${f}/name && \
-		   [ "${1}" = "${ubi_name}" ]
-		then
+		if [ -f "${f}/name" ] &&
+			read -r ubi_name <${f}/name &&
+			[ "${1}" = "${ubi_name}" ]; then
 			ubi_dev="/dev/${f#/sys/class/ubi/}"
 			break
 		fi
@@ -28,7 +27,7 @@ find_ubi_device() {
 
 migrate_data() {
 	# Create mount point and mount the data device
-	/bin/mount -o noatime,noexec,nosuid,nodev -t ubifs "${1}" "${MOUNT_POINT}" || \
+	/bin/mount -o noatime,noexec,nosuid,nodev -t ubifs "${1}" "${MOUNT_POINT}" ||
 		exit_on_error 0 "Mounting ${DATA_DEVICE} to ${MOUNT_POINT} Failed"
 
 	# Wipe data patition
@@ -37,18 +36,18 @@ migrate_data() {
 	if [ "${do_data_migration}" -ne 0 ]; then
 
 		# Prepare /data/secret
-		if [ -d "${DATA_SECRET_SRC}"  ]; then
+		if [ -d "${DATA_SECRET_SRC}" ]; then
 			mkdir -p "${DATA_SECRET_TARGET}"
 
 			# Needs keyring to access secret data.
 			/bin/keyctl link @us @s
 			# Target dir is not encrypted anymore after nand erase. Encrypt it before migrating data.
 			FSCRYPT_KEY=ffffffffffffffff
-			/bin/fscryptctl set_policy ${FSCRYPT_KEY} ${DATA_SECRET_TARGET} || \
+			/bin/fscryptctl set_policy ${FSCRYPT_KEY} ${DATA_SECRET_TARGET} ||
 				exit_on_error 1 "Directory Encryption.. Failed"
 		fi
 
-		cp -fa -t ${DATA_TARGET}/ ${DATA_SRC}/* || \
+		cp -fa -t ${DATA_TARGET}/ ${DATA_SRC}/* ||
 			exit_on_error 1 "Data Copying.. Failed"
 	fi
 
@@ -63,15 +62,15 @@ mkdir -p "${MOUNT_POINT}" || exit_on_error 0 "Directory Creation for ${MOUNT_POI
 # Don't migrate data from SD
 read -r cmdline </proc/cmdline
 case "${cmdline}" in
-	*/dev/mmc*) do_data_migration=0 ;;
-	*) #Don't migrate if /data not mounted
-		if ! grep -qs "${DATA_SRC} " /proc/mounts; then
-			echo "Data from ${DATA_SRC} not migrated, because it was not mounted." | systemd-cat -t "${0}" -p warning
-			do_data_migration=0
-		else
-			do_data_migration=1
-		fi
-		;;
+*/dev/mmc*) do_data_migration=0 ;;
+*) #Don't migrate if /data not mounted
+	if ! grep -qs "${DATA_SRC} " /proc/mounts; then
+		echo "Data from ${DATA_SRC} not migrated, because it was not mounted." | systemd-cat -t "${0}" -p warning
+		do_data_migration=0
+	else
+		do_data_migration=1
+	fi
+	;;
 esac
 
 for name in ${1}; do
