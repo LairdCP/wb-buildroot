@@ -97,6 +97,7 @@ define FIREWALLD_FIX_CONFIG
 	$(SED) "s/IPv6_rpfilter=yes/IPv6_rpfilter=no/g" $(TARGET_DIR)/etc/firewalld/firewalld.conf
 	$(SED) "s/^DefaultZone=.*/DefaultZone=$(FIREWALLD_DEFAULT_ZONE)/g" $(TARGET_DIR)/etc/firewalld/firewalld.conf
 	$(SED) "s/^FirewallBackend=.*/FirewallBackend=$(FIREWALLD_DEFAULT_BACKEND)/g" $(TARGET_DIR)/etc/firewalld/firewalld.conf
+	rm -rf $(TARGET_DIR)/usr/share/firewalld/testsuite
 endef
 FIREWALLD_POST_INSTALL_TARGET_HOOKS = FIREWALLD_FIX_CONFIG
 
