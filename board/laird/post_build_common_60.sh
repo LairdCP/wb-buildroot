@@ -92,6 +92,14 @@ fi
 
 # Remove not needed systemd generators
 rm -f ${TARGET_DIR}/usr/lib/systemd/system-generators/systemd-gpt-auto-generator
+rm -f ${TARGET_DIR}/usr/lib/systemd/systemd-network-generator
+rm -f ${TARGET_DIR}/usr/lib/systemd/system/systemd-network-generator.service
+rm -f ${TARGET_DIR}/usr/lib/systemd/system/sys-fs-fuse-connections.mount
+
+if [ -f ${TARGET_DIR}/usr/lib/systemd/system/systemd-logind.service ] && \
+   ! grep -qF "BR2_PACKAGE_LIBDRM=y" ${BR2_CONFIG}; then
+	sed -i 's/modprobe@drm.service//g' ${TARGET_DIR}/usr/lib/systemd/system/systemd-logind.service
+fi
 
 # Remove bluetooth support when BlueZ 5 not present
 if [ ! -x ${TARGET_DIR}/usr/bin/btattach ]; then
@@ -126,6 +134,7 @@ rm -f "${TARGET_DIR}/usr/lib/python3.10/site-packages/setuptools/"*.exe
 	find "${TARGET_DIR}/usr/lib/node_modules" -name '*.md' -exec rm -f {} \;
 rm -rf "${TARGET_DIR}/var/www/swupdate"
 rm -rf "${TARGET_DIR}/usr/share/gobject-introspection-1.0/"
+rm -rf "${TARGET_DIR}/usr/lib/gobject-introspection/"
 
 if [ "${BUILD_TYPE}" != ig60 ]; then
 

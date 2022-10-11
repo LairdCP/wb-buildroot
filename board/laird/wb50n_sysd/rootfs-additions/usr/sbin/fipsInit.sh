@@ -7,38 +7,37 @@ fail() {
 	/usr/sbin/reboot -f
 }
 
-mount -t proc proc /proc 2> /dev/null
+mount -t proc proc /proc 2>/dev/null
 PROC_MOUNT=$?
 BOOT_MOUNT=false
 
-read -r cmdline < /proc/cmdline
-set -- ${cmdline}
-for x in "$@"; do
+read -r cmdline </proc/cmdline
+for x in ${cmdline}; do
 	case "$x" in
-		ubi.block=*)
-			KERNEL=/dev/ubi0_$((${x#*,} - 1))
-			;;
+	ubi.block=*)
+		KERNEL=/dev/ubi0_$((${x#*,} - 1))
+		;;
 
-		root=/dev/mmcblk0p*)
-			KERNEL=/boot/kernel.itb
-			BOOT_MOUNT=true
-			;;
+	root=/dev/mmcblk0p*)
+		KERNEL=/boot/kernel.itb
+		BOOT_MOUNT=true
+		;;
 
-		initlrd=*)
-			INIT=${x#initlrd=}
-			;;
+	initlrd=*)
+		INIT=${x#initlrd=}
+		;;
 	esac
 done
 
-[ -f /proc/sys/crypto/fips_enabled ] && \
-	read -r FIPS_ENABLED < /proc/sys/crypto/fips_enabled
+[ -f /proc/sys/crypto/fips_enabled ] &&
+	read -r FIPS_ENABLED </proc/sys/crypto/fips_enabled
 
 if [ "${FIPS_ENABLED}" = "1" ] && [ -n "${KERNEL}" ]; then
 	# trigger kernel crypto gcm self-test
 	modprobe tcrypt mode=35
 	modprobe -r tcrypt
 
-	mount -o mode=1777,nosuid,nodev -t tmpfs tmpfs /tmp 2> /dev/null
+	mount -o mode=1777,nosuid,nodev -t tmpfs tmpfs /tmp 2>/dev/null
 	TMP_MOUNT=$?
 
 	if ${BOOT_MOUNT}; then
@@ -47,10 +46,10 @@ if [ "${FIPS_ENABLED}" = "1" ] && [ -n "${KERNEL}" ]; then
 			fail "Cannot mount /boot: $?"
 	fi
 
-	/usr/sbin/dumpimage -T flat_dt -p 0 -o /tmp/Image.gz ${KERNEL} > /dev/null ||\
+	/usr/sbin/dumpimage -T flat_dt -p 0 -o /tmp/Image.gz ${KERNEL} >/dev/null ||
 		fail "Cannot extract kernel image error: $1"
 
-	FIPSCHECK_DEBUG=stderr /usr/bin/fipscheck /tmp/Image.gz /usr/lib/libcrypto.so.1.0.0 ||\
+	FIPSCHECK_DEBUG=stderr /usr/bin/fipscheck /tmp/Image.gz /usr/lib/libcrypto.so.1.0.0 ||
 		fail "fipscheck error: $?"
 
 	shred -zu -n 1 /tmp/Image.gz
