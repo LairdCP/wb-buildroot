@@ -45,29 +45,30 @@
 #  entry from the cmdline.txt file and reboot, make the changes, add the init= entry and reboot once more.
 
 fail() {
-	echo -e "$1" ; /bin/sh
+    echo -e "$1"
+    /bin/sh
 }
 
 # load module
-modprobe overlay ||\
+modprobe overlay ||
     fail "ERROR: missing overlay kernel module"
 
 # mount /proc
-mount -t proc proc /proc ||\
+mount -t proc proc /proc ||
     fail "ERROR: could not mount proc"
 
 # create a writable fs to then create our mountpoints
-mount -t tmpfs inittemp /mnt ||\
+mount -t tmpfs inittemp /mnt ||
     fail "ERROR: could not create a temporary filesystem to mount the base filesystems for overlayfs"
 
 mkdir /mnt/lower
 mkdir /mnt/rw
 
 # Find our running ubiblock
-set -- $(cat /proc/cmdline)
-for x in "$@"; do
+read -r cmdline </proc/cmdline
+for x in ${cmdline}; do
     case "$x" in
-        ubi.block=*)
+    ubi.block=*)
         BLOCK=${x#*,}
         ;;
     esac
@@ -75,7 +76,7 @@ done
 
 OVERLAY=$((BLOCK + 1))
 
-mount -o noatime -t ubifs ubi0_$OVERLAY /mnt/rw ||\
+mount -o noatime -t ubifs ubi0_$OVERLAY /mnt/rw ||
     fail "ERROR: could not create tempfs for upper filesystem"
 
 mkdir -p /mnt/rw/upper
@@ -87,10 +88,10 @@ set -- $(mount | awk '$3 == "/" {print $1, $5}')
 rootDev=$1
 rootFsType=$2
 
-mount -t $rootFsType -o noatime,ro $rootDev /mnt/lower ||\
-	fail "ERROR: could not ro-mount original root partition"
+mount -t $rootFsType -o noatime,ro $rootDev /mnt/lower ||
+    fail "ERROR: could not ro-mount original root partition"
 
-mount -t overlay -o noatime,lowerdir=/mnt/lower,upperdir=/mnt/rw/upper,workdir=/mnt/rw/work overlayfs-root /mnt/newroot ||\
+mount -t overlay -o noatime,lowerdir=/mnt/lower,upperdir=/mnt/rw/upper,workdir=/mnt/rw/work overlayfs-root /mnt/newroot ||
     fail "ERROR: could not mount overlayFS"
 
 # create mountpoints inside the new root filesystem-overlay
@@ -98,17 +99,18 @@ mkdir -p /mnt/newroot/ro
 mkdir -p /mnt/newroot/rw
 
 # remove root mount from fstab (this is already a non-permanent modification)
-grep -v /dev/root /mnt/lower/etc/fstab > /mnt/newroot/etc/fstab && \
-	echo "#the original root mount has been removed by overlayRoot.sh\n" \
-		"#this is only a temporary modification, the original fstab\n" \
-		"#stored on the disk can be found in /ro/etc/fstab\n" \
-		>> /mnt/newroot/etc/fstab
+grep -v /dev/root /mnt/lower/etc/fstab >/mnt/newroot/etc/fstab &&
+    echo "#the original root mount has been removed by overlayRoot.sh\n" \
+        "#this is only a temporary modification, the original fstab\n" \
+        "#stored on the disk can be found in /ro/etc/fstab\n" \
+        >>/mnt/newroot/etc/fstab
 
 # change to the new overlay root
 cd /mnt/newroot
 pivot_root . mnt
 
-exec chroot . sh -c "$(cat <<END
+exec chroot . sh -c "$(
+    cat <<END
 # move ro and rw mounts to the new root
 mount --move /mnt/mnt/lower/ /ro ||
     ( echo "ERROR: could not move ro-root into newroot" ; /bin/sh )
