@@ -32,6 +32,11 @@ endef
 
 STUNNEL_POST_INSTALL_TARGET_HOOKS += STUNNEL_INSTALL_CONF
 
+define STUNNEL_INSTALL_INIT_SYSTEMD
+	$(INSTALL) -m 0644 -D $(@D)/tools/stunnel.service \
+		$(TARGET_DIR)/usr/lib/systemd/system/stunnel.service
+endef
+
 define STUNNEL_INSTALL_INIT_SYSV
 	$(INSTALL) -m 0755 -D package/stunnel/S50stunnel $(TARGET_DIR)/etc/init.d/S50stunnel
 endef

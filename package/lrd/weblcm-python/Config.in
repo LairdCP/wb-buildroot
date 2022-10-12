@@ -79,6 +79,12 @@ config BR2_PACKAGE_WEBLCM_PYTHON_WEBSOCKETS
 	help
 		Add Websockets streaming support for BLE REST API.
 
+config BR2_PACKAGE_WEBLCM_ENABLE_STUNNEL_CONTROL
+	bool "Control support for stunnel"
+	select BR2_PACKAGE_STUNNEL
+	help
+		Enable support to control stunnel
+
 config BR2_PACKAGE_WEBLCM_PYTHON_UNAUTHENTICATED
 	bool "Unauthenticated access support for weblcm"
 	help
