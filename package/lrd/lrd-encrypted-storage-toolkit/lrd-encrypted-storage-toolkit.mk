@@ -14,7 +14,7 @@ BACKUP_MISC_DIR = $(TARGET_DIR)/usr/share/factory/etc/misc
 
 define LRD_ENCRYPTED_STORAGE_TOOLKIT_ROOTFS_PRE_CMD_HOOK
 	mkdir -p $(BACKUP_SECRET_DIR)
-	for BACKUP_TARGET in "firewalld" "weblcm-python" "modem"; do \
+	for BACKUP_TARGET in "firewalld" "weblcm-python" "modem" "stunnel"; do \
 		if [ -d $(TARGET_DIR)/etc/"$${BACKUP_TARGET}" ];then \
 			mv $(TARGET_DIR)/etc/$${BACKUP_TARGET}/ $(BACKUP_SECRET_DIR); \
 			ln -sf /data/secret/$${BACKUP_TARGET} $(TARGET_DIR)/etc/$${BACKUP_TARGET}; \
