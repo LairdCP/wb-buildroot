@@ -6,7 +6,7 @@
 ADAPTIVE_WW_VERSION = local
 ADAPTIVE_WW_SITE = package/lrd-closed-source/externals/adaptive_ww
 ADAPTIVE_WW_SITE_METHOD = local
-ADAPTIVE_WW_DEPENDENCIES = host-pkgconf libnl openssl libconfig
+ADAPTIVE_WW_DEPENDENCIES = host-pkgconf libnl libtomcrypt libconfig
 
 #
 # BUILD
