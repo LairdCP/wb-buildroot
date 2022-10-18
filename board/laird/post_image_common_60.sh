@@ -74,10 +74,6 @@ if ! grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto
 	# Remove sha lines in SWU scripts
 	[ ! -f ${BINARIES_DIR}/sw-description ] || \
 		sed -i -e "/sha256/d" ${BINARIES_DIR}/sw-description
-else
-	# Ensure public key is present if swupdate signature check is enabled
-	[ ! -f ${TARGET_DIR}/etc/ssl/misc/dev.pem ] && \
-		die "swupdate signature check enabled but public key not found!"
 fi
 
 ALL_SWU_FILES="sw-description boot.bin u-boot.itb kernel.itb rootfs.bin u-boot-env.tgz erase_data.sh"
@@ -123,15 +119,17 @@ if ! ${SD} ; then
 		boot.bin u-boot.itb kernel.itb rootfs.bin ${BR2_LRD_PRODUCT}.swu
 
 	if ${ENCRYPTED_TOOLKIT} ; then
+		DTB="$(sed -n 's/^BR2_LINUX_KERNEL_INTREE_DTS_NAME="\(.*\)"$/\1/p' ${BR2_CONFIG})"
 		tar -C ${BINARIES_DIR} -rhf ${RELEASE_FILE} \
 			--owner=0 --group=0 --numeric-owner \
 			pmecc.bin u-boot-spl.dtb u-boot-spl-nodtb.bin u-boot.dtb \
-			u-boot-nodtb.bin u-boot.its kernel-nosig.itb u-boot.scr.itb \
-			sw-description
+			u-boot-nodtb.bin u-boot.its u-boot.scr.itb \
+			Image.gz "${DTB}.dtb" boot.scr kernel.its \
+			sw-description rootfs.verity u-boot-env.tgz erase_data.sh
 
 		tar -C ${HOST_DIR}/usr/bin -rhf ${RELEASE_FILE} \
 			--owner=0 --group=0 --numeric-owner \
-			fdtget fdtput
+			fdtget fdtput fscryptctl
 
 		tar -C ${BUILD_DIR}/uboot-custom/tools -rhf ${RELEASE_FILE} \
 			--owner=0 --group=0 --numeric-owner \

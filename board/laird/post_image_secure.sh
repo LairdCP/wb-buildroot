@@ -72,6 +72,9 @@ fi
 mkdir -p unsecured_images
 cp -ft unsecured_images u-boot.dtb u-boot-spl.dtb
 
+# Backup kernel boot script (with no verity hash) for release artifacts
+cp boot.scr boot.scr.nohash
+
 # Generate the hash table for squashfs
 rm -f $rootfs.verity
 ${veritysetup} format rootfs.squashfs rootfs.verity > rootfs.verity.header
@@ -107,6 +110,7 @@ dd if=boot.bin of=pmecc.bin bs=208 count=1
 # Restore unsecured components
 mv -ft ./ unsecured_images/*
 rm -rf unsecured_images/
+mv -f boot.scr.nohash boot.scr
 
 [ -f sw-description ] && have_swdesc=1 || have_swdesc=0
 [ -f sw-description-full ] && have_swdescf=1 || have_swdescf=0
