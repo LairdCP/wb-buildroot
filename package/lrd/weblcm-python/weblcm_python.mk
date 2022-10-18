@@ -63,9 +63,6 @@ define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 
 	$(INSTALL) -D -t $(TARGET_DIR)/usr/bin/weblcm-python.scripts -m 755 $(@D)/*.sh
 	$(INSTALL) -D -t $(TARGET_DIR)/etc -m 644 $(@D)/weblcm-python.ini
-	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/server.key
-	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/server.crt
-	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/ca.crt
 
 	$(SED) '/^default_/d' $(TARGET_DIR)/etc/weblcm-python.ini
 	$(SED) '/\[weblcm\]/a default_password: \"$(WEBLCM_PYTHON_DEFAULT_PASSWORD)\"' $(TARGET_DIR)/etc/weblcm-python.ini
@@ -89,7 +86,23 @@ define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 	$(SED) '/\[weblcm\]/a allow_multiple_user_sessions:$(WEBLCM_PYTHON_ENABLE_MULTIPLE_USER_SESSIONS)' $(TARGET_DIR)/etc/weblcm-python.ini
 endef
 
+ifeq ($(BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT),y)
+define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS2
+	$(SED) '/^server.ssl_certificate/d' $(TARGET_DIR)/etc/weblcm-python.ini
+	$(SED) '/^server.ssl_private_key/d' $(TARGET_DIR)/etc/weblcm-python.ini
+	$(SED) '/\[global\]/a server.ssl_certificate: \"/rodata/secret/weblcm-python/ssl/server.crt\"' $(TARGET_DIR)/etc/weblcm-python.ini
+	$(SED) '/\[global\]/a server.ssl_private_key: \"/rodata/secret/weblcm-python/ssl/server.key\"' $(TARGET_DIR)/etc/weblcm-python.ini
+endef
+else
+define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS2
+	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/server.key
+	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/server.crt
+	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/ca.crt
+endef
+endif
+
 WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
+WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS2
 
 define WEBLCM_PYTHON_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -D -t $(TARGET_DIR)/usr/lib/systemd/system -m 644 $(@D)/weblcm-python.service

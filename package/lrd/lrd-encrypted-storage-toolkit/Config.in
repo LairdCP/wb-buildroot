@@ -2,6 +2,7 @@ config BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT
 	bool "lrd encrypted storage toolkit"
 	select BR2_PACKAGE_KEYUTILS
 	select BR2_PACKAGE_FSCRYPTCTL
+	select BR2_PACKAGE_HOST_FSCRYPTCTL
 	select BR2_TARGET_UBOOT_NEEDS_OPENSSL
 	help
 	Toolkit for implementing Laird's U-Boot encryption
