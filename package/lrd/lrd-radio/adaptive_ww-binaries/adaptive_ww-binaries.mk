@@ -3,7 +3,7 @@ ADAPTIVE_WW_BINARIES_VERSION = $(call qstrip,$(BR2_PACKAGE_LRD_RADIO_STACK_VERSI
 ADAPTIVE_WW_BINARIES_LICENSE = LGPL-2.1
 ADAPTIVE_WW_BINARIES_STRIP_COMPONENTS = 0
 
-ADAPTIVE_WW_BINARIES_SOURCE = adaptive_ww$(BR2_PACKAGE_LRD_RADIO_STACK_ARCH))-$(ADAPTIVE_WW_BINARIES_VERSION).tar.bz2
+ADAPTIVE_WW_BINARIES_SOURCE = adaptive_ww$(call qstrip,$(BR2_PACKAGE_LRD_RADIO_STACK_ARCH))-$(ADAPTIVE_WW_BINARIES_VERSION).tar.bz2
 
 ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
   ADAPTIVE_WW_BINARIES_SITE = https://files.devops.rfpros.com/builds/linux/adaptive_ww/laird/$(ADAPTIVE_WW_BINARIES_VERSION)
@@ -42,6 +42,9 @@ endef
 define ADAPTIVE_WW_BINARIES_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -m 0644 -D $(@D)/usr/lib/systemd/system/adaptive_ww.service \
 		$(TARGET_DIR)/usr/lib/systemd/system/adaptive_ww.service
+	$(INSTALL) -d $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
+	ln -rsf $(TARGET_DIR)/usr/lib/systemd/system/adaptive_ww.service \
+		$(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/adaptive_ww.service
 endef
 
 define ADAPTIVE_WW_BINARIES_INSTALL_INIT_SYSV
