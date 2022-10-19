@@ -79,7 +79,7 @@
          /* No timezone is very similar to UTC. Hence in either of these cases link the UTC file in. Except if
           * it isn't installed, in which case we remove the symlink altogether. Since glibc defaults to an
           * internal version of UTC in that case behaviour is mostly equivalent. We still prefer creating the
-@@ -305,7 +323,7 @@
+@@ -305,22 +323,22 @@
  
                  if (access("/usr/share/zoneinfo/UTC", F_OK) < 0) {
  
@@ -88,7 +88,16 @@
                                  return -errno;
  
                          return 0;
-@@ -320,7 +338,7 @@
+                 }
+ 
+-                source = "../usr/share/zoneinfo/UTC";
++                source = "/usr/share/zoneinfo/UTC";
+         } else {
+-                p = path_join("../usr/share/zoneinfo", c->zone);
++                p = path_join("/usr/share/zoneinfo", c->zone);
+                 if (!p)
+                         return -ENOMEM;
+ 
                  source = p;
          }
  
