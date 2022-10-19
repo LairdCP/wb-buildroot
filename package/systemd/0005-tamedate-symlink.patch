@@ -1,0 +1,99 @@
+--- a/src/basic/time-util.c	2022-07-13 07:30:45.000000000 
++++ a/src/basic/time-util.c	2022-10-18 18:44:26.000000000 
+@@ -1492,27 +1492,34 @@
+ }
+ 
+ int get_timezone(char **ret) {
++        _cleanup_free_ char *n = memdup("/etc/localtime", sizeof("/etc/localtime"));
+         _cleanup_free_ char *t = NULL;
+         const char *e;
+         char *z;
+         int r;
+ 
+-        r = readlink_malloc("/etc/localtime", &t);
+-        if (r == -ENOENT) {
+-                /* If the symlink does not exist, assume "UTC", like glibc does */
+-                z = strdup("UTC");
+-                if (!z)
+-                        return -ENOMEM;
++        for (;;) {
++                r = readlink_malloc(n, &t);
++                if (r == -ENOENT) {
++                        /* If the symlink does not exist, assume "UTC", like glibc does */
++                        z = strdup("UTC");
++                        if (!z)
++                                return -ENOMEM;
+ 
+-                *ret = z;
+-                return 0;
+-        }
+-        if (r < 0)
+-                return r; /* returns EINVAL if not a symlink */
++                        *ret = z;
++                        return 0;
++                }
++                if (r < 0)
++                        return r; /* returns EINVAL if not a symlink */
+ 
+-        e = PATH_STARTSWITH_SET(t, "/usr/share/zoneinfo/", "../usr/share/zoneinfo/");
+-        if (!e)
+-                return -EINVAL;
++                e = PATH_STARTSWITH_SET(t, "/usr/share/zoneinfo/", "../usr/share/zoneinfo/");
++                if (e)
++                        break;
++
++                mfree(n);
++                n = t;
++                t = NULL;
++        }
+ 
+         if (!timezone_is_valid(e, LOG_DEBUG))
+                 return -EINVAL;
+--- a/src/timedate/timedated.c	2022-07-13 07:30:45.000000000 
++++ b/src/timedate/timedated.c	2022-10-18 18:47:43.000000000 
+@@ -293,9 +293,27 @@
+ static int context_write_data_timezone(Context *c) {
+         _cleanup_free_ char *p = NULL;
+         const char *source;
++        _cleanup_free_ char *t = NULL;
++        _cleanup_free_ char *n = memdup("/etc/localtime", sizeof("/etc/localtime"));
++        const char *e;
++        int r = 0;
+ 
+         assert(c);
+ 
++        for (;;) {
++                r = readlink_malloc(n, &t);
++                if (r < 0)
++                        break;
++
++                e = PATH_STARTSWITH_SET(t, "/usr/share/zoneinfo/", "../usr/share/zoneinfo/");
++                if (e)
++                        break;
++
++                mfree(n);
++                n = t;
++                t = NULL;
++        }
++
+         /* No timezone is very similar to UTC. Hence in either of these cases link the UTC file in. Except if
+          * it isn't installed, in which case we remove the symlink altogether. Since glibc defaults to an
+          * internal version of UTC in that case behaviour is mostly equivalent. We still prefer creating the
+@@ -305,7 +323,7 @@
+ 
+                 if (access("/usr/share/zoneinfo/UTC", F_OK) < 0) {
+ 
+-                        if (unlink("/etc/localtime") < 0 && errno != ENOENT)
++                        if (unlink(n) < 0 && errno != ENOENT)
+                                 return -errno;
+ 
+                         return 0;
+@@ -320,7 +338,7 @@
+                 source = p;
+         }
+ 
+-        return symlink_atomic(source, "/etc/localtime");
++        return symlink_atomic(source, n);
+ }
+ 
+ static int context_write_data_local_rtc(Context *c) {
