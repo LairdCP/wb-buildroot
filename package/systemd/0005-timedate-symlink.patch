@@ -79,11 +79,15 @@
          /* No timezone is very similar to UTC. Hence in either of these cases link the UTC file in. Except if
           * it isn't installed, in which case we remove the symlink altogether. Since glibc defaults to an
           * internal version of UTC in that case behaviour is mostly equivalent. We still prefer creating the
-@@ -305,22 +323,22 @@
+@@ -305,22 +323,30 @@
  
                  if (access("/usr/share/zoneinfo/UTC", F_OK) < 0) {
  
 -                        if (unlink("/etc/localtime") < 0 && errno != ENOENT)
++                        r = write_string_file("/etc/timezone", "UTC", WRITE_STRING_FILE_CREATE | WRITE_STRING_FILE_TRUNCATE);
++                        if (r < 0)
++                                return log_warning_errno(r, "Failed writing to /etc/timezone");
++
 +                        if (unlink(n) < 0 && errno != ENOENT)
                                  return -errno;
  
@@ -102,6 +106,10 @@
          }
  
 -        return symlink_atomic(source, "/etc/localtime");
++        r = write_string_file("/etc/timezone", c->zone, WRITE_STRING_FILE_CREATE | WRITE_STRING_FILE_TRUNCATE);
++        if (r < 0)
++                return log_warning_errno(r, "Failed writing to /etc/timezone");
++
 +        return symlink_atomic(source, n);
  }
  
