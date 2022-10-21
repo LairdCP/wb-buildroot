@@ -62,7 +62,7 @@ case $1 in
 				then
 					mkdir -p `echo $line | sed "s/$BIN//g"`
 					echo "Forced install of $BIN to $line"
-					cp "$ROOTNAME/$BIN" "$line"
+					cp -d "$ROOTNAME/$BIN" "$line"
 				else
 					# check if file exists
 					if [ -e "$line" ]
@@ -71,7 +71,7 @@ case $1 in
 					else
 						mkdir -p `echo $line | sed "s/$BIN//g"`
 						echo "Installing $BIN to $line"
-						cp "$ROOTNAME/$BIN" "$line"
+						cp -d "$ROOTNAME/$BIN" "$line"
 					fi
 				fi
 			fi
