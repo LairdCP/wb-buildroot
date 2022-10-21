@@ -130,6 +130,7 @@ fi
 rm -f "${TARGET_DIR}/usr/lib/python3.10/ensurepip/_bundled/"*.whl
 rm -f "${TARGET_DIR}/usr/lib/python3.10/distutils/command/"*.exe
 rm -f "${TARGET_DIR}/usr/lib/python3.10/site-packages/setuptools/"*.exe
+rm -rf "${TARGET_DIR}/usr/lib/python3.10/site-packages/"*.egg-info
 [ -d "${TARGET_DIR}/usr/lib/node_modules" ] && \
 	find "${TARGET_DIR}/usr/lib/node_modules" -name '*.md' -exec rm -f {} \;
 rm -rf "${TARGET_DIR}/var/www/swupdate"
