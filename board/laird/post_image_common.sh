@@ -74,6 +74,10 @@ ln -rsf "${BINARIES_DIR}/rootfs.ubi" "${BINARIES_DIR}/rootfs.bin"
 board/laird/mkfwtxt.sh "${LAIRD_FW_TXT_URL}" "${BINARIES_DIR}"
 board/laird/mkfwusi.sh
 
+if [ ! -x ${TARGET_DIR}/usr/bin/dcas ]; then
+    sed '/\/etc\/dcas.conf/d' -i ${BINARIES_DIR}/fw.txt
+fi
+
 size_check () {
 	[ $(stat -Lc "%s" ${BINARIES_DIR}/${1}) -le $((${2}*128*1024)) ] || \
 		{ echo "${1} size exceeded ${2} block limit, failed"; exit 1; }

@@ -57,7 +57,6 @@ cat >> ${fwul} << EOF
   /etc/ssl
   /root/.ssh
   /etc/dcas.conf
-  /etc/NetworkManager/system-connections
 
 EOF
 
