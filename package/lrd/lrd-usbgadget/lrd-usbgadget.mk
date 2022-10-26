@@ -1,10 +1,10 @@
 #############################################################
 #
-# Laird Connectivity USB Ethernet Gadget Helper
+# Summit USB Ethernet Gadget Helper
 #
 #############################################################
 
-ifneq ($(BR2_PACKAGE_LRD_NETWORK_MANAGER)$(BR2_PACKAGE_NETWORK_MANAGER)$(BR2_PACKAGE_SUMMIT_FIREWALL),)
+ifneq ($(call qstrip,$(BR2_PACKAGE_LRD_NETWORK_MANAGER)$(BR2_PACKAGE_NETWORK_MANAGER)$(BR2_PACKAGE_SUMMIT_FIREWALL)),)
 define LRD_USBGADGET_INSTALL_NM
 	$(INSTALL) -D -m 0600 -t $(TARGET_DIR)/usr/lib/NetworkManager/system-connections/ \
 		package/lrd/lrd-usbgadget/shared-usb0.nmconnection

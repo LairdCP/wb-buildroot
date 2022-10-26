@@ -5,11 +5,16 @@ menuconfig BR2_PACKAGE_SUMMIT_FIREWALL
 
 if BR2_PACKAGE_SUMMIT_FIREWALL
 
-config BR2_PACKAGE_SUMMIT_FIREWALL_INTERFACE
+config BR2_PACKAGE_SUMMIT_FIREWALL_INT_IF
 	string "internal interface name"
 	default "usb0"
 
-config BR2_PACKAGE_SUMMIT_FIREWALL_INTERFACE_IPV4
+config BR2_PACKAGE_SUMMIT_FIREWALL_INT_IF_IPV4
 	string "internal interface ipv4"
 	default "198.18.101.1/24"
+
+config BR2_PACKAGE_SUMMIT_FIREWALL_EXT_IF
+	string "external interface name"
+	default "wlan0"
+
 endif
