@@ -2,7 +2,7 @@
 id=internal
 uuid=aa616959-ba9f-4ad4-bf5e-4eab629c5d58
 type=ethernet
-interface-name=@@INTERFACE@@
+interface-name=@@INT_IF@@
 autoconnect=true
 autoconnect-priority=10
 read-only=true
