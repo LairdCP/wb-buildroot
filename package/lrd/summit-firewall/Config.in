@@ -1,0 +1,15 @@
+menuconfig BR2_PACKAGE_SUMMIT_FIREWALL
+	bool "Summit Basic Wi-Fi NAT/Firewall"
+	help
+	  Summit Basic Wi-Fi NAT/Firewall
+
+if BR2_PACKAGE_SUMMIT_FIREWALL
+
+config BR2_PACKAGE_SUMMIT_FIREWALL_INTERFACE
+	string "internal interface name"
+	default "usb0"
+
+config BR2_PACKAGE_SUMMIT_FIREWALL_INTERFACE_IPV4
+	string "internal interface ipv4"
+	default "198.18.101.1/24"
+endif

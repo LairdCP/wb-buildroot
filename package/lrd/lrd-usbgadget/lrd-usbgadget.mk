@@ -4,9 +4,9 @@
 #
 #############################################################
 
-ifneq ($(BR2_PACKAGE_LRD_NETWORK_MANAGER)$(BR2_PACKAGE_NETWORK_MANAGER),)
+ifneq ($(BR2_PACKAGE_LRD_NETWORK_MANAGER)$(BR2_PACKAGE_NETWORK_MANAGER)$(BR2_PACKAGE_SUMMIT_FIREWALL),)
 define LRD_USBGADGET_INSTALL_NM
-	$(INSTALL) -D -m 0600 -t $(TARGET_DIR)/etc/NetworkManager/system-connections/ \
+	$(INSTALL) -D -m 0600 -t $(TARGET_DIR)/usr/lib/NetworkManager/system-connections/ \
 		package/lrd/lrd-usbgadget/shared-usb0.nmconnection
 endef
 endif
