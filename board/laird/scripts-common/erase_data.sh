@@ -50,7 +50,7 @@ migrate_data() {
 		cp -fa -t ${DATA_TARGET}/ ${DATA_SRC}/* ||
 			exit_on_error 1 "Data Copying.. Failed"
 
-		rm -f ${DATA_SECRET_TARGET}/NetworkManager/system-connections/shared-usb0.nmcnnection
+		rm -f ${DATA_SECRET_TARGET}/NetworkManager/system-connections/shared-usb0.nmconnection
 	fi
 
 	sync
