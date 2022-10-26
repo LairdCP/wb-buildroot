@@ -101,4 +101,11 @@ config BR2_PACKAGE_WEBLCM_ALLOW_MUTLIPLE_USER_SESSIONS
 	help
 		Enable multiple sessions for the same user (re-login)
 
+config BR2_PACKAGE_WEBLCM_PYTHON_IPTABLES_FIREWALL
+	bool "iptables firewall control"
+	select BR2_PACKAGE_IPTABLES
+	default y
+	help
+		Enable iptables firewall wrapper
+
 endif
