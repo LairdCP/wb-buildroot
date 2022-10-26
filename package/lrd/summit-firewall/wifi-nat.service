@@ -1,0 +1,13 @@
+[Unit]
+Description=Wi-Fi NAT Service
+Before=network-pre.target
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/wifi-nat.sh start
+ExecStop=/usr/bin/wifi-nat.sh stop
+
+[Install]
+WantedBy=multi-user.target

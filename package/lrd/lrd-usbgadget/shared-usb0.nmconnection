@@ -16,4 +16,4 @@ method=shared
 [ipv6]
 addr-gen-mode=stable-privacy
 dns-search=
-method=auto
+method=none
