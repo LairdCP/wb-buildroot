@@ -4,11 +4,13 @@
 #
 #############################################################
 
-ifneq ($(call qstrip,$(BR2_PACKAGE_LRD_NETWORK_MANAGER)$(BR2_PACKAGE_NETWORK_MANAGER)$(BR2_PACKAGE_SUMMIT_FIREWALL)),)
+ifeq ($(BR2_PACKAGE_SUMMIT_FIREWALL),)
+ifneq ($(BR2_PACKAGE_LRD_NETWORK_MANAGER)$(BR2_PACKAGE_NETWORK_MANAGER),)
 define LRD_USBGADGET_INSTALL_NM
 	$(INSTALL) -D -m 0600 -t $(TARGET_DIR)/usr/lib/NetworkManager/system-connections/ \
 		package/lrd/lrd-usbgadget/shared-usb0.nmconnection
 endef
+endif
 endif
 
 define LRD_USBGADGET_INSTALL_TARGET_CMDS
