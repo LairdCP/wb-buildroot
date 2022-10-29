@@ -12,6 +12,8 @@ echo "${BR2_LRD_PRODUCT^^} POST BUILD script: starting..."
 
 rsync -rlptDWK --no-perms --exclude=.empty "${SOM60_RDVK_DIR}/rootfs-additions/" "${TARGET_DIR}"
 
+sed -i '/no-auto-default/d' ${TARGET_DIR}/etc/NetworkManager/NetworkManager.conf
+
 rm -f ${TARGET_DIR}/usr/lib/systemd/system/btattach.service
 rm -f ${TARGET_DIR}/etc/udev/rules.d/80-btattach.rules
 
