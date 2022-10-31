@@ -1,0 +1,264 @@
+From b27b1391921607008ed36a7a4b49ec017822325c Mon Sep 17 00:00:00 2001
+From: Stefano Babic <sbabic@denx.de>
+Date: Sun, 5 Apr 2020 14:57:12 +0200
+Subject: [PATCH] Replace strncpy() with strlcpy()
+
+Replace strncpy() with a strlcpy() that does not leave a not null
+terminated buffer in destination.
+
+Signed-off-by: Stefano Babic <sbabic@denx.de>
+---
+ core/cpio_utils.c       |  2 +-
+ core/handler.c          |  3 ++-
+ core/swupdate.c         | 26 +++++++++++++-------------
+ core/util.c             |  4 ++--
+ corelib/lua_interface.c |  2 +-
+ corelib/mtd-interface.c |  8 ++++----
+ handlers/ucfw_handler.c |  2 +-
+ parser/parse_external.c |  4 ++--
+ parser/parser.c         |  4 ++--
+ 9 files changed, 28 insertions(+), 27 deletions(-)
+
+diff --git a/core/cpio_utils.c b/core/cpio_utils.c
+index 923c170ee..285c00c29 100644
+--- a/core/cpio_utils.c
++++ b/core/cpio_utils.c
+@@ -649,7 +649,7 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
+ 
+ 	if (fill_buffer(fd, buf, fhdr->namesize , offset, NULL, NULL) < 0)
+ 		return -EINVAL;
+-	strncpy(fhdr->filename, (char *)buf, sizeof(fhdr->filename));
++	strlcpy(fhdr->filename, (char *)buf, sizeof(fhdr->filename));
+ 
+ 	/* Skip filename padding, if any */
+ 	if (fill_buffer(fd, buf, (4 - (*offset % 4)) % 4, offset, NULL, NULL) < 0)
+diff --git a/core/handler.c b/core/handler.c
+index d8f879e78..2154f868d 100644
+--- a/core/handler.c
++++ b/core/handler.c
+@@ -15,6 +15,7 @@
+ #include "swupdate.h"
+ #include "handler.h"
+ #include "lua_util.h"
++#include "util.h"
+ 
+ #define MAX_INSTALLER_HANDLER	64
+ struct installer_handler supported_types[MAX_INSTALLER_HANDLER];
+@@ -28,7 +29,7 @@ int register_handler(const char *desc,
+ 	if (nr_installers > MAX_INSTALLER_HANDLER - 1)
+ 		return -1;
+ 
+-	strncpy(supported_types[nr_installers].desc, desc,
++	strlcpy(supported_types[nr_installers].desc, desc,
+ 		      sizeof(supported_types[nr_installers].desc));
+ 	supported_types[nr_installers].installer = installer;
+ 	supported_types[nr_installers].data = data;
+diff --git a/core/swupdate.c b/core/swupdate.c
+index 33e846e3f..d74e46e04 100644
+--- a/core/swupdate.c
++++ b/core/swupdate.c
+@@ -213,9 +213,9 @@ static int opt_to_hwrev(char *param, struct hw_type *hw)
+ 		return -EINVAL;
+ 	}
+ 
+-	strncpy(hw->revision, s + 1, sizeof(hw->revision));
++	strlcpy(hw->revision, s + 1, sizeof(hw->revision));
+ 	*s = '\0';
+-	strncpy(hw->boardname, param, sizeof(hw->boardname));
++	strlcpy(hw->boardname, param, sizeof(hw->boardname));
+ 
+ 	if (!strlen(hw->boardname) || !strlen(hw->revision))
+ 		return -EINVAL;
+@@ -416,9 +416,9 @@ static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
+ 	if (len > sizeof(sw->software_set))
+ 		len = sizeof(sw->software_set);
+ 
+-	strncpy(sw->software_set, selector, len);
++	strlcpy(sw->software_set, selector, len);
+ 	/* pos + 1 will either be NULL or valid text */
+-	strncpy(sw->running_mode, pos + 1, sizeof(sw->running_mode));
++	strlcpy(sw->running_mode, pos + 1, sizeof(sw->running_mode));
+ 
+ 	if (strlen(sw->software_set) == 0 || strlen(sw->running_mode) == 0)
+ 		return -EINVAL;
+@@ -727,11 +727,11 @@ int main(int argc, char **argv)
+ 			break;
+ #endif
+ 		case 'i':
+-			strncpy(fname, optarg, sizeof(fname));
++			strlcpy(fname, optarg, sizeof(fname));
+ 			opt_i = 1;
+ 			break;
+ 		case 'o':
+-			strncpy(swcfg.output, optarg, sizeof(swcfg.output));
++			strlcpy(swcfg.output, optarg, sizeof(swcfg.output));
+ 			break;
+ 		case 'l':
+ 			loglevel = strtoul(optarg, NULL, 10);
+@@ -743,7 +743,7 @@ int main(int argc, char **argv)
+ 			swcfg.globals.syslog_enabled = 1;
+ 			break;
+ 		case 'k':
+-			strncpy(swcfg.globals.publickeyfname,
++			strlcpy(swcfg.globals.publickeyfname,
+ 				optarg,
+ 			       	sizeof(swcfg.globals.publickeyfname));
+ 			break;
+@@ -751,24 +751,24 @@ int main(int argc, char **argv)
+ 			swcfg.globals.cert_purpose = parse_cert_purpose(optarg);
+ 			break;
+ 		case '2':
+-			strncpy(swcfg.globals.forced_signer_name, optarg,
++			strlcpy(swcfg.globals.forced_signer_name, optarg,
+ 				sizeof(swcfg.globals.forced_signer_name));
+ 			break;
+ #ifdef CONFIG_ENCRYPTED_IMAGES
+ 		case 'K':
+-			strncpy(swcfg.globals.aeskeyfname,
++			strlcpy(swcfg.globals.aeskeyfname,
+ 				optarg,
+ 			       	sizeof(swcfg.globals.aeskeyfname));
+ 			break;
+ #endif
+ 		case 'N':
+ 			swcfg.globals.no_downgrading = 1;
+-			strncpy(swcfg.globals.minimum_version, optarg,
++			strlcpy(swcfg.globals.minimum_version, optarg,
+ 				sizeof(swcfg.globals.minimum_version));
+ 			break;
+ 		case 'R':
+ 			swcfg.globals.no_reinstalling = 1;
+-			strncpy(swcfg.globals.current_version, optarg,
++			strlcpy(swcfg.globals.current_version, optarg,
+ 				sizeof(swcfg.globals.current_version));
+ 			break;
+ 		case 'M':
+@@ -830,11 +830,11 @@ int main(int argc, char **argv)
+ 			opt_c = 1;
+ 			break;
+ 		case 'p':
+-			strncpy(swcfg.globals.postupdatecmd, optarg,
++			strlcpy(swcfg.globals.postupdatecmd, optarg,
+ 				sizeof(swcfg.globals.postupdatecmd));
+ 			break;
+ 		case 'P':
+-			strncpy(swcfg.globals.preupdatecmd, optarg,
++			strlcpy(swcfg.globals.preupdatecmd, optarg,
+ 				sizeof(swcfg.globals.preupdatecmd));
+ 			break;
+ 		default:
+diff --git a/core/util.c b/core/util.c
+index 78a57fcb5..86057cf90 100644
+--- a/core/util.c
++++ b/core/util.c
+@@ -313,8 +313,8 @@ int get_hw_revision(struct hw_type *hw)
+ 		goto out;
+ 	}
+ 
+-	strncpy(hw->boardname, b1, sizeof(hw->boardname));
+-	strncpy(hw->revision, b2, sizeof(hw->revision));
++	strlcpy(hw->boardname, b1, sizeof(hw->boardname));
++	strlcpy(hw->revision, b2, sizeof(hw->revision));
+ 
+ 	ret = 0;
+ 
+diff --git a/corelib/lua_interface.c b/corelib/lua_interface.c
+index ca524ed67..fce523131 100644
+--- a/corelib/lua_interface.c
++++ b/corelib/lua_interface.c
+@@ -1068,7 +1068,7 @@ static int l_call_handler(lua_State *L)
+ 	}
+ 
+ call_handler_exit:
+-	strncpy(img.type, orighndtype, sizeof(img.type));
++	strlcpy(img.type, orighndtype, sizeof(img.type));
+ 	update_table(L, &img);
+ 	lua_pop(L, 2);
+ 	lua_pushnumber(L, ret);
+diff --git a/corelib/mtd-interface.c b/corelib/mtd-interface.c
+index bdc109ba5..616faef2f 100644
+--- a/corelib/mtd-interface.c
++++ b/corelib/mtd-interface.c
+@@ -148,7 +148,7 @@ void mtd_init(void)
+ 
+ void mtd_set_ubiblacklist(char *mtdlist)
+ {
+-	strncpy(mtd_ubi_blacklist, mtdlist, sizeof(mtd_ubi_blacklist));
++	strlcpy(mtd_ubi_blacklist, mtdlist, sizeof(mtd_ubi_blacklist));
+ }
+ 
+ int get_mtd_from_device(char *s) {
+@@ -413,17 +413,17 @@ int scan_mtd_devices (void)
+ 		case 0:
+ 			black = true;
+ #if defined(CONFIG_UBIBLACKLIST)
+-			strncpy(list, CONFIG_UBIBLACKLIST,
++			strlcpy(list, CONFIG_UBIBLACKLIST,
+ 				sizeof(list));
+ #endif
+ 			/* Blacklist passed on the command line has priority */
+ 			if (strlen(mtd_ubi_blacklist))
+-				strncpy(list, mtd_ubi_blacklist, sizeof(list));
++				strlcpy(list, mtd_ubi_blacklist, sizeof(list));
+ 			break;
+ 		case 1:
+ 			black = false;
+ #if defined(CONFIG_UBIWHITELIST)
+-			strncpy(list, CONFIG_UBIWHITELIST,
++			strlcpy(list, CONFIG_UBIWHITELIST,
+ 				sizeof(list));
+ #endif
+ 			break;
+diff --git a/handlers/ucfw_handler.c b/handlers/ucfw_handler.c
+index a14421f68..cf6de741c 100644
+--- a/handlers/ucfw_handler.c
++++ b/handlers/ucfw_handler.c
+@@ -480,7 +480,7 @@ static int get_gpio_from_property(struct dict_list *prop, struct mode_setup *gpi
+ 			if (t) *t = '\0';
+ 			switch (i) {
+ 			case 0:
+-				strncpy(gpio->gpiodev, s, sizeof(gpio->gpiodev));
++				strlcpy(gpio->gpiodev, s, sizeof(gpio->gpiodev));
+ 				break;
+ 			case 1:
+ 				errno = 0;
+diff --git a/parser/parse_external.c b/parser/parse_external.c
+index ef6c74c7c..be591c21a 100644
+--- a/parser/parse_external.c
++++ b/parser/parse_external.c
+@@ -149,11 +149,11 @@ int parse_external(struct swupdate_cfg *software, const char *filename)
+ 	}
+ 
+ 	if (lua_type(L, 1) == LUA_TSTRING)
+-		strncpy(software->name, lua_tostring(L, 1),
++		strlcpy(software->name, lua_tostring(L, 1),
+ 				sizeof(software->name));
+ 
+ 	if (lua_type(L, 2) == LUA_TSTRING)
+-		strncpy(software->version, lua_tostring(L, 2),
++		strlcpy(software->version, lua_tostring(L, 2),
+ 				sizeof(software->version));
+ 	nstreams = 0;
+ 	lua_pushnil(L);
+diff --git a/parser/parser.c b/parser/parser.c
+index 78f6a01b9..31efe4665 100644
+--- a/parser/parser.c
++++ b/parser/parser.c
+@@ -232,7 +232,7 @@ static int parse_hw_compatibility(parsertype p, void *cfg, struct swupdate_cfg *
+ 			return -1;
+ 		}
+ 
+-		strncpy(hwrev->revision, s, sizeof(hwrev->revision));
++		strlcpy(hwrev->revision, s, sizeof(hwrev->revision));
+ 		LIST_INSERT_HEAD(&swcfg->hardware, hwrev, next);
+ 		TRACE("Accepted Hw Revision : %s", hwrev->revision);
+ 	}
+@@ -347,7 +347,7 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
+ 		GET_FIELD_STRING(p, elem, "name", partition->volname);
+ 
+ 		if (!strlen(partition->type))
+-			strncpy(partition->type, "ubipartition", sizeof(partition->type));
++			strlcpy(partition->type, "ubipartition", sizeof(partition->type));
+ 		partition->is_partitioner = 1;
+ 
+ 		partition->provided = 1;
