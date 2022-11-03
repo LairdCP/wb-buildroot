@@ -1,6 +1,7 @@
 config BR2_PACKAGE_LRD_WIFI_BRIDGE
 	bool "lrd wifi bridge setup"
-	depends on BR2_PACKAGE_LRD_NETWORK_MANAGER && BR2_PACKAGE_BRIDGE_UTILS
+	depends on BR2_PACKAGE_LRD_NETWORK_MANAGER 
+    select BR2_PACKAGE_EBTABLES
 	help
 	scripts required to establish a wifi bridge
 

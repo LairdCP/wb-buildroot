@@ -88,16 +88,13 @@ endef
 
 ifeq ($(BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT),y)
 define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS2
-	$(SED) '/^server.ssl_certificate/d' $(TARGET_DIR)/etc/weblcm-python.ini
-	$(SED) '/^server.ssl_private_key/d' $(TARGET_DIR)/etc/weblcm-python.ini
-	$(SED) '/\[global\]/a server.ssl_certificate: \"/rodata/secret/weblcm-python/ssl/server.crt\"' $(TARGET_DIR)/etc/weblcm-python.ini
-	$(SED) '/\[global\]/a server.ssl_private_key: \"/rodata/secret/weblcm-python/ssl/server.key\"' $(TARGET_DIR)/etc/weblcm-python.ini
+	$(SED) 's,^server.ssl_certificate:.*,server.ssl_certificate: \"/rodata/secret/weblcm-python/ssl/server.crt\",' $(TARGET_DIR)/etc/weblcm-python.ini
+	$(SED) 's,^server.ssl_private_key:.*,server.ssl_private_key: \"/rodata/secret/weblcm-python/ssl/server.key\",' $(TARGET_DIR)/etc/weblcm-python.ini
 endef
 else
 define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS2
-	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/server.key
-	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/server.crt
-	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 $(@D)/ssl/ca.crt
+	$(INSTALL) -D -t $(TARGET_DIR)/etc/weblcm-python/ssl -m 644 \
+		$(@D)/ssl/server.key $(@D)/ssl/server.crt $(@D)/ssl/ca.crt
 endef
 endif
 
