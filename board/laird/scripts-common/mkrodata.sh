@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # mkrodata.sh - Create read-only factory data image
 #
@@ -10,8 +10,8 @@
 # This script must be run as root!
 #
 
-[[ $# -lt 4 ]] && echo "usage: mkrodata.sh <fscrypt_key> <update_pub_cert> <weblcm_cert> <weblcm_priv_key>" && exit 1
-[[ "${EUID}" -ne 0 ]] && echo "Please run as root" && exit 1
+[ $# -lt 4 ] && echo "usage: mkrodata.sh <fscrypt_key> <update_pub_cert> <weblcm_cert> <weblcm_priv_key>" && exit 1
+[ "${EUID}" -ne 0 ] && echo "Please run as root" && exit 1
 
 KEY_BIN="${1}"
 UPDATE_PUB_CERT="${2}"
@@ -20,7 +20,7 @@ WEBLCM_PRIV_KEY="${4}"
 
 FSCRYPTCTL="./fscryptctl"
 
-LOOP_DEVICE=`losetup -f`
+LOOP_DEVICE=$(losetup -f)
 RODATA_MNT_DIR="/mnt/rodata"
 SECRET_DIR="${RODATA_MNT_DIR}/secret"
 PUBLIC_DIR="${RODATA_MNT_DIR}/public"
@@ -30,22 +30,22 @@ WEBLCM_KEY_DEST="${WEBLCM_DIR}/server.key"
 UPDATE_CERT_DIR="${PUBLIC_DIR}/ssl/misc"
 UPDATE_CERT_DEST="${UPDATE_CERT_DIR}/update.pem"
 RODATA_IMG="rodata.img"
-RODATA_SIZE=$((256 * 1024))
+RODATA_SIZE=256
 EXT4_BLOCK_SIZE=4096
 KEY_DESC="ffffffffffffffff"
 
-exit_on_error(){
+exit_on_error() {
   echo $1
   umount -fq ${RODATA_MNT_DIR} || true
   rm -f ${RODATA_IMG}
   exit 1
 }
 
-[[ -f ${KEY_BIN} ]] || exit_on_error "Missing encryption key"
-[[ -f ${UPDATE_PUB_CERT} ]] || exit_on_error "Missing update public key"
-[[ -f ${WEBLCM_CERT} ]] || exit_on_error "Missing WebLCM certificate"
-[[ -f ${WEBLCM_PRIV_KEY} ]] || exit_on_error "Missing WebLCM private key"
-[[ -x ${FSCRYPTCTL} ]] || exit_on_error "Missing local fscryptctl"
+[ -f "${KEY_BIN}" ] || exit_on_error "Missing encryption key"
+[ -f "${UPDATE_PUB_CERT}" ] || exit_on_error "Missing update public key"
+[ -f "${WEBLCM_CERT}" ] || exit_on_error "Missing WebLCM certificate"
+[ -f "${WEBLCM_PRIV_KEY}" ] || exit_on_error "Missing WebLCM private key"
+[ -x "${FSCRYPTCTL}" ] || exit_on_error "Missing local fscryptctl"
 
 #
 # Prepare mount point
@@ -56,14 +56,10 @@ mkdir -p ${RODATA_MNT_DIR} || exit_on_error "Directory Creation for ${RODATA_DIR
 #
 # Create filesystem on loop image
 #
-dd if=/dev/zero of=${RODATA_IMG} bs=${RODATA_SIZE} count=1 || exit_on_error "Creation of block image failed"
-mkfs.ext4 -b ${EXT4_BLOCK_SIZE} ${RODATA_IMG} || exit_on_error "EXT4 formatting failed"
-mount -o loop=${LOOP_DEVICE} ${RODATA_IMG} ${RODATA_MNT_DIR} || exit_on_error "Mounting ${LOOP_DEVICE} failed"
+fallocate -l ${RODATA_SIZE}KiB ${RODATA_IMG} || exit_on_error "Creation of block image failed"
+mkfs.ext4 -O encrypt -b ${EXT4_BLOCK_SIZE} ${RODATA_IMG} || exit_on_error "EXT4 formatting failed"
 
-#
-# Enable encryption on mounted filesystem
-#
-tune2fs -O encrypt ${LOOP_DEVICE} || exit_on_error "Enable encryption failed"
+mount -o loop=${LOOP_DEVICE} ${RODATA_IMG} ${RODATA_MNT_DIR} || exit_on_error "Mounting ${LOOP_DEVICE} failed"
 
 #
 # Create encrypted directory and apply policy (must be done on empty directory)
@@ -88,8 +84,8 @@ cp ${UPDATE_PUB_CERT} ${UPDATE_CERT_DEST} || exit_on_error "Failed to populate u
 #
 # Clean up
 #
-sync && sync
-umount ${RODATA_MNT_DIR} || true
-keyctl unlink `keyctl search @s logon fscrypt:ffffffffffffffff` || true
+sync
+umount ${RODATA_MNT_DIR}
+keyctl unlink $(keyctl search @s logon fscrypt:ffffffffffffffff)
 
 echo "Successfully created factory data in ${RODATA_IMG}"
