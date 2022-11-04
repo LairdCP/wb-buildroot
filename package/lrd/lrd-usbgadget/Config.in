@@ -48,13 +48,13 @@ config BR2_PACKAGE_LRD_USBGADGET_PRODUCT_ID
 
 config BR2_PACKAGE_LRD_USBGADGET_LOCAL_MAC
 	string "USB Ethernet Gadget local MAC address"
-	default "DE:AD:BE:EF:00:00"
+	default "DE:AD:BE:EF:00:01"
 	help
 	  USB Ethernet Gadget local MAC address
 
 config BR2_PACKAGE_LRD_USBGADGET_REMOTE_MAC
 	string "USB Ethernet Gadget remote MAC address"
-	default "DE:AD:BE:EF:00:01"
+	default "DE:AD:BE:EF:00:00"
 	help
 	  USB Ethernet Gadget remote MAC address
 endif
