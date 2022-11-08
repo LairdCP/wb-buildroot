@@ -10,6 +10,7 @@ WEBLCM_PYTHON_DEPENDENCIES = openssl
 
 WEBLCM_PYTHON_DEFAULT_USERNAME = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_USERNAME))
 WEBLCM_PYTHON_DEFAULT_PASSWORD = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_PASSWORD))
+WEBLCM_PYTHON_CA_CERT_CHAIN_PATH = $(call qstrip,$(BR2_PACKAGE_WEBLCM_CA_CERT_CHAIN_PATH))
 
 ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_AWM),y)
 	WEBLCM_PYTHON_EXTRA_PACKAGES += weblcm/awm
@@ -31,16 +32,6 @@ ifeq ($(BR2_PACKAGE_WEBLCM_ENABLE_STUNNEL_CONTROL),y)
 endif
 ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_IPTABLES_FIREWALL),y)
 	WEBLCM_PYTHON_EXTRA_PACKAGES += weblcm/iptables
-endif
-ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_UNAUTHENTICATED),y)
-	WEBLCM_PYTHON_ENABLE_UNAUTHENTICATED = True
-else
-	WEBLCM_PYTHON_ENABLE_UNAUTHENTICATED = False
-endif
-ifeq ($(BR2_PACKAGE_WEBLCM_ALLOW_MUTLIPLE_USER_SESSIONS),y)
-	WEBLCM_PYTHON_ENABLE_MULTIPLE_USER_SESSIONS = True
-else
-	WEBLCM_PYTHON_ENABLE_MULTIPLE_USER_SESSIONS = False
 endif
 
 WEBLCM_PYTHON_ENV = WEBLCM_PYTHON_EXTRA_PACKAGES='$(WEBLCM_PYTHON_EXTRA_PACKAGES)'
@@ -77,13 +68,22 @@ define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 	$(SED) '/^awm_cfg/d' $(TARGET_DIR)/etc/weblcm-python.ini
 	$(SED) '/\[weblcm\]/a awm_cfg:$(BR2_PACKAGE_ADAPTIVE_WW_BINARIES_CFG_FILE)' $(TARGET_DIR)/etc/weblcm-python.ini
 	$(SED) '/^enable_allow_unauthenticated_reboot_reset/d' $(TARGET_DIR)/etc/weblcm-python.ini
-	$(SED) '/\[weblcm\]/a enable_allow_unauthenticated_reboot_reset:$(WEBLCM_PYTHON_ENABLE_UNAUTHENTICATED)' $(TARGET_DIR)/etc/weblcm-python.ini
+	$(SED) '/\[weblcm\]/a enable_allow_unauthenticated_reboot_reset: \
+		$(if $(findstring y,$(BR2_PACKAGE_WEBLCM_PYTHON_UNAUTHENTICATED)),True,False)' $(TARGET_DIR)/etc/weblcm-python.ini
 
 	$(SED) '/^server.socket_host/d' $(TARGET_DIR)/etc/weblcm-python.ini
 	$(SED) '/\[global\]/a server.socket_host: $(BR2_PACKAGE_WEBLCM_PYTHON_BIND_IP)' $(TARGET_DIR)/etc/weblcm-python.ini
 
 	$(SED) '/^allow_multiple_user_sessions/d' $(TARGET_DIR)/etc/weblcm-python.ini
-	$(SED) '/\[weblcm\]/a allow_multiple_user_sessions:$(WEBLCM_PYTHON_ENABLE_MULTIPLE_USER_SESSIONS)' $(TARGET_DIR)/etc/weblcm-python.ini
+	$(SED) '/\[weblcm\]/a allow_multiple_user_sessions: \
+		$(if $(findstring y,$(BR2_PACKAGE_WEBLCM_ALLOW_MUTLIPLE_USER_SESSIONS)),True,False)' $(TARGET_DIR)/etc/weblcm-python.ini
+
+	$(SED) 's,^tools.sessions.on:.*,tools.sessions.on: \
+		$(if $(findstring y,$(BR2_PACKAGE_WEBLCM_ENABLE_SESSIONS)),True,False),' $(TARGET_DIR)/etc/weblcm-python.ini
+
+	$(SED) '/^enable_client_auth/d' $(TARGET_DIR)/etc/weblcm-python.ini
+	$(SED) '/\[weblcm\]/a enable_client_auth: \
+		$(if $(findstring y,$(BR2_PACKAGE_WEBLCM_ENABLE_CLIENT_AUTHENTICATION)),True,False)' $(TARGET_DIR)/etc/weblcm-python.ini
 endef
 
 ifeq ($(BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT),y)
@@ -100,6 +100,13 @@ endif
 
 WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS2
+
+ifneq ($(WEBLCM_PYTHON_CA_CERT_CHAIN_PATH),)
+define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS3
+	$(SED) 's,^server.ssl_certificate_chain:.*,server.ssl_certificate_chain: \"$(WEBLCM_PYTHON_CA_CERT_CHAIN_PATH)\",' $(TARGET_DIR)/etc/weblcm-python.ini
+endef
+WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS3
+endif
 
 define WEBLCM_PYTHON_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -D -t $(TARGET_DIR)/usr/lib/systemd/system -m 644 $(@D)/weblcm-python.service
