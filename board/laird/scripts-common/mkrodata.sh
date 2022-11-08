@@ -2,7 +2,7 @@
 #
 # mkrodata.sh - Create read-only factory data image
 #
-# usage: mkrodata.sh <fscrypt_key> <update_pub_cert> <weblcm_cert> <weblcm_priv_key>
+# usage: mkrodata.sh <fscrypt_key> <update_pub_cert> <weblcm_cert> <weblcm_priv_key> [<weblcm_certificate_chain>]
 #
 # This script requires the modified 'fscryptctl' binary (from the build artifacts)
 # to be located in the current directory.
@@ -10,13 +10,15 @@
 # This script must be run as root!
 #
 
-[ $# -lt 4 ] && echo "usage: mkrodata.sh <fscrypt_key> <update_pub_cert> <weblcm_cert> <weblcm_priv_key>" && exit 1
+[ $# -lt 4 ] && echo "usage: mkrodata.sh <fscrypt_key> <update_pub_cert> <weblcm_cert> <weblcm_priv_key> [<weblcm_certificate_chain>]" && exit 1
 [ "${EUID}" -ne 0 ] && echo "Please run as root" && exit 1
 
 KEY_BIN="${1}"
 UPDATE_PUB_CERT="${2}"
 WEBLCM_CERT="${3}"
 WEBLCM_PRIV_KEY="${4}"
+WEBLCM_CERT_CHAIN=""
+[ $# -gt 5 ] && WEBLCM_CERT_CHAIN="${5}"
 
 FSCRYPTCTL="./fscryptctl"
 
@@ -27,6 +29,7 @@ PUBLIC_DIR="${RODATA_MNT_DIR}/public"
 WEBLCM_DIR="${SECRET_DIR}/weblcm-python/ssl"
 WEBLCM_CERT_DEST="${WEBLCM_DIR}/server.crt"
 WEBLCM_KEY_DEST="${WEBLCM_DIR}/server.key"
+WEBLCM_CERT_CHAIN_DEST="${WEBLCM_DIR}/ca.crt"
 UPDATE_CERT_DIR="${PUBLIC_DIR}/ssl/misc"
 UPDATE_CERT_DEST="${UPDATE_CERT_DIR}/update.pem"
 RODATA_IMG="rodata.img"
@@ -45,6 +48,7 @@ exit_on_error() {
 [ -f "${UPDATE_PUB_CERT}" ] || exit_on_error "Missing update public key"
 [ -f "${WEBLCM_CERT}" ] || exit_on_error "Missing WebLCM certificate"
 [ -f "${WEBLCM_PRIV_KEY}" ] || exit_on_error "Missing WebLCM private key"
+[ $# -gt 5 ] && [ -f "${WEBLCM_CERT_CHAIN}" ] || exit_on_error "Missing WebLCM certificate chain"
 [ -x "${FSCRYPTCTL}" ] || exit_on_error "Missing local fscryptctl"
 
 #
@@ -74,6 +78,7 @@ ${FSCRYPTCTL} set_policy ${KEY_DESC} ${SECRET_DIR} || exit_on_error "Failed to a
 mkdir -p ${WEBLCM_DIR} || exit_on_error "Failed to create ${WEBLCM_DIR}"
 cp ${WEBLCM_CERT} ${WEBLCM_CERT_DEST} || exit_on_error "Failed to populate WebLCM certficate"
 cp ${WEBLCM_PRIV_KEY} ${WEBLCM_KEY_DEST} || exit_on_error "Failed to populate WebLCM key"
+cp ${WEBLCM_CERT_CHAIN} ${WEBLCM_CERT_CHAIN_DEST} || exit_on_error "Failed to populate WebLCM certificate chain"
 
 #
 # Create and populate update public certificate

@@ -16,12 +16,32 @@ config BR2_PACKAGE_WEBLCM_PYTHON
 
 if BR2_PACKAGE_WEBLCM_PYTHON
 
+config BR2_PACKAGE_WEBLCM_ENABLE_SESSIONS
+	bool "Enable cookie-based authentication sessions"
+	default y
+	help
+		Enable cookie-based authentication sessions
+
+config BR2_PACKAGE_WEBLCM_ENABLE_CLIENT_AUTHENTICATION
+	bool "Enable SSL client authentication"
+	help
+		Enable SSL client authentication
+
+config BR2_PACKAGE_WEBLCM_CA_CERT_CHAIN_PATH
+	string "CA cert chain path for client authentication"
+	depends on BR2_PACKAGE_WEBLCM_ENABLE_CLIENT_AUTHENTICATION
+	default "/etc/weblcm-python/ssl/ca.crt"
+	help
+		Path to the CA certificate chain used for client authentication
+
 config BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_USERNAME
 	string "default root user name"
+	depends on BR2_PACKAGE_WEBLCM_ENABLE_SESSIONS
 	default "root"
 
 config BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_PASSWORD
 	string "default root user password"
+	depends on BR2_PACKAGE_WEBLCM_ENABLE_SESSIONS
 	default "summit"
 
 config BR2_PACKAGE_WEBLCM_PYTHON_MANAGED_SOFTWARE_DEVICES
@@ -87,6 +107,7 @@ config BR2_PACKAGE_WEBLCM_ENABLE_STUNNEL_CONTROL
 
 config BR2_PACKAGE_WEBLCM_PYTHON_UNAUTHENTICATED
 	bool "Unauthenticated access support for weblcm"
+	depends on BR2_PACKAGE_WEBLCM_ENABLE_SESSIONS
 	help
 		Add unauthenticated access support, for example, for factory reset and reboot endpoints.  Due to security concerns, this should never be enabled unless requested by a customer, and preferably never enabled if WebLCM is exposed on a public/external zone interface.
 
@@ -98,6 +119,7 @@ config BR2_PACKAGE_WEBLCM_PYTHON_BIND_IP
 
 config BR2_PACKAGE_WEBLCM_ALLOW_MUTLIPLE_USER_SESSIONS
 	bool "Allow multiple sessions per user"
+	depends on BR2_PACKAGE_WEBLCM_ENABLE_SESSIONS
 	help
 		Enable multiple sessions for the same user (re-login)
 
