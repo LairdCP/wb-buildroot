@@ -84,6 +84,7 @@ software =
 				{
 					filename = "boot.bin";
 					mtdname = "u-boot-spl";
+					transform = "atmel_pmecc_header";
 					type = "flash";
 					name = "boot";
 					sha256 = "@boot.bin.sha256";
@@ -135,6 +136,7 @@ software =
 				{
 					filename = "boot.bin";
 					mtdname = "u-boot-spl";
+					transform = "atmel_pmecc_header";
 					type = "flash";
 					name = "boot";
 					sha256 = "@boot.bin.sha256";
@@ -232,6 +234,7 @@ software =
 				{
 					filename = "boot.bin";
 					mtdname = "u-boot-spl";
+					transform = "atmel_pmecc_header";
 					type = "flash";
 					name = "boot";
 					sha256 = "@boot.bin.sha256";
