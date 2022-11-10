@@ -43,8 +43,7 @@ config BR2_PACKAGE_LRD_NETWORK_MANAGER_CLI
 config BR2_PACKAGE_LRD_NETWORK_MANAGER_MODEM_MANAGER
 	bool "modem-manager support"
 	select BR2_PACKAGE_MODEM_MANAGER
-	select BR2_PACKAGE_MODEM_MANAGER_LIBMBIM
-	select BR2_PACKAGE_MODEM_MANAGER_LIBQMI
+	select BR2_PACKAGE_MOBILE_BROADBAND_PROVIDER_INFO
 	help
 	  This option enables support for ModemManager
 
@@ -55,20 +54,17 @@ config BR2_PACKAGE_LRD_NETWORK_MANAGER_PPPD
 	help
 	  This option enables support for PPPD daemon
 
-comment "pppd support needs a glibc or uClibc toolchain"
-	depends on BR2_TOOLCHAIN_USES_MUSL
+config BR2_PACKAGE_LRD_NETWORK_MANAGER_OVS
+	bool "OpenVSwitch support"
+	select BR2_PACKAGE_JANSSON
+	help
+	  This option enables support for OpenVSwitch
 
 config BR2_PACKAGE_LRD_NETWORK_MANAGER_CONCHECK
 	bool "connection checking support"
 	select BR2_PACKAGE_LIBCURL
 	help
 	  This option enables connection checking support
-
-config BR2_PACKAGE_LRD_NETWORK_MANAGER_OVS
-	bool "OpenVSwitch support"
-	select BR2_PACKAGE_JANSSON
-	help
-	  This option enables support for OpenVSwitch
 
 endif
 
