@@ -2,7 +2,7 @@
 #
 # mkrodata.sh - Create read-only factory data image
 #
-# usage: mkrodata.sh <fscrypt_key> <update_pub_cert> <weblcm_cert> <weblcm_priv_key> [<weblcm_certificate_chain>]
+# usage: mkrodata.sh <fscrypt_key> <update_pub_cert> <weblcm_cert> <weblcm_priv_key> <weblcm_certificate_chain>
 #
 # This script requires the modified 'fscryptctl' binary (from the build artifacts)
 # to be located in the current directory.
@@ -10,15 +10,14 @@
 # This script must be run as root!
 #
 
-[ $# -lt 4 ] && echo "usage: mkrodata.sh <fscrypt_key> <update_pub_cert> <weblcm_cert> <weblcm_priv_key> [<weblcm_certificate_chain>]" && exit 1
-[ "${EUID}" -ne 0 ] && echo "Please run as root" && exit 1
+[ $# -lt 5 ] && echo "usage: mkrodata.sh <fscrypt_key> <update_pub_cert> <weblcm_cert> <weblcm_priv_key> <weblcm_certificate_chain>" && exit 1
+[ $(id -u) -ne 0 ] && echo "Please run as root" && exit 1
 
 KEY_BIN="${1}"
 UPDATE_PUB_CERT="${2}"
 WEBLCM_CERT="${3}"
 WEBLCM_PRIV_KEY="${4}"
-WEBLCM_CERT_CHAIN=""
-[ $# -gt 5 ] && WEBLCM_CERT_CHAIN="${5}"
+WEBLCM_CERT_CHAIN="${5}"
 
 FSCRYPTCTL="./fscryptctl"
 
@@ -48,7 +47,7 @@ exit_on_error() {
 [ -f "${UPDATE_PUB_CERT}" ] || exit_on_error "Missing update public key"
 [ -f "${WEBLCM_CERT}" ] || exit_on_error "Missing WebLCM certificate"
 [ -f "${WEBLCM_PRIV_KEY}" ] || exit_on_error "Missing WebLCM private key"
-[ $# -gt 5 ] && [ -f "${WEBLCM_CERT_CHAIN}" ] || exit_on_error "Missing WebLCM certificate chain"
+[ -f "${WEBLCM_CERT_CHAIN}" ] || exit_on_error "Missing WebLCM certificate chain"
 [ -x "${FSCRYPTCTL}" ] || exit_on_error "Missing local fscryptctl"
 
 #
@@ -61,7 +60,7 @@ mkdir -p ${RODATA_MNT_DIR} || exit_on_error "Directory Creation for ${RODATA_DIR
 # Create filesystem on loop image
 #
 fallocate -l ${RODATA_SIZE}KiB ${RODATA_IMG} || exit_on_error "Creation of block image failed"
-mkfs.ext4 -O encrypt -b ${EXT4_BLOCK_SIZE} ${RODATA_IMG} || exit_on_error "EXT4 formatting failed"
+mkfs.ext4 -O encrypt -O ^has_journal -b ${EXT4_BLOCK_SIZE} ${RODATA_IMG} || exit_on_error "EXT4 formatting failed"
 
 mount -o loop=${LOOP_DEVICE} ${RODATA_IMG} ${RODATA_MNT_DIR} || exit_on_error "Mounting ${LOOP_DEVICE} failed"
 

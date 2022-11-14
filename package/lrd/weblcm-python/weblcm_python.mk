@@ -10,7 +10,6 @@ WEBLCM_PYTHON_DEPENDENCIES = openssl
 
 WEBLCM_PYTHON_DEFAULT_USERNAME = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_USERNAME))
 WEBLCM_PYTHON_DEFAULT_PASSWORD = $(call qstrip,$(BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_PASSWORD))
-WEBLCM_PYTHON_CA_CERT_CHAIN_PATH = $(call qstrip,$(BR2_PACKAGE_WEBLCM_CA_CERT_CHAIN_PATH))
 
 ifeq ($(BR2_PACKAGE_WEBLCM_PYTHON_AWM),y)
 	WEBLCM_PYTHON_EXTRA_PACKAGES += weblcm/awm
@@ -90,6 +89,7 @@ ifeq ($(BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT),y)
 define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS2
 	$(SED) 's,^server.ssl_certificate:.*,server.ssl_certificate: \"/rodata/secret/weblcm-python/ssl/server.crt\",' $(TARGET_DIR)/etc/weblcm-python.ini
 	$(SED) 's,^server.ssl_private_key:.*,server.ssl_private_key: \"/rodata/secret/weblcm-python/ssl/server.key\",' $(TARGET_DIR)/etc/weblcm-python.ini
+	$(SED) 's,^server.ssl_certificate_chain:.*,server.ssl_certificate_chain: \"/rodata/secret/weblcm-python/ssl/ca.crt\",' $(TARGET_DIR)/etc/weblcm-python.ini
 endef
 else
 define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS2
@@ -98,15 +98,7 @@ define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS2
 endef
 endif
 
-WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
-WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS2
-
-ifneq ($(WEBLCM_PYTHON_CA_CERT_CHAIN_PATH),)
-define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS3
-	$(SED) 's,^server.ssl_certificate_chain:.*,server.ssl_certificate_chain: \"$(WEBLCM_PYTHON_CA_CERT_CHAIN_PATH)\",' $(TARGET_DIR)/etc/weblcm-python.ini
-endef
-WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS3
-endif
+WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOKS += WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS2
 
 define WEBLCM_PYTHON_INSTALL_INIT_SYSTEMD
 	$(INSTALL) -D -t $(TARGET_DIR)/usr/lib/systemd/system -m 644 $(@D)/weblcm-python.service

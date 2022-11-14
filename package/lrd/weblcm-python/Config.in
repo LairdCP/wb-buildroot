@@ -27,13 +27,6 @@ config BR2_PACKAGE_WEBLCM_ENABLE_CLIENT_AUTHENTICATION
 	help
 		Enable SSL client authentication
 
-config BR2_PACKAGE_WEBLCM_CA_CERT_CHAIN_PATH
-	string "CA cert chain path for client authentication"
-	depends on BR2_PACKAGE_WEBLCM_ENABLE_CLIENT_AUTHENTICATION
-	default "/etc/weblcm-python/ssl/ca.crt"
-	help
-		Path to the CA certificate chain used for client authentication
-
 config BR2_PACKAGE_WEBLCM_PYTHON_DEFAULT_USERNAME
 	string "default root user name"
 	depends on BR2_PACKAGE_WEBLCM_ENABLE_SESSIONS
