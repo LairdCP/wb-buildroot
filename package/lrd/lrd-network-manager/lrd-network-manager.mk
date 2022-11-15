@@ -50,6 +50,7 @@ LRD_NETWORK_MANAGER_CONF_OPTS = \
 	-Dqt=false \
 	-Diptables=/usr/sbin/iptables \
 	-Difupdown=false \
+	-Difcfg_rh=false \
 	-Dnm_cloud_setup=false \
 	-Dsession_tracking_consolekit=false \
 	-Dwext=false
@@ -119,14 +120,23 @@ endif
 ifeq ($(BR2_PACKAGE_LRD_NETWORK_MANAGER_MODEM_MANAGER),y)
 LRD_NETWORK_MANAGER_DEPENDENCIES += modem-manager mobile-broadband-provider-info
 LRD_NETWORK_MANAGER_CONF_OPTS += -Dmodem_manager=true
+
 ifeq ($(BR2_PACKAGE_OFONO),y)
 LRD_NETWORK_MANAGER_DEPENDENCIES += ofono
 LRD_NETWORK_MANAGER_CONF_OPTS += -Dofono=true
 else
 LRD_NETWORK_MANAGER_CONF_OPTS += -Dofono=false
 endif
+
+ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS),y)
+LRD_NETWORK_MANAGER_DEPENDENCIES += bluez5_utils
+LRD_NETWORK_MANAGER_CONF_OPTS += -Dbluez5_dun=true
 else
-LRD_NETWORK_MANAGER_CONF_OPTS += -Dmodem_manager=false -Dofono=false
+LRD_NETWORK_MANAGER_CONF_OPTS += -Dbluez5_dun=false
+endif
+
+else
+LRD_NETWORK_MANAGER_CONF_OPTS += -Dmodem_manager=false -Dofono=false -Dbluez5_dun=false
 endif
 
 ifeq ($(BR2_PACKAGE_LRD_NETWORK_MANAGER_OVS),y)
