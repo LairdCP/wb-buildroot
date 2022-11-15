@@ -28,6 +28,13 @@ endif
 
 release_file = $(OUTPUT_DIR)/$(1)/images/$(call release_name,$(1)).tar
 
+PARALLEL_JOBS := $(shell getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)
+ifneq ($(PARALLEL_JOBS),1)
+PARALLEL_OPTS = -j$(PARALLEL_JOBS) -Orecurse
+else
+PARALLEL_OPTS =
+endif
+
 .NOTPARALLEL:
 
 .PHONY: all clean cleanall
@@ -39,7 +46,7 @@ $(patsubst %,$(OUTPUT_DIR)/%/.config,$(TARGETS_ALL)): $(OUTPUT_DIR)/%/.config: $
 
 .PHONY: $(TARGETS_ALL)
 $(TARGETS_ALL): %: $(OUTPUT_DIR)/%/.config
-	$(MAKE) -C $(BR_DIR) O=$(OUTPUT_DIR)/$*
+	$(MAKE) $(PARALLEL_OPTS) -C $(BR_DIR) O=$(OUTPUT_DIR)/$*
 ifneq ($(VIGILES_DASHBOARD_CONFIG),)
 ifneq ($(vigiles_name),)
 	$(MAKE) -C $(OUTPUT_DIR)/$* vigiles-check
