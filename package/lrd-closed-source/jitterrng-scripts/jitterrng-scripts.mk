@@ -7,7 +7,6 @@
 JITTERRNG_SCRIPTS_VERSION = local
 JITTERRNG_SCRIPTS_SITE    = package/lrd-closed-source/externals/cavs_api/jitterrng-sp80090b/recording_kernelspace
 JITTERRNG_SCRIPTS_SITE_METHOD = local
-JITTERRNG_SCRIPTS_DEPENDENCIES = linux
 
 JITTERRNG_SCRIPTS_MAKE_ENV = \
 	$(TARGET_MAKE_ENV) \
@@ -16,7 +15,7 @@ JITTERRNG_SCRIPTS_MAKE_ENV = \
 JITTERRNG_SCRIPTS_MAKE_ENV2 = CC="$(TARGET_CC)"
 
 define JITTERRNG_SCRIPTS_COPY_JE
-	cp $(LINUX_DIR)/crypto/jitterentropy.c $(@D)
+	cp $(LINUX_OVERRIDE_SRCDIR)/crypto/jitterentropy.c $(@D)
 	$(APPLY_PATCHES) $(@D) $(JITTERRNG_SCRIPTS_PKGDIR)
 endef
 
