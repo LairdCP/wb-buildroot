@@ -7,13 +7,17 @@ set -x -e
 
 mkdir -p "${BINARIES_DIR}"
 
-if [[ ${BR2_LRD_PRODUCT} == *legacy* ]]; then
+case "${BR2_LRD_PRODUCT}" in
+*legacy*)
 	PKGNAME="(sdcsupp|sdccli|sdcsdk)"
-elif [[ ${BR2_LRD_PRODUCT} == summit* ]]; then
+	;;
+summit*)
 	PKGNAME=sdcsupp
-else
+	;;
+*)
 	PKGNAME=wpa_supplicant
-fi
+	;;
+esac
 
 [ -n "${VERSION}" ] && RELEASE_SUFFIX="-${VERSION}"
 RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}${RELEASE_SUFFIX}.tar"
@@ -21,7 +25,8 @@ RELEASE_FILE="${BINARIES_DIR}/${BR2_LRD_PRODUCT}${RELEASE_SUFFIX}.tar"
 sed -nE "s/^${PKGNAME},\.\///p" "${BUILD_DIR}/packages-file-list.txt" |\
 	tar -cf "${RELEASE_FILE}" -C "${TARGET_DIR}" -T -
 
-if [[ ${BR2_LRD_PRODUCT} == *legacy* ]]; then
+case "${BR2_LRD_PRODUCT}" in
+*legacy*)
 	tar -uf "${RELEASE_FILE}" -C "${STAGING_DIR}" \
 		--owner=0 --group=0 --numeric-owner \
 		usr/include/sdc_sdk.h \
@@ -29,11 +34,13 @@ if [[ ${BR2_LRD_PRODUCT} == *legacy* ]]; then
 		usr/include/lrd_sdk_pil.h \
 		usr/include/lrd_sdk_eni.h \
 		usr/lib/libsdc_sdk.so
-else
+	;;
+*)
 	tar -uf "${RELEASE_FILE}" -C "${STAGING_DIR}" \
 		--owner=0 --group=0 --numeric-owner \
 		usr/include/wpa_ctrl.h
-fi
+	;;
+esac
 
 bzip2 -f "${RELEASE_FILE}"
 
