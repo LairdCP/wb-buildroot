@@ -125,9 +125,8 @@ define SWUPDATE_BUILD_CMDS
 endef
 
 define SWUPDATE_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0755 $(@D)/swupdate $(TARGET_DIR)/usr/bin/swupdate
-	$(INSTALL) -D -m 0755 $(@D)/ipc/lib.a $(TARGET_DIR)/usr/lib/libswupdate-client.a
-	$(INSTALL) -D -m 0755 $(@D)/ipc/lib.a $(STAGING_DIR)/usr/lib/libswupdate-client.a
+	$(TARGET_MAKE_ENV) $(SWUPDATE_MAKE_ENV) $(MAKE) -C $(@D) \
+		$(SWUPDATE_MAKE_OPTS) DESTDIR=$(TARGET_DIR) DESTSRCDIR=$(STAGING_DIR) install
 	$(if $(BR2_PACKAGE_SWUPDATE_INSTALL_WEBSITE), \
 		mkdir -p $(TARGET_DIR)/var/www/swupdate; \
 		cp -dpfr $(@D)/examples/www/v2/* $(TARGET_DIR)/var/www/swupdate)
