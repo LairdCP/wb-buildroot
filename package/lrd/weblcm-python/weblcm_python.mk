@@ -42,6 +42,8 @@ endef
 endif
 
 define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
+	$(INSTALL) -d $(TARGET_DIR)/etc/weblcm-python
+
 	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/fonts -m 644 $(@D)/assets/fonts/*
 	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/css -m 644 $(@D)/assets/css/*.css
 	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/img -m 644 $(@D)/assets/img/*.png
