@@ -43,9 +43,15 @@ echo -ne \
 rsync -rlptDWK --no-perms --exclude=.empty "${BOARD_DIR}/rootfs-additions/" "${TARGET_DIR}"
 
 if ${SD}; then
-	echo '/dev/root / auto rw,noatime 0 1' > ${TARGET_DIR}/etc/fstab
-	echo '/dev/mmcblk0p2 none swap defaults 0 0' >> ${TARGET_DIR}/etc/fstab
-	echo '/dev/mmcblk0p1 /boot vfat rw,noexec,nosuid,nodev,noatime 0 0' >> ${TARGET_DIR}/etc/fstab
+	if [ -f ${TARGET_DIR}/usr/lib/libsystemd.so ]; then
+		echo '/dev/root / auto rw,noatime 0 1' > ${TARGET_DIR}/etc/fstab
+		echo '/dev/mmcblk0p2 none swap defaults 0 0' >> ${TARGET_DIR}/etc/fstab
+		echo '/dev/mmcblk0p1 /boot vfat rw,noexec,nosuid,nodev,noatime 0 0' >> ${TARGET_DIR}/etc/fstab
+	elif ! grep -qF "/boot" ${TARGET_DIR}/etc/fstab; then
+		echo '/dev/mmcblk0p2 none swap defaults 0 0' >> ${TARGET_DIR}/etc/fstab
+		echo '/dev/mmcblk0p1 /boot vfat rw,noexec,nosuid,nodev,noatime 0 0' >> ${TARGET_DIR}/etc/fstab
+		mkdir -p ${TARGET_DIR}/boot
+	fi
 
 	sed -i 's,^/dev/mtd,# /dev/mtd,' ${TARGET_DIR}/etc/fw_env.config
 else
@@ -62,8 +68,10 @@ fi
 rm -f ${TARGET_DIR}/usr/lib/udev/rules.d/75-probe_mtd.rules
 
 # Fixup systemd default to avoid errors
-sed -i 's/^net\.core\.default_qdisc/# net\.core\.default_qdisc/' ${TARGET_DIR}/usr/lib/sysctl.d/50-default.conf
-sed -i 's/^kernel\.sysrq/# kernel\.sysrq/' ${TARGET_DIR}/usr/lib/sysctl.d/50-default.conf
+if [ -f ${TARGET_DIR}/usr/lib/sysctl.d/50-default.conf ]; then
+	sed -i 's/^net\.core\.default_qdisc/# net\.core\.default_qdisc/' ${TARGET_DIR}/usr/lib/sysctl.d/50-default.conf
+	sed -i 's/^kernel\.sysrq/# kernel\.sysrq/' ${TARGET_DIR}/usr/lib/sysctl.d/50-default.conf
+fi
 
 mkdir -p ${TARGET_DIR}/etc/NetworkManager/system-connections
 
@@ -157,8 +165,13 @@ else
 	cp -f ${CCONF_DIR}/kernel.its ${BINARIES_DIR}/kernel.its
 fi
 
+rm -f ${TARGET_DIR}/usr/lib/systemd/system/swupdate-progress.service
+rm -f ${TARGET_DIR}/usr/lib/swupdate/conf.d/90-start-progress
+
 # No need to start swupdate service automatically, it will start by socket
-echo "disable swupdate.service" > ${TARGET_DIR}/usr/lib/systemd/system-preset/50-swupdate.preset
+if [ -f ${TARGET_DIR}/usr/lib/systemd ]; then
+	echo "disable swupdate.service" > ${TARGET_DIR}/usr/lib/systemd/system-preset/50-swupdate.preset
+fi
 
 # Configure public key if swupdate signature check is enabled
 if grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf; then
@@ -225,6 +238,10 @@ if grep -q 'BR2_DEFCONFIG=.*_fips_dev_.*' ${BR2_CONFIG}; then
 	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${TARGET_DIR}/usr/lib/libfipscheck.so.1
 	${fipshmac} -d ${TARGET_DIR}/usr/lib/fipscheck/ ${TARGET_DIR}/usr/lib/ossl-modules/fips.so
 	rm -f ${TARGET_DIR}/usr/lib/fipscheck/libcrypto.so.1.0.0.hmac
+fi
+
+if [ -f ${TARGET_DIR}/etc/inittab ] && grep -qF "BR2_TARGET_ENABLE_ROOT_LOGIN=y" ${BR2_CONFIG}; then
+	sed -i -e 's,^#.*/getty.*,::respawn:-/bin/sh,' ${TARGET_DIR}/etc/inittab
 fi
 
 echo "${BR2_LRD_PRODUCT^^} POST BUILD script: done."
