@@ -65,7 +65,7 @@ case "${1}" in
 		;;
 
 	*)
-		echo "Usage: $[0} <reset | check>"
-		return -1
+		echo "Usage: ${0} <reset | check>"
+		exit -1
 		;;
 esac
