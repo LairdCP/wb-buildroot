@@ -240,8 +240,16 @@ if grep -q 'BR2_DEFCONFIG=.*_fips_dev_.*' ${BR2_CONFIG}; then
 	rm -f ${TARGET_DIR}/usr/lib/fipscheck/libcrypto.so.1.0.0.hmac
 fi
 
-if [ -f ${TARGET_DIR}/etc/inittab ] && grep -qF "BR2_TARGET_ENABLE_ROOT_LOGIN=y" ${BR2_CONFIG}; then
-	sed -i -e 's,^#.*/getty.*,::respawn:-/bin/sh,' ${TARGET_DIR}/etc/inittab
+if grep -qF 'BR2_TARGET_GENERIC_ROOT_PASSWD=""' ${BR2_CONFIG} && \
+   grep -qF BR2_TARGET_ENABLE_ROOT_LOGIN=y ${BR2_CONFIG}
+then
+
+if [ -f ${TARGET_DIR}/etc/inittab ]; then
+	sed -i -e 's,^.*/getty.*,::respawn:-/bin/sh,' ${TARGET_DIR}/etc/inittab
+else
+	sed -i -e 's,/agetty -o,/agetty -a root -o,g' ${TARGET_DIR}/usr/lib/systemd/system/serial-getty@.service
+fi
+
 fi
 
 echo "${BR2_LRD_PRODUCT^^} POST BUILD script: done."
