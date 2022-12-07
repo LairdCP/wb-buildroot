@@ -1,0 +1,37 @@
+From b60ee5b4dbe36adb7ae883408323fd45354a37a6 Mon Sep 17 00:00:00 2001
+From: Stefano Babic <sbabic@denx.de>
+Date: Wed, 15 Apr 2020 13:56:34 +0200
+Subject: [PATCH] Regression: fix detecting selection
+
+This was detected after introducing strlcpy(). The seeltion string is
+copied without null terminating causing a wronf seletion to be taken.
+
+Signed-off-by: Stefano Babic <sbabic@denx.de>
+---
+ core/swupdate.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/core/swupdate.c b/core/swupdate.c
+index 67e9b9d2c..1dc205382 100644
+--- a/core/swupdate.c
++++ b/core/swupdate.c
+@@ -406,17 +406,14 @@ static int install_from_file(char *fname, int check)
+ static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
+ {
+ 	char *pos;
+-	size_t len;
+ 
+ 	pos = strchr(selector, ',');
+ 	if (pos == NULL)
+ 		return -EINVAL;
+ 
+-	len = pos - selector;
+-	if (len > sizeof(sw->software_set))
+-		len = sizeof(sw->software_set);
++	*pos = '\0';
+ 
+-	strlcpy(sw->software_set, selector, len);
++	strlcpy(sw->software_set, selector, sizeof(sw->software_set));
+ 	/* pos + 1 will either be NULL or valid text */
+ 	strlcpy(sw->running_mode, pos + 1, sizeof(sw->running_mode));
+ 
