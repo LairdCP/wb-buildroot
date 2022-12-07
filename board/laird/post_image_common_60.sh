@@ -84,10 +84,9 @@ if ! grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto
 	# Remove sha lines in SWU scripts
 	[ ! -f ${BINARIES_DIR}/sw-description ] || \
 		sed -i -e "/sha256/d" ${BINARIES_DIR}/sw-description
+	sign_method=""
 else
-	# Ensure public key is present if swupdate signature check is enabled
-	[ ! -f ${TARGET_DIR}/etc/ssl/misc/dev.pem ] && \
-		die "swupdate signature check enabled but public key not found!"
+	sign_method="rawrsa"
 fi
 
 ALL_SWU_FILES="sw-description boot.bin u-boot.itb uboot.env kernel.itb rootfs.bin erase_data.sh"
@@ -112,7 +111,7 @@ if ! ${ENCRYPTED_TOOLKIT} ; then
 	fi
 else
 	# Generate all secured artifacts (NAND, SWU packages)
-	"${BOARD_DIR}/../post_image_secure.sh" "${BOARD_DIR}" "${ALL_SWU_FILES}" "rawrsa"
+	"${BOARD_DIR}/../post_image_secure.sh" "${BOARD_DIR}" "${ALL_SWU_FILES}" "${sign_method}"
 fi
 
 size_check () {

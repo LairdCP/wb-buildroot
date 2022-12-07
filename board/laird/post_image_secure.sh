@@ -142,7 +142,11 @@ do
 	fi
 done
 
-ALL_SWU_FILES="${SWU_FILES/sw-description/sw-description sw-description.sig}"
+if [ -n "${SWUPDATE_SIG}" ]; then
+	ALL_SWU_FILES="${SWU_FILES/sw-description/sw-description sw-description.sig}"
+else
+	ALL_SWU_FILES="${SWU_FILES}"
+fi
 SWU_FILE_STR="${ALL_SWU_FILES// /\\n}"
 
 # Generate partial SWU (no bootloaders)
@@ -150,8 +154,9 @@ if [ ${have_swdesc} -ne 0 ]; then
 	case "${SWUPDATE_SIG}" in
 	cms)
 		${openssl} cms -sign -in sw-description -out sw-description.sig \
-		-signer keys/dev.crt -inkey keys/dev.key -outform DER -nosmimecap -binary
+			-signer keys/dev.crt -inkey keys/dev.key -outform DER -nosmimecap -binary
 		;;
+
 	rawrsa)
 		${openssl} dgst -sha256 -sign keys/dev.key sw-description > sw-description.sig
 		;;
@@ -168,8 +173,9 @@ if [ ${have_swdescf} -ne 0 ]; then
 	case "${SWUPDATE_SIG}" in
 	cms)
 		${openssl} cms -sign -in sw-description -out sw-description.sig \
-		-signer keys/dev.crt -inkey keys/dev.key -outform DER -nosmimecap -binary
+			-signer keys/dev.crt -inkey keys/dev.key -outform DER -nosmimecap -binary
 		;;
+
 	rawrsa)
 		${openssl} dgst -sha256 -sign keys/dev.key sw-description > sw-description.sig
 		;;
