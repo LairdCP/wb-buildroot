@@ -1,0 +1,58 @@
+#!/bin/sh
+
+MAC_ADDRESS_PARAM_LEN=17
+NVMEM_CELL_FOLDER=$(find /sys/bus/platform/devices -name '*.efuse' -maxdepth 1)
+
+usage()
+{
+	echo "usage: write: ${0##*/} [-f] [1] [xx:xx:xx:xx:xx:xx]"
+	echo "       read: ${0##*/}"
+}
+
+read_mac()
+{
+	hexdump -e' 5/1 "%02x:" ""  "%02x"' "${NVMEM_CELL_FOLDER}/${1}"
+}
+
+print_macs()
+{
+	printf "Eth0: $(read_mac "mac-address0")\n"
+	printf "Eth1: $(read_mac "mac-address1")\n"
+}
+
+write_macs()
+{
+	mac1="${1}"
+	enable_write="${2}"
+	mac0_numeric="$(( 0x${mac1//:/} + 1 ))"
+	mac1_numeric="$(( 0x${mac1//:/} ))"
+	if "${enable_write}"; then
+		[ "$(read_mac "mac-address0")" != "00:00:00:00:00:00" -o "$(read_mac "mac-address1")" != "00:00:00:00:00:00" ] && echo "Mac address already programmed, abort" && return 1
+		mac0_format_string="\\x$(printf "%012x" ${mac0_numeric} | sed 's/../&\\x/g;s/\\x$//')"
+		mac1_format_string="\\x$(printf "%012x" ${mac1_numeric} | sed 's/../&\\x/g;s/\\x$//')"
+		printf "${mac0_format_string}" > "${NVMEM_CELL_FOLDER}/mac-address0"
+		printf "${mac1_format_string}" > "${NVMEM_CELL_FOLDER}/mac-address1"
+	else
+		printf "simulate write Eth0: %012x\n" ${mac0_numeric}
+		printf "simulate write Eth1: %012x\n" ${mac1_numeric}
+		printf "(specify -f to write)\n"
+	fi
+}
+
+
+enable_write=false
+
+[ "${1}" == "-f" ] && shift && enable_write=true
+
+[ "${#}" -eq "0" ] && print_macs && exit
+[ "${#}" -ne "2" ] && usage && exit
+
+MAC_WRITE_NUMBER="${1}"
+MAC_ADDRESS="${2}"
+
+[ "${MAC_WRITE_NUMBER}" -ne "1" ] && usage && exit
+
+[ "${#MAC_ADDRESS}" -ne "${MAC_ADDRESS_PARAM_LEN}" ] && usage && exit
+
+write_macs "${MAC_ADDRESS}" ${enable_write}
+print_macs
