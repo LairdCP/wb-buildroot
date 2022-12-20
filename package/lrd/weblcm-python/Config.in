@@ -119,7 +119,7 @@ config BR2_PACKAGE_WEBLCM_ALLOW_MUTLIPLE_USER_SESSIONS
 config BR2_PACKAGE_WEBLCM_PYTHON_IPTABLES_FIREWALL
 	bool "iptables firewall control"
 	select BR2_PACKAGE_IPTABLES
-	default y
+	default y if BR2_PACKAGE_SUMMIT_FIREWALL
 	help
 		Enable iptables firewall wrapper
 
