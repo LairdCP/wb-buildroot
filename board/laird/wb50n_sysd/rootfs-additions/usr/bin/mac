@@ -16,8 +16,8 @@ read_mac()
 
 print_macs()
 {
-	printf "Eth0: $(read_mac "mac-address0")\n"
-	printf "Eth1: $(read_mac "mac-address1")\n"
+	printf "Eth0: %s\n" "$(read_mac "mac-address0")"
+	printf "Eth1: %s\n" "$(read_mac "mac-address1")"
 }
 
 write_macs()
@@ -27,7 +27,8 @@ write_macs()
 	mac0_numeric="$(( 0x${mac1//:/} + 1 ))"
 	mac1_numeric="$(( 0x${mac1//:/} ))"
 	if "${enable_write}"; then
-		[ "$(read_mac "mac-address0")" != "00:00:00:00:00:00" -o "$(read_mac "mac-address1")" != "00:00:00:00:00:00" ] && echo "Mac address already programmed, abort" && return 1
+		[ "$(read_mac "mac-address0")" != "00:00:00:00:00:00" -o "$(read_mac "mac-address1")" != "00:00:00:00:00:00" ] && echo "error: Mac address already programmed, abort\n" && return 1
+		[ -z "$(stat -c "%a" "${NVMEM_CELL_FOLDER}/mac-address0" | grep "^6")" ] && printf "error: Write support not available in kernel\n" && return 1
 		mac0_format_string="\\x$(printf "%012x" ${mac0_numeric} | sed 's/../&\\x/g;s/\\x$//')"
 		mac1_format_string="\\x$(printf "%012x" ${mac1_numeric} | sed 's/../&\\x/g;s/\\x$//')"
 		printf "${mac0_format_string}" > "${NVMEM_CELL_FOLDER}/mac-address0"
@@ -42,7 +43,7 @@ write_macs()
 
 enable_write=false
 
-[ "${1}" == "-f" ] && shift && enable_write=true
+[ "${1}" = "-f" ] && shift && enable_write=true
 
 [ "${#}" -eq "0" ] && print_macs && exit
 [ "${#}" -ne "2" ] && usage && exit
