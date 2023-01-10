@@ -5,7 +5,7 @@ NVMEM_CELL_FOLDER=$(find /sys/bus/platform/devices -name '*.efuse' -maxdepth 1)
 
 usage()
 {
-	echo "usage: write: ${0##*/} [-f] [1] [xx:xx:xx:xx:xx:xx]"
+	echo "usage: write: ${0##*/} [-f] [xx:xx:xx:xx:xx:xx]"
 	echo "       read: ${0##*/}"
 }
 
@@ -27,7 +27,7 @@ write_macs()
 	mac0_numeric="$(( 0x${mac1//:/} + 1 ))"
 	mac1_numeric="$(( 0x${mac1//:/} ))"
 	if "${enable_write}"; then
-		[ "$(read_mac "mac-address0")" != "00:00:00:00:00:00" -o "$(read_mac "mac-address1")" != "00:00:00:00:00:00" ] && echo "error: Mac address already programmed, abort\n" && return 1
+		[ "$(read_mac "mac-address0")" != "00:00:00:00:00:00" -o "$(read_mac "mac-address1")" != "00:00:00:00:00:00" ] && printf "error: Mac address already programmed, abort\n" && return 1
 		[ -z "$(stat -c "%a" "${NVMEM_CELL_FOLDER}/mac-address0" | grep "^6")" ] && printf "error: Write support not available in kernel\n" && return 1
 		mac0_format_string="\\x$(printf "%012x" ${mac0_numeric} | sed 's/../&\\x/g;s/\\x$//')"
 		mac1_format_string="\\x$(printf "%012x" ${mac1_numeric} | sed 's/../&\\x/g;s/\\x$//')"
@@ -46,12 +46,9 @@ enable_write=false
 [ "${1}" = "-f" ] && shift && enable_write=true
 
 [ "${#}" -eq "0" ] && print_macs && exit
-[ "${#}" -ne "2" ] && usage && exit
+[ "${#}" -ne "1" ] && usage && exit
 
-MAC_WRITE_NUMBER="${1}"
-MAC_ADDRESS="${2}"
-
-[ "${MAC_WRITE_NUMBER}" -ne "1" ] && usage && exit
+MAC_ADDRESS="${1}"
 
 [ "${#MAC_ADDRESS}" -ne "${MAC_ADDRESS_PARAM_LEN}" ] && usage && exit
 
