@@ -48,15 +48,6 @@ endif
 define WEBLCM_PYTHON_POST_INSTALL_TARGET_HOOK_CMDS
 	$(INSTALL) -d $(TARGET_DIR)/etc/weblcm-python
 
-	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/fonts -m 644 $(@D)/assets/fonts/*
-	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/css -m 644 $(@D)/assets/css/*.css
-	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/img -m 644 $(@D)/assets/img/*.png
-	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/js -m 644 $(@D)/assets/js/*.js
-	$(INSTALL) -D -t $(TARGET_DIR)/var/www/assets/i18n -m 644 $(@D)/assets/i18n/*.json
-	$(INSTALL) -D -t $(TARGET_DIR)/var/www -m 644 $(@D)/LICENSE
-
-	cp -fr $(@D)/plugins $(TARGET_DIR)/var/www/
-
 	$(INSTALL) -D -t $(TARGET_DIR)/usr/bin/weblcm-python.scripts -m 755 $(@D)/*.sh
 	$(INSTALL) -D -t $(TARGET_DIR)/etc -m 644 $(@D)/weblcm-python.ini
 
