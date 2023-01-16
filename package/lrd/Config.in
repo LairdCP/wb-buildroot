@@ -29,7 +29,6 @@ source "package/lrd/ig-tty-utils/Config.in"
 source "package/lrd/lrd-fips-utils/Config.in"
 source "package/lrd/lrd-wifi-bridge/Config.in"
 source "package/lrd/echotest/Config.in"
-source "package/lrd/lwm2m-python-client/Config.in"
 source "package/lrd/summit-firewall/Config.in"
 
 if BR2_LRD_NO_RADIO
