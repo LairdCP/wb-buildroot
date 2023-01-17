@@ -1,6 +1,0 @@
-config BR2_PACKAGE_SDC2U
-    select BR2_PACKAGE_OPENSSL
-	bool "SDC2U DRIVER FOR CCMP_FIPS"
-	help
-	  Builds sdcu app for ccmp_fips on the wb45n.
-	  Fips compatible modules, driver and firmware is required.

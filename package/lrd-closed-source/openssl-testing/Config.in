@@ -1,3 +1,0 @@
-config BR2_PACKAGE_OPENSSL_TESTING
-	bool "FIPS OpenSSL Testing"
-	select BR2_PACKAGE_OPENSSL

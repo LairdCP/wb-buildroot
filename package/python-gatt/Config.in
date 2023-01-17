@@ -1,8 +1,0 @@
-config BR2_PACKAGE_PYTHON_GATT
-	bool "python-gatt"
-	depends on BR2_PACKAGE_PYTHON3
-	depends on BR2_PACKAGE_DBUS_PYTHON
-	depends on BR2_PACKAGE_BLUEZ5_UTILS
-	help
-	  Bluetooth GATT SDK for Python
-	  https://github.com/getsenic/gatt-python

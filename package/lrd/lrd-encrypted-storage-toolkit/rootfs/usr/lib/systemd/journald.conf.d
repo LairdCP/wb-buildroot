@@ -1,1 +1,0 @@
-/perm/etc/systemd/journald.conf.d

@@ -1,8 +1,0 @@
-config BR2_PACKAGE_LRU_CYPRESS
-	bool "Laird LWB5+ Regulatory Utilities"
-	select BR2_PACKAGE_LIBNL
-	select BR2_PACKAGE_LIBEDIT
-	depends on BR2_PACKAGE_BLUEZ5_UTILS || BR2_PACKAGE_BLUEZ_UTILS
-	help
-		Regulatory utilities for Cypress and Broadcom chipsets, currently supported on LWB5+ only
-
