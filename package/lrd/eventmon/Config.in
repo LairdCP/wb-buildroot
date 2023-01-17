@@ -1,6 +1,0 @@
-config BR2_PACKAGE_EVENTMON
-	bool "eventmon"
-	select BR2_PACKAGE_LIBNL
-	depends on BR2_PACKAGE_SDCSDK || BR2_PACKAGE_SUMMIT_SUPPLICANT_BINARIES
-	help
-	  Laird Event Monitor

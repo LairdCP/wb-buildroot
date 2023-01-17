@@ -31,31 +31,6 @@ config BR2_PACKAGE_LIBOPENSSL
 
 source "package/libopenssl/Config.in"
 
-config BR2_PACKAGE_LIBOPENSSL_3_0
-	bool "openssl 3.0"
-	select BR2_PACKAGE_ZLIB
-	help
-		This is libopenssl-3.0.
-
-source "package/libopenssl_3_0/Config.in"
-
-
-config BR2_PACKAGE_LIBOPENSSL_1_0_2
-	bool "openssl 1.0.2"
-	select BR2_PACKAGE_ZLIB
-	help
-		This is libopenssl-1.0.2, which support FIPS.
-
-source "package/libopenssl_1_0_2/Config.in"
-
-config BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES
-	bool "Laird openssl-1.0.2 (or 3.0) fips binaries"
-	select BR2_PACKAGE_ZLIB
-	help
-		This is Laird openssl FIPS binaries (1.0.2/3.0).
-
-source "package/lrd/laird_openssl_fips-binaries/Config.in"
-
 config BR2_PACKAGE_LIBRESSL
 	bool "libressl"
 	depends on !BR2_PACKAGE_OPENSSL_FORCE_LIBOPENSSL
@@ -83,10 +58,7 @@ config BR2_PACKAGE_HAS_OPENSSL
 config BR2_PACKAGE_PROVIDES_OPENSSL
 	string
 	default "libopenssl" if BR2_PACKAGE_LIBOPENSSL
-	default "libopenssl_1_0_2"  if BR2_PACKAGE_LIBOPENSSL_1_0_2
-	default "libopenssl_3_0"  if BR2_PACKAGE_LIBOPENSSL_3_0
 	default "libressl" if BR2_PACKAGE_LIBRESSL
-	default "laird_openssl_fips-binaries"  if BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES
 
 endif
 

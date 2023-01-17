@@ -1,8 +1,0 @@
-#! /bin/sh
-
-[ "${1}" == wlan0 ] || exit 0
-[ "${CONNECTION_FILENAME##*/}" == bridge-slave-wlan0.nmconnection ] || exit 0
-
-ebtables -t broute -F
-ebtables -t nat -F
-ebtables -F

@@ -1,4 +1,0 @@
-config BR2_PACKAGE_DHD
-	bool "DHD driver"
-	help
-	  DHD driver

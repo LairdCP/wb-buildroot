@@ -1,5 +1,0 @@
-config BR2_PACKAGE_SDCSDK
-	bool "SDC SDK"
-	select BR2_PACKAGE_LIBNL
-	help
-	  Summit SDK
