@@ -1,0 +1,22 @@
+--- a/NetworkManager.py	2018-04-26 17:24:21.000000000 -0400
++++ b/NetworkManager.py	2023-01-17 16:40:30.297179549 -0500
+@@ -586,13 +586,13 @@
+                 if 'bssid' in val_:
+                     val_['bssid'] = fixups.mac_to_python(val_['bssid'])
+             if 'ipv4' in val:
+-                val['ipv4']['addresses'] = [fixups.addrconf_to_python(addr,socket.AF_INET) for addr in val['ipv4']['addresses']]
+-                val['ipv4']['routes'] = [fixups.route_to_python(route,socket.AF_INET) for route in val['ipv4']['routes']]
+-                val['ipv4']['dns'] = [fixups.addr_to_python(addr,socket.AF_INET) for addr in val['ipv4']['dns']]
++                val['ipv4']['addresses'] = [fixups.addrconf_to_python(addr,socket.AF_INET) for addr in val['ipv4']['addresses']] if val['ipv4'].get('addresses', None) is not None else []
++                val['ipv4']['routes'] = [fixups.route_to_python(route,socket.AF_INET) for route in val['ipv4']['routes']] if val['ipv4'].get('routes', None) is not None else []
++                val['ipv4']['dns'] = [fixups.addr_to_python(addr,socket.AF_INET) for addr in val['ipv4']['dns']] if val['ipv4'].get('dns', None) is not None else []
+             if 'ipv6' in val:
+-                val['ipv6']['addresses'] = [fixups.addrconf_to_python(addr,socket.AF_INET6) for addr in val['ipv6']['addresses']]
+-                val['ipv6']['routes'] = [fixups.route_to_python(route,socket.AF_INET6) for route in val['ipv6']['routes']]
+-                val['ipv6']['dns'] = [fixups.addr_to_python(addr,socket.AF_INET6) for addr in val['ipv6']['dns']]
++                val['ipv6']['addresses'] = [fixups.addrconf_to_python(addr,socket.AF_INET6) for addr in val['ipv6']['addresses']] if val['ipv6'].get('addresses', None) is not None else []
++                val['ipv6']['routes'] = [fixups.route_to_python(route,socket.AF_INET6) for route in val['ipv6']['routes']] if val['ipv6'].get('routes', None) is not None else []
++                val['ipv6']['dns'] = [fixups.addr_to_python(addr,socket.AF_INET6) for addr in val['ipv6']['dns']] if val['ipv6'].get('dns', None) is not None else []
+             return val
+         if method == 'PropertiesChanged':
+             for prop in val:
