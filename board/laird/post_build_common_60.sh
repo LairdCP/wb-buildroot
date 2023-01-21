@@ -198,7 +198,6 @@ else
 	esac
 
 	ln -rsf ${CSCRIPT_DIR}/erase_data.sh ${BINARIES_DIR}/erase_data.sh
-	ln -rsf ${CCONF_DIR}/u-boot-env.tgz ${BINARIES_DIR}/u-boot-env.tgz
 	ln -rsf ${CCONF_DIR}/u-boot.scr ${BINARIES_DIR}/u-boot.scr
 fi
 
