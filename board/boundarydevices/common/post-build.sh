@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # post-build fixups
 # for further details, see
 #
@@ -16,9 +16,6 @@ else
 	UBOOT_BINARY=u-boot.imx
 fi
 
-# Copy the product specific rootfs additions
-tar c --exclude=.svn --exclude=.empty -C board/boundarydevices/common/rootfs-additions/ . | tar x -C $TARGET_DIR/
-
 # bd u-boot looks for standard bootscript
 $HOST_DIR/bin/mkimage -A $MKIMAGE_ARCH -O linux -T script -C none -a 0 -e 0 \
     -n "boot script" -d $BOARD_DIR/boot.cmd $TARGET_DIR/boot/boot.scr
@@ -29,11 +26,4 @@ if [ -e $BINARIES_DIR/$UBOOT_BINARY ]; then
         $TARGET_DIR/u-boot.$UBOOT_DEFCONFIG
     $HOST_DIR/bin/mkimage -A $MKIMAGE_ARCH -O linux -T script -C none -a 0 -e 0 \
         -n "upgrade script" -d $BOARD_DIR/upgrade.cmd $TARGET_DIR/upgrade.scr
-fi
-
-BR2_LRD_PRODUCT="$(sed -n 's,^BR2_DEFCONFIG=".*/\(.*\)_defconfig"$,\1,p' ${BR2_CONFIG})"
-
-# Customize BlueZ Bluetooth advertised name
-if [ -e ${TARGET_DIR}/etc/bluetooth/main.conf ]; then
-	sed -i "s/.*Name *=.*/Name = Laird-${BR2_LRD_PRODUCT^^}/" ${TARGET_DIR}/etc/bluetooth/main.conf
 fi
