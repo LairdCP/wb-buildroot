@@ -73,6 +73,8 @@ if [ -f ${TARGET_DIR}/usr/lib/sysctl.d/50-default.conf ]; then
 	sed -i 's/^kernel\.sysrq/# kernel\.sysrq/' ${TARGET_DIR}/usr/lib/sysctl.d/50-default.conf
 fi
 
+if [ -x ${TARGET_DIR}/usr/sbin/NetworkManager ]; then
+
 mkdir -p ${TARGET_DIR}/etc/NetworkManager/system-connections
 
 # Make sure connection files have proper attributes
@@ -88,6 +90,10 @@ done
 
 if [ -x ${TARGET_DIR}/usr/sbin/firewalld ]; then
 	sed -i "s/firewall-backend=.*/firewall-backend=none/g" ${TARGET_DIR}/etc/NetworkManager/NetworkManager.conf
+fi
+
+ln -sf /run/NetworkManager/resolv.conf ${TARGET_DIR}/etc/resolv.conf
+
 fi
 
 # Remove not needed systemd generators
