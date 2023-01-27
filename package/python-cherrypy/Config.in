@@ -1,0 +1,10 @@
+config BR2_PACKAGE_PYTHON_CHERRYPY
+	bool "python-cherrypy"
+	select BR2_PACKAGE_PYTHON_CHEROOT # runtime
+	select BR2_PACKAGE_PYTHON_PORTEND # runtime
+	select BR2_PACKAGE_PYTHON_MORE_ITERTOOLS # runtime
+	select BR2_PACKAGE_PYTHON_ZC_LOCKFILE # runtime
+	help
+	  A minimalist web framework
+
+	  http://www.cherrypy.org
