@@ -304,3 +304,15 @@ index 781200b691..90fa16bae3 100644
  	btd_service_remove_state_cb(service_state_cb_id);
  
  	/*
+diff --git a/lib/mgmt.h b/lib/mgmt.h
+index 922a24367f..07abf06d57 100644
+--- a/lib/mgmt.h
++++ b/lib/mgmt.h
+@@ -816,6 +816,7 @@ struct mgmt_ev_device_connected {
+ #define MGMT_DEV_DISCONN_TIMEOUT	0x01
+ #define MGMT_DEV_DISCONN_LOCAL_HOST	0x02
+ #define MGMT_DEV_DISCONN_REMOTE		0x03
++#define MGMT_DEV_DISCONN_AUTH_FAILURE	0x04
+ #define MGMT_DEV_DISCONN_LOCAL_HOST_SUSPEND	0x05
+ 
+ #define MGMT_EV_DEVICE_DISCONNECTED	0x000C
