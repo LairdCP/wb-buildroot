@@ -352,6 +352,7 @@ define UBOOT_BUILD_CMDS
 			-o $(BR2_TARGET_UBOOT_FORMAT_NAND_OOB_SIZE) \
 			-e $(BR2_TARGET_UBOOT_FORMAT_NAND_ERASE_SIZE) \
 			nand $(@D)/u-boot.sb $(@D)/u-boot.nand)
+	$(TARGET_CONFIGURE_OPTS) $(@D)/scripts/get_default_envs.sh $(@D) > $(@D)/u-boot-default.env
 endef
 
 define UBOOT_BUILD_OMAP_IFT
