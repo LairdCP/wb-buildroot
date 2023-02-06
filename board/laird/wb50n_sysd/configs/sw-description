@@ -247,6 +247,18 @@ software =
 					sha256 = "@u-boot.itb.sha256";
 				},
 				{
+					filename = "uboot.env";
+					mtdname = "u-boot-env-a";
+					type = "flash";
+					sha256 = "@uboot.env.sha256";
+				},
+				{
+					filename = "uboot.env";
+					mtdname = "u-boot-env-b";
+					type = "flash";
+					sha256 = "@uboot.env.sha256";
+				},
+				{
 					filename = "kernel.itb";
 					volume = "kernel_a";
 					type = "ubivol";

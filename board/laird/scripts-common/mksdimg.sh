@@ -78,6 +78,7 @@ mkfs.vfat -F 16 -n BOOT -S ${BOOT_LBS} -C ${TMPDIR}/boot.img ${BOOT_BLOCKS} > /d
 # Add files to boot partition image
 mcopy -i ${TMPDIR}/boot.img ${SRCDIR}/u-boot-spl.bin ::/boot.bin
 mcopy -i ${TMPDIR}/boot.img ${SRCDIR}/u-boot.itb ::/
+mcopy -i ${TMPDIR}/boot.img ${SRCDIR}/uboot.env ::/
 mcopy -i ${TMPDIR}/boot.img ${SRCDIR}/kernel.itb ::/
 
 # Add boot partition to disk image
