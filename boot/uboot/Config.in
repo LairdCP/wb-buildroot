@@ -359,6 +359,11 @@ config BR2_TARGET_UBOOT_FORMAT_STM32
 	bool "u-boot.stm32"
 	depends on BR2_arm
 
+config BR2_TARGET_UBOOT_FORMAT_INITIAL_ENV
+	bool "u-boot-initial-env"
+	help
+	  Generate u-boot inital enironment file
+
 config BR2_TARGET_UBOOT_FORMAT_CUSTOM
 	bool "Custom (specify below)"
 	help
