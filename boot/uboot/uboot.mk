@@ -132,6 +132,11 @@ UBOOT_BINS += u-boot.stm32
 UBOOT_MAKE_TARGET += u-boot.stm32
 endif
 
+ifeq ($(BR2_TARGET_UBOOT_FORMAT_INITIAL_ENV),y)
+UBOOT_BINS += u-boot-initial-env
+UBOOT_MAKE_TARGET += u-boot-initial-env
+endif
+
 ifeq ($(BR2_TARGET_UBOOT_FORMAT_CUSTOM),y)
 UBOOT_BINS += $(call qstrip,$(BR2_TARGET_UBOOT_FORMAT_CUSTOM_NAME))
 endif
