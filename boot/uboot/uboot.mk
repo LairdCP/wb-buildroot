@@ -132,6 +132,11 @@ UBOOT_BINS += u-boot.stm32
 UBOOT_MAKE_TARGET += u-boot.stm32
 endif
 
+ifeq ($(BR2_TARGET_UBOOT_FORMAT_INITIAL_ENV),y)
+UBOOT_BINS += u-boot-initial-env
+UBOOT_MAKE_TARGET += u-boot-initial-env
+endif
+
 ifeq ($(BR2_TARGET_UBOOT_FORMAT_CUSTOM),y)
 UBOOT_BINS += $(call qstrip,$(BR2_TARGET_UBOOT_FORMAT_CUSTOM_NAME))
 endif
@@ -352,7 +357,6 @@ define UBOOT_BUILD_CMDS
 			-o $(BR2_TARGET_UBOOT_FORMAT_NAND_OOB_SIZE) \
 			-e $(BR2_TARGET_UBOOT_FORMAT_NAND_ERASE_SIZE) \
 			nand $(@D)/u-boot.sb $(@D)/u-boot.nand)
-	$(TARGET_CONFIGURE_OPTS) $(@D)/scripts/get_default_envs.sh $(@D) > $(@D)/u-boot-default.env
 endef
 
 define UBOOT_BUILD_OMAP_IFT
