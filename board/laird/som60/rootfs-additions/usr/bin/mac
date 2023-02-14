@@ -1,7 +1,16 @@
 #!/bin/sh
 
 MAC_ADDRESS_PARAM_LEN=17
-NVMEM_CELL_FOLDER=$(find /sys/bus/platform/devices -name '*.efuse' -maxdepth 1)
+
+. /etc/os-release
+case "${ID}" in
+*wbx3)
+        fw_opt="-c /etc/fw_env_flash.config"
+        ;;
+*)
+        fw_opt=
+        ;;
+esac
 
 usage()
 {
@@ -11,13 +20,13 @@ usage()
 
 read_mac()
 {
-	hexdump -e' 5/1 "%02x:" ""  "%02x"' "${NVMEM_CELL_FOLDER}/${1}"
+	fw_printenv ${fw_opt} -n "${1}"
 }
 
 print_macs()
 {
-	printf "Eth0: %s\n" "$(read_mac "mac-address0")"
-	printf "Eth1: %s\n" "$(read_mac "mac-address1")"
+	printf "Eth0: %s\n" "$(read_mac "eth1addr")"
+	printf "Eth1: %s\n" "$(read_mac "ethaddr")"
 }
 
 write_macs()
@@ -25,17 +34,14 @@ write_macs()
 	mac1="${1}"
 	enable_write="${2}"
 	mac0_numeric="$(( 0x${mac1//:/} + 1 ))"
-	mac1_numeric="$(( 0x${mac1//:/} ))"
+	mac0_format_string="$(printf "%012x" ${mac0_numeric} | sed 's/../&:/g;s/:$//')"
+	mac0_hex="$(printf "${mac0_format_string}")"
 	if "${enable_write}"; then
-		[ "$(read_mac "mac-address0")" != "00:00:00:00:00:00" -o "$(read_mac "mac-address1")" != "00:00:00:00:00:00" ] && printf "error: Mac address already programmed, abort\n" && return 1
-		[ -z "$(stat -c "%a" "${NVMEM_CELL_FOLDER}/mac-address0" | grep "^6")" ] && printf "error: Write support not available in kernel\n" && return 1
-		mac0_format_string="\\x$(printf "%012x" ${mac0_numeric} | sed 's/../&\\x/g;s/\\x$//')"
-		mac1_format_string="\\x$(printf "%012x" ${mac1_numeric} | sed 's/../&\\x/g;s/\\x$//')"
-		printf "${mac0_format_string}" > "${NVMEM_CELL_FOLDER}/mac-address0"
-		printf "${mac1_format_string}" > "${NVMEM_CELL_FOLDER}/mac-address1"
+		fw_setenv ${fw_opt} eth1addr "${mac0_hex}"
+		fw_setenv ${fw_opt} ethaddr "${mac1}"
 	else
-		printf "simulate write Eth0: %012x\n" ${mac0_numeric}
-		printf "simulate write Eth1: %012x\n" ${mac1_numeric}
+		printf "simulate write Eth0: %s\n" "${mac0_hex}"
+		printf "simulate write Eth1: %s\n" "${mac1}"
 		printf "(specify -f to write)\n"
 	fi
 }
