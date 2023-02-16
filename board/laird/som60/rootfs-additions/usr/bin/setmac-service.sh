@@ -1,7 +1,16 @@
 #!/bin/sh
 
-macb0_device="$(ls /sys/devices/platform/ahb/ahb:apb/f0028000.ethernet/net/)"
-macb1_device="$(ls /sys/devices/platform/ahb/ahb:apb/f802c000.ethernet/net/)"
+set_mac() {
+    macb_device="$(ls "${1}")"
+    [ -n "${macb_device}" ] || return
 
-[ -n "${macb0_device}" ] && [ -n "$(fw_printenv -n eth1addr)" ] && ip link set "${macb0_device}" address $(fw_printenv -n eth1addr)
-[ -n "${macb1_device}" ] && [ -n "$(fw_printenv -n ethaddr)" ] && ip link set "${macb1_device}" address $(fw_printenv -n ethaddr)
+    macb_address="$(fw_printenv -n "${2}")"
+    if [ -n "${macb_address}" ]; then
+        ip link set "${macb_device}" address "${macb_address}"
+    else
+        echo "uboot mac address variable ${2} unset"
+    fi
+}
+
+set_mac /sys/devices/platform/ahb/ahb:apb/f0028000.ethernet/net/ eth1addr
+set_mac /sys/devices/platform/ahb/ahb:apb/f802c000.ethernet/net/ ethaddr
