@@ -12,5 +12,5 @@ set_mac() {
     fi
 }
 
-set_mac /sys/devices/platform/ahb/ahb:apb/f0028000.ethernet/net/ eth1addr
-set_mac /sys/devices/platform/ahb/ahb:apb/f802c000.ethernet/net/ ethaddr
+set_mac /sys/devices/platform/ahb/ahb:apb/f0028000.ethernet/net/ ethaddr
+set_mac /sys/devices/platform/ahb/ahb:apb/f802c000.ethernet/net/ eth1addr
