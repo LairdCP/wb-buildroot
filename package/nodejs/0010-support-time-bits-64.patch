@@ -1,0 +1,20 @@
+--- a/deps/zlib/gzguts.h
++++ b/deps/zlib/gzguts.h
+@@ -9,6 +9,7 @@
+ #  endif
+ #  ifdef _FILE_OFFSET_BITS
+ #    undef _FILE_OFFSET_BITS
++#    undef _TIME_BITS
+ #  endif
+ #endif
+ 
+--- a/deps/v8/third_party/zlib/gzguts.h
++++ b/deps/v8/third_party/zlib/gzguts.h
+@@ -9,6 +9,7 @@
+ #  endif
+ #  ifdef _FILE_OFFSET_BITS
+ #    undef _FILE_OFFSET_BITS
++#    undef _TIME_BITS
+ #  endif
+ #endif
+ 
