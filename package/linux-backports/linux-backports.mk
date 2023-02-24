@@ -4,23 +4,10 @@
 #
 ################################################################################
 
-ifneq ($(BR2_PACKAGE_LINUX_BACKPORTS_VERSION),)
-LINUX_BACKPORTS_VERSION = $(call qstrip,$(BR2_PACKAGE_LINUX_BACKPORTS_VERSION))
-else ifneq ($(BR2_LRD_DEVEL_BUILD),)
-LINUX_BACKPORTS_VERSION = 0.$(BR2_LRD_BRANCH).0.0
-else
-LINUX_BACKPORTS_VERSION = $(call qstrip,$(BR2_PACKAGE_LRD_RADIO_STACK_VERSION_VALUE))
-endif
-
-LINUX_BACKPORTS_SOURCE = backports-laird-$(LINUX_BACKPORTS_VERSION).tar.bz2
-BR_NO_CHECK_HASH_FOR += $(LINUX_BACKPORTS_SOURCE)
-
-ifeq ($(MSD_BINARIES_SOURCE_LOCATION),laird_internal)
-LINUX_BACKPORTS_SITE = https://files.devops.rfpros.com/builds/linux/backports/laird/$(LINUX_BACKPORTS_VERSION)
-else
-LINUX_BACKPORTS_SITE = https://github.com/LairdCP/wb-package-archive/releases/download/LRD-REL-$(LINUX_BACKPORTS_VERSION)
-endif
-
+LINUX_BACKPORTS_VERSION_MAJOR = 5.8
+LINUX_BACKPORTS_VERSION = $(LINUX_BACKPORTS_VERSION_MAJOR)-1
+LINUX_BACKPORTS_SOURCE = backports-$(LINUX_BACKPORTS_VERSION).tar.xz
+LINUX_BACKPORTS_SITE = $(BR2_KERNEL_MIRROR)/linux/kernel/projects/backports/stable/v$(LINUX_BACKPORTS_VERSION_MAJOR)
 LINUX_BACKPORTS_LICENSE = GPL-2.0
 LINUX_BACKPORTS_LICENSE_FILES = \
 	COPYING \
@@ -31,7 +18,7 @@ LINUX_BACKPORTS_LICENSE_FILES = \
 # same logic as the linux kernel (we add host dependencies only if
 # host does not have them). See linux/linux.mk and
 # support/dependencies/check-host-bison-flex.mk.
-LINUX_BACKPORTS_KCONFIG_DEPENDENCIES = \
+LINUX_BACKPORTS_DEPENDENCIES = \
 	$(BR2_BISON_HOST_DEPENDENCY) \
 	$(BR2_FLEX_HOST_DEPENDENCY)
 
@@ -43,8 +30,6 @@ endif
 
 LINUX_BACKPORTS_KCONFIG_FRAGMENT_FILES = $(call qstrip,$(BR2_PACKAGE_LINUX_BACKPORTS_CONFIG_FRAGMENT_FILES))
 LINUX_BACKPORTS_KCONFIG_OPTS = $(LINUX_BACKPORTS_MAKE_OPTS)
-
-LINUX_BACKPORTS_MAKE_ENV = $(HOST_MAKE_ENV)
 
 # linux-backports' build system expects the config options to be present
 # in the environment, and it is so when using their custom buildsystem,
@@ -63,8 +48,8 @@ LINUX_BACKPORTS_MAKE_OPTS = \
 	YACC=bison \
 	BACKPORT_DIR=$(@D) \
 	KLIB_BUILD=$(LINUX_DIR) \
-	INSTALL_MOD_DIR=backports \
 	KLIB=$(TARGET_DIR)/lib/modules/$(LINUX_VERSION_PROBED) \
+	INSTALL_MOD_DIR=backports \
 	`sed -r -e '/^\#/d;' $(@D)/.config`
 
 LINUX_BACKPORTS_MODULE_MAKE_OPTS = $(LINUX_BACKPORTS_MAKE_OPTS)
@@ -120,12 +105,12 @@ $(eval $(kconfig-package))
 $(LINUX_BACKPORTS_DIR)/$(LINUX_BACKPORTS_KCONFIG_STAMP_DOTCONFIG): $(LINUX_BACKPORTS_DIR)/.stamp_check_kernel_version
 
 .SECONDEXPANSION:
-$(LINUX_BACKPORTS_DIR)/.stamp_check_kernel_version: $$(LINUX_DIR)/$$(LINUX_KCONFIG_STAMP_DOTCONFIG) linux
+$(LINUX_BACKPORTS_DIR)/.stamp_check_kernel_version: $$(LINUX_DIR)/$$(LINUX_KCONFIG_STAMP_DOTCONFIG)
 	$(Q)KVER=$(LINUX_VERSION_PROBED); \
 	KVER_MAJOR=`echo $${KVER} | sed 's/^\([0-9]*\)\..*/\1/'`; \
 	KVER_MINOR=`echo $${KVER} | sed 's/^[0-9]*\.\([0-9]*\).*/\1/'`; \
-	if [ $${KVER_MAJOR} -lt 3 -o \( $${KVER_MAJOR} -eq 3 -a $${KVER_MINOR} -lt 0 \) ]; then \
-		printf "Linux version '%s' is too old for linux-backports (needs 3.0 or later)\n" \
+	if [ $${KVER_MAJOR} -lt 3 -o \( $${KVER_MAJOR} -eq 3 -a $${KVER_MINOR} -lt 10 \) ]; then \
+		printf "Linux version '%s' is too old for linux-backports (needs 3.10 or later)\n" \
 			"$${KVER}"; \
 		exit 1; \
 	fi
