@@ -28,7 +28,6 @@ source "toolchain/toolchain-external/toolchain-external-andes-nds32/Config.in"
 
 # ARM (use ARM toolchain by default)
 source "toolchain/toolchain-external/toolchain-external-arm-arm/Config.in"
-source "toolchain/toolchain-external/toolchain-external-laird-arm/Config.in"
 source "toolchain/toolchain-external/toolchain-external-linaro-arm/Config.in"
 source "toolchain/toolchain-external/toolchain-external-codesourcery-arm/Config.in"
 
@@ -45,8 +44,6 @@ source "toolchain/toolchain-external/toolchain-external-codesourcery-niosII/Conf
 
 # Bootlin toolchains, available for virtually all architectures
 source "toolchain/toolchain-external/toolchain-external-bootlin/Config.in"
-
-source "toolchain/toolchain-external/toolchain-external-laird-component/Config.in"
 
 # Kept last, so it remains the non-default choice, unless there isn't
 # any available toolchain profile for the currently selected
@@ -138,7 +135,6 @@ source "toolchain/toolchain-external/toolchain-external-andes-nds32/Config.in.op
 
 # ARM
 source "toolchain/toolchain-external/toolchain-external-arm-arm/Config.in.options"
-source "toolchain/toolchain-external/toolchain-external-laird-arm/Config.in.options"
 source "toolchain/toolchain-external/toolchain-external-linaro-arm/Config.in.options"
 source "toolchain/toolchain-external/toolchain-external-codesourcery-arm/Config.in.options"
 
@@ -155,8 +151,6 @@ source "toolchain/toolchain-external/toolchain-external-codesourcery-niosII/Conf
 
 # Bootlin toolchains
 source "toolchain/toolchain-external/toolchain-external-bootlin/Config.in.options"
-
-source "toolchain/toolchain-external/toolchain-external-laird-component/Config.in.options"
 
 # Custom toolchains
 source "toolchain/toolchain-external/toolchain-external-custom/Config.in.options"
