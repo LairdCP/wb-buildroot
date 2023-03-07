@@ -1,0 +1,20 @@
+--- a/core/parser.c	2021-12-08 07:17:17.000000000 
++++ b/core/parser.c	2022-12-07 17:19:55.000000000 
+@@ -43,7 +43,7 @@
+ }
+ 
+ 
+-#ifndef CONFIG_HASH_VERIFY
++#if 0 /* CONFIG_HASH_VERIFY */
+ static int check_hash_absent(struct imglist *list)
+ {
+ 	struct img_type *image;
+@@ -199,7 +199,7 @@
+ 		check_missing_hash(&sw->scripts))
+ 		ret = -EINVAL;
+ #else
+-#ifndef CONFIG_HASH_VERIFY
++#if 0 /* CONFIG_HASH_VERIFY */
+ 	if (check_hash_absent(&sw->images) ||
+ 		check_hash_absent(&sw->scripts))
+ 		ret = -EINVAL;
