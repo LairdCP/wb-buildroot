@@ -22,12 +22,16 @@ grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG} \
 # Tooling checks
 mkimage=${BUILD_DIR}/uboot-custom/tools/mkimage
 atmel_pmecc_params=${BUILD_DIR}/uboot-custom/tools/atmel_pmecc_params
+mkenvimage=${BUILD_DIR}/uboot-custom/tools/mkenvimage
+
 fipshmac=${HOST_DIR}/bin/fipshmac
 
 die() { echo "$@" >&2; exit 1; }
 
 [ -x ${mkimage} ] || \
 	die "No mkimage found (uboot has not been built?)"
+[ -x ${mkenvimage} ] || \
+	die "No mkenvimage found (uboot has not been built?)"
 
 (cd "${BINARIES_DIR}" && "${mkimage}" -f u-boot.scr.its u-boot.scr.itb) || exit 1
 
@@ -66,6 +70,12 @@ then
 	hash_check ${TARGET_DIR}/usr/lib libcrypto.so.1.0.0
 fi
 
+if ${SD} ; then
+${mkenvimage} -p 0 -s 131072 -o ${BINARIES_DIR}/uboot.env ${BINARIES_DIR}/u-boot-initial-env
+else
+${mkenvimage} -r -s 131072 -o ${BINARIES_DIR}/uboot.env ${BINARIES_DIR}/u-boot-initial-env
+fi
+
 # Check if hashing is enabled in generated swupdate config file in build directory
 if ! grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf; then
 	# Remove sha lines in SWU scripts
@@ -73,7 +83,7 @@ if ! grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto
 		sed -i -e "/sha256/d" ${BINARIES_DIR}/sw-description
 fi
 
-ALL_SWU_FILES="sw-description boot.bin u-boot.itb kernel.itb rootfs.bin u-boot-env.tgz erase_data.sh"
+ALL_SWU_FILES="sw-description boot.bin u-boot.itb uboot.env kernel.itb rootfs.bin erase_data.sh"
 
 if ! ${ENCRYPTED_TOOLKIT} ; then
 	# Generate non-secured artifacts
@@ -119,7 +129,7 @@ if ! ${SD} ; then
 		tar -C ${BINARIES_DIR} -rhf ${RELEASE_FILE} \
 			--owner=0 --group=0 --numeric-owner \
 			pmecc.bin u-boot-spl.dtb u-boot-spl-nodtb.bin u-boot.dtb \
-			u-boot-nodtb.bin u-boot.its kernel-nosig.itb u-boot.scr.itb \
+			u-boot-nodtb.bin u-boot.its kernel-nosig.itb u-boot.scr.itb uboot.env \
 			sw-description
 
 		tar -C ${HOST_DIR}/usr/bin -rhf ${RELEASE_FILE} \
@@ -135,7 +145,7 @@ if ! ${SD} ; then
 else
 	tar -C ${BINARIES_DIR} -chjf ${RELEASE_FILE}.bz2 \
 		--owner=0 --group=0 --numeric-owner \
-		u-boot-spl.bin u-boot.itb kernel.itb rootfs.tar mksdcard.sh mksdimg.sh
+		u-boot-spl.bin u-boot.itb uboot.env kernel.itb rootfs.tar mksdcard.sh mksdimg.sh
 fi
 
 echo "${BR2_LRD_PRODUCT^^} POST IMAGE script: done."

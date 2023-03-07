@@ -84,6 +84,7 @@ software =
 				{
 					filename = "boot.bin";
 					mtdname = "u-boot-spl";
+					transform = "atmel_pmecc_header";
 					type = "flash";
 					name = "boot";
 					sha256 = "@boot.bin.sha256";
@@ -135,6 +136,7 @@ software =
 				{
 					filename = "boot.bin";
 					mtdname = "u-boot-spl";
+					transform = "atmel_pmecc_header";
 					type = "flash";
 					name = "boot";
 					sha256 = "@boot.bin.sha256";
@@ -232,6 +234,7 @@ software =
 				{
 					filename = "boot.bin";
 					mtdname = "u-boot-spl";
+					transform = "atmel_pmecc_header";
 					type = "flash";
 					name = "boot";
 					sha256 = "@boot.bin.sha256";
@@ -242,6 +245,18 @@ software =
 					type = "flash";
 					name = "u-boot";
 					sha256 = "@u-boot.itb.sha256";
+				},
+				{
+					filename = "uboot.env";
+					mtdname = "u-boot-env-a";
+					type = "flash";
+					sha256 = "@uboot.env.sha256";
+				},
+				{
+					filename = "uboot.env";
+					mtdname = "u-boot-env-b";
+					type = "flash";
+					sha256 = "@uboot.env.sha256";
 				},
 				{
 					filename = "kernel.itb";
@@ -270,16 +285,6 @@ software =
 					type = "ubivol";
 					name = "rootfs";
 					sha256 = "@rootfs.bin.sha256";
-				},
-				{
-					filename = "u-boot-env.tgz";
-					mtdname = "u-boot-env-a";
-					type="flash";
-				},
-				{
-					filename = "u-boot-env.tgz";
-					mtdname = "u-boot-env-b";
-					type="flash";
 				}
 			);
 
