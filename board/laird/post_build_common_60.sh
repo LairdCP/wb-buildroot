@@ -20,6 +20,9 @@ esac
 grep -qF "BR2_PACKAGE_LRD_ENCRYPTED_STORAGE_TOOLKIT=y" ${BR2_CONFIG} \
 	&& ENCRYPTED_TOOLKIT=true || ENCRYPTED_TOOLKIT=false
 
+grep -qF "BR2_SUMMIT_SECURE_BOOT=y" ${BR2_CONFIG} \
+	&& SECURE_BOOT=true || SECURE_BOOT=false
+
 # Create default firmware description file.
 # This may be overwritten by a proper release file.
 LOCRELSTR="${LAIRD_RELEASE_STRING}"
@@ -143,14 +146,32 @@ rm -rf "${TARGET_DIR}/var/www/swupdate"
 rm -rf "${TARGET_DIR}/usr/share/gobject-introspection-1.0/"
 rm -rf "${TARGET_DIR}/usr/lib/gobject-introspection/"
 
+rm -f ${TARGET_DIR}/usr/lib/systemd/system/swupdate-progress.service
+rm -f ${TARGET_DIR}/usr/lib/swupdate/conf.d/90-start-progress
+
+# No need to start swupdate service automatically, it will start by socket
+if [ -f ${TARGET_DIR}/usr/lib/systemd ]; then
+	echo "disable swupdate.service" > ${TARGET_DIR}/usr/lib/systemd/system-preset/50-swupdate.preset
+fi
+
 if [ "${BUILD_TYPE}" != ig60 ]; then
+
+# Configure public key if swupdate signature check is enabled
+if grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf; then
+	if [ -f ${ENCRYPTED_TOOLKIT_DIR}/dev.pem ]; then
+		mkdir -p ${TARGET_DIR}/etc/ssl/misc
+		cp -f ${ENCRYPTED_TOOLKIT_DIR}/dev.pem ${TARGET_DIR}/etc/ssl/misc/dev.pem
+	fi
+	mkdir -p ${TARGET_DIR}/etc/swupdate/conf.d
+	echo 'SWUPDATE_ARGS="${SWUPDATE_ARGS} -k /etc/ssl/misc/dev.pem"' > ${TARGET_DIR}/etc/swupdate/conf.d/99-signing.conf
+fi
 
 # Path to common image files
 CCONF_DIR="$(realpath board/laird/configs-common/image)"
 CSCRIPT_DIR="$(realpath board/laird/scripts-common)"
 
 # Configure keys, boot script, and SWU tools when using encrypted toolkit
-if ${ENCRYPTED_TOOLKIT} ; then
+if ${SECURE_BOOT} ; then
 	# Move timezone setting into writable partition
 	ln -rsf ${TARGET_DIR}/data/misc/zoneinfo/localtime ${TARGET_DIR}/etc/localtime
 
@@ -161,32 +182,21 @@ if ${ENCRYPTED_TOOLKIT} ; then
 
 	# Copy the u-boot.its
 	ln -rsf ${CCONF_DIR}/u-boot-enc.its ${BINARIES_DIR}/u-boot.its
-	# Use verity boot script
-	ln -rsf ${CCONF_DIR}/boot_verity.scr ${BINARIES_DIR}/boot.scr
 
 	cp -f ${CCONF_DIR}/kernel-enc.its ${BINARIES_DIR}/kernel.its
 else
 	# Copy the u-boot.its
 	ln -rsf ${CCONF_DIR}/u-boot.its ${BINARIES_DIR}/u-boot.its
-	# Use standard boot script
-	ln -rsf ${CCONF_DIR}/boot.scr ${BINARIES_DIR}/boot.scr
 
 	cp -f ${CCONF_DIR}/kernel.its ${BINARIES_DIR}/kernel.its
 fi
 
-# Copy public key if swupdate signature check is enabled
-if grep -q 'CONFIG_SIGNED_IMAGES=y' ${BUILD_DIR}/swupdate*/include/config/auto.conf; then
-	if [ -f ${ENCRYPTED_TOOLKIT_DIR}/dev.pem ]; then
-		mkdir -p ${TARGET_DIR}/etc/ssl/misc
-		cp -f ${ENCRYPTED_TOOLKIT_DIR}/dev.pem ${TARGET_DIR}/etc/ssl/misc/dev.pem
-	fi
-fi
-
-rm -f ${TARGET_DIR}/usr/lib/systemd/system/swupdate-progress.service
-rm -f ${TARGET_DIR}/usr/lib/swupdate/conf.d/90-start-progress
-
-if [ -f ${TARGET_DIR}/usr/lib/systemd ]; then
-	echo "disable swupdate.service" > ${TARGET_DIR}/usr/lib/systemd/system-preset/50-swupdate.preset
+if ${ENCRYPTED_TOOLKIT} ; then
+	# Use verity boot script
+	ln -rsf ${CCONF_DIR}/boot_verity.scr ${BINARIES_DIR}/boot.scr
+else
+	# Use standard boot script
+	ln -rsf ${CCONF_DIR}/boot.scr ${BINARIES_DIR}/boot.scr
 fi
 
 if ${SD} ; then
