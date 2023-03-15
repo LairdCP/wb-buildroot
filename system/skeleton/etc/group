@@ -22,6 +22,5 @@ plugdev:x:46:
 staff:x:50:
 lock:x:54:
 netdev:x:82:
-sgx:x:83:
 users:x:100:
 nobody:x:65534:

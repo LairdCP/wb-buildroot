@@ -5,17 +5,15 @@
 ################################################################################
 
 SWIG_VERSION_MAJOR = 4.1
-SWIG_VERSION = $(SWIG_VERSION_MAJOR).0
+SWIG_VERSION = $(SWIG_VERSION_MAJOR).1
 SWIG_SITE = http://downloads.sourceforge.net/project/swig/swig/swig-$(SWIG_VERSION)
-HOST_SWIG_DEPENDENCIES = host-bison host-pcre host-pcre2
+HOST_SWIG_DEPENDENCIES = host-bison host-pcre2
 HOST_SWIG_CONF_OPTS = \
 	--with-pcre \
 	--disable-ccache \
 	--without-octave
 SWIG_LICENSE = GPL-3.0+, BSD-2-Clause, BSD-3-Clause
 SWIG_LICENSE_FILES = LICENSE LICENSE-GPL LICENSE-UNIVERSITIES
-SWIG_AUTORECONF = YES
-SWIG_AUTORECONF_OPTS = --include Tools/config
 
 # CMake looks first at swig3.0, then swig2.0 and then swig. However,
 # when doing the search, it will look into the PATH for swig2.0 first,

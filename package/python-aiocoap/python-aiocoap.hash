@@ -1,5 +1,5 @@
 # md5, sha256 from https://pypi.org/pypi/aiocoap/json
-md5    578f3f6f5180c296806b34a031008b2d  aiocoap-0.4.3.tar.gz
-sha256 ac261b0a4425ddedc23deb4b5c8b5ad8a0911041d26bf567e33b459666adc1fc aiocoap-0.4.3.tar.gz
+md5  03ca0411b7401bfd6e9bdaefe09bd88a  aiocoap-0.4.5.tar.gz
+sha256  906c927822185c8acf04fdcc1dd98fd845f31dabf5d5e395c39137dcbd6ba1e3  aiocoap-0.4.5.tar.gz
 # Locally computed sha256 checksums
 sha256  2bb211d412a6bfa4b2a9cf01123c7fe90e5e6185938896e23ab07b84f8494180  LICENSE

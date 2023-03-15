@@ -2,7 +2,7 @@ diff --git a/lib/mgmt.h b/lib/mgmt.h
 index 922a243..07abf06 100644
 --- a/lib/mgmt.h
 +++ b/lib/mgmt.h
-@@ -816,6 +816,7 @@ struct mgmt_ev_device_connected {
+@@ -819,6 +819,7 @@ struct mgmt_ev_device_connected {
  #define MGMT_DEV_DISCONN_TIMEOUT	0x01
  #define MGMT_DEV_DISCONN_LOCAL_HOST	0x02
  #define MGMT_DEV_DISCONN_REMOTE		0x03
@@ -31,7 +31,7 @@ index 3992f9a..a596091 100644
  	GAttrib		*attrib;
  
  	struct bt_att *att;			/* The new ATT transport */
-@@ -264,6 +267,7 @@ struct btd_device {
+@@ -261,6 +264,7 @@ struct btd_device {
  	gboolean	blocked;
  	gboolean	auto_connect;
  	gboolean	disable_auto_connect;
@@ -39,16 +39,16 @@ index 3992f9a..a596091 100644
  	gboolean	general_connect;
  
  	bool		legacy;
-@@ -274,6 +278,8 @@ struct btd_device {
- 	guint		store_id;
- 
+@@ -273,6 +277,8 @@ struct btd_device {
  	time_t		name_resolve_failed_time;
+ 
+ 	int8_t		volume;
 +
 +	int8_t		disconnect_reason;
  };
  
  static const uint16_t uuid_list[] = {
-@@ -283,6 +289,8 @@ static const uint16_t uuid_list[] = {
+@@ -282,6 +288,8 @@ static const uint16_t uuid_list[] = {
  	0
  };
  
@@ -57,7 +57,7 @@ index 3992f9a..a596091 100644
  static int device_browse_gatt(struct btd_device *device, DBusMessage *msg);
  static int device_browse_sdp(struct btd_device *device, DBusMessage *msg);
  
-@@ -795,6 +803,7 @@ static void device_free(gpointer user_data)
+@@ -804,6 +812,7 @@ static void device_free(gpointer user_data)
  	if (device->eir_uuids)
  		g_slist_free_full(device->eir_uuids, g_free);
  
@@ -65,7 +65,7 @@ index 3992f9a..a596091 100644
  	g_free(device->local_csrk);
  	g_free(device->remote_csrk);
  	g_free(device->path);
-@@ -1243,6 +1252,47 @@ static gboolean dev_property_get_connected(const GDBusPropertyTable *property,
+@@ -1268,6 +1277,47 @@ static gboolean dev_property_get_connected(const GDBusPropertyTable *property,
  	return TRUE;
  }
  
@@ -113,7 +113,7 @@ index 3992f9a..a596091 100644
  static gboolean dev_property_get_uuids(const GDBusPropertyTable *property,
  					DBusMessageIter *iter, void *data)
  {
-@@ -1819,6 +1869,144 @@ static DBusMessage *dev_disconnect(DBusConnection *conn, DBusMessage *msg,
+@@ -1851,6 +1901,144 @@ static DBusMessage *dev_disconnect(DBusConnection *conn, DBusMessage *msg,
  	return NULL;
  }
  
@@ -258,7 +258,7 @@ index 3992f9a..a596091 100644
  static int connect_next(struct btd_device *dev)
  {
  	struct btd_service *service;
-@@ -3097,6 +3285,7 @@ static DBusMessage *cancel_pairing(DBusConnection *conn, DBusMessage *msg,
+@@ -2947,6 +3135,7 @@ static DBusMessage *cancel_pairing(DBusConnection *conn, DBusMessage *msg,
  }
  
  static const GDBusMethodTable device_methods[] = {
@@ -266,7 +266,7 @@ index 3992f9a..a596091 100644
  	{ GDBUS_ASYNC_METHOD("Disconnect", NULL, NULL, dev_disconnect) },
  	{ GDBUS_ASYNC_METHOD("Connect", NULL, NULL, dev_connect) },
  	{ GDBUS_ASYNC_METHOD("ConnectProfile", GDBUS_ARGS({ "UUID", "s" }),
-@@ -3109,6 +3298,8 @@ static const GDBusMethodTable device_methods[] = {
+@@ -2959,6 +3148,8 @@ static const GDBusMethodTable device_methods[] = {
  };
  
  static const GDBusPropertyTable device_properties[] = {

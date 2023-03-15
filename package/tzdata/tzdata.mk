@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-TZDATA_VERSION = 2021e
+TZDATA_VERSION = 2022f
 TZDATA_SOURCE = tzdata$(TZDATA_VERSION).tar.gz
 TZDATA_SITE = https://www.iana.org/time-zones/repository/releases
 TZDATA_STRIP_COMPONENTS = 0
@@ -34,12 +34,9 @@ define TZDATA_SET_LOCALTIME
 		exit 1; \
 	fi
 	ln -sf ../usr/share/zoneinfo/$(TZDATA_LOCALTIME) $(TARGET_DIR)/etc/localtime
-	rm -f $(TARGET_DIR)/etc/timezone
 	echo "$(TZDATA_LOCALTIME)" >$(TARGET_DIR)/etc/timezone
 endef
 endif
-
-
 
 define TZDATA_INSTALL_TARGET_CMDS
 	$(INSTALL) -d -m 0755 $(TARGET_DIR)/usr/share/zoneinfo
@@ -62,7 +59,7 @@ endef
 
 define HOST_TZDATA_INSTALL_CMDS
 	$(INSTALL) -d -m 0755 $(HOST_DIR)/share/zoneinfo
-	cp -a $(@D)/_output/* $(@D)/*.tab $(HOST_DIR)/share/zoneinfo
+	cp -a $(@D)/_output/* $(@D)/*.tab $(@D)/leap-seconds.list $(HOST_DIR)/share/zoneinfo
 endef
 
 $(eval $(generic-package))

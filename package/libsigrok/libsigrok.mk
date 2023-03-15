@@ -14,10 +14,7 @@ LIBSIGROK_CONF_OPTS = --disable-java --disable-python
 # We're patching configure.ac
 LIBSIGROK_AUTORECONF = YES
 
-ifeq ($(BR2_PACKAGE_BLUEZ_UTILS),y)
-LIBSIGROK_CONF_OPTS += --with-libbluez
-LIBSIGROK_DEPENDENCIES += bluez_utils
-else ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS),y)
+ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS),y)
 LIBSIGROK_CONF_OPTS += --with-libbluez
 LIBSIGROK_DEPENDENCIES += bluez5_utils
 else

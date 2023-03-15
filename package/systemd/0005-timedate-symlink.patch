@@ -1,6 +1,6 @@
 --- a/src/basic/time-util.c	2022-07-13 07:30:45.000000000 
 +++ a/src/basic/time-util.c	2022-10-18 18:44:26.000000000 
-@@ -1492,27 +1492,34 @@
+@@ -1471,27 +1471,34 @@
  }
  
  int get_timezone(char **ret) {
@@ -51,7 +51,7 @@
                  return -EINVAL;
 --- a/src/timedate/timedated.c	2022-07-13 07:30:45.000000000 
 +++ b/src/timedate/timedated.c	2022-10-18 18:47:43.000000000 
-@@ -293,9 +293,27 @@
+@@ -296,9 +296,27 @@
  static int context_write_data_timezone(Context *c) {
          _cleanup_free_ char *p = NULL;
          const char *source;
@@ -79,7 +79,7 @@
          /* No timezone is very similar to UTC. Hence in either of these cases link the UTC file in. Except if
           * it isn't installed, in which case we remove the symlink altogether. Since glibc defaults to an
           * internal version of UTC in that case behaviour is mostly equivalent. We still prefer creating the
-@@ -305,22 +323,30 @@
+@@ -308,22 +326,30 @@
  
                  if (access("/usr/share/zoneinfo/UTC", F_OK) < 0) {
  
