@@ -73,6 +73,7 @@ define LIBOPENSSL_CONFIGURE_CMDS
 			$(LIBOPENSSL_TARGET_ARCH) \
 			--prefix=/usr \
 			--openssldir=/etc/ssl \
+			--with-rand-seed=devrandom -DDEVRANDOM='"\"/dev/hwrng\",\"/dev/urandom\""' \
 			$(if $(BR2_TOOLCHAIN_HAS_LIBATOMIC),-latomic) \
 			$(if $(BR2_TOOLCHAIN_HAS_THREADS),threads,no-threads) \
 			$(if $(BR2_STATIC_LIBS),no-shared,shared) \
