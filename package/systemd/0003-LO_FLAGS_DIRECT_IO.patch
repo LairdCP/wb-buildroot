@@ -1,6 +1,6 @@
 --- a/src/shared/loop-util.c	2022-01-18 07:35:43.000000000 
 +++ b/src/shared/loop-util.c	2022-03-25 00:26:44.000000000 
-@@ -31,6 +31,11 @@
+@@ -33,6 +33,11 @@
  #include "string-util.h"
  #include "tmpfile-util.h"
  

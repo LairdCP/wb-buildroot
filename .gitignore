@@ -13,25 +13,3 @@
 *.rej
 *~
 *.pyc
-
-# ignore our git clones brought in via Repo
-/package/lrd/externals/*
-/package/lrd-closed-source/externals/*
-!/board/boundarydevices/common/etc/*
-
-# ignore configs directory, except for the files we want:
-/configs/*
-!/configs/msd*_defconfig
-!/configs/wb*_defconfig
-!/configs/reg*_defconfig
-!/configs/bdimx6*_defconfig
-!/configs/backports*_defconfig
-!/configs/som60*_defconfig
-!/configs/ig60*_defconfig
-!/configs/firmware_defconfig
-!/configs/summit_supplicant*_defconfig
-!/configs/sterling_supplicant*_defconfig
-!/configs/mfg*_defconfig
-!/configs/adaptive_ww*_defconfig
-!/configs/laird*_defconfig
-# note the above is necessary to avoid customer configs.

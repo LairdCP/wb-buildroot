@@ -69,7 +69,7 @@
      PY_HASH_ENTRY(NULL, NULL, NULL, 0),
  };
  
-@@ -872,11 +910,15 @@
+@@ -873,11 +911,15 @@
          goto exit;
      }
  
@@ -85,7 +85,7 @@
  
      self = newEVPobject(type);
      if (self == NULL) {
-@@ -2106,6 +2148,17 @@
+@@ -2118,6 +2160,17 @@
  }
  
  /* Py_mod_exec functions */
@@ -103,7 +103,7 @@
  static int
  hashlib_init_hashtable(PyObject *module)
  {
-@@ -2246,6 +2299,8 @@
+@@ -2258,6 +2311,8 @@
  
  
  static PyModuleDef_Slot hashlib_slots[] = {
@@ -126,7 +126,7 @@
  #define PySSL_BEGIN_ALLOW_THREADS { \
              PyThreadState *_save = NULL;  \
              PySSL_BEGIN_ALLOW_THREADS_S(_save);
-@@ -143,9 +143,86 @@
+@@ -141,9 +141,86 @@
  /* OpenSSL 1.1 does not have SSL 2.0 */
  #define OPENSSL_NO_SSL2
  
@@ -213,7 +213,7 @@
  #endif
  
  #if PY_SSL_DEFAULT_CIPHERS == 0
-@@ -265,6 +342,11 @@
+@@ -263,6 +340,11 @@
  #endif
  };
  
@@ -225,7 +225,7 @@
  /* SSL socket object */
  
  #define X509_NAME_MAXLEN 256
-@@ -1829,6 +1911,7 @@
+@@ -1836,6 +1918,7 @@
      return result;
  }
  
@@ -241,7 +241,7 @@
  
  /*[clinic input]
  _ssl._SSLSocket.get_unverified_chain
-@@ -1943,8 +2027,10 @@
+@@ -1950,8 +2034,10 @@
      unsigned long cipher_id;
      int alg_bits, strength_bits, len;
      char buf[512] = {0};
@@ -252,7 +252,7 @@
  
      /* can be NULL */
      cipher_name = SSL_CIPHER_get_name(cipher);
-@@ -1957,6 +2043,7 @@
+@@ -1964,6 +2050,7 @@
          buf[len-1] = '\0';
      strength_bits = SSL_CIPHER_get_bits(cipher, &alg_bits);
  
@@ -260,7 +260,7 @@
      aead = SSL_CIPHER_is_aead(cipher);
      nid = SSL_CIPHER_get_cipher_nid(cipher);
      skcipher = nid != NID_undef ? OBJ_nid2ln(nid) : NULL;
-@@ -1966,10 +2053,13 @@
+@@ -1973,10 +2060,13 @@
      kx = nid != NID_undef ? OBJ_nid2ln(nid) : NULL;
      nid = SSL_CIPHER_get_auth_nid(cipher);
      auth = nid != NID_undef ? OBJ_nid2ln(nid) : NULL;
@@ -274,7 +274,7 @@
          "}",
          "id", cipher_id,
          "name", cipher_name,
-@@ -1977,11 +2067,13 @@
+@@ -1984,11 +2074,13 @@
          "description", buf,
          "strength_bits", strength_bits,
          "alg_bits", alg_bits
@@ -288,7 +288,7 @@
         );
  }
  
-@@ -2346,8 +2438,14 @@
+@@ -2354,8 +2446,14 @@
  
      do {
          PySSL_BEGIN_ALLOW_THREADS
@@ -303,7 +303,7 @@
          PySSL_END_ALLOW_THREADS
          self->err = err;
  
-@@ -2498,8 +2596,14 @@
+@@ -2507,8 +2605,14 @@
  
      do {
          PySSL_BEGIN_ALLOW_THREADS
@@ -511,9 +511,9 @@
      {Py_mod_exec, sslmodule_init_types},
      {Py_mod_exec, sslmodule_init_exceptions},
 @@ -6148,6 +6359,7 @@
-     {Py_mod_exec, sslmodule_init_errorcodes},
      {Py_mod_exec, sslmodule_init_constants},
      {Py_mod_exec, sslmodule_init_versioninfo},
+     {Py_mod_exec, sslmodule_init_strings},
 +    {Py_mod_exec, sslmodule_legacy},
      {0, NULL}
  };
@@ -536,7 +536,7 @@
  
  PyDoc_STRVAR(_ssl__SSLSocket_get_unverified_chain__doc__,
  "get_unverified_chain($self, /)\n"
-@@ -1351,6 +1353,10 @@
+@@ -1354,6 +1356,10 @@
  
  #endif /* defined(_MSC_VER) */
  

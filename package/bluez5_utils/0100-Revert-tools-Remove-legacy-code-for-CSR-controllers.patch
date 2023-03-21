@@ -35,16 +35,16 @@ diff --git a/Makefile.tools b/Makefile.tools
 index b7d893248..8b32a57f1 100644
 --- a/Makefile.tools
 +++ b/Makefile.tools
-@@ -193,7 +193,7 @@ endif
+@@ -207,7 +207,7 @@ endif
  
  if TOOLS
  bin_PROGRAMS += tools/rctest tools/l2test tools/l2ping tools/bluemoon \
--		tools/hex2hcd tools/mpris-proxy tools/btattach
-+		tools/hex2hcd tools/mpris-proxy tools/btattach tools/bccmd
+-		tools/hex2hcd tools/mpris-proxy tools/btattach tools/isotest
++		tools/hex2hcd tools/mpris-proxy tools/btattach tools/isotest tools/bccmd
  
  noinst_PROGRAMS += tools/bdaddr tools/avinfo tools/avtest \
  			tools/scotest tools/amptest tools/hwdb \
-@@ -293,6 +293,12 @@ tools_l2test_LDADD = lib/libbluetooth-internal.la
+@@ -307,6 +307,12 @@ tools_l2test_LDADD = lib/libbluetooth-internal.la
  
  tools_l2ping_LDADD = lib/libbluetooth-internal.la
  
@@ -57,16 +57,16 @@ index b7d893248..8b32a57f1 100644
  tools_bluemoon_SOURCES = tools/bluemoon.c monitor/bt.h
  tools_bluemoon_LDADD = src/libshared-mainloop.la
  
-@@ -309,7 +315,7 @@ profiles_iap_iapd_SOURCES = profiles/iap/main.c
+@@ -325,7 +331,7 @@ profiles_iap_iapd_SOURCES = profiles/iap/main.c
  profiles_iap_iapd_LDADD = gdbus/libgdbus-internal.la $(GLIB_LIBS) $(DBUS_LIBS)
  
  if MANPAGES
--man_MANS += tools/rctest.1 tools/l2ping.1 tools/btattach.1
-+man_MANS += tools/rctest.1 tools/l2ping.1 tools/btattach.1 tools/bccmd.1
+-man_MANS += tools/rctest.1 tools/l2ping.1 tools/btattach.1 tools/isotest.1
++man_MANS += tools/rctest.1 tools/l2ping.1 tools/btattach.1 tools/isotest.1 tools/bccmd.1
  endif
  
  if MESH
-@@ -376,7 +382,7 @@ tools_hciattach_SOURCES = tools/hciattach.c tools/hciattach.h \
+@@ -392,7 +398,7 @@ tools_hciattach_SOURCES = tools/hciattach.c tools/hciattach.h \
  						tools/hciattach_bcm43xx.c
  tools_hciattach_LDADD = lib/libbluetooth-internal.la
  
@@ -75,12 +75,12 @@ index b7d893248..8b32a57f1 100644
  tools_hciconfig_LDADD = lib/libbluetooth-internal.la
  
  tools_hcitool_SOURCES = tools/hcitool.c src/oui.h src/oui.c
-@@ -427,7 +433,7 @@ manual_pages += tools/hciattach.1 tools/hciconfig.1 \
+@@ -443,7 +449,7 @@ manual_pages += tools/hciattach.1 tools/hciconfig.1 \
  			tools/hcitool.1 tools/hcidump.1 \
  			tools/rfcomm.1 tools/sdptool.1 tools/ciptool.1 \
  			tools/rctest.1 tools/l2ping.1 tools/btattach.1 \
--			tools/bdaddr.1
-+			tools/bdaddr.1 tools/bccmd.1
+-			tools/bdaddr.1 tools/isotest.1
++			tools/bdaddr.1 tools/isotest.1 tools/bccmd.1
  
  if HID2HCI
  udevdir = $(UDEV_DIR)
@@ -5892,7 +5892,7 @@ index e4d521583..34b39a973 100644
  
  static struct hci_dev_info di;
  static int all;
-@@ -1689,6 +1690,30 @@ static void print_rev_ericsson(int dd)
+@@ -1693,6 +1694,30 @@ static void print_rev_ericsson(int dd)
  	printf("\t%s\n", buf + 1);
  }
  
@@ -5923,7 +5923,7 @@ index e4d521583..34b39a973 100644
  static void print_rev_digianswer(int dd)
  {
  	struct hci_request rq;
-@@ -1751,6 +1776,9 @@ static void cmd_revision(int ctl, int hdev, char *opt)
+@@ -1755,6 +1780,9 @@ static void cmd_revision(int ctl, int hdev, char *opt)
  	case 48:
  		print_rev_ericsson(dd);
  		break;
