@@ -41,10 +41,10 @@ index 0af2e93d..b036f183 100644
  
  
  struct _MMBroadbandModemUbloxPrivate {
-@@ -1864,6 +1868,10 @@ iface_modem_init (MMIfaceModem *iface)
-     iface->load_current_bands_finish = load_current_bands_finish;
-     iface->set_current_bands        = set_current_bands;
-     iface->set_current_bands_finish = common_set_current_modes_bands_finish;
+@@ -2043,6 +2047,10 @@ iface_modem_init (MMIfaceModem *iface)
+     iface->setup_sim_hot_swap = modem_setup_sim_hot_swap;
+     iface->setup_sim_hot_swap_finish = modem_setup_sim_hot_swap_finish;
+     iface->cleanup_sim_hot_swap = modem_cleanup_sim_hot_swap;
 +    //UBLOX supports a few charsets. However, switching between charsets may cause strange problems.
 +    //Just disble it to use the default IRA charset.
 +    iface->setup_charset = NULL;
@@ -52,11 +52,10 @@ index 0af2e93d..b036f183 100644
  }
  
  static void
-@@ -1885,6 +1893,256 @@ iface_modem_voice_init (MMIfaceModemVoice *iface)
+@@ -2064,6 +2072,255 @@ iface_modem_voice_init (MMIfaceModemVoice *iface)
      iface->create_call = create_call;
  }
  
-+
 +/*****************************************************************************/
 +/* Check support (Signal interface) */
 +
@@ -313,15 +312,7 @@ diff --git a/plugins/ublox/mm-modem-helpers-ublox.c b/plugins/ublox/mm-modem-hel
 index ca3039a6..db50fe45 100644
 --- a/plugins/ublox/mm-modem-helpers-ublox.c
 +++ b/plugins/ublox/mm-modem-helpers-ublox.c
-@@ -361,6 +361,7 @@ static const MMModemMode ublox_combinations[] = {
-     ( MM_MODEM_MODE_2G | MM_MODEM_MODE_3G | MM_MODEM_MODE_4G ),
-     ( MM_MODEM_MODE_2G |                    MM_MODEM_MODE_4G ),
-     (                    MM_MODEM_MODE_3G | MM_MODEM_MODE_4G ),
-+    (                                       MM_MODEM_MODE_4G ),
- };
- 
- GArray *
-@@ -481,7 +482,7 @@ typedef struct {
+@@ -452,7 +452,7 @@ typedef struct {
      MMModemMode           mode;
      MMModemBand           bands_2g[4];
      MMModemBand           bands_3g[6];
@@ -330,7 +321,7 @@ index ca3039a6..db50fe45 100644
  } BandConfiguration;
  
  static const BandConfiguration band_configuration[] = {
-@@ -925,6 +926,18 @@ static const BandConfiguration band_configuration[] = {
+@@ -896,6 +896,18 @@ static const BandConfiguration band_configuration[] = {
                        MM_MODEM_BAND_EUTRAN_12, MM_MODEM_BAND_EUTRAN_13, MM_MODEM_BAND_EUTRAN_19,
                        MM_MODEM_BAND_EUTRAN_20, MM_MODEM_BAND_EUTRAN_28 }
      },
@@ -415,7 +406,7 @@ index 569054b9..eba91002 100644
  /*****************************************************************************/
  
  static MMBaseModem *
-@@ -234,6 +289,7 @@ mm_plugin_create (void)
+@@ -235,6 +290,7 @@ mm_plugin_create (void)
      static const gchar *subsystems[] = { "tty", "net", NULL };
      static const guint16 vendor_ids[] = { 0x1546, 0 };
      static const gchar *vendor_strings[] = { "u-blox", NULL };
@@ -423,7 +414,7 @@ index 569054b9..eba91002 100644
      static const MMAsyncMethod custom_init = {
          .async  = G_CALLBACK (ublox_custom_init),
          .finish = G_CALLBACK (ublox_custom_init_finish),
-@@ -244,6 +300,7 @@ mm_plugin_create (void)
+@@ -245,6 +301,7 @@ mm_plugin_create (void)
                                      MM_PLUGIN_ALLOWED_SUBSYSTEMS,     subsystems,
                                      MM_PLUGIN_ALLOWED_VENDOR_IDS,     vendor_ids,
                                      MM_PLUGIN_ALLOWED_VENDOR_STRINGS, vendor_strings,
@@ -431,7 +422,7 @@ index 569054b9..eba91002 100644
                                      MM_PLUGIN_ALLOWED_AT,             TRUE,
                                      MM_PLUGIN_SEND_DELAY,             (guint64) 0,
                                      MM_PLUGIN_CUSTOM_INIT,            &custom_init,
-@@ -261,4 +318,5 @@ mm_plugin_ublox_class_init (MMPluginUbloxClass *klass)
+@@ -262,4 +319,5 @@ mm_plugin_ublox_class_init (MMPluginUbloxClass *klass)
      MMPluginClass *plugin_class = MM_PLUGIN_CLASS (klass);
  
      plugin_class->create_modem = create_modem;
@@ -441,34 +432,29 @@ diff --git a/src/kerneldevice/mm-kernel-device-udev.c b/src/kerneldevice/mm-kern
 index a6bf1a71..6c304ff9 100644
 --- a/src/kerneldevice/mm-kernel-device-udev.c
 +++ b/src/kerneldevice/mm-kernel-device-udev.c
-@@ -71,10 +71,20 @@ udev_device_get_sysfs_attr_as_hex (GUdevDevice *device,
- static void
- preload_contents_other (MMKernelDeviceUdev *self)
- {
-+    gchar *driver;
-+
-     /* For any other kind of bus (or the absence of one, as in virtual devices),
+@@ -81,6 +81,15 @@ udev_device_get_sysfs_attr_as_hex (GUdevDevice *device,
       * assume this is a single port device and don't try to match multiple ports
       * together. Also, obviously, no vendor, product, revision or interface. */
--    self->priv->driver = g_strdup (g_udev_device_get_driver (self->priv->device));
-+    driver = g_udev_device_get_driver(self->priv->device);
-+    if (!driver && strncmp(g_udev_device_get_name(self->priv->device), "gsmtty", 6) == 0) {
-+	/*
-+	 * Override driver for GSM tty devices so that the proper
-+	 * plug-in can claim the port
-+	 */
-+	driver = "gsmtty";
+     self->priv->driver = g_strdup (g_udev_device_get_driver (self->priv->device));
++
++    if (!self->priv->driver && strncmp(g_udev_device_get_name(self->priv->device), "gsmtty", 6) == 0) {
++	   /*
++	    * Override driver for GSM tty devices so that the proper
++	    * plug-in can claim the port
++	    */
++	    self->priv->driver = g_strdup ("gsmtty");
++        return;
 +    }
-+    self->priv->driver = g_strdup(driver);
- }
  
+     /* But look for a lower real physical device, as we may have one */
+     lower_device_name = mm_kernel_device_get_lower_device_name (g_udev_device_get_sysfs_path (self->priv->device));
  static void
 diff --git a/src/mm-modem-helpers.c b/src/mm-modem-helpers.c
 index 26b55f71..67613397 100644
 --- a/src/mm-modem-helpers.c
 +++ b/src/mm-modem-helpers.c
-@@ -3504,8 +3504,9 @@ mm_3gpp_parse_cind_read_response (const gchar *reply,
-         guint val = 0;
+@@ -3522,8 +3522,9 @@ mm_3gpp_parse_cind_read_response (const gchar *reply,
+         guint             val = 0;
  
          str = g_match_info_fetch (match_info, 1);
 -        if (mm_get_uint_from_str (str, &val) && val < 255) {
@@ -483,7 +469,7 @@ diff --git a/src/mm-port-serial.c b/src/mm-port-serial.c
 index b4ba6533..40e08d0a 100644
 --- a/src/mm-port-serial.c
 +++ b/src/mm-port-serial.c
-@@ -278,6 +278,9 @@ parse_baudrate (guint  baudrate_num,
+@@ -276,6 +276,9 @@ parse_baudrate (guint  baudrate_num,
      case 921600:
          speed = B921600;
          break;

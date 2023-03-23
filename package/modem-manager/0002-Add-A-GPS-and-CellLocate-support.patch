@@ -12,7 +12,7 @@ diff --git a/include/ModemManager-enums.h b/include/ModemManager-enums.h
 index 7f1be95a..329f1b05 100644
 --- a/include/ModemManager-enums.h
 +++ b/include/ModemManager-enums.h
-@@ -1005,6 +1005,7 @@ typedef enum { /*< underscore_name=mm_modem_location_source >*/
+@@ -1147,6 +1147,7 @@ typedef enum { /*< underscore_name=mm_modem_location_source >*/
  typedef enum { /*< underscore_name=mm_modem_location_assistance_data_type >*/
      MM_MODEM_LOCATION_ASSISTANCE_DATA_TYPE_NONE = 0,
      MM_MODEM_LOCATION_ASSISTANCE_DATA_TYPE_XTRA = 1 << 0,
@@ -74,7 +74,7 @@ index b036f183..d1568bc8 100644
  };
  
  /*****************************************************************************/
-@@ -1768,6 +1783,91 @@ modem_create_sim (MMIfaceModem        *self,
+@@ -1940,6 +1955,91 @@ modem_create_sim (MMIfaceModem        *self,
                        user_data);
  }
  
@@ -166,7 +166,7 @@ index b036f183..d1568bc8 100644
  /*****************************************************************************/
  /* Setup ports (Broadband modem class) */
  
-@@ -1775,7 +1875,8 @@ static void
+@@ -1947,7 +2047,8 @@ static void
  setup_ports (MMBroadbandModem *_self)
  {
      MMBroadbandModemUblox *self = MM_BROADBAND_MODEM_UBLOX (_self);
@@ -176,7 +176,7 @@ index b036f183..d1568bc8 100644
      guint                  i;
  
      /* Call parent's setup ports first always */
-@@ -1783,6 +1884,7 @@ setup_ports (MMBroadbandModem *_self)
+@@ -1955,6 +2056,7 @@ setup_ports (MMBroadbandModem *_self)
  
      ports[0] = mm_base_modem_peek_port_primary   (MM_BASE_MODEM (self));
      ports[1] = mm_base_modem_peek_port_secondary (MM_BASE_MODEM (self));
@@ -184,7 +184,7 @@ index b036f183..d1568bc8 100644
  
      /* Configure AT ports */
      for (i = 0; i < G_N_ELEMENTS (ports); i++) {
-@@ -1797,7 +1899,32 @@ setup_ports (MMBroadbandModem *_self)
+@@ -1969,7 +2071,32 @@ setup_ports (MMBroadbandModem *_self)
              ports[i],
              self->priv->pbready_regex,
              NULL, NULL, NULL);
@@ -217,7 +217,7 @@ index b036f183..d1568bc8 100644
  }
  
  /*****************************************************************************/
-@@ -1832,9 +1959,24 @@ mm_broadband_modem_ublox_init (MMBroadbandModemUblox *self)
+@@ -2008,9 +2135,24 @@ mm_broadband_modem_ublox_init (MMBroadbandModemUblox *self)
      self->priv->support_config.method   = SETTINGS_UPDATE_METHOD_UNKNOWN;
      self->priv->support_config.uact     = FEATURE_SUPPORT_UNKNOWN;
      self->priv->support_config.ubandsel = FEATURE_SUPPORT_UNKNOWN;
@@ -242,7 +242,7 @@ index b036f183..d1568bc8 100644
  }
  
  static void
-@@ -2143,15 +2285,624 @@ iface_modem_signal_init (MMIfaceModemSignal *iface)
+@@ -2321,15 +2463,624 @@ iface_modem_signal_init (MMIfaceModemSignal *iface)
      iface->load_values_finish   = modem_signal_load_values_finish;
  }
  
