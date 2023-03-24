@@ -243,7 +243,7 @@ define PYTHON3_REMOVE_USELESS_FILES
 	rm -rf $(TARGET_DIR)/usr/lib/python$(PYTHON3_VERSION_MAJOR)/importlib/__pycache__
 endef
 
-PYTHON3_POST_INSTALL_TARGET_HOOKS += PYTHON3_REMOVE_USELESS_FILES
+PYTHON3_ROOTFS_PRE_CMD_HOOKS += PYTHON3_REMOVE_USELESS_FILES
 
 #
 # Make sure libpython gets stripped out on target
