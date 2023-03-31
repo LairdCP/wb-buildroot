@@ -14,7 +14,7 @@
  	}
 +
 +	snprintf(sbuf, sizeof(sbuf), "Installing image %s into /dev/mtd%d(%s)",
-+		img->fname, mtdnum, img->mtdname ? img->mtdname : "");
++		img->fname, mtdnum, img->mtdname);
 +	notify(RUN, RECOVERY_NO_ERROR, INFOLEVEL, sbuf);
  
  	TRACE("Copying %s into /dev/mtd%d", img->fname, mtdnum);
