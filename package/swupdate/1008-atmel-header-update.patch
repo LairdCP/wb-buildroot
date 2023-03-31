@@ -14,14 +14,14 @@ diff --git a/parser/parser.c b/parser/parser.c
 index f9da567a0c..d934a3678e 100644
 --- a/parser/parser.c
 +++ b/parser/parser.c
-@@ -399,6 +399,7 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
+@@ -400,6 +400,7 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
  	GET_FIELD_STRING(p, elem, "volume", image->volname);
  	GET_FIELD_STRING(p, elem, "device", image->device);
  	GET_FIELD_STRING(p, elem, "mtdname", image->mtdname);
 +	GET_FIELD_STRING(p, elem, "transform", image->transform);
  	GET_FIELD_STRING(p, elem, "filesystem", image->filesystem);
  	GET_FIELD_STRING(p, elem, "type", image->type);
- 	GET_FIELD_STRING(p, elem, "offset", seek_str);
+	get_field(p, elem, "offset", &offset);
 diff --git a/handlers/flash_handler.c b/handlers/flash_handler.c
 index dc829bab02..2f65c905f2 100644
 --- a/handlers/flash_handler.c
@@ -176,7 +176,7 @@ index dc829bab02..2f65c905f2 100644
  static int flash_write_nand(int mtdnum, struct img_type *img)
  {
  	char mtd_device[LINESIZE];
-@@ -223,6 +360,12 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
+@@ -230,6 +367,12 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
  
  		}
  

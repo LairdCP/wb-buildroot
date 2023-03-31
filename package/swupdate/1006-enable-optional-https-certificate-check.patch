@@ -13,7 +13,7 @@ diff --git a/corelib/channel_curl.c b/corelib/channel_curl.c
 index 48e6853..cb788b6 100644
 --- a/corelib/channel_curl.c
 +++ b/corelib/channel_curl.c
-@@ -1168,6 +1168,15 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
+@@ -1183,6 +1183,15 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
  		goto cleanup_header;
  	}
  
