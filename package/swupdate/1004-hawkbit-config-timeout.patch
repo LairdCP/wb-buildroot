@@ -9,4 +9,4 @@ diff -Naur a/suricatta/common.c b/suricatta/common.c
 +
  	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "max-download-speed", tmp);
  	if (strlen(tmp))
- 		chan->max_download_speed = (unsigned int)ustrtoull(tmp, NULL, 10);
+ 		chan->max_download_speed = (unsigned int)ustrtoull(tmp, 10);

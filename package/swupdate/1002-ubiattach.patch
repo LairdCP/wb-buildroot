@@ -1,6 +1,6 @@
 --- a/corelib/mtd-interface.c	2021-12-08 09:17:17.000000000 
 +++ b/corelib/mtd-interface.c	2022-03-28 10:48:42.000000000 
-@@ -327,8 +327,7 @@
+@@ -324,8 +324,7 @@
  	}
  }
  
@@ -10,7 +10,7 @@
  {
  	struct flash_description *flash = get_flash_info();
  	libubi_t libubi = flash->libubi;
-@@ -387,7 +386,6 @@
+@@ -384,7 +383,6 @@
  
  	scan_ubi_volumes(mtd_info);
  }
