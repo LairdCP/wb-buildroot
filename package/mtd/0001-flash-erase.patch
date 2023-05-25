@@ -1,0 +1,20 @@
+--- a/misc-utils/flash_erase.c	2021-05-05 02:29:50.000000000 
++++ b/misc-utils/flash_erase.c	2023-05-24 17:39:43.000000000 
+@@ -232,7 +232,7 @@
+ 	/* If MTD device may have bad eraseblocks,
+ 	 * erase one by one each sector
+ 	 */
+-	if (noskipbad && mtd.bb_allowed)
++	if (mtd.bb_allowed)
+ 		erase_chip = false;
+ 
+ 	if (erase_chip) {
+@@ -273,7 +273,7 @@
+ 		if (!noskipbad) {
+ 			int ret = mtd_is_bad(&mtd, fd, eb);
+ 			if (ret > 0) {
+-				verbose(!quiet, "Skipping bad block at %08llx", (unsigned long long)offset);
++				verbose(!quiet, "Skipping bad or reserved block at %08llx", (unsigned long long)offset);
+ 				continue;
+ 			} else if (ret < 0) {
+ 				if (errno == EOPNOTSUPP) {
