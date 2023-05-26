@@ -1,0 +1,10 @@
+--- a/handlers/flash_handler.c	2023-05-26 15:45:12.000000000 
++++ b/handlers/flash_handler.c	2023-05-26 15:24:27.000000000 
+@@ -313,6 +313,7 @@
+ 				ret = mtd_is_bad(mtd, fd, offs / mtd->eb_size);
+ 				if (ret < 0) {
+ 					ERROR("mtd%d: MTD get bad block failed", mtdnum);
++					failed = !!strcmp(img->transform, "ignore_bad");
+ 					goto closeall;
+ 				} else if (ret == 1) {
+ 					baderaseblock = true;
