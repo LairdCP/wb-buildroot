@@ -1,0 +1,13 @@
+--- a/ipc/network_ipc-if.c	2022-12-13 12:36:58.000000000 
++++ b/ipc/network_ipc-if.c	2023-06-02 20:44:42.000000000 
+@@ -61,9 +61,7 @@
+ 		rq->wr(&pbuf, &size);
+ 		if (size) {
+ 			if (swupdate_image_write(pbuf, size) != size) {
+-				perror("swupdate_image_write failed");
+-				swupdate_result = FAILURE;
+-				goto out;
++				break;
+ 			}
+ 		}
+ 	} while(size > 0);
