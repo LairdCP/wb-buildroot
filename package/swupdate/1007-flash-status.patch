@@ -1,6 +1,6 @@
 --- a/handlers/flash_handler.c	2022-07-12 15:37:32.000000000 
 +++ b/handlers/flash_handler.c	2022-07-12 15:50:59.000000000 
-@@ -345,6 +345,7 @@
+@@ -350,6 +350,7 @@
  	void __attribute__ ((__unused__)) *data)
  {
  	int mtdnum;
@@ -8,7 +8,7 @@
  
  	if (strlen(img->mtdname))
  		mtdnum = get_mtd_from_name(img->mtdname);
-@@ -355,6 +356,10 @@
+@@ -360,6 +361,10 @@
  			strlen(img->mtdname) ? img->mtdname : img->device);
  		return -1;
  	}

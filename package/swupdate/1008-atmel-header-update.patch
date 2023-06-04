@@ -1,8 +1,8 @@
 diff --git a/include/swupdate.h b/include/swupdate.h
 index fb54ace55c..d1d3517daf 100644
---- a/include/swupdate.h
-+++ b/include/swupdate.h
-@@ -73,6 +73,7 @@ struct img_type {
+--- a/include/swupdate_image.h
++++ b/include/swupdate_image.h
+@@ -47,6 +47,7 @@ struct img_type {
  	char device[MAX_VOLNAME];	/* device associated with image if any */
  	char path[MAX_IMAGE_FNAME];	/* Path where image must be installed */
  	char mtdname[MAX_IMAGE_FNAME];	/* MTD device where image must be installed */
@@ -14,7 +14,7 @@ diff --git a/parser/parser.c b/parser/parser.c
 index f9da567a0c..d934a3678e 100644
 --- a/parser/parser.c
 +++ b/parser/parser.c
-@@ -400,6 +400,7 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
+@@ -396,6 +396,7 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
  	GET_FIELD_STRING(p, elem, "volume", image->volname);
  	GET_FIELD_STRING(p, elem, "device", image->device);
  	GET_FIELD_STRING(p, elem, "mtdname", image->mtdname);
@@ -43,7 +43,7 @@ index dc829bab02..2f65c905f2 100644
  void flash_handler(void);
  
  /* Check whether buffer is filled with character 'pattern' */
-@@ -78,6 +88,132 @@ static void erase_buffer(void *buffer, size_t size)
+@@ -78,6 +88,138 @@ static void erase_buffer(void *buffer, size_t size)
  		memset(buffer, kEraseByte, size);
  }
  
@@ -54,22 +54,26 @@ index dc829bab02..2f65c905f2 100644
 +	int fd = -1;
 +	int ret = -1;
 +	size_t n = 0;
++
 +	in_line[0] = '\0';
 +	sprintf(node_name, SYSFS_ROOT "/class/mtd/mtd%d/%s", mtdnum, name);
++
 +	if ((fd = open(node_name, O_RDONLY)) < 0) {
-+		ERROR( "%s: %s: %s", __func__, node_name, strerror(errno));
++		ERROR( "%s: %s", node_name, strerror(errno));
 +		return -1;
 +	}
-+	while((n = read(fd, in_line, sizeof(in_line)))) {
++
++	while ((n = read(fd, in_line, sizeof(in_line)))) {
 +		if (n < 0) {
 +			if (errno == EAGAIN)
 +				continue;
-+			ERROR("%s: %s: %s", __func__, node_name, strerror(errno));
++			ERROR("%s: %s", node_name, strerror(errno));
 +			close(fd);
 +			return -1;
 +		}
 +		break;
 +	}
++
 +	in_line[n < sizeof(in_line) ? n : sizeof(in_line) - 1] = '\0';
 +	ret = atoi(in_line);
 +	close(fd);
@@ -85,11 +89,11 @@ index dc829bab02..2f65c905f2 100644
 +	uint32_t ecc_bits_req;
 +
 +	sector_per_page_code = ffs(sector_per_page) - 1;
-+	if((1 << sector_per_page_code) != sector_per_page)
-+	{
-+		ERROR("%s: sector_per_page %d unsupported", __func__, sector_per_page);
++	if ((1 << sector_per_page_code) != sector_per_page)	{
++		ERROR("Sector_per_page %d unsupported", sector_per_page);
 +		return 0;
 +	}
++
 +	switch(sector_size) {
 +	case 512:
 +		sector_size_code = 0;
@@ -98,9 +102,10 @@ index dc829bab02..2f65c905f2 100644
 +		sector_size_code = 1;
 +		break;
 +	default:
-+		ERROR("%s: sector_size %d unsupported", __func__, sector_size);
++		ERROR("Sector_size %d unsupported", sector_size);
 +		return 0;
 +	}
++
 +	switch(ecc_bits) {
 +	case 2:
 +		ecc_bits_req = 0;
@@ -118,9 +123,10 @@ index dc829bab02..2f65c905f2 100644
 +		ecc_bits_req = 4;
 +		break;
 +	default:
-+		ERROR("%s: ecc_bits %d unsupported", __func__, ecc_bits);
++		ERROR("ecc_bits %d unsupported", ecc_bits);
 +		return 0;
 +	}
++
 +	return ATMEL_HEADER_KEY << ATMEL_HEADER_KEY_OFFSET |
 +		ecc_offset << ATMEL_HEADER_ECC_OFFSET_OFFSET |
 +		sector_size_code << ATMEL_HEADER_SECTOR_SIZE_OFFSET |
@@ -144,12 +150,12 @@ index dc829bab02..2f65c905f2 100644
 +	int sector_per_page = 0;
 +	int ecc_offset = 0;
 +	sector_size = read_sysfs("ecc_step_size", mtd->mtd_num);
-+	if(sector_size != -1)
++	if (sector_size != -1)
 +	{
 +		/* Calculations - see atmel_pmecc_params.c */
-+		if(mtd->subpage_size % sector_size != 0)
++		if (mtd->subpage_size % sector_size != 0)
 +		{
-+			ERROR("%s: sector_per_page not a whole number", __func__);
++			ERROR("Sector_per_page not a whole number");
 +			return false;
 +		}
 +		sector_per_page = mtd->subpage_size / sector_size;
@@ -158,16 +164,16 @@ index dc829bab02..2f65c905f2 100644
 +		atmel_nand_parameter_header_word = create_atmel_header_word(1, sector_per_page,
 +				sector_size, mtd->oob_size, ecc_bits, ecc_offset);
 +	}
-+	if(atmel_nand_parameter_header_word)
++	if (atmel_nand_parameter_header_word)
 +	{
 +		uint32_t* rewrite = (uint32_t*) writebuf;
 +		/* "The header is made of 52 times the same 32-bit word (for redundancy reasons)" */
-+		for(int i = 0; i < 52; i++)
++		for (int i = 0; i < 52; i++)
 +			*rewrite++ = atmel_nand_parameter_header_word;
 +	}
 +	else
 +	{
-+		ERROR("%s: failed to build atmel header word", __func__);
++		ERROR("Failed to build atmel header word");
 +		return false;
 +	}
 +	return true;

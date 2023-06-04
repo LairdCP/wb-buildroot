@@ -1,0 +1,11 @@
+--- a/core/artifacts_versions.c	2023-05-23 15:06:34.000000000 
++++ b/core/artifacts_versions.c	2023-06-03 05:42:52.000000000 
+@@ -174,7 +174,7 @@
+ 		}
+ 		version = (version << 16) | fld;
+ 	}
+-	if (count >= 4) {
++	if (*ver != NULL && count >= 4) {
+ 		DEBUG("Version %s had more than 4 numbers, trailing numbers will be ignored",
+ 		      version_string);
+ 	} else if (count > 0) {

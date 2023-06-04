@@ -1,6 +1,6 @@
 --- a/parser/parser.c	2023-03-30 20:19:35.000000000 
 +++ b/parser/parser.c	2023-03-30 21:24:25.000000000 
-@@ -268,8 +268,8 @@
+@@ -264,8 +264,8 @@
  
  	setting = find_node(p, cfg, "hardware-compatibility", swcfg);
  	if (setting == NULL) {
@@ -11,9 +11,9 @@
  	}
  
  	count = get_array_length(p, setting);
---- a/core/util.c	2022-12-13 12:36:58.000000000 
-+++ b/core/util.c	2022-12-13 12:36:58.000000000 
-@@ -437,6 +437,9 @@
+--- a/core/hw-compatibility.c	2022-12-13 12:36:58.000000000 
++++ b/core/hw-compatibility.c	2022-12-13 12:36:58.000000000 
+@@ -22,6 +22,9 @@
  {
  	struct hw_type *hw;
  	int ret;

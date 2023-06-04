@@ -13,7 +13,7 @@ diff --git a/corelib/channel_curl.c b/corelib/channel_curl.c
 index 48e6853..cb788b6 100644
 --- a/corelib/channel_curl.c
 +++ b/corelib/channel_curl.c
-@@ -1183,6 +1183,15 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
+@@ -1225,6 +1225,15 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
  		goto cleanup_header;
  	}
  
@@ -33,25 +33,25 @@ diff --git a/corelib/downloader.c b/corelib/downloader.c
 index fc754fa..62f5ecd 100644
 --- a/corelib/downloader.c
 +++ b/corelib/downloader.c
-@@ -31,6 +31,7 @@ static struct option long_options[] = {
-     {"retries", required_argument, NULL, 'r'},
+@@ -32,6 +32,7 @@ static struct option long_options[] = {
+     {"retrywait", required_argument, NULL, 'w'},
      {"timeout", required_argument, NULL, 't'},
      {"authentication", required_argument, NULL, 'a'},
 +    {"https-ca-file", optional_argument, NULL, 'h'},
      {NULL, 0, NULL, 0}};
  
  /*
-@@ -96,7 +97,8 @@ void download_print_help(void)
- 	    "\t  -r, --retries          number of retries (resumed download) if connection\n"
+@@ -100,7 +101,8 @@ void download_print_help(void)
  	    "\t                         is broken (0 means indefinitely retries) (default: %d)\n"
+ 	    "\t  -w, --retrywait      timeout to wait before retrying retries (default: %d)\n"
  	    "\t  -t, --timeout          timeout to check if a connection is lost (default: %d)\n"
 -	    "\t  -a, --authentication   authentication information as username:password\n",
 +	    "\t  -a, --authentication   authentication information as username:password\n"
 +	    "\t  --https-ca-file        ca certificate for https download\n",
- 	    DL_DEFAULT_RETRIES, DL_LOWSPEED_TIME);
+ 	    DL_DEFAULT_RETRIES, DL_LOWSPEED_TIME, CHANNEL_DEFAULT_RESUME_DELAY);
  }
  
-@@ -141,6 +143,9 @@ int start_download(const char *fname, int argc, char *argv[])
+@@ -149,6 +151,9 @@ int start_download(const char *fname, int argc, char *argv[])
  		case 'r':
  			channel_options.retries = strtoul(optarg, NULL, 10);
  			break;
