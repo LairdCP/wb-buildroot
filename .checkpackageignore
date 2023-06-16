@@ -40,7 +40,7 @@ package/dhrystone/0004-headers.patch Sob
 package/dhrystone/0005-prototypes.patch Sob
 package/directfb-examples/0001-remove-bzero.patch Sob
 package/dmraid/S20dmraid Variables
-package/dnsmasq/S80dnsmasq Shellcheck Variables
+package/dnsmasq/S80dnsmasq Shellcheck
 package/docker-engine/S60dockerd Indent Shellcheck Variables
 package/domoticz/S99domoticz Shellcheck
 package/dracut/merged-usr-module-setup.sh Shellcheck
