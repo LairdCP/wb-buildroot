@@ -1,7 +1,7 @@
 --- a/configure.ac
 +++ b/configure.ac
 @@ -251,6 +251,24 @@
-         AC_MSG_ERROR([*** gperf not found])
+ 	AC_MSG_ERROR([*** gperf not found])
  fi
  
 +AC_ARG_WITH(firmware-path,
@@ -27,7 +27,7 @@
  AM_CONDITIONAL(ENABLE_MANPAGES, [test "x$enable_manpages" = "xyes"])
 --- a/rules/Makefile.am
 +++ b/rules/Makefile.am
-@@ -22,6 +22,11 @@ dist_udevrules_DATA += \
+@@ -31,6 +31,11 @@ dist_udevrules_DATA += \
  	80-net-name-slot.rules
  endif
  
@@ -251,7 +251,7 @@ diff --git a/src/udev/udev.h b/src/udev/udev.h
 index 198cb2c..01a1e9c 100644
 --- a/src/udev/udev.h
 +++ b/src/udev/udev.h
-@@ -149,6 +149,9 @@ enum udev_builtin_cmd {
+@@ -152,6 +152,9 @@ enum udev_builtin_cmd {
          UDEV_BUILTIN_BLKID,
  #endif
          UDEV_BUILTIN_BTRFS,
@@ -261,7 +261,7 @@ index 198cb2c..01a1e9c 100644
          UDEV_BUILTIN_HWDB,
          UDEV_BUILTIN_INPUT_ID,
          UDEV_BUILTIN_KEYBOARD,
-@@ -173,6 +176,9 @@ struct udev_builtin {
+@@ -176,6 +179,9 @@ struct udev_builtin {
  extern const struct udev_builtin udev_builtin_blkid;
  #endif
  extern const struct udev_builtin udev_builtin_btrfs;
@@ -275,7 +275,7 @@ diff --git a/src/udev/udevd.c b/src/udev/udevd.c
 index b1de97a..35655d8 100644
 --- a/src/udev/udevd.c
 +++ b/src/udev/udevd.c
-@@ -101,6 +101,9 @@ struct event {
+@@ -100,6 +100,9 @@ struct event {
          bool is_block;
          usec_t start_usec;
          bool warned;
@@ -285,7 +285,7 @@ index b1de97a..35655d8 100644
  };
  
  static inline struct event *node_to_event(struct udev_list_node *node) {
-@@ -491,6 +494,10 @@ static int event_queue_insert(struct udev_device *dev) {
+@@ -490,6 +493,10 @@ static int event_queue_insert(struct udev_device *dev) {
          event->devnum = udev_device_get_devnum(dev);
          event->is_block = streq("block", udev_device_get_subsystem(dev));
          event->ifindex = udev_device_get_ifindex(dev);
@@ -296,7 +296,7 @@ index b1de97a..35655d8 100644
  
          log_debug("seq %llu queued, '%s' '%s'", udev_device_get_seqnum(dev),
               udev_device_get_action(dev), udev_device_get_subsystem(dev));
-@@ -566,6 +573,12 @@ static bool is_devpath_busy(struct event *event) {
+@@ -565,6 +572,12 @@ static bool is_devpath_busy(struct event *event) {
                          return true;
                  }
  
