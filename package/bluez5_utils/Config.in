@@ -170,11 +170,6 @@ comment "hid2hci tool needs udev /dev management"
 config BR2_PACKAGE_BLUEZ5_UTILS_BTMGMT
 	bool "install btmgmt utility"
 	help
-	  secure storage for bluetooth profile
-
-config BR2_PACKAGE_BLUEZ5_UTILS_SECURE_STORAGE
-	bool "build for secure storage"
-	help
 	  install btmgmt utility
 
 endif
