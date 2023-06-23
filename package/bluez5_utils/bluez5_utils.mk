@@ -135,15 +135,6 @@ else
 BLUEZ5_UTILS_CONF_OPTS += --disable-sixaxis
 endif
 
-ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS_SECURE_STORAGE),y)
-BLUEZ5_UTILS_CONF_OPTS += --localstatedir=/data/secret
-else
-define BLUEZ5_UTILS_CREATE_STATE_DIR
-	$(INSTALL) -dm 0755 $(TARGET_DIR)/var/lib/bluetooth
-endef
-BLUEZ5_UTILS_POST_INSTALL_TARGET_HOOKS += BLUEZ5_UTILS_CREATE_STATE_DIR
-endif
-
 ifeq ($(BR2_PACKAGE_BLUEZ5_UTILS_DEPRECATED),y)
 # install gatttool (For some reason upstream choose not to do it by default)
 # gattool depends on the client for readline
