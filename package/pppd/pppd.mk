@@ -16,6 +16,8 @@ PPPD_SELINUX_MODULES = ppp
 
 # 0001-pppd-Fix-bounds-check.patch
 PPPD_IGNORE_CVES += CVE-2020-8597
+# 0003-pppdump-Avoid-out-of-range-access-to-packet-buffer.patch
+PPPD_IGNORE_CVES += CVE-2022-4603
 
 PPPD_MAKE_OPTS = HAVE_INET6=y
 
