@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-DHCPCD_VERSION = 9.5.1
+DHCPCD_VERSION = 9.5.2
 DHCPCD_SITE = $(call github,NetworkConfiguration,dhcpcd,v$(DHCPCD_VERSION))
 DHCPCD_DEPENDENCIES = host-pkgconf
 DHCPCD_LICENSE = BSD-2-Clause
