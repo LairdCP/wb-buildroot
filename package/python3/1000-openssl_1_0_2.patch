@@ -288,6 +288,42 @@
         );
  }
  
+@@ -2010,6 +2010,27 @@
+ _ssl__SSLSocket_shared_ciphers_impl(PySSLSocket *self)
+ /*[clinic end generated code: output=3d174ead2e42c4fd input=0bfe149da8fe6306]*/
+ {
++#if OPENSSL_VERSION_NUMBER < 0x10100000L
++    STACK_OF(SSL_CIPHER) *ciphers;
++    int i;
++    PyObject *res;
++
++    ciphers = SSL_get_ciphers(self->ssl);
++    if (!ciphers)
++        Py_RETURN_NONE;
++    res = PyList_New(sk_SSL_CIPHER_num(ciphers));
++    if (!res)
++        return NULL;
++    for (i = 0; i < sk_SSL_CIPHER_num(ciphers); i++) {
++        PyObject *tup = cipher_to_tuple(sk_SSL_CIPHER_value(ciphers, i));
++        if (!tup) {
++            Py_DECREF(res);
++            return NULL;
++        }
++        PyList_SET_ITEM(res, i, tup);
++    }
++    return res;
++#else
+     STACK_OF(SSL_CIPHER) *server_ciphers;
+     STACK_OF(SSL_CIPHER) *client_ciphers;
+     int i, len;
+@@ -2049,6 +2070,7 @@
+     }
+     Py_SET_SIZE(res, len);
+     return res;
++#endif
+ }
+ 
+ /*[clinic input]
 @@ -2354,8 +2446,14 @@
  
      do {
@@ -579,3 +615,93 @@
      self->cert = cert;
      self->hash = -1;
  
+--- a/configure	2023-06-06 18:00:27.000000000 -0400
++++ b/configure	2023-07-31 14:27:20.057216009 -0400
+@@ -25957,8 +25957,17 @@
+ 
+       #include <openssl/opensslv.h>
+       #include <openssl/ssl.h>
+-      #if OPENSSL_VERSION_NUMBER < 0x10101000L
+-        #error "OpenSSL >= 1.1.1 is required"
++      #if OPENSSL_VERSION_NUMBER < 0x10100000L
++
++      #define TLS_client_method SSLv23_client_method
++
++      typedef void SSL_CTX_keylog_cb_func(const SSL *ssl, const char *line);
++      void SSL_CTX_set_keylog_callback(
++          SSL_CTX *ctx __attribute__((unused)),
++          SSL_CTX_keylog_cb_func callback __attribute__((unused)))
++      {
++      }
++
+       #endif
+       static void keylog_cb(const SSL *ssl, const char *line) {}
+ 
+@@ -26020,19 +26029,16 @@
+ 
+       #include <openssl/opensslv.h>
+       #include <openssl/evp.h>
+-      #if OPENSSL_VERSION_NUMBER < 0x10101000L
+-        #error "OpenSSL >= 1.1.1 is required"
+-      #endif
+ 
+ int
+ main (void)
+ {
+ 
+-      OBJ_nid2sn(NID_md5);
+-      OBJ_nid2sn(NID_sha1);
+-      OBJ_nid2sn(NID_sha3_512);
+-      OBJ_nid2sn(NID_blake2b512);
+-      EVP_PBE_scrypt(NULL, 0, NULL, 0, 2, 8, 1, 0, NULL, 0);
++      // OBJ_nid2sn(NID_md5);
++      // OBJ_nid2sn(NID_sha1);
++      // OBJ_nid2sn(NID_sha3_512);
++      // OBJ_nid2sn(NID_blake2b512);
++      // EVP_PBE_scrypt(NULL, 0, NULL, 0, 2, 8, 1, 0, NULL, 0);
+ 
+   ;
+   return 0;
+--- a/configure.ac	2023-06-06 18:00:27.000000000 -0400
++++ b/configure.ac	2023-07-31 14:23:49.307277969 -0400
+@@ -6685,8 +6685,17 @@
+     AC_LINK_IFELSE([AC_LANG_PROGRAM([
+       #include <openssl/opensslv.h>
+       #include <openssl/ssl.h>
+-      #if OPENSSL_VERSION_NUMBER < 0x10101000L
+-        #error "OpenSSL >= 1.1.1 is required"
++      #if OPENSSL_VERSION_NUMBER < 0x10100000L
++
++      #define TLS_client_method SSLv23_client_method
++
++      typedef void SSL_CTX_keylog_cb_func(const SSL *ssl, const char *line);
++      void SSL_CTX_set_keylog_callback(
++          SSL_CTX *ctx __attribute__((unused)),
++          SSL_CTX_keylog_cb_func callback __attribute__((unused)))
++      {
++      }
++
+       #endif
+       static void keylog_cb(const SSL *ssl, const char *line) {}
+     ], [
+@@ -6710,15 +6719,12 @@
+     AC_LINK_IFELSE([AC_LANG_PROGRAM([
+       #include <openssl/opensslv.h>
+       #include <openssl/evp.h>
+-      #if OPENSSL_VERSION_NUMBER < 0x10101000L
+-        #error "OpenSSL >= 1.1.1 is required"
+-      #endif
+     ], [
+-      OBJ_nid2sn(NID_md5);
+-      OBJ_nid2sn(NID_sha1);
+-      OBJ_nid2sn(NID_sha3_512);
+-      OBJ_nid2sn(NID_blake2b512);
+-      EVP_PBE_scrypt(NULL, 0, NULL, 0, 2, 8, 1, 0, NULL, 0);
++      // OBJ_nid2sn(NID_md5);
++      // OBJ_nid2sn(NID_sha1);
++      // OBJ_nid2sn(NID_sha3_512);
++      // OBJ_nid2sn(NID_blake2b512);
++      // EVP_PBE_scrypt(NULL, 0, NULL, 0, 2, 8, 1, 0, NULL, 0);
+     ])], [ac_cv_working_openssl_hashlib=yes], [ac_cv_working_openssl_hashlib=no])
+   ])
+ ])
