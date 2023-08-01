@@ -637,7 +637,7 @@
        #endif
        static void keylog_cb(const SSL *ssl, const char *line) {}
  
-@@ -26020,19 +26029,16 @@
+@@ -26020,9 +26029,6 @@
  
        #include <openssl/opensslv.h>
        #include <openssl/evp.h>
@@ -647,18 +647,15 @@
  
  int
  main (void)
- {
+@@ -26030,9 +26036,11 @@
  
--      OBJ_nid2sn(NID_md5);
--      OBJ_nid2sn(NID_sha1);
--      OBJ_nid2sn(NID_sha3_512);
--      OBJ_nid2sn(NID_blake2b512);
--      EVP_PBE_scrypt(NULL, 0, NULL, 0, 2, 8, 1, 0, NULL, 0);
-+      // OBJ_nid2sn(NID_md5);
-+      // OBJ_nid2sn(NID_sha1);
-+      // OBJ_nid2sn(NID_sha3_512);
-+      // OBJ_nid2sn(NID_blake2b512);
-+      // EVP_PBE_scrypt(NULL, 0, NULL, 0, 2, 8, 1, 0, NULL, 0);
+       OBJ_nid2sn(NID_md5);
+       OBJ_nid2sn(NID_sha1);
++      #if OPENSSL_VERSION_NUMBER >= 0x10100000L
+       OBJ_nid2sn(NID_sha3_512);
+       OBJ_nid2sn(NID_blake2b512);
+       EVP_PBE_scrypt(NULL, 0, NULL, 0, 2, 8, 1, 0, NULL, 0);
++      #endif
  
    ;
    return 0;
@@ -684,7 +681,7 @@
        #endif
        static void keylog_cb(const SSL *ssl, const char *line) {}
      ], [
-@@ -6710,15 +6719,12 @@
+@@ -6710,15 +6719,14 @@
      AC_LINK_IFELSE([AC_LANG_PROGRAM([
        #include <openssl/opensslv.h>
        #include <openssl/evp.h>
@@ -692,16 +689,13 @@
 -        #error "OpenSSL >= 1.1.1 is required"
 -      #endif
      ], [
--      OBJ_nid2sn(NID_md5);
--      OBJ_nid2sn(NID_sha1);
--      OBJ_nid2sn(NID_sha3_512);
--      OBJ_nid2sn(NID_blake2b512);
--      EVP_PBE_scrypt(NULL, 0, NULL, 0, 2, 8, 1, 0, NULL, 0);
-+      // OBJ_nid2sn(NID_md5);
-+      // OBJ_nid2sn(NID_sha1);
-+      // OBJ_nid2sn(NID_sha3_512);
-+      // OBJ_nid2sn(NID_blake2b512);
-+      // EVP_PBE_scrypt(NULL, 0, NULL, 0, 2, 8, 1, 0, NULL, 0);
+       OBJ_nid2sn(NID_md5);
+       OBJ_nid2sn(NID_sha1);
++      #if OPENSSL_VERSION_NUMBER >= 0x10101000L
+       OBJ_nid2sn(NID_sha3_512);
+       OBJ_nid2sn(NID_blake2b512);
+       EVP_PBE_scrypt(NULL, 0, NULL, 0, 2, 8, 1, 0, NULL, 0);
++      #endif
      ])], [ac_cv_working_openssl_hashlib=yes], [ac_cv_working_openssl_hashlib=no])
    ])
  ])
