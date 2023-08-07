@@ -288,7 +288,7 @@
         );
  }
  
-@@ -2346,8 +2438,14 @@
+@@ -2346,8 +2438,15 @@
  
      do {
          PySSL_BEGIN_ALLOW_THREADS
@@ -298,12 +298,13 @@
 +#else
 +        retval = SSL_write(self->ssl, b->buf, (int)b->len);
 +        err = _PySSL_errno(retval <= 0, self->ssl, retval);
-+        count = retval > 0 ? retval : 0;
++        if (retval > 0) count = retval;
++        else if (retval < 0) retval = 0;
 +#endif
          PySSL_END_ALLOW_THREADS
          self->err = err;
  
-@@ -2498,8 +2596,14 @@
+@@ -2498,8 +2596,15 @@
  
      do {
          PySSL_BEGIN_ALLOW_THREADS
@@ -313,7 +314,8 @@
 +#else
 +        retval = SSL_read(self->ssl, mem, len);
 +        err = _PySSL_errno(retval <= 0, self->ssl, retval);
-+        count = retval > 0 ? retval : 0;
++        if (retval > 0) count = retval;
++        else if (retval < 0) retval = 0;
 +#endif
          PySSL_END_ALLOW_THREADS
          self->err = err;
