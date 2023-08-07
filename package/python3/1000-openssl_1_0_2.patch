@@ -324,7 +324,7 @@
  }
  
  /*[clinic input]
-@@ -2354,8 +2446,14 @@
+@@ -2354,8 +2446,15 @@
  
      do {
          PySSL_BEGIN_ALLOW_THREADS
@@ -334,12 +334,13 @@
 +#else
 +        retval = SSL_write(self->ssl, b->buf, (int)b->len);
 +        err = _PySSL_errno(retval <= 0, self->ssl, retval);
-+        count = retval > 0 ? retval : 0;
++        if (retval > 0) count = retval;
++        else if (retval < 0) retval = 0;
 +#endif
          PySSL_END_ALLOW_THREADS
          self->err = err;
  
-@@ -2507,8 +2605,14 @@
+@@ -2507,8 +2605,15 @@
  
      do {
          PySSL_BEGIN_ALLOW_THREADS
@@ -349,7 +350,8 @@
 +#else
 +        retval = SSL_read(self->ssl, mem, len);
 +        err = _PySSL_errno(retval <= 0, self->ssl, retval);
-+        count = retval > 0 ? retval : 0;
++        if (retval > 0) count = retval;
++        else if (retval < 0) retval = 0;
 +#endif
          PySSL_END_ALLOW_THREADS
          self->err = err;
