@@ -67,6 +67,11 @@ PHP_CONFIG_SCRIPTS = php-config
 PHP_CFLAGS = $(TARGET_CFLAGS)
 PHP_CXXFLAGS = $(TARGET_CXXFLAGS)
 
+ifeq ($(BR2_ARM_INSTRUCTIONS_THUMB),y)
+PHP_CFLAGS += -marm
+PHP_CXXFLAGS += -marm
+endif
+
 # The OPcache extension isn't cross-compile friendly
 # Throw some defines here to avoid patching heavily
 ifeq ($(BR2_PACKAGE_PHP_EXT_OPCACHE),y)
