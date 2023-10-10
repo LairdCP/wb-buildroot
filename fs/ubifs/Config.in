@@ -49,6 +49,11 @@ config BR2_TARGET_ROOTFS_UBIFS_RT_LZO
 	help
 	  Use lzo compression at run-time.
 
+config BR2_TARGET_ROOTFS_UBIFS_RT_ZSTD
+	bool "zstd"
+	help
+	  Use zstd compression at run-time.
+
 endchoice
 
 choice

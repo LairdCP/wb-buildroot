@@ -15,6 +15,9 @@ endif
 ifeq ($(BR2_TARGET_ROOTFS_UBIFS_RT_LZO),y)
 UBIFS_OPTS += -x lzo
 endif
+ifeq ($(BR2_TARGET_ROOTFS_UBIFS_RT_ZSTD),y)
+UBIFS_OPTS += -x zstd
+endif
 ifeq ($(BR2_TARGET_ROOTFS_UBIFS_RT_NONE),y)
 UBIFS_OPTS += -x none
 endif
