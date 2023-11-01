@@ -1,9 +1,8 @@
-# From https://nodejs.org/dist/v16.20.0/SHASUMS256.txt.asc
-sha256  aca4794ca60f2e17689a700eeaa95d7adcd5fd01cdd2e4f9d596ac41b600b796  node-v16.20.0-linux-arm64.tar.xz
-sha256  5b79addab37bbdc31b442f8e648efad0b5d3aa5f3e0d682f23f4db483408eb2a  node-v16.20.0-linux-armv7l.tar.xz
-sha256  b439a8f874e8c2fad287ba75a3229407551f5ff9eb41e45e43e9bf67f184f618  node-v16.20.0-linux-ppc64le.tar.xz
-sha256  dff21020b555cc165a1ac36da7d4f6c810b35409c94e00afc51d5d370aae47ae  node-v16.20.0-linux-x64.tar.xz
-sha256  e0990f992234e40a51fe11f92c3816c93a77e1b081145d3dd762cd1026345349  node-v16.20.0.tar.xz
-
+# From https://nodejs.org/dist/v18.18.0/SHASUMS256.txt.asc
+sha256  e2931643cc3ee37375ae5c6dc2028ff526948a227d9fd5d481316240de6e58a5  node-v18.18.0-linux-arm64.tar.xz
+sha256  afcc9e01345243a19fbc05ce662b693568f31925679e8e0e7067d752296831f1  node-v18.18.0-linux-armv7l.tar.xz
+sha256  121204a93ac931146b3325a1748ae06d8b4d75db37566a792032e1c859bc8911  node-v18.18.0-linux-ppc64le.tar.xz
+sha256  3008408e9098f2462f7b1a0f6a48b8a46079beb1c92b6ec43b04713265c96978  node-v18.18.0-linux-x64.tar.xz
+sha256  e4d4dbac3634d99f892f00db47da78f98493c339582e8a95fb2dd59f5cfe0f90  node-v18.18.0.tar.xz
 # Locally calculated
-sha256  ba325815d3df8819bebaf37cad67d6e1f82271e1e4a1189b53abd28e261977d6  LICENSE
+sha256  a6871483905199033882d66453649675f0e88ffaa07f9f8acb257ce7504bc758  LICENSE

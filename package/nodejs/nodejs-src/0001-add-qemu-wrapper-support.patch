@@ -15,6 +15,7 @@ qemu-wrapper, so add @MAYBE_WRAPPER@ to the needed files and sed the path to
 the qemu-wrapper on target builds, and remove @MAYBE_WRAPPER@ entirely on
 host-builds.
 
+[Adam: Update for 18.18.0]
 Signed-off-by: Adam Duskett <aduskett@gmail.com>
 ---
  node.gyp                 |  4 ++--
@@ -25,16 +26,7 @@ diff --git a/node.gyp b/node.gyp
 index 97cdbb531d..db5cf51ce6 100644
 --- a/node.gyp
 +++ b/node.gyp
-@@ -319,7 +319,7 @@
-               'action_name': 'run_mkcodecache',
-               'process_outputs_as_sources': 1,
-               'inputs': [
--                '<(mkcodecache_exec)',
-+                @MAYBE_WRAPPER@ '<(mkcodecache_exec)',
-               ],
-               'outputs': [
-                 '<(SHARED_INTERMEDIATE_DIR)/node_code_cache.cc',
-@@ -346,7 +346,7 @@
+@@ -322,7 +322,7 @@
                    'action_name': 'node_mksnapshot',
                    'process_outputs_as_sources': 1,
                    'inputs': [
@@ -43,6 +35,15 @@ index 97cdbb531d..db5cf51ce6 100644
                      '<(node_snapshot_main)',
                    ],
                    'outputs': [
+@@ -342,7 +342,7 @@
+                   'action_name': 'node_mksnapshot',
+                   'process_outputs_as_sources': 1,
+                   'inputs': [
+-                    '<(node_mksnapshot_exec)',
++                    @MAYBE_WRAPPER@ '<(node_mksnapshot_exec)',
+                   ],
+                   'outputs': [
+                     '<(SHARED_INTERMEDIATE_DIR)/node_snapshot.cc',
 diff --git a/tools/v8_gypfiles/v8.gyp b/tools/v8_gypfiles/v8.gyp
 index 73099a03e4..88ca91efb4 100644
 --- a/tools/v8_gypfiles/v8.gyp
@@ -74,7 +75,7 @@ index 73099a03e4..88ca91efb4 100644
            ],
            'outputs': [
              '<(generate_bytecode_builtins_list_output)',
-@@ -395,7 +395,7 @@
+@@ -400,7 +400,7 @@
              ],
            },
            'inputs': [
@@ -83,7 +84,7 @@ index 73099a03e4..88ca91efb4 100644
            ],
            'outputs': [
              '<(INTERMEDIATE_DIR)/snapshot.cc',
-@@ -1505,7 +1505,7 @@
+@@ -1569,7 +1569,7 @@
          {
            'action_name': 'run_gen-regexp-special-case_action',
            'inputs': [
