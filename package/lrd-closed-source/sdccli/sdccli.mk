@@ -22,7 +22,7 @@ SDCCLI_MAKE_ENV += CC="$(TARGET_CC)" \
 
 define SDCCLI_BUILD_CMDS
     $(MAKE) -C $(@D) clean
-	$(SDCCLI_MAKE_ENV) $(MAKE) -C $(@D)
+	$(SDCCLI_MAKE_ENV) $(MAKE) -C $(@D) all
 endef
 
 ifeq ($(BR2_PACKAGE_SDCCLI_SMU_CLI),y)
