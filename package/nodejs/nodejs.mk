@@ -17,10 +17,10 @@ NODEJS_CPE_ID_PRODUCT = node.js
 NODEJS_BIN_ENV = $(TARGET_CONFIGURE_OPTS) \
 	LDFLAGS="$(NODEJS_LDFLAGS)" \
 	LD="$(TARGET_CXX)" \
-	npm_config_arch=$(NODEJS_CPU) \
-	npm_config_target_arch=$(NODEJS_CPU) \
+	npm_config_arch=$(NODEJS_BIN_ARCH) \
+	npm_config_target_arch=$(NODEJS_SRC_CPU) \
 	npm_config_build_from_source=true \
-	npm_config_nodedir=$(BUILD_DIR)/nodejs-$(NODEJS_VERSION) \
+	npm_config_nodedir=$(BUILD_DIR)/nodejs-src-$(NODEJS_BIN_VERSION) \
 	npm_config_prefix=$(TARGET_DIR)/usr \
 	npm_config_cache=$(BUILD_DIR)/.npm-cache
 
