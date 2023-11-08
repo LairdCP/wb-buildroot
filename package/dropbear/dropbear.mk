@@ -134,7 +134,7 @@ define DROPBEAR_INSTALL_TARGET_CMDS
 	for f in $(DROPBEAR_TARGET_BINS); do \
 		ln -snf ../sbin/dropbear $(TARGET_DIR)/usr/bin/$$f ; \
 	done
-	ln -snf /var/run/dropbear $(TARGET_DIR)/etc/dropbear
+	$(INSTALL) -d $(TARGET_DIR)/etc/dropbear
 endef
 
 $(eval $(autotools-package))
