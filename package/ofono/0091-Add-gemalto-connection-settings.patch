@@ -1,6 +1,6 @@
 diff -Naur a/drivers/gemaltomodem/gprs-context.c b/drivers/gemaltomodem/gprs-context.c
---- a/drivers/gemaltomodem/gprs-context.c	2021-05-05 09:06:20.000000000 +0000
-+++ b/drivers/gemaltomodem/gprs-context.c	2022-06-29 14:33:39.779062861 +0000
+--- a/drivers/gemaltomodem/gprs-context.c	2021-05-05 05:06:20.000000000 -0400
++++ b/drivers/gemaltomodem/gprs-context.c	2023-11-09 09:42:57.817025753 -0500
 @@ -28,6 +28,12 @@
  #include <stdio.h>
  #include <errno.h>
@@ -277,4 +277,12 @@ diff -Naur a/drivers/gemaltomodem/gprs-context.c b/drivers/gemaltomodem/gprs-con
 -		return;
  	}
  }
+ 
+@@ -271,7 +511,6 @@
+ 	if (g_at_chat_send(gcd->chat, buf, none_prefix, swwan_cb, gc, NULL)) {
+ 		set_gprs_context_interface(gc);
+ 
+-		CALLBACK_WITH_SUCCESS(gcd->cb, gcd->cb_data);
+ 		return;
+ 	}
  
