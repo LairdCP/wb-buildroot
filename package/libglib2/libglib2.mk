@@ -17,6 +17,12 @@ LIBGLIB2_INSTALL_STAGING = YES
 LIBGLIB2_CFLAGS = $(TARGET_CFLAGS)
 LIBGLIB2_LDFLAGS = $(TARGET_LDFLAGS) $(TARGET_NLS_LIBS)
 
+# 0010-Merge-branch-2121-2540-2794-2797-gvariant-normal-for.patch
+LIBGLIB2_IGNORE_CVES += CVE-2023-29499
+
+# 0011-Merge-branch-2840-2841-variant-more-fixes-into-main.patch
+LIBGLIB2_IGNORE_CVES += CVE-2023-32636 CVE-2023-32643
+
 # glib/valgrind.h contains inline asm not compatible with thumb1
 ifeq ($(BR2_ARM_INSTRUCTIONS_THUMB),y)
 LIBGLIB2_CFLAGS += -marm
