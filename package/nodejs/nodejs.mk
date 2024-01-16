@@ -27,7 +27,8 @@ NODEJS_BIN_ENV = $(TARGET_CONFIGURE_OPTS) \
 # Define various packaging tools for other packages to use
 NPM = $(NODEJS_BIN_ENV) $(HOST_DIR)/bin/npm
 ifeq ($(BR2_PACKAGE_HOST_NODEJS_COREPACK),y)
-COREPACK = $(NODEJS_BIN_ENV) $(HOST_DIR)/bin/corepack
+
+# Exclude prebuilt binaries with different architectures and OS from check
 PNPM = $(NODEJS_BIN_ENV) $(HOST_DIR)/bin/pnpm
 YARN = $(NODEJS_BIN_ENV) $(HOST_DIR)/bin/yarn
 endif
