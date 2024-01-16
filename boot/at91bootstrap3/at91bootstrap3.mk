@@ -58,7 +58,7 @@ define AT91BOOTSTRAP3_BUILD_CMDS
 endef
 
 define AT91BOOTSTRAP3_INSTALL_IMAGES_CMDS
-	cp -a $(@D)/binaries/*.bin* $(BINARIES_DIR)
+	cp -a $(wildcard $(@D)/build/binaries/*.bin $(@D)/binaries/*.bin*) $(BINARIES_DIR)
 endef
 
 ifeq ($(BR2_TARGET_AT91BOOTSTRAP3_USE_DEFCONFIG),y)
