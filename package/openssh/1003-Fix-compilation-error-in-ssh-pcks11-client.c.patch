@@ -1,0 +1,35 @@
+From 6b8be2ccd7dd091808f86af52066b0c2ec30483a Mon Sep 17 00:00:00 2001
+From: Rose <83477269+AtariDreams@users.noreply.github.com>
+Date: Tue, 19 Dec 2023 11:48:20 -0500
+Subject: [PATCH] Fix compilation error in ssh-pcks11-client.c
+
+Compilation fails becaus of an undefined reference to helper_by_ec,
+because we forgot the preprocessor conditional that excludes that function
+from being called in unsupported configurations.
+---
+ ssh-pkcs11-client.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/ssh-pkcs11-client.c b/ssh-pkcs11-client.c
+index 82e86a518..5fa8bf02b 100644
+--- a/ssh-pkcs11-client.c
++++ b/ssh-pkcs11-client.c
+@@ -457,6 +457,7 @@ pkcs11_make_cert(const struct sshkey *priv,
+ 		RSA_set_method(ret->rsa, helper->rsa_meth);
+ 		if (helper->nrsa++ >= INT_MAX)
+ 			fatal_f("RSA refcount error");
++#if defined(OPENSSL_HAS_ECC) && defined(HAVE_EC_KEY_METHOD_NEW)
+ 	} else if (priv->type == KEY_ECDSA) {
+ 		if ((helper = helper_by_ec(priv->ecdsa)) == NULL ||
+ 		    helper->fd == -1)
+@@ -466,6 +467,7 @@ pkcs11_make_cert(const struct sshkey *priv,
+ 		EC_KEY_set_method(ret->ecdsa, helper->ec_meth);
+ 		if (helper->nec++ >= INT_MAX)
+ 			fatal_f("EC refcount error");
++#endif
+ 	} else
+ 		fatal_f("unknown key type %s", sshkey_type(priv));
+ 
+-- 
+2.43.0
+

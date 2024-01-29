@@ -1,0 +1,35 @@
+From 01ba9bdc1fb6e5e8264e37d990d365f7e8d2374b Mon Sep 17 00:00:00 2001
+From: Boris Krasnovskiy <boris.krasnovskiy@lairdconnect.com>
+Date: Mon, 29 Jan 2024 10:53:29 -0500
+Subject: [PATCH 1/2] Revert "put back SSLeay_version compat in configure test"
+
+This reverts commit b7e27cfd7f163fc16b4c5d041cc28ee488a5eeec.
+---
+ configure.ac | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index acea84ca3..22f6e9bac 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -2825,16 +2825,7 @@ if test "x$openssl" = "xyes" ; then
+ 	#define DATA "conftest.ssllibver"
+ 		]], [[
+ 		FILE *f;
+-		/* We need these legacy bits to warn for old libcrypto */
+-		#ifndef OPENSSL_VERSION
+-		# define OPENSSL_VERSION SSLEAY_VERSION
+-		#endif
+-		#ifndef HAVE_OPENSSL_VERSION
+-		# define OpenSSL_version       SSLeay_version
+-		#endif
+-		#ifndef HAVE_OPENSSL_VERSION_NUM
+-		# define OpenSSL_version_num   SSLeay
+-		#endif
++
+ 		if ((f = fopen(DATA, "w")) == NULL)
+ 			exit(1);
+ 		if (fprintf(f, "%08lx (%s)",
+-- 
+2.43.0
+
