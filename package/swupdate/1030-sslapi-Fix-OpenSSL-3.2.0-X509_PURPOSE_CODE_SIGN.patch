@@ -1,0 +1,32 @@
+From e687e3967ef6abb4f3f49d47fedf93588bbcc662 Mon Sep 17 00:00:00 2001
+From: "Storm, Christian" <christian.storm@siemens.com>
+Date: Mon, 27 Nov 2023 12:04:38 +0000
+Subject: [PATCH] sslapi: Fix OpenSSL 3.2.0 X509_PURPOSE_CODE_SIGN
+
+OpenSSL 3.2.0 defines X509_PURPOSE_CODE_SIGN = 10.
+Define it only if not defined so to not end up with
+X509_PURPOSE_CODE_SIGN == 11 in SWUpdate as
+X509_PURPOSE_MAX has become 10 in OpenSSL 3.2.0.
+
+See: https://github.com/openssl/openssl/commit/178696d6020878361a088086243d56203e0beaa9
+
+Signed-off-by: Christian Storm <christian.storm@siemens.com>
+Reviewed-by: Stefano Babic <stefano.babic@swupdate.org>
+---
+ include/sslapi.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/sslapi.h b/include/sslapi.h
+index 9f5b061c..0dce615b 100644
+--- a/include/sslapi.h
++++ b/include/sslapi.h
+@@ -84,7 +84,9 @@ static inline uint32_t SSL_X509_get_extended_key_usage(X509 *x)
+ #define X509_PURPOSE_CODE_SIGN EXTKEYUSE_CODESIGN
+ #define SSL_PURPOSE_EMAIL_PROT EXTKEYUSE_EMAILPROT
+ #else
++#if !defined(X509_PURPOSE_CODE_SIGN)
+ #define X509_PURPOSE_CODE_SIGN (X509_PURPOSE_MAX + 1)
++#endif
+ #define SSL_PURPOSE_EMAIL_PROT X509_PURPOSE_SMIME_SIGN
+ #endif
+ #define SSL_PURPOSE_CODE_SIGN  X509_PURPOSE_CODE_SIGN
