@@ -55,6 +55,8 @@ endif
 ifeq ($(BR2_PACKAGE_GNUTLS),y)
 CUPS_CONF_OPTS += --with-tls=gnutls
 CUPS_DEPENDENCIES += gnutls
+else ifeq ($(BR2_PACKAGE_LAIRD_OPENSSL_FIPS_BINARIES),y)
+CUPS_CONF_OPTS += --with-tls=no
 else ifeq ($(BR2_PACKAGE_OPENSSL),y)
 CUPS_CONF_OPTS += --with-tls=openssl
 CUPS_DEPENDENCIES += openssl
