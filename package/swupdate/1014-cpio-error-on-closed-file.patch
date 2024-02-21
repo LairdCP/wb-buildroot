@@ -1,0 +1,11 @@
+--- a/core/cpio_utils.c
++++ b/core/cpio_utils.c
+@@ -73,7 +73,7 @@
+ 			return -EFAULT;
+ 		}
+ 		if (len == 0) {
+-			return 0;
++			return -EINVAL;
+ 		}
+ 		if (checksum)
+ 			for (i = 0; i < len; i++)
