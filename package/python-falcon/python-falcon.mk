@@ -13,3 +13,4 @@ PYTHON_FALCON_LICENSE_FILES = LICENSE
 PYTHON_FALCON_DEPENDENCIES += host-python-cython
 
 $(eval $(python-package))
+$(eval $(host-python-package))
