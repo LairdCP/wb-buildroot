@@ -14,3 +14,4 @@ PYTHON_DBUS_FAST_ENV = REQUIRE_CYTHON=1
 PYTHON_DBUS_FAST_DEPENDENCIES = host-python-cython
 
 $(eval $(python-package))
+$(eval $(host-python-package))
