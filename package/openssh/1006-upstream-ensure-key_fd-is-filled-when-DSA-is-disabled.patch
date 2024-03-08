@@ -1,0 +1,33 @@
+From f9311e8921d92c5efca767227a497ab63280ac39 Mon Sep 17 00:00:00 2001
+From: "djm@openbsd.org" <djm@openbsd.org>
+Date: Thu, 11 Jan 2024 01:51:16 +0000
+Subject: [PATCH] upstream: ensure key_fd is filled when DSA is disabled;
+ spotted by
+
+tb@
+
+OpenBSD-Commit-ID: 9dd417b6eec3cf67e870f147464a8d93f076dce7
+---
+ ssh-keysign.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/ssh-keysign.c b/ssh-keysign.c
+index 29bd65351fb..c54a4bbb798 100644
+--- a/ssh-keysign.c
++++ b/ssh-keysign.c
+@@ -1,4 +1,4 @@
+-/* $OpenBSD: ssh-keysign.c,v 1.72 2024/01/11 01:45:36 djm Exp $ */
++/* $OpenBSD: ssh-keysign.c,v 1.73 2024/01/11 01:51:16 djm Exp $ */
+ /*
+  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
+  *
+@@ -195,6 +195,9 @@ main(int argc, char **argv)
+ 	if (fd > 2)
+ 		close(fd);
+ 
++	for (i = 0; i < NUM_KEYTYPES; i++)
++		key_fd[i] = -1;
++
+ 	i = 0;
+ 	/* XXX This really needs to read sshd_config for the paths */
+ #ifdef WITH_DSA

@@ -1,0 +1,399 @@
+From 4e838120a759d187b036036610402cbda33f3203 Mon Sep 17 00:00:00 2001
+From: "djm@openbsd.org" <djm@openbsd.org>
+Date: Thu, 11 Jan 2024 01:45:36 +0000
+Subject: [PATCH] upstream: make DSA key support compile-time optional,
+ defaulting to
+
+on
+
+ok markus@
+
+OpenBSD-Commit-ID: 4f8e98fc1fd6de399d0921d5b31b3127a03f581d
+---
+ configure.ac  | 12 ++++++++++++
+ readconf.c    |  4 +++-
+ readconf.h    |  4 ++--
+ ssh-add.c     |  4 +++-
+ ssh-dss.c     |  7 ++++---
+ ssh-keygen.c  | 26 ++++++++++++++++++++++----
+ ssh-keyscan.c |  4 +++-
+ ssh-keysign.c |  4 +++-
+ ssh.c         |  6 +++++-
+ sshconnect.c  |  4 +++-
+ sshkey.c      | 10 +++++++++-
+ 11 files changed, 69 insertions(+), 16 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 379cd746b92..acea84ca3e9 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -2067,6 +2067,18 @@ AC_ARG_WITH([security-key-builtin],
+ 	[ enable_sk_internal=$withval ]
+ )
+ 
++disable_ecdsa=
++AC_ARG_ENABLE([dsa-keys],
++	[  --disable-dsa-keys      disable DSA key support [no]],
++	[
++		if test "x$enableval" = "xno" ; then
++			disable_ecdsa=1
++		fi
++	]
++)
++test -z "$disable_ecdsa" &&
++    AC_DEFINE([WITH_DSA], [1], [Define if to enable DSA keys.])
++
+ AC_SEARCH_LIBS([dlopen], [dl])
+ AC_CHECK_FUNCS([dlopen])
+ AC_CHECK_DECL([RTLD_NOW], [], [], [#include <dlfcn.h>])
+diff --git a/readconf.c b/readconf.c
+index a2282b562df..7b3754283ea 100644
+--- a/readconf.c
++++ b/readconf.c
+@@ -1,4 +1,4 @@
+-/* $OpenBSD: readconf.c,v 1.383 2023/10/12 02:18:18 djm Exp $ */
++/* $OpenBSD: readconf.c,v 1.384 2024/01/11 01:45:36 djm Exp $ */
+ /*
+  * Author: Tatu Ylonen <ylo@cs.hut.fi>
+  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
+@@ -2711,7 +2711,9 @@ fill_default_options(Options * options)
+ 		add_identity_file(options, "~/",
+ 		    _PATH_SSH_CLIENT_ID_ED25519_SK, 0);
+ 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_XMSS, 0);
++#ifdef WITH_DSA
+ 		add_identity_file(options, "~/", _PATH_SSH_CLIENT_ID_DSA, 0);
++#endif
+ 	}
+ 	if (options->escape_char == -1)
+ 		options->escape_char = '~';
+diff --git a/readconf.h b/readconf.h
+index ff7180cd0c6..b18536ab9c7 100644
+--- a/readconf.h
++++ b/readconf.h
+@@ -1,4 +1,4 @@
+-/* $OpenBSD: readconf.h,v 1.154 2023/10/12 02:18:18 djm Exp $ */
++/* $OpenBSD: readconf.h,v 1.155 2024/01/11 01:45:36 djm Exp $ */
+ 
+ /*
+  * Author: Tatu Ylonen <ylo@cs.hut.fi>
+@@ -87,7 +87,7 @@ typedef struct {
+ 	char   *sk_provider; /* Security key provider */
+ 	int	verify_host_key_dns;	/* Verify host key using DNS */
+ 
+-	int     num_identity_files;	/* Number of files for RSA/DSA identities. */
++	int     num_identity_files;	/* Number of files for identities. */
+ 	char   *identity_files[SSH_MAX_IDENTITY_FILES];
+ 	int    identity_file_userprovided[SSH_MAX_IDENTITY_FILES];
+ 	struct sshkey *identity_keys[SSH_MAX_IDENTITY_FILES];
+diff --git a/ssh-add.c b/ssh-add.c
+index 1ec6c89b03c..e532d5ce1f6 100644
+--- a/ssh-add.c
++++ b/ssh-add.c
+@@ -85,7 +85,9 @@ static char *default_files[] = {
+ 	_PATH_SSH_CLIENT_ID_ED25519,
+ 	_PATH_SSH_CLIENT_ID_ED25519_SK,
+ 	_PATH_SSH_CLIENT_ID_XMSS,
++#ifdef WITH_DSA
+ 	_PATH_SSH_CLIENT_ID_DSA,
++#endif
+ 	NULL
+ };
+ 
+diff --git a/ssh-dss.c b/ssh-dss.c
+index 3174ef146dc..aea661377f5 100644
+--- a/ssh-dss.c
++++ b/ssh-dss.c
+@@ -1,4 +1,4 @@
+-/* $OpenBSD: ssh-dss.c,v 1.49 2023/03/05 05:34:09 dtucker Exp $ */
++/* $OpenBSD: ssh-dss.c,v 1.50 2024/01/11 01:45:36 djm Exp $ */
+ /*
+  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
+  *
+@@ -25,7 +25,7 @@
+ 
+ #include "includes.h"
+ 
+-#ifdef WITH_OPENSSL
++#if defined(WITH_OPENSSL) && defined(WITH_DSA)
+ 
+ #include <sys/types.h>
+ 
+@@ -453,4 +453,5 @@ const struct sshkey_impl sshkey_dsa_cert_impl = {
+ 	/* .keybits = */	0,
+ 	/* .funcs = */		&sshkey_dss_funcs,
+ };
+-#endif /* WITH_OPENSSL */
++
++#endif /* WITH_OPENSSL && WITH_DSA */
+diff --git a/ssh-keygen.c b/ssh-keygen.c
+index 5b945a84920..97c6d134a16 100644
+--- a/ssh-keygen.c
++++ b/ssh-keygen.c
+@@ -1,4 +1,4 @@
+-/* $OpenBSD: ssh-keygen.c,v 1.471 2023/09/04 10:29:58 job Exp $ */
++/* $OpenBSD: ssh-keygen.c,v 1.472 2024/01/11 01:45:36 djm Exp $ */
+ /*
+  * Author: Tatu Ylonen <ylo@cs.hut.fi>
+  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
+@@ -262,10 +262,12 @@ ask_filename(struct passwd *pw, const char *prompt)
+ 		name = _PATH_SSH_CLIENT_ID_ED25519;
+ 	else {
+ 		switch (sshkey_type_from_name(key_type_name)) {
++#ifdef WITH_DSA
+ 		case KEY_DSA_CERT:
+ 		case KEY_DSA:
+ 			name = _PATH_SSH_CLIENT_ID_DSA;
+ 			break;
++#endif
+ #ifdef OPENSSL_HAS_ECC
+ 		case KEY_ECDSA_CERT:
+ 		case KEY_ECDSA:
+@@ -376,10 +378,12 @@ do_convert_to_pkcs8(struct sshkey *k)
+ 		if (!PEM_write_RSA_PUBKEY(stdout, k->rsa))
+ 			fatal("PEM_write_RSA_PUBKEY failed");
+ 		break;
++#ifdef WITH_DSA
+ 	case KEY_DSA:
+ 		if (!PEM_write_DSA_PUBKEY(stdout, k->dsa))
+ 			fatal("PEM_write_DSA_PUBKEY failed");
+ 		break;
++#endif
+ #ifdef OPENSSL_HAS_ECC
+ 	case KEY_ECDSA:
+ 		if (!PEM_write_EC_PUBKEY(stdout, k->ecdsa))
+@@ -400,10 +404,12 @@ do_convert_to_pem(struct sshkey *k)
+ 		if (!PEM_write_RSAPublicKey(stdout, k->rsa))
+ 			fatal("PEM_write_RSAPublicKey failed");
+ 		break;
++#ifdef WITH_DSA
+ 	case KEY_DSA:
+ 		if (!PEM_write_DSA_PUBKEY(stdout, k->dsa))
+ 			fatal("PEM_write_DSA_PUBKEY failed");
+ 		break;
++#endif
+ #ifdef OPENSSL_HAS_ECC
+ 	case KEY_ECDSA:
+ 		if (!PEM_write_EC_PUBKEY(stdout, k->ecdsa))
+@@ -478,8 +484,10 @@ do_convert_private_ssh2(struct sshbuf *b)
+ 	u_int magic, i1, i2, i3, i4;
+ 	size_t slen;
+ 	u_long e;
++#ifdef WITH_DSA
+ 	BIGNUM *dsa_p = NULL, *dsa_q = NULL, *dsa_g = NULL;
+ 	BIGNUM *dsa_pub_key = NULL, *dsa_priv_key = NULL;
++#endif
+ 	BIGNUM *rsa_n = NULL, *rsa_e = NULL, *rsa_d = NULL;
+ 	BIGNUM *rsa_p = NULL, *rsa_q = NULL, *rsa_iqmp = NULL;
+ 
+@@ -507,10 +515,12 @@ do_convert_private_ssh2(struct sshbuf *b)
+ 	}
+ 	free(cipher);
+ 
+-	if (strstr(type, "dsa")) {
+-		ktype = KEY_DSA;
+-	} else if (strstr(type, "rsa")) {
++	if (strstr(type, "rsa")) {
+ 		ktype = KEY_RSA;
++#ifdef WITH_DSA
++	} else if (strstr(type, "dsa")) {
++		ktype = KEY_DSA;
++#endif
+ 	} else {
+ 		free(type);
+ 		return NULL;
+@@ -520,6 +530,7 @@ do_convert_private_ssh2(struct sshbuf *b)
+ 	free(type);
+ 
+ 	switch (key->type) {
++#ifdef WITH_DSA
+ 	case KEY_DSA:
+ 		if ((dsa_p = BN_new()) == NULL ||
+ 		    (dsa_q = BN_new()) == NULL ||
+@@ -539,6 +550,7 @@ do_convert_private_ssh2(struct sshbuf *b)
+ 			fatal_f("DSA_set0_key failed");
+ 		dsa_pub_key = dsa_priv_key = NULL; /* transferred */
+ 		break;
++#endif
+ 	case KEY_RSA:
+ 		if ((r = sshbuf_get_u8(b, &e1)) != 0 ||
+ 		    (e1 < 30 && (r = sshbuf_get_u8(b, &e2)) != 0) ||
+@@ -702,12 +714,14 @@ do_convert_from_pkcs8(struct sshkey **k, int *private)
+ 		(*k)->type = KEY_RSA;
+ 		(*k)->rsa = EVP_PKEY_get1_RSA(pubkey);
+ 		break;
++#ifdef WITH_DSA
+ 	case EVP_PKEY_DSA:
+ 		if ((*k = sshkey_new(KEY_UNSPEC)) == NULL)
+ 			fatal("sshkey_new failed");
+ 		(*k)->type = KEY_DSA;
+ 		(*k)->dsa = EVP_PKEY_get1_DSA(pubkey);
+ 		break;
++#endif
+ #ifdef OPENSSL_HAS_ECC
+ 	case EVP_PKEY_EC:
+ 		if ((*k = sshkey_new(KEY_UNSPEC)) == NULL)
+@@ -777,10 +791,12 @@ do_convert_from(struct passwd *pw)
+ 			fprintf(stdout, "\n");
+ 	} else {
+ 		switch (k->type) {
++#ifdef WITH_DSA
+ 		case KEY_DSA:
+ 			ok = PEM_write_DSAPrivateKey(stdout, k->dsa, NULL,
+ 			    NULL, 0, NULL, NULL);
+ 			break;
++#endif
+ #ifdef OPENSSL_HAS_ECC
+ 		case KEY_ECDSA:
+ 			ok = PEM_write_ECPrivateKey(stdout, k->ecdsa, NULL,
+@@ -3752,9 +3768,11 @@ main(int argc, char **argv)
+ 			n += do_print_resource_record(pw,
+ 			    _PATH_HOST_RSA_KEY_FILE, rr_hostname,
+ 			    print_generic, opts, nopts);
++#ifdef WITH_DSA
+ 			n += do_print_resource_record(pw,
+ 			    _PATH_HOST_DSA_KEY_FILE, rr_hostname,
+ 			    print_generic, opts, nopts);
++#endif
+ 			n += do_print_resource_record(pw,
+ 			    _PATH_HOST_ECDSA_KEY_FILE, rr_hostname,
+ 			    print_generic, opts, nopts);
+diff --git a/ssh-keyscan.c b/ssh-keyscan.c
+index af0dc79b8cb..f2e6b59e38f 100644
+--- a/ssh-keyscan.c
++++ b/ssh-keyscan.c
+@@ -791,9 +791,11 @@ main(int argc, char **argv)
+ 				int type = sshkey_type_from_name(tname);
+ 
+ 				switch (type) {
++#ifdef WITH_DSA
+ 				case KEY_DSA:
+ 					get_keytypes |= KT_DSA;
+ 					break;
++#endif
+ 				case KEY_ECDSA:
+ 					get_keytypes |= KT_ECDSA;
+ 					break;
+diff --git a/ssh-keysign.c b/ssh-keysign.c
+index b989f5e941a..29bd65351fb 100644
+--- a/ssh-keysign.c
++++ b/ssh-keysign.c
+@@ -1,4 +1,4 @@
+-/* $OpenBSD: ssh-keysign.c,v 1.71 2022/08/01 11:09:26 djm Exp $ */
++/* $OpenBSD: ssh-keysign.c,v 1.72 2024/01/11 01:45:36 djm Exp $ */
+ /*
+  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
+  *
+@@ -197,7 +197,9 @@ main(int argc, char **argv)
+ 
+ 	i = 0;
+ 	/* XXX This really needs to read sshd_config for the paths */
++#ifdef WITH_DSA
+ 	key_fd[i++] = open(_PATH_HOST_DSA_KEY_FILE, O_RDONLY);
++#endif
+ 	key_fd[i++] = open(_PATH_HOST_ECDSA_KEY_FILE, O_RDONLY);
+ 	key_fd[i++] = open(_PATH_HOST_ED25519_KEY_FILE, O_RDONLY);
+ 	key_fd[i++] = open(_PATH_HOST_XMSS_KEY_FILE, O_RDONLY);
+diff --git a/ssh.c b/ssh.c
+index 48d93ddf2a9..0019281f4ad 100644
+--- a/ssh.c
++++ b/ssh.c
+@@ -1,4 +1,4 @@
+-/* $OpenBSD: ssh.c,v 1.599 2023/12/18 14:47:44 djm Exp $ */
++/* $OpenBSD: ssh.c,v 1.600 2024/01/11 01:45:36 djm Exp $ */
+ /*
+  * Author: Tatu Ylonen <ylo@cs.hut.fi>
+  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
+@@ -1687,11 +1687,15 @@ main(int ac, char **av)
+ 			L_CERT(_PATH_HOST_ECDSA_KEY_FILE, 0);
+ 			L_CERT(_PATH_HOST_ED25519_KEY_FILE, 1);
+ 			L_CERT(_PATH_HOST_RSA_KEY_FILE, 2);
++#ifdef WITH_DSA
+ 			L_CERT(_PATH_HOST_DSA_KEY_FILE, 3);
++#endif
+ 			L_PUBKEY(_PATH_HOST_ECDSA_KEY_FILE, 4);
+ 			L_PUBKEY(_PATH_HOST_ED25519_KEY_FILE, 5);
+ 			L_PUBKEY(_PATH_HOST_RSA_KEY_FILE, 6);
++#ifdef WITH_DSA
+ 			L_PUBKEY(_PATH_HOST_DSA_KEY_FILE, 7);
++#endif
+ 			L_CERT(_PATH_HOST_XMSS_KEY_FILE, 8);
+ 			L_PUBKEY(_PATH_HOST_XMSS_KEY_FILE, 9);
+ 			if (loaded == 0)
+diff --git a/sshconnect.c b/sshconnect.c
+index bd077c75c13..d8efc50ce39 100644
+--- a/sshconnect.c
++++ b/sshconnect.c
+@@ -1,4 +1,4 @@
+-/* $OpenBSD: sshconnect.c,v 1.365 2023/11/20 02:50:00 djm Exp $ */
++/* $OpenBSD: sshconnect.c,v 1.366 2024/01/11 01:45:36 djm Exp $ */
+ /*
+  * Author: Tatu Ylonen <ylo@cs.hut.fi>
+  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
+@@ -1595,7 +1595,9 @@ show_other_keys(struct hostkeys *hostkeys, struct sshkey *key)
+ {
+ 	int type[] = {
+ 		KEY_RSA,
++#ifdef WITH_DSA
+ 		KEY_DSA,
++#endif
+ 		KEY_ECDSA,
+ 		KEY_ED25519,
+ 		KEY_XMSS,
+diff --git a/sshkey.c b/sshkey.c
+index 0705674b803..d4356e72cd6 100644
+--- a/sshkey.c
++++ b/sshkey.c
+@@ -121,8 +121,10 @@ extern const struct sshkey_impl sshkey_rsa_sha256_impl;
+ extern const struct sshkey_impl sshkey_rsa_sha256_cert_impl;
+ extern const struct sshkey_impl sshkey_rsa_sha512_impl;
+ extern const struct sshkey_impl sshkey_rsa_sha512_cert_impl;
++# ifdef WITH_DSA
+ extern const struct sshkey_impl sshkey_dss_impl;
+ extern const struct sshkey_impl sshkey_dsa_cert_impl;
++# endif
+ #endif /* WITH_OPENSSL */
+ #ifdef WITH_XMSS
+ extern const struct sshkey_impl sshkey_xmss_impl;
+@@ -152,8 +154,10 @@ const struct sshkey_impl * const keyimpls[] = {
+ 	&sshkey_ecdsa_sk_webauthn_impl,
+ #  endif /* ENABLE_SK */
+ # endif /* OPENSSL_HAS_ECC */
++# ifdef WITH_DSA
+ 	&sshkey_dss_impl,
+ 	&sshkey_dsa_cert_impl,
++# endif
+ 	&sshkey_rsa_impl,
+ 	&sshkey_rsa_cert_impl,
+ 	&sshkey_rsa_sha256_impl,
+@@ -3230,6 +3234,7 @@ sshkey_private_to_blob_pem_pkcs8(struct sshkey *key, struct sshbuf *buf,
+ 		goto out;
+ 
+ 	switch (key->type) {
++#ifdef WITH_DSA
+ 	case KEY_DSA:
+ 		if (format == SSHKEY_PRIVATE_PEM) {
+ 			success = PEM_write_bio_DSAPrivateKey(bio, key->dsa,
+@@ -3238,6 +3243,7 @@ sshkey_private_to_blob_pem_pkcs8(struct sshkey *key, struct sshbuf *buf,
+ 			success = EVP_PKEY_set1_DSA(pkey, key->dsa);
+ 		}
+ 		break;
++#endif
+ #ifdef OPENSSL_HAS_ECC
+ 	case KEY_ECDSA:
+ 		if (format == SSHKEY_PRIVATE_PEM) {
+@@ -3466,6 +3472,7 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
+ 		}
+ 		if ((r = sshkey_check_rsa_length(prv, 0)) != 0)
+ 			goto out;
++#ifdef WITH_DSA
+ 	} else if (EVP_PKEY_base_id(pk) == EVP_PKEY_DSA &&
+ 	    (type == KEY_UNSPEC || type == KEY_DSA)) {
+ 		if ((prv = sshkey_new(KEY_UNSPEC)) == NULL) {
+@@ -3477,6 +3484,7 @@ sshkey_parse_private_pem_fileblob(struct sshbuf *blob, int type,
+ #ifdef DEBUG_PK
+ 		DSA_print_fp(stderr, prv->dsa, 8);
+ #endif
++#endif
+ #ifdef OPENSSL_HAS_ECC
+ 	} else if (EVP_PKEY_base_id(pk) == EVP_PKEY_EC &&
+ 	    (type == KEY_UNSPEC || type == KEY_ECDSA)) {
